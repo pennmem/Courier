@@ -376,7 +376,7 @@ public class DeliveryExperiment : CoroutineExperiment
                 random_store_index = Random.Range(0, unvisitedStores.Count);
                 nextStore = unvisitedStores[random_store_index];
             }
-            while (nextStore.IsVisible() && tries < 17); // 17 is number of stores?
+            while (nextStore.IsVisible() && tries < 17);
 
             unvisitedStores.RemoveAt(random_store_index);
 

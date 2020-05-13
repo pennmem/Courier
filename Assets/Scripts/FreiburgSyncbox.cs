@@ -14,8 +14,8 @@ public class FreiburgSyncbox : EventLoop {
     private const int FREIBURG_SYNCBOX_ENDPOINT = 2;
     private const int FREIBURG_SYNCBOX_INTERFACE_NUMBER = 0;
 
-    private const float TIME_BETWEEN_PULSES_MIN = 0.8f;
-    private const float TIME_BETWEEN_PULSES_MAX = 1.2f;
+    private const int TIME_BETWEEN_PULSES_MIN = 800;
+    private const int TIME_BETWEEN_PULSES_MAX = 1200;
 
     private MonoLibUsb.MonoUsbSessionHandle sessionHandle = new MonoUsbSessionHandle();
     private MonoLibUsb.Profile.MonoUsbProfileList profileList = null;
@@ -23,6 +23,7 @@ public class FreiburgSyncbox : EventLoop {
     private MonoLibUsb.MonoUsbDeviceHandle freiburgSyncboxDeviceHandle = null;
 
     private bool stopped = false;
+
     private System.Random rnd;
 
     public FreiburgSyncbox(ScriptedEventReporter reporter = null) {
@@ -36,11 +37,14 @@ public class FreiburgSyncbox : EventLoop {
             rnd = new System.Random();
             StopPulse();
             StartLoop();
+
+            Debug.Log("Successful Init");
+
             return true;
         }
-        else {
-            return false;
-        }
+
+        Debug.Log("Failed Init");
+        return false;
 	}
 
     public void TestPulse() {
@@ -52,6 +56,9 @@ public class FreiburgSyncbox : EventLoop {
 
     private bool BeginFreiburgSyncSession()
     {
+        // FIXME
+        return true;
+
         if (sessionHandle.IsInvalid)
             // throw new ExternalException("Failed to initialize context.");
             return false;
@@ -102,14 +109,20 @@ public class FreiburgSyncbox : EventLoop {
     }
 
     public void StartPulse() {
+        Debug.Log("Reached Start Pulse");
         if (!IsRunning())
         {
             stopped = false;
-            DoIn(new EventBase(Pulse), (int)TIME_BETWEEN_PULSES_MIN * 1000);
+            DoIn(new EventBase(Pulse), TIME_BETWEEN_PULSES_MIN);
+        }
+        else {
+            // try again until we're not running
+            DoIn(new EventBase(StartPulse), 4000);
         }
     }
 
     public void StopPulse() {
+        StopTimers();
         stopped = true;
     }
 
@@ -120,13 +133,21 @@ public class FreiburgSyncbox : EventLoop {
     private void Pulse() {
         if(!stopped)
         {
-            LogPulse();
+            Debug.Log("Pew!");
+
+            int timeBetweenPulses = (int)(TIME_BETWEEN_PULSES_MIN + (int)(rnd.NextDouble() * (TIME_BETWEEN_PULSES_MAX - TIME_BETWEEN_PULSES_MIN)));
+            DoIn(new EventBase(Pulse), timeBetweenPulses);
+            return;
 
             int claimInterfaceResult = MonoUsbApi.ClaimInterface(freiburgSyncboxDeviceHandle, FREIBURG_SYNCBOX_INTERFACE_NUMBER);
+            Debug.Log("Claimed Interface");
             int actual_length;
             int bulkTransferResult = MonoUsbApi.BulkTransfer(freiburgSyncboxDeviceHandle, FREIBURG_SYNCBOX_ENDPOINT, byte.MinValue, FREIBURG_SYNCBOX_PIN_COUNT / 8, out actual_length, FREIBURG_SYNCBOX_TIMEOUT_MS);
-            if (bulkTransferResult == 0)
+
+            if (bulkTransferResult == 0) {
                 LogPulse();
+            }
+
             Debug.Log("Sync pulse. " + actual_length.ToString() + " byte(s) written.");
 
             MonoUsbApi.ReleaseInterface(freiburgSyncboxDeviceHandle, FREIBURG_SYNCBOX_INTERFACE_NUMBER);
@@ -137,9 +158,11 @@ public class FreiburgSyncbox : EventLoop {
                 BeginFreiburgSyncSession();
             }
 
-            // Wait a random interval between min and max
-            int timeBetweenPulses = (int)(TIME_BETWEEN_PULSES_MIN + (int)(rnd.NextDouble() * (TIME_BETWEEN_PULSES_MAX - TIME_BETWEEN_PULSES_MIN)));
-            DoIn(new EventBase(Pulse), timeBetweenPulses);
+            // // Wait a random interval between min and max
+            // int timeBetweenPulses = (int)(TIME_BETWEEN_PULSES_MIN + (int)(rnd.NextDouble() * (TIME_BETWEEN_PULSES_MAX - TIME_BETWEEN_PULSES_MIN)));
+            // Debug.Log("&&&&****");
+            // Debug.Log(timeBetweenPulses);
+            // DoIn(new EventBase(Pulse), timeBetweenPulses);
 		}
     }
 

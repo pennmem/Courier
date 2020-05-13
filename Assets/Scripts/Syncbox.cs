@@ -28,17 +28,17 @@ public class Syncbox : MonoBehaviour
 
         try{
             if(!freiburgSync.Init()) {
+                Debug.Log("Invalid Handle");
                 freiburgSync = null;
             }
         }
         catch {
-            Debug.Log("Failed opening freiburg sync");
+            Debug.Log("Failed opening Freiburg sync");
         }
     }
 
     public void StartPulse() {
         Debug.Log("Starting Pulses");
-        Debug.Log(upennSync);
         upennSync?.StartPulse();
         freiburgSync?.StartPulse();
     }

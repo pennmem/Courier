@@ -33,7 +33,9 @@ public class UPennSyncbox : EventLoop {
 
     public bool Init() {
         IntPtr ptr = OpenUSB();
-        if(Marshal.PtrToStringAuto(OpenUSB() == "opened USB!")) {
+
+        // TODO: update plugin to improve this check
+        if(Marshal.PtrToStringAuto(ptr) != "didn't open USB...") {
             rnd = new System.Random();
             StopPulse();
             StartLoop();
@@ -88,6 +90,7 @@ public class UPennSyncbox : EventLoop {
 	}
 
     public void StopPulse() {
+        StopTimers();
         stopped = true;
     }
 

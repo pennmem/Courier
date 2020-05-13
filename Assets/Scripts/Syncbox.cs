@@ -26,7 +26,7 @@ public class Syncbox : MonoBehaviour
             Debug.Log("Failed opening Upenn Sync");
         }
 
-        try{
+        try {
             if(!freiburgSync.Init()) {
                 Debug.Log("Invalid Handle");
                 freiburgSync = null;

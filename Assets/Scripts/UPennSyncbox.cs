@@ -60,16 +60,9 @@ public class UPennSyncbox : EventLoop {
     }
 
     public void StartPulse() {
-        Debug.Log("Reached Start Pulse");
-        if (!IsRunning())
-        {
-            stopped = false;
-            DoIn(new EventBase(Pulse), PULSE_START_DELAY);
-        }
-        else {
-            // try again until we're not running
-            DoIn(new EventBase(StartPulse), 4000);
-        }
+        StopPulse();
+        stopped = false;
+        DoIn(new EventBase(Pulse), PULSE_START_DELAY);
     }
 
 	private void Pulse ()

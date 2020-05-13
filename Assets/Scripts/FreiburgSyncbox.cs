@@ -26,14 +26,16 @@ public class FreiburgSyncbox : EventLoop {
 
     private System.Random rnd;
 
-    public FreiburgSyncbox(ScriptedEventReporter reporter = null) {
+    public FreiburgSyncbox(ScriptedEventReporter reporter = null)
+    {
         scriptedEventReporter = reporter;
     }
 
 	// Use this for initialization
 	public bool Init ()
 	{
-        if(BeginFreiburgSyncSession()) {
+        if(BeginFreiburgSyncSession())
+        {
             rnd = new System.Random();
             StopPulse();
             StartLoop();
@@ -48,7 +50,8 @@ public class FreiburgSyncbox : EventLoop {
 	}
 
     public void TestPulse() {
-        if(!IsRunning()) {
+        if(!IsRunning())
+        {
             Do(new EventBase(StartPulse));
             DoIn(new EventBase(StopPulse), 5000);
         }
@@ -56,12 +59,12 @@ public class FreiburgSyncbox : EventLoop {
 
     private bool BeginFreiburgSyncSession()
     {
-        // FIXME
-        return true;
-
         if (sessionHandle.IsInvalid)
+        {
             // throw new ExternalException("Failed to initialize context.");
+            Debug.Log("Failed to initialize context.");
             return false;
+        }
 
         MonoUsbApi.SetDebug(sessionHandle, 0);
 
@@ -71,7 +74,15 @@ public class FreiburgSyncbox : EventLoop {
         // Each time refresh is called the list contents are updated. 
         int profileListRefreshResult;
         profileListRefreshResult = profileList.Refresh(sessionHandle);
-        if (profileListRefreshResult < 0) throw new ExternalException("Failed to retrieve device list.");
+
+
+        if (profileListRefreshResult < 0)
+        {
+            // throw new ExternalException("Failed to retrieve device list.");
+            Debug.Log("Failed to retrieve device list.");
+            return false;
+        }
+
         Debug.Log(profileListRefreshResult.ToString() + " device(s) found.");
 
         // Iterate through the profile list.
@@ -85,15 +96,21 @@ public class FreiburgSyncbox : EventLoop {
         }
 
         if (freiburgSyncboxProfile == null)
+        {
             // throw new ExternalException("None of the connected USB devices were identified as a Freiburg syncbox.");
+            Debug.Log("None of the connected USB devices were identified as a Freiburg syncbox.");
             return false;
+        }
 
         freiburgSyncboxDeviceHandle = new MonoUsbDeviceHandle(freiburgSyncboxProfile.ProfileHandle);
         freiburgSyncboxDeviceHandle = freiburgSyncboxProfile.OpenDeviceHandle();
        
         if (freiburgSyncboxDeviceHandle == null)
+        {
             // throw new ExternalException("The ftd USB device was found but couldn't be opened");
+            Debug.Log("The ftd USB device was found but couldn't be opened");
             return false;
+        }
 
         // StartCoroutine(FreiburgPulse());
         return true;
@@ -109,16 +126,9 @@ public class FreiburgSyncbox : EventLoop {
     }
 
     public void StartPulse() {
-        Debug.Log("Reached Start Pulse");
-        if (!IsRunning())
-        {
-            stopped = false;
-            DoIn(new EventBase(Pulse), TIME_BETWEEN_PULSES_MIN);
-        }
-        else {
-            // try again until we're not running
-            DoIn(new EventBase(StartPulse), 4000);
-        }
+        StopPulse();
+        stopped = false;
+        DoIn(new EventBase(Pulse), TIME_BETWEEN_PULSES_MIN);
     }
 
     public void StopPulse() {
@@ -134,10 +144,6 @@ public class FreiburgSyncbox : EventLoop {
         if(!stopped)
         {
             Debug.Log("Pew!");
-
-            int timeBetweenPulses = (int)(TIME_BETWEEN_PULSES_MIN + (int)(rnd.NextDouble() * (TIME_BETWEEN_PULSES_MAX - TIME_BETWEEN_PULSES_MIN)));
-            DoIn(new EventBase(Pulse), timeBetweenPulses);
-            return;
 
             int claimInterfaceResult = MonoUsbApi.ClaimInterface(freiburgSyncboxDeviceHandle, FREIBURG_SYNCBOX_INTERFACE_NUMBER);
             Debug.Log("Claimed Interface");
@@ -158,11 +164,10 @@ public class FreiburgSyncbox : EventLoop {
                 BeginFreiburgSyncSession();
             }
 
-            // // Wait a random interval between min and max
-            // int timeBetweenPulses = (int)(TIME_BETWEEN_PULSES_MIN + (int)(rnd.NextDouble() * (TIME_BETWEEN_PULSES_MAX - TIME_BETWEEN_PULSES_MIN)));
-            // Debug.Log("&&&&****");
-            // Debug.Log(timeBetweenPulses);
-            // DoIn(new EventBase(Pulse), timeBetweenPulses);
+            // Wait a random interval between min and max
+            int timeBetweenPulses = (int)(TIME_BETWEEN_PULSES_MIN + (int)(rnd.NextDouble() * (TIME_BETWEEN_PULSES_MAX - TIME_BETWEEN_PULSES_MIN)));
+            Debug.Log("Queued next Pulse");
+            DoIn(new EventBase(Pulse), timeBetweenPulses);
 		}
     }
 
@@ -174,5 +179,7 @@ public class FreiburgSyncbox : EventLoop {
 
     public void OnDisable() {
         EndFreiburgSyncSession();
+        StopPulse();
+        StopLoop();
     }
 }

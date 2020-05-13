@@ -110,6 +110,19 @@ public class EventQueue  {
         }
     }
 
+    public void StopTimers() {
+        RepeatingEvent re;
+        foreach(int i in repeatingEvents.Keys) {
+            if(repeatingEvents.TryGetValue(i, out re)) {
+                re.flag.Set();
+                re.timer.Dispose();
+                repeatingEvents.TryRemove(i, out re);
+            }
+        }
+
+        repeatingEvents = new ConcurrentDictionary<int, RepeatingEvent>();
+    }
+
     private void CleanRepeatingEvents() {
         RepeatingEvent re;
         foreach(int i in repeatingEvents.Keys) {

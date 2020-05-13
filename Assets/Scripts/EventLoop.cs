@@ -24,19 +24,6 @@ public class EventLoop : EventQueue {
         StopTimers();
     }
 
-    public void StopTimers() {
-        RepeatingEvent re;
-        foreach(int i in repeatingEvents.Keys) {
-            if(repeatingEvents.TryGetValue(i, out re)) {
-                re.flag.Set();
-                re.timer.Dispose();
-                repeatingEvents.TryRemove(i, out re);
-            }
-        }
-
-        base.repeatingEvents = new ConcurrentDictionary<int, RepeatingEvent>();
-    }
-
     public void Loop() {
         wait.Reset();
         while(Running()) {

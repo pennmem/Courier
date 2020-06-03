@@ -1,13 +1,12 @@
-# DeliveryBoy
-Unity remake of Delivery Boy Task
+# Courier
+Continuing development fork of the Unity remake of Delivery Boy Task
 
 Hints about editing this repo:
 The "MainMenu" scene is responsible for calling DeliveryExperiment.ConfigureExperiment, and then loading the MainGame scene.  In the MainGame scene, just look at DeliveryExperiment.Start which launches the coroutine that controls the entire flow of the experiment.
 
-NOTE:
-Town Constructor 3/Textures was liscensed from PurpleJump and is too big for github.  Please visit our private UPenn box to access it if you are a member of the team. (system_3_installers/delivery person)
-
 Following are some examples of steps to accomplish various things in DBoy.  As you can see, some things are easier than others.
+
+NOTE: these instructions will be changing in coming versions
 
 Steps to add a new store to DBoy:
 First, create an object to represent the store:

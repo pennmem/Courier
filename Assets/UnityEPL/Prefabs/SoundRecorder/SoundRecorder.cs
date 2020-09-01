@@ -39,7 +39,7 @@ public class SoundRecorder : MonoBehaviour
         isRecording = true;
     }
 
-    public void StopRecording()
+    public AudioClip StopRecording()
     {
         if (!isRecording)
         {
@@ -75,17 +75,7 @@ public class SoundRecorder : MonoBehaviour
 
         croppedClip.SetData(saveData, 0);
         SavWav.Save(nextOutputPath, croppedClip);
-    }
-
-    public AudioClip AudioClipFromDatapath(string datapath)
-    {
-        string url = "file:///" + datapath;
-        WWW audioFile = new WWW(url);
-        while(!audioFile.isDone)
-        {
-            
-        }
-        return audioFile.GetAudioClip();
+        return croppedClip;
     }
 
 	void OnApplicationQuit()

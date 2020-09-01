@@ -32,7 +32,7 @@ public class FreiburgSyncbox : EventLoop {
     }
 
 	// Use this for initialization
-	public bool Init ()
+	public bool Init()
 	{
         if(BeginFreiburgSyncSession())
         {

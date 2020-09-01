@@ -41,10 +41,15 @@ public class PostHocViewReport : MonoBehaviour {
         UnityEPL.viewCheck = true;
         SceneManager.sceneLoaded += onSceneLoaded;
 
+        Debug.Log(System.IO.Path.Combine(UnityEPL.GetDataPath(), "session.jsonl"));
         string path = System.IO.Path.Combine(UnityEPL.GetDataPath(), "session.jsonl");
         destlog = System.IO.Path.Combine(UnityEPL.GetDataPath(), "viewlog.jsonl");
 
         boxes = SearchGameObjects(ObjectsToOmit); 
+
+        if(System.IO.File.Exists(destlog) || !System.IO.File.Exists(path)) {
+            yield break;
+        }
 
         List<JObject> log = ReadLog(path);
         Vector3 pos;
@@ -60,22 +65,21 @@ public class PostHocViewReport : MonoBehaviour {
                 if(!storesMapped) {
                     continue;
                 }
-                if(!System.IO.File.Exists(destlog) && System.IO.File.Exists(path)) {
-                    success = ReadLogLine(line, out pos, out rot);
-                    player.transform.position = pos;
-                    player.transform.rotation = rot;
-                    Physics.SyncTransforms();
+                success = ReadLogLine(line, out pos, out rot);
+                player.transform.position = pos;
+                player.transform.rotation = rot;
+                Debug.Log("moved player");
+                Physics.SyncTransforms();
 
-                    int hits;
-                    foreach(string k in boxes.Keys) {
-                        if(ObjectsToOmit.Contains(k)) {
-                            continue;
-                        }
-
-                        hits = 0;
-                        hits = Raycast(boxes[k]); // tiny optimization could be made if rays hit other logged objects
-                        WriteViewLine(line, k, hits);
+                int hits;
+                foreach(string k in boxes.Keys) {
+                    if(ObjectsToOmit.Contains(k)) {
+                        continue;
                     }
+
+                    hits = 0;
+                    hits = Raycast(boxes[k]); // tiny optimization could be made if rays hit other logged objects
+                    WriteViewLine(line, k, hits);
                 }
 
                 if(slideshow && prevTime > 0) {

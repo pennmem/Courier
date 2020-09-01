@@ -37,14 +37,11 @@ public class EventLoop : EventQueue {
         wait.Dispose();
     }
     public override void Do(IEventBase thisEvent) {
+        base.Do(thisEvent);
         if(Running()) {
-            base.Do(thisEvent);
             wait.Set();
-        } else {
-            throw new Exception("Can't enqueue an event to a non running Loop");
         }
     }
-
 
     // enqueues repeating event at set intervals. If timer isn't
     // stopped, stopping processing thread will still stop execution

@@ -46,7 +46,7 @@ public class EventQueue  {
             }
         }
         else {
-            throw new Exception("Can't enqueue to non running Queue");
+            throw new Exception("Can't add timed event to non running Queue");
         }
     }
 

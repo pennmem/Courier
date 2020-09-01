@@ -7,6 +7,7 @@ public class BeginExperiment : MonoBehaviour
 {
     public UnityEngine.GameObject greyedOutButton;
     public UnityEngine.GameObject beginExperimentButton;
+    public UnityEngine.GameObject loadingButton;
     public UnityEngine.GameObject finishedButton;
     public UnityEngine.GameObject languageMismatchButton;
     public UnityEngine.UI.InputField participantCodeInput;
@@ -47,12 +48,9 @@ public class BeginExperiment : MonoBehaviour
         if (IsValidParticipantName(participantCodeInput.text))
         {
             UnityEPL.ClearParticipants();
-            UnityEPL.AddParticipant(participantCodeInput.text);
-            UnityEPL.SetExperimentName("DBOY1");
             beginExperimentButton.SetActive(true);
             greyedOutButton.SetActive(false);
             int nextSessionNumber = NextSessionNumber();
-            UnityEPL.SetSessionNumber(NextSessionNumber());
             sessionInput.text = nextSessionNumber.ToString();
             beginButtonText.text = LanguageSource.GetLanguageString("begin session") + " " + nextSessionNumber.ToString();
         }
@@ -104,11 +102,21 @@ public class BeginExperiment : MonoBehaviour
 
     public void DoBeginExperiment()
     {
-        if (!IsValidParticipantName(participantCodeInput.text))
+        if (!IsValidParticipantName(participantCodeInput.text)) {
+            loadingButton.SetActive(false);
+            greyedOutButton.SetActive(true);
+            beginExperimentButton.SetActive(false);
+
             throw new UnityException("You are trying to start the experiment with an invalid participant name!");
+        }
+
+        UnityEPL.SetSessionNumber(NextSessionNumber());
+        UnityEPL.AddParticipant(participantCodeInput.text);
+        UnityEPL.SetExperimentName("DBOY1");
 
         LockLanguage();
-        DeliveryExperiment.ConfigureExperiment(useRamulatorToggle.isOn, NextSessionNumber(), participantCodeInput.text);
+        DeliveryExperiment.ConfigureExperiment( useRamulatorToggle.isOn, NextSessionNumber(), participantCodeInput.text);
+        Debug.Log(useRamulatorToggle.isOn);
         SceneManager.LoadScene(scene_name);
     }
 
@@ -129,13 +137,22 @@ public class BeginExperiment : MonoBehaviour
 
     private bool IsValidParticipantName(string name)
     {
-        bool isTest = name.Equals("TEST");
-        if (isTest)
-            return true;
-        if (name.Length != 6)
+
+        if (name.Length < 1) {
             return false;
-        bool isValidRAMName = name[0].Equals('R') && name[1].Equals('1') && char.IsDigit(name[2]) && char.IsDigit(name[3]) && char.IsDigit(name[4]) && char.IsUpper(name[5]);
-        bool isValidSCALPName = char.IsUpper(name[0]) && char.IsUpper(name[1]) && char.IsUpper(name[2]) && char.IsDigit(name[3]) && char.IsDigit(name[4]) && char.IsDigit(name[5]);
-        return isValidRAMName || isValidSCALPName;
+        }
+        return true;
+
+        // bool isTest = name.Equals("TEST");
+        // if (isTest)
+        //     return true;
+
+        // if (name.Length != 6)
+        //     return false;
+
+        // bool isValidRAMName = name[0].Equals('R') && name[1].Equals('1') && char.IsDigit(name[2]) && char.IsDigit(name[3]) && char.IsDigit(name[4]) && char.IsUpper(name[5]);
+        // bool isValidSCALPName = char.IsUpper(name[0]) && char.IsUpper(name[1]) && char.IsUpper(name[2]) && char.IsDigit(name[3]) && char.IsDigit(name[4]) && char.IsDigit(name[5]);
+        // Debug.Log(isValidSCALPName);
+        // return isValidRAMName || isValidSCALPName;
     }
 }

@@ -52,12 +52,11 @@ public abstract class CoroutineExperiment : MonoBehaviour
             soundRecorder.StartRecording(wavFilePath);
             yield return new WaitForSeconds(MICROPHONE_TEST_LENGTH);
 
-            soundRecorder.StopRecording();
+            audioPlayback.clip = soundRecorder.StopRecording();
 
             textDisplayer.DisplayText("microphone test playing", playing);
             textDisplayer.ChangeColor(Color.green);
 
-            audioPlayback.clip = soundRecorder.AudioClipFromDatapath(wavFilePath);
             audioPlayback.Play();
             yield return new WaitForSeconds(MICROPHONE_TEST_LENGTH);
             textDisplayer.ClearText();
@@ -126,9 +125,11 @@ public abstract class CoroutineExperiment : MonoBehaviour
     {
         SetRamulatorState("WAITING", true, new Dictionary<string, object>());
         yield return null;
+
         textDisplayer.DisplayText("press any key prompt", displayText);
         while (!Input.anyKeyDown)
             yield return null;
+
         textDisplayer.ClearText();
         SetRamulatorState("WAITING", false, new Dictionary<string, object>());
     }

@@ -17,7 +17,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private static int sessionNumber = -1;
     private static bool useRamulator;
 
-    private const string DBOY_VERSION = "v4.1";
+    private const string DBOY_VERSION = "v4.1.2";
     private const string RECALL_TEXT = "*******";
     private const int DELIVERIES_PER_TRIAL = 13;
     private const float MIN_FAMILIARIZATION_ISI = 0.4f;

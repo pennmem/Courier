@@ -37,9 +37,6 @@ public class NiclsInterface : MonoBehaviour
     //SetState calls
     public IEnumerator BeginNewSession(int sessionNumber)
     {
-        yield return new WaitForSeconds(2);
-        yield break;
-
         //Connect to nicls///////////////////////////////////////////////////////////////////
         zmqSocket = new NetMQ.Sockets.PairSocket();
         zmqSocket.Bind(address);

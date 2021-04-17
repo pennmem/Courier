@@ -22,7 +22,7 @@ public class NiclsInterface : MonoBehaviour
     private int unreceivedHeartbeats = 0;
 
     private NetMQ.Sockets.PairSocket zmqSocket;
-    private const string address = "tcp://*:8889";
+    private const string address = "tcp://*:8890";
 
     void OnApplicationQuit()
     {
@@ -30,12 +30,6 @@ public class NiclsInterface : MonoBehaviour
             zmqSocket.Close();
             NetMQConfig.Cleanup();
         }
-    }
-
-    public IEnumerator Test()
-    {
-        yield return null;
-        yield return null;
     }
 
     //this coroutine connects to NICLS and communicates how NICLS expects it to

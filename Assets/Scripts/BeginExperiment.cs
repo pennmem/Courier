@@ -115,7 +115,8 @@ public class BeginExperiment : MonoBehaviour
         UnityEPL.SetExperimentName("DBOY1");
 
         LockLanguage();
-        DeliveryExperiment.ConfigureExperiment( useRamulatorToggle.isOn, NextSessionNumber(), participantCodeInput.text);
+        // JPB: TODO: Change true to useNcislToggle
+        DeliveryExperiment.ConfigureExperiment(useRamulatorToggle.isOn, true, NextSessionNumber(), participantCodeInput.text);
         Debug.Log(useRamulatorToggle.isOn);
         SceneManager.LoadScene(scene_name);
     }

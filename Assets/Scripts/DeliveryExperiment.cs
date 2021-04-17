@@ -16,6 +16,10 @@ public class DeliveryExperiment : CoroutineExperiment
 
     private static int sessionNumber = -1;
     private static bool useRamulator;
+    private static bool useNicls;
+
+    // JPB: TODO: Make this a configuration variable
+    private static bool standaloneTesting = true; // JPB: TODO: Change to false
 
     private const string DBOY_VERSION = "v4.2.0";
     private const string RECALL_TEXT = "*******";
@@ -45,6 +49,7 @@ public class DeliveryExperiment : CoroutineExperiment
     public Familiarizer familiarizer;
     public MessageImageDisplayer messageImageDisplayer;
     public RamulatorInterface ramulatorInterface;
+    public NiclsInterface niclsInterface;
     public PlayerMovement playerMovement;
     public GameObject pointer;
     public ParticleSystem pointerParticleSystem;
@@ -66,9 +71,10 @@ public class DeliveryExperiment : CoroutineExperiment
 
     private Syncbox syncs;
 
-    public static void ConfigureExperiment(bool newUseRamulator, int newSessionNumber, string participantCode)
+    public static void ConfigureExperiment(bool newUseRamulator, bool newUseNicls, int newSessionNumber, string participantCode)
     {
         useRamulator = newUseRamulator;
+        useNicls = newUseNicls;
         sessionNumber = newSessionNumber;
     }
 
@@ -91,8 +97,12 @@ public class DeliveryExperiment : CoroutineExperiment
         QualitySettings.vSyncCount = 1;
 
         // Start syncpulses
-        syncs = GameObject.Find("SyncBox").GetComponent<Syncbox>();
-        //syncs.StartPulse();
+        standaloneTesting = true;
+        if (!standaloneTesting)
+        {
+            syncs = GameObject.Find("SyncBox").GetComponent<Syncbox>();
+            syncs.StartPulse();
+        }
 
         Dictionary<string, object> sceneData = new Dictionary<string, object>();
         sceneData.Add("sceneName", "MainGame");
@@ -113,6 +123,12 @@ public class DeliveryExperiment : CoroutineExperiment
 
         if (useRamulator)
             yield return ramulatorInterface.BeginNewSession(sessionNumber);
+
+        //yield return niclsInterface.Test();
+
+        useNicls = true;
+        if (useNicls)
+            yield return niclsInterface.BeginNewSession(sessionNumber);
 
         BlackScreen();
         yield return DoVideo(LanguageSource.GetLanguageString("play movie"),

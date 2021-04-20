@@ -17,7 +17,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private static int sessionNumber = -1;
     private static bool useRamulator;
 
-    private const string DBOY_VERSION = "v4.1.2";
+    private const string DBOY_VERSION = "v4.1.4";
     private const string RECALL_TEXT = "*******";
     private const int DELIVERIES_PER_TRIAL = 13;
     private const float MIN_FAMILIARIZATION_ISI = 0.4f;
@@ -215,7 +215,7 @@ public class DeliveryExperiment : CoroutineExperiment
     {
         SetRamulatorState("RETRIEVAL", true, new Dictionary<string, object>());
 
-        yield return DoFreeRecal(trial_number);
+        yield return DoFreeRecall(trial_number);
 
         yield return DoCuedRecall(trial_number);
 
@@ -223,7 +223,7 @@ public class DeliveryExperiment : CoroutineExperiment
     }
 
 
-    private IEnumerator DoFreeRecal(int trial_number)
+    private IEnumerator DoFreeRecall(int trial_number)
     {
         textDisplayer.DisplayText("display day objects recall prompt", LanguageSource.GetLanguageString("day objects recall"));
         yield return SkippableWait(RECALL_MESSAGE_DISPLAY_LENGTH);

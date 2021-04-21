@@ -20,8 +20,6 @@ public class BeginExperiment : MonoBehaviour
     private void OnEnable() {
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
-
-        UnityEPL.SetExperimentName("DBOY1");
     }
     private void Update()
     {
@@ -50,7 +48,6 @@ public class BeginExperiment : MonoBehaviour
         if (IsValidParticipantName(participantCodeInput.text))
         {
             UnityEPL.ClearParticipants();
-            UnityEPL.AddParticipant(participantCodeInput.text);
             beginExperimentButton.SetActive(true);
             greyedOutButton.SetActive(false);
             int nextSessionNumber = NextSessionNumber();
@@ -82,32 +79,25 @@ public class BeginExperiment : MonoBehaviour
     private string GetLanguageFilePath()
     {
         string dataPath = UnityEPL.GetParticipantFolder();
+        System.IO.Directory.CreateDirectory(dataPath);
         string languageFilePath = System.IO.Path.Combine(dataPath, "language");
+        if (!System.IO.File.Exists(languageFilePath))
+            System.IO.File.Create(languageFilePath).Close();
         return languageFilePath;
     }
 
     private bool LanguageMismatch()
     {
-        if(!System.IO.Directory.Exists(UnityEPL.GetParticipantFolder()))
+        if (UnityEPL.GetParticipants()[0].Equals("unspecified_participant"))
             return false;
-
-        if(!System.IO.File.Exists(GetLanguageFilePath()))
+        if (System.IO.File.ReadAllText(GetLanguageFilePath()).Equals(""))
             return false;
-
-        if(System.IO.File.ReadAllText(GetLanguageFilePath()).Equals(""))
-            return false;
-
         return !LanguageSource.current_language.ToString().Equals(System.IO.File.ReadAllText(GetLanguageFilePath()));
     }
 
     private void LockLanguage()
     {
-        string languageFilePath = GetLanguageFilePath();
-
-        if (!System.IO.File.Exists(languageFilePath))
-            System.IO.File.Create(languageFilePath).Close();
-
-        System.IO.File.WriteAllText(languageFilePath, LanguageSource.current_language.ToString());
+        System.IO.File.WriteAllText(GetLanguageFilePath(), LanguageSource.current_language.ToString());
     }
 
     public void DoBeginExperiment()
@@ -120,22 +110,12 @@ public class BeginExperiment : MonoBehaviour
             throw new UnityException("You are trying to start the experiment with an invalid participant name!");
         }
 
-        if (System.IO.Directory.Exists(UnityEPL.GetDataPath())) {
-            loadingButton.SetActive(false);
-            greyedOutButton.SetActive(true);
-            beginExperimentButton.SetActive(false);
-
-            throw new UnityException("You are trying to start an already existing session!");
-        }
-
-        System.IO.Directory.CreateDirectory(UnityEPL.GetParticipantFolder());
-        System.IO.Directory.CreateDirectory(UnityEPL.GetDataPath());
+        UnityEPL.SetSessionNumber(NextSessionNumber());
+        UnityEPL.AddParticipant(participantCodeInput.text);
+        UnityEPL.SetExperimentName("DBOY1");
 
         LockLanguage();
-        DeliveryExperiment.ConfigureExperiment( useRamulatorToggle.isOn, 
-                                                UnityEPL.GetSessionNumber(), 
-                                                UnityEPL.GetParticipants()[0]); 
-
+        DeliveryExperiment.ConfigureExperiment( useRamulatorToggle.isOn, NextSessionNumber(), participantCodeInput.text);
         Debug.Log(useRamulatorToggle.isOn);
         SceneManager.LoadScene(scene_name);
     }
@@ -143,12 +123,9 @@ public class BeginExperiment : MonoBehaviour
     private int NextSessionNumber()
     {
         string dataPath = UnityEPL.GetParticipantFolder();
-        int mostRecentSessionNumber = -1;
-
-        if(!System.IO.Directory.Exists(dataPath))
-            return mostRecentSessionNumber + 1;
-
+		System.IO.Directory.CreateDirectory (dataPath);
         string[] sessionFolders = System.IO.Directory.GetDirectories(dataPath);
+        int mostRecentSessionNumber = -1;
         foreach (string folder in sessionFolders)
         {
             int thisSessionNumber = -1;

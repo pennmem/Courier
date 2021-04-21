@@ -1,0 +1,17 @@
+bakery
+barber shop
+bike shop
+cafe
+clothing store
+craft shop
+dentist
+florist
+grocery store
+gym
+hardware store
+jewelry store
+music store
+pet store
+pharmacy
+pizzeria
+toy store

@@ -17,21 +17,24 @@ public class DeliveryExperiment : CoroutineExperiment
     private static int sessionNumber = -1;
     private static bool useRamulator;
 
-    private const string DBOY_VERSION = "v4.1.4";
+    private const string DBOY_VERSION = "v4.2.0";
     private const string RECALL_TEXT = "*******";
-    private const int DELIVERIES_PER_TRIAL = 13;
+    private const int DELIVERIES_PER_TRIAL = 13; //13
     private const float MIN_FAMILIARIZATION_ISI = 0.4f;
     private const float MAX_FAMILIARIZATION_ISI = 0.6f;
     private const float FAMILIARIZATION_PRESENTATION_LENGTH = 1.5f;
     private const float RECALL_MESSAGE_DISPLAY_LENGTH = 6f;
     private const float RECALL_TEXT_DISPLAY_LENGTH = 1f;
-    private const float FREE_RECALL_LENGTH = 30f;
-    private const float STORE_FINAL_RECALL_LENGTH = 90f;
-    private const float FINAL_RECALL_LENGTH = 240f;
+    private const float FREE_RECALL_LENGTH = 90f; //90
+    private const float STORE_FINAL_RECALL_LENGTH = 90f; //90
+    private const float FINAL_RECALL_LENGTH = 240f; //240
     private const float TIME_BETWEEN_DIFFERENT_RECALL_PHASES = 2f;
-    private const float CUED_RECALL_TIME_PER_STORE = 5f;
+    private const float CUED_RECALL_TIME_PER_STORE = 10f;
     private const float CUED_RECALL_ISI = 1f;
     private const float ARROW_CORRECTION_TIME = 3f;
+    private const float PAUSE_BEFORE_RETRIEVAL = 10f;
+    private const float DISPLAY_ITEM_PAUSE = 5f;
+    private const float AUDIO_TEXT_DISPLAY = 1.2f;
 
     public Camera regularCamera;
     public Camera blackScreenCamera;
@@ -85,7 +88,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
         // Start syncpulses
         syncs = GameObject.Find("SyncBox").GetComponent<Syncbox>();
-        syncs.StartPulse();
+        //syncs.StartPulse();
 
         Dictionary<string, object> sceneData = new Dictionary<string, object>();
         sceneData.Add("sceneName", "MainGame");
@@ -111,13 +114,14 @@ public class DeliveryExperiment : CoroutineExperiment
 
         BlackScreen();
         yield return DoIntroductionVideo(LanguageSource.GetLanguageString("play movie"), LanguageSource.GetLanguageString("first day"));
+        yield return messageImageDisplayer.DisplayLanguageMessage(messageImageDisplayer.free_recall_message);
         yield return DoSubjectSessionQuitPrompt(sessionNumber,
                                                 LanguageSource.GetLanguageString("running participant"));
         yield return DoMicrophoneTest(LanguageSource.GetLanguageString("microphone test"),
-                                      LanguageSource.GetLanguageString("after the beep"),
-                                      LanguageSource.GetLanguageString("recording"),
-                                      LanguageSource.GetLanguageString("playing"),
-                                      LanguageSource.GetLanguageString("recording confirmation"));
+                                     LanguageSource.GetLanguageString("after the beep"),
+                                     LanguageSource.GetLanguageString("recording"),
+                                     LanguageSource.GetLanguageString("playing"),
+                                     LanguageSource.GetLanguageString("recording confirmation"));
 
         yield return DoFamiliarization();
 
@@ -138,9 +142,9 @@ public class DeliveryExperiment : CoroutineExperiment
             storeMappings.Add(store.GetStoreName() + " position Z", store.transform.position.z);
         }
         scriptedEventReporter.ReportScriptedEvent("store mappings", storeMappings);
-
+    
         int trial_number = 0;
-        for (trial_number = 0; trial_number < 12; trial_number++)
+        for (trial_number = 0; trial_number < 12; trial_number++) //12
         {
             Dictionary<string, object> trialData = new Dictionary<string, object>();
             trialData.Add("trial number", trial_number);
@@ -149,11 +153,12 @@ public class DeliveryExperiment : CoroutineExperiment
             if (useRamulator)
                 ramulatorInterface.BeginNewTrial(trial_number);
             yield return null;
+
             yield return DoDelivery(environment, trial_number);
-
             BlackScreen();
+            yield return Fixation(PAUSE_BEFORE_RETRIEVAL);
             yield return DoRecall(trial_number);
-
+            
             SetRamulatorState("WAITING", true, new Dictionary<string, object>());
             yield return null;
             if (!DeliveryItems.ItemsExhausted())
@@ -173,7 +178,7 @@ public class DeliveryExperiment : CoroutineExperiment
             }
             SetRamulatorState("WAITING", false, new Dictionary<string, object>());
         }
-
+        
         yield return messageImageDisplayer.DisplayLanguageMessage(messageImageDisplayer.final_recall_messages);
         yield return DoFinalRecall(environment);
 
@@ -190,6 +195,7 @@ public class DeliveryExperiment : CoroutineExperiment
         scriptedEventReporter.ReportScriptedEvent("versions", versionsData);
     }
 
+    
     private void BlackScreen()
     {
         pauser.ForbidPausing();
@@ -198,6 +204,17 @@ public class DeliveryExperiment : CoroutineExperiment
         blackScreenCamera.enabled = true;
         starSystem.gameObject.SetActive(false);
         playerMovement.Freeze();
+    }
+
+    private IEnumerator Fixation(float time)
+    {
+        pauser.ForbidPausing();
+        memoryWordCanvas.SetActive(true);
+        regularCamera.enabled = false;
+        blackScreenCamera.enabled = true;
+        starSystem.gameObject.SetActive(false);
+        playerMovement.Freeze();
+        yield return messageImageDisplayer.DisplayLanguageMessageFixedDuration(messageImageDisplayer.fixation_message, time, false);
     }
 
     private void WorldScreen()
@@ -214,7 +231,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private IEnumerator DoRecall(int trial_number)
     {
         SetRamulatorState("RETRIEVAL", true, new Dictionary<string, object>());
-
+        
         yield return DoFreeRecall(trial_number);
 
         yield return DoCuedRecall(trial_number);
@@ -225,8 +242,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
     private IEnumerator DoFreeRecall(int trial_number)
     {
-        textDisplayer.DisplayText("display day objects recall prompt", LanguageSource.GetLanguageString("day objects recall"));
-        yield return SkippableWait(RECALL_MESSAGE_DISPLAY_LENGTH);
+        messageImageDisplayer.SetSpeakNowText("(please speak now)");
         textDisplayer.ClearText();
         highBeep.Play();
         scriptedEventReporter.ReportScriptedEvent("Sound played", new Dictionary<string, object>() { { "sound name", "high beep" }, { "sound duration", highBeep.clip.length.ToString() } });
@@ -240,17 +256,20 @@ public class DeliveryExperiment : CoroutineExperiment
         recordingData.Add("trial number", trial_number);
         scriptedEventReporter.ReportScriptedEvent("object recall recording start", recordingData);
         soundRecorder.StartRecording(wavFilePath);
-        yield return SkippableWait(FREE_RECALL_LENGTH);
-
+        Dictionary<string, object> keypressData = new Dictionary<string, object>(); 
+        yield return messageImageDisplayer.DisplayLanguageMessageFixedDuration(messageImageDisplayer.free_recall_keypress_message, FREE_RECALL_LENGTH, true);
         scriptedEventReporter.ReportScriptedEvent("object recall recording stop", recordingData);
         soundRecorder.StopRecording();
         textDisplayer.ClearText();
         lowBeep.Play();
         scriptedEventReporter.ReportScriptedEvent("Sound played", new Dictionary<string, object>() { { "sound name", "low beep" }, { "sound duration", lowBeep.clip.length.ToString() } });
+        messageImageDisplayer.SetSpeakNowText("");
     }
 
     private IEnumerator DoCuedRecall(int trial_number)
     {
+        messageImageDisplayer.SetSpeakNowText("(please press the X key after recalling the item)");
+
         this_trial_presented_stores.Shuffle(new System.Random());
 
         textDisplayer.DisplayText("display day cued recall prompt", LanguageSource.GetLanguageString("store cue recall"));
@@ -263,6 +282,7 @@ public class DeliveryExperiment : CoroutineExperiment
         textDisplayer.ClearText();
         foreach (StoreComponent cueStore in this_trial_presented_stores)
         {
+            
             cueStore.familiarization_object.SetActive(true);
             string output_file_name = trial_number.ToString() + "-" + cueStore.GetStoreName();
             string output_directory = UnityEPL.GetDataPath();
@@ -276,7 +296,12 @@ public class DeliveryExperiment : CoroutineExperiment
             cuedRecordingData.Add("store position", cueStore.transform.position.ToString());
             scriptedEventReporter.ReportScriptedEvent("cued recall recording start", cuedRecordingData);
             soundRecorder.StartRecording(wavFilePath);
-            yield return SkippableWait(CUED_RECALL_TIME_PER_STORE);
+            
+            float totalTime = 0f;
+            float startTime = Time.time;
+            while (!Input.GetButtonDown("x (continue)") && Time.time < startTime + CUED_RECALL_TIME_PER_STORE)
+                yield return null;
+            //Old version: yield return SkippableWait(CUED_RECALL_TIME_PER_STORE);
             cueStore.familiarization_object.SetActive(false);
             scriptedEventReporter.ReportScriptedEvent("cued recall recording stop", cuedRecordingData);
             soundRecorder.StopRecording();
@@ -288,10 +313,13 @@ public class DeliveryExperiment : CoroutineExperiment
             yield return SkippableWait(RECALL_TEXT_DISPLAY_LENGTH);
             textDisplayer.ClearText();
         }
+        messageImageDisplayer.SetSpeakNowText("");
     }
 
     private IEnumerator DoFinalRecall(Environment environment)
     {
+        messageImageDisplayer.SetSpeakNowText("(please speak now)");
+
         SetRamulatorState("RETRIEVAL", true, new Dictionary<string, object>());
 
         DisplayTitle(LanguageSource.GetLanguageString("all stores recall"));
@@ -302,6 +330,7 @@ public class DeliveryExperiment : CoroutineExperiment
         yield return SkippableWait(RECALL_TEXT_DISPLAY_LENGTH);
         textDisplayer.ClearText();
 
+      
         string output_directory = UnityEPL.GetDataPath();
         string output_file_name = "store recall";
         string wavFilePath = System.IO.Path.Combine(output_directory, output_file_name) + ".wav";
@@ -311,15 +340,18 @@ public class DeliveryExperiment : CoroutineExperiment
 
         scriptedEventReporter.ReportScriptedEvent("final store recall recording start", new Dictionary<string, object>());
         soundRecorder.StartRecording(wavFilePath);
-        yield return SkippableWait(STORE_FINAL_RECALL_LENGTH);
+
+        textDisplayer.ClearText();
+        ClearTitle();
+        BlackScreen();
+        yield return messageImageDisplayer.DisplayLanguageMessageFixedDuration(messageImageDisplayer.store_recall_message, STORE_FINAL_RECALL_LENGTH, true);
+        //Old version: yield return SkippableWait(STORE_FINAL_RECALL_LENGTH);
 
         scriptedEventReporter.ReportScriptedEvent("final store recall recording stop", new Dictionary<string, object>());
         soundRecorder.StopRecording();
         textDisplayer.ClearText();
         lowBeep.Play();
         scriptedEventReporter.ReportScriptedEvent("Sound played", new Dictionary<string, object>() { { "sound name", "low beep" }, { "sound duration", lowBeep.clip.length.ToString() } });
-
-        ClearTitle();
 
         yield return SkippableWait(TIME_BETWEEN_DIFFERENT_RECALL_PHASES);
 
@@ -339,7 +371,12 @@ public class DeliveryExperiment : CoroutineExperiment
 
         scriptedEventReporter.ReportScriptedEvent("final object recall recording start", new Dictionary<string, object>());
         soundRecorder.StartRecording(wavFilePath);
-        yield return SkippableWait(FINAL_RECALL_LENGTH);
+
+        textDisplayer.ClearText();
+        ClearTitle();
+        BlackScreen();
+        yield return messageImageDisplayer.DisplayLanguageMessageFixedDuration(messageImageDisplayer.object_recall_message, FINAL_RECALL_LENGTH, true);
+        //old version; yield return SkippableWait(FINAL_RECALL_LENGTH);
         scriptedEventReporter.ReportScriptedEvent("final object recall recording stop", new Dictionary<string, object>());
         soundRecorder.StopRecording();
 
@@ -347,8 +384,8 @@ public class DeliveryExperiment : CoroutineExperiment
         lowBeep.Play();
         scriptedEventReporter.ReportScriptedEvent("Sound played", new Dictionary<string, object>() { { "sound name", "low beep" }, { "sound duration", lowBeep.clip.length.ToString() } });
 
-        ClearTitle();
         SetRamulatorState("RETRIEVAL", false, new Dictionary<string, object>());
+        messageImageDisplayer.SetSpeakNowText("");
     }
 
     private IEnumerator DoFamiliarization()
@@ -412,11 +449,18 @@ public class DeliveryExperiment : CoroutineExperiment
                 this_trial_presented_stores.Add(nextStore);
                 all_presented_objects.Add(deliveredItemName);
                 SetRamulatorState("WORD", true, new Dictionary<string, object>() { { "word", deliveredItemName} });
-                yield return SkippableWait(deliveredItem.length);
+                //add visuals with sound
+                messageImageDisplayer.deliver_item_visual_dislay.SetActive(true);
+                messageImageDisplayer.SetDeliverItemText(deliveredItemName);
+                //yield return SkippableWait(deliveredItem.length);
+                yield return SkippableWait(AUDIO_TEXT_DISPLAY);
+                messageImageDisplayer.deliver_item_visual_dislay.SetActive(false);
+
                 SetRamulatorState("WORD", false, new Dictionary<string, object>() { { "word", deliveredItemName } });
                 scriptedEventReporter.ReportScriptedEvent("audio presentation finished",
                                                           new Dictionary<string, object>());
-                playerMovement.Unfreeze();
+
+                playerMovement.Unfreeze(); 
             }
         }
 
@@ -551,6 +595,32 @@ public class DeliveryExperiment : CoroutineExperiment
                 break;
             yield return null;
         }
+    }
+
+    private IEnumerator RecallWait(float waitTime, Dictionary<string, object> data)
+    {
+        float startTime = Time.time;
+        data.Add("recording start", startTime);
+        int i = 0;
+        while (Time.time < startTime + waitTime)
+        {
+            float currTime = Time.time;
+            
+            if (Input.GetButtonDown("correct"))
+            {
+                string thisone = "correct" + i.ToString();
+                data.Add(thisone, currTime); 
+                i++;
+            }
+            if (Input.GetButtonDown("false"))
+            {
+                string thisone = "false" + i.ToString();
+                data.Add(thisone, currTime);
+                i++;
+            }
+            yield return null;
+        }
+        scriptedEventReporter.ReportScriptedEvent("key press", data);
     }
 
     public string GetStoreNameFromGameObjectName(string gameObjectName)

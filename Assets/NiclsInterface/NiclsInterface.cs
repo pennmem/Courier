@@ -22,14 +22,23 @@ public class NiclsInterface : MonoBehaviour
     private int unreceivedHeartbeats = 0;
 
     private NetMQ.Sockets.PairSocket zmqSocket;
-    private const string address = "tcp://*:8890";
+    private const string address = "tcp://localhost:8889";
+
+    //private NiclsEventLoop niclsEventLoop;
+    private volatile int classifierResult = 0;
 
     void OnApplicationQuit()
     {
-        if (zmqSocket != null) {
+        if (zmqSocket != null)
+        {
             zmqSocket.Close();
             NetMQConfig.Cleanup();
         }
+    }
+
+    public bool classifierReady()
+    {
+        return classifierResult == 1;
     }
 
     //this coroutine connects to NICLS and communicates how NICLS expects it to
@@ -39,12 +48,14 @@ public class NiclsInterface : MonoBehaviour
     {
         //Connect to nicls///////////////////////////////////////////////////////////////////
         zmqSocket = new NetMQ.Sockets.PairSocket();
-        zmqSocket.Bind(address);
+        zmqSocket.Connect(address);
         //Debug.Log ("socket bound");
 
-
+        SendMessageToNicls("CONNECTED");
         yield return WaitForMessage("CONNECTED", "NICLS not connected.");
 
+        //niclsEventLoop = new NiclsEventLoop();
+        //niclsEventLoop.Init();
 
         //SendSessionEvent//////////////////////////////////////////////////////////////////////
         System.Collections.Generic.Dictionary<string, object> sessionData = new Dictionary<string, object>();
@@ -54,8 +65,21 @@ public class NiclsInterface : MonoBehaviour
         sessionData.Add("session_number", sessionNumber.ToString());
         DataPoint sessionDataPoint = new DataPoint("SESSION", DataReporter.RealWorldTime(), sessionData);
         SendMessageToNicls(sessionDataPoint.ToJSON());
+        Debug.Log(sessionDataPoint.ToJSON());
         yield return null;
 
+        SendMessageToNicls("CONFIGURE");
+        yield return WaitForMessage("CONFIGURE", "NICLS not configured.");
+
+        // JPB: TODO: MVP2: Change this to use EventLoop system
+        InvokeRepeating("ReceiveClassifierInfo", 0, 1);
+        yield return null;
+
+        //EventBase eventBase = new EventBase(WaitForMessage);
+        //RepeatingEvent repeatingEvent = new RepeatingEvent(eventBase, 3, 0, 1000);
+        //niclsEventLoop.DoRepeating(repeatingEvent);
+
+        yield break;
 
         //Begin Heartbeats///////////////////////////////////////////////////////////////////////
         InvokeRepeating("SendHeartbeat", 0, 1);
@@ -74,13 +98,14 @@ public class NiclsInterface : MonoBehaviour
 
     }
 
-    private IEnumerator WaitForMessage(string containingString, string errorMessage)
+    private IEnumerator WaitForMessage(string containingString, string errorMessage, int timeout = timeoutDelay)
     {
         niclsWarning.SetActive(true);
         niclsWarningText.text = "Waiting on NICLS";
 
         string receivedMessage = "";
         float startTime = Time.time;
+
         while (receivedMessage == null || !receivedMessage.Contains(containingString))
         {
             zmqSocket.TryReceiveFrameString(out receivedMessage);
@@ -92,7 +117,7 @@ public class NiclsInterface : MonoBehaviour
             }
 
             //if we have exceeded the timeout time, show warning and stop trying to connect
-            if (Time.time > startTime + timeoutDelay)
+            if (Time.time >= startTime + timeout)
             {
                 niclsWarningText.text = errorMessage;
                 Debug.LogWarning("Timed out waiting for NICLS");
@@ -167,6 +192,30 @@ public class NiclsInterface : MonoBehaviour
         }
     }
 
+    private void ReceiveClassifierInfo()
+    {
+        string receivedMessage = "";
+        float startTime = Time.time;
+        zmqSocket.TryReceiveFrameString(out receivedMessage);
+        if (receivedMessage != "" && receivedMessage != null)
+        {
+            string messageString = receivedMessage.ToString();
+            Debug.Log("classifierInfo received: " + messageString);
+            classifierResult = Int32.Parse(messageString);
+            Debug.Log(classifierResult);
+            // JPB: TODO: MVP2: Use DataPoint for classifier info
+            //DataPoint dataPoint = DataPoint.FromJsonString(messageString);
+            //Dictionary<string, object> dictionary = dataPoint.getData();
+            //Debug.Log("classifierInfo data: " + dataPoint.getData()["label"]);
+            //foreach (KeyValuePair<string, object> kvp in dictionary)
+            //{
+            //    Console.WriteLine("Key = {0}, Value = {1}", kvp.Key, kvp.Value);
+            //}
+
+            ReportMessage(messageString, false);
+        }
+    }
+
     private void SendMessageToNicls(string message)
     {
         bool wouldNotHaveBlocked = zmqSocket.TrySendFrame(message, more: false);
@@ -182,3 +231,4 @@ public class NiclsInterface : MonoBehaviour
         scriptedEventReporter.ReportScriptedEvent("network", messageDataDict);
     }
 }
+

@@ -110,7 +110,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
 		StartCoroutine(ExperimentCoroutine());
 	}
-	
+
 	private IEnumerator ExperimentCoroutine()
     {
         if (sessionNumber == -1)
@@ -319,6 +319,14 @@ public class DeliveryExperiment : CoroutineExperiment
         textDisplayer.ClearText();
         foreach (StoreComponent cueStore in this_trial_presented_stores)
         {
+            WaitUntilWithTimeout waitForClassifier = new WaitUntilWithTimeout(niclsInterface.classifierReady, 5);
+            yield return waitForClassifier;
+            if (waitForClassifier.timedOut())
+            {
+                Debug.Log("Classifier wait timed out");
+                // JPB: TODO: Send message back to NICLServer
+            }
+
             cueStore.familiarization_object.SetActive(true);
             messageImageDisplayer.SetCuedRecallMessage(true);
 
@@ -433,6 +441,13 @@ public class DeliveryExperiment : CoroutineExperiment
     {
 
         SetRamulatorState("ENCODING", true, new Dictionary<string, object>());
+        WaitUntilWithTimeout waitForClassifier = new WaitUntilWithTimeout(niclsInterface.classifierReady, 5);
+        yield return waitForClassifier;
+        if (waitForClassifier.timedOut())
+        {
+            Debug.Log("Classifier wait timed out");
+            // JPB: TODO: Send message back to NICLServer
+        }
         messageImageDisplayer.please_find_the_blah_reminder.SetActive(true);
 
         this_trial_presented_stores = new List<StoreComponent>();

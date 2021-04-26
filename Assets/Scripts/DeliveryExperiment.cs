@@ -142,7 +142,6 @@ public class DeliveryExperiment : CoroutineExperiment
                                      LanguageSource.GetLanguageString("playing"),
                                      LanguageSource.GetLanguageString("recording confirmation"));
         yield return DoFamiliarization();
-
         yield return messageImageDisplayer.DisplayLanguageMessage(messageImageDisplayer.delivery_restart_messages);
 
 
@@ -325,6 +324,8 @@ public class DeliveryExperiment : CoroutineExperiment
             {
                 Debug.Log("Classifier wait timed out");
                 // JPB: TODO: Send message back to NICLServer
+            } else {
+                Debug.Log("CLASSIFIER SAID TO GO ---------------------------------------------------------");
             }
 
             cueStore.familiarization_object.SetActive(true);
@@ -441,13 +442,6 @@ public class DeliveryExperiment : CoroutineExperiment
     {
 
         SetRamulatorState("ENCODING", true, new Dictionary<string, object>());
-        WaitUntilWithTimeout waitForClassifier = new WaitUntilWithTimeout(niclsInterface.classifierReady, 5);
-        yield return waitForClassifier;
-        if (waitForClassifier.timedOut())
-        {
-            Debug.Log("Classifier wait timed out");
-            // JPB: TODO: Send message back to NICLServer
-        }
         messageImageDisplayer.please_find_the_blah_reminder.SetActive(true);
 
         this_trial_presented_stores = new List<StoreComponent>();
@@ -512,6 +506,19 @@ public class DeliveryExperiment : CoroutineExperiment
                 AudioClip deliveredItem = (practice && i == craft_shop_delivery_num)
                     ? nextStore.PopSpecificItem(LanguageSource.GetLanguageString("confetti"))
                     : nextStore.PopItem();
+
+                WaitUntilWithTimeout waitForClassifier = new WaitUntilWithTimeout(niclsInterface.classifierReady, 5);
+                yield return waitForClassifier;
+                if (waitForClassifier.timedOut())
+                {
+                    Debug.Log("Classifier wait timed out");
+                    // JPB: TODO: Send message back to NICLServer
+                }
+                else
+                {
+                    Debug.Log("CLASSIFIER SAID TO GO ---------------------------------------------------------");
+                }
+
                 string deliveredItemName = deliveredItem.name;
                 audioPlayback.clip = deliveredItem;
                 audioPlayback.Play();

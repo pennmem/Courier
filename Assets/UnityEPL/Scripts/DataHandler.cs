@@ -8,7 +8,7 @@ public abstract class DataHandler : MonoBehaviour
     protected List<DataReporter> reportersToHandle = new List<DataReporter>();
     protected ConcurrentQueue<DataReporter> toAdd = new ConcurrentQueue<DataReporter>();
     protected ConcurrentQueue<DataReporter> toRemove = new ConcurrentQueue<DataReporter>();
-    protected System.Collections.Concurrent.ConcurrentQueue<DataPoint> eventQueue = new ConcurrentQueue<DataPoint>();
+    protected ConcurrentQueue<DataPoint> eventQueue = new ConcurrentQueue<DataPoint>();
 
     public void QueuePoint(DataPoint data) {
         eventQueue.Enqueue(data);

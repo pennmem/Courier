@@ -1,16 +1,18 @@
-﻿using System.Collections;
-using System;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 //these datapoints represent behavioral events
 //data about the event is currently stored in a dictionary
-public class DataPoint
+[JsonObject(MemberSerialization.Fields)]
+public class DataPointNicls
 {
     private string type;
-    private Dictionary<string, object> dataDict;
-    private System.DateTime time;
+    private Dictionary<string, object> data;
+    private DateTime time;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="T:DataPoint"/> class.  This represents a piece of data that you might want to keep about your project.
@@ -23,15 +25,31 @@ public class DataPoint
     /// </summary>
     /// <param name="newType">New type.</param>
     /// <param name="newTime">New time.</param>
-    /// <param name="newDataDict">New data dict.</param>
-    public DataPoint(string newType, System.DateTime newTime, Dictionary<string, object> newDataDict)
+    /// <param name="newData">New data.</param>
+    public DataPointNicls(string newType, DateTime newTime, Dictionary<string, object> newData)
     {
-        if (newDataDict == null)
-            newDataDict = new Dictionary<string, object>();
+        if (newData == null)
+            newData = new Dictionary<string, object>();
 
         type = newType;
-        dataDict = newDataDict;
+        data = newData;
         time = newTime;
+    }
+
+    public static DataPointNicls FromJsonString(String jsonString)
+    {
+        DataPointNicls dp = JsonConvert.DeserializeObject<DataPointNicls>(
+            jsonString,
+            new JsonSerializerSettings {
+            Converters = { new UnixDateTimeConverter() }
+        });
+        //Console.WriteLine("Classfier Data Converted: {} {}", dp.type, dp.time.ToString());
+        return dp;
+    }
+
+    public Dictionary<string, object> getData()
+    {
+        return data;
     }
 
     /// <summary>
@@ -44,14 +62,14 @@ public class DataPoint
     {
         double unixTimestamp = ConvertToMillisecondsSinceEpoch(time);
         string JSONString = "{\"type\":\"" + type + "\",\"data\":{";
-        foreach (string key in dataDict.Keys)
+        foreach (string key in data.Keys)
         {
-            dynamic value = dataDict[key];
+            dynamic value = data[key];
 
             string valueJSONString = ValueToString(value);
             JSONString = JSONString + "\"" + key + "\":" + valueJSONString + ",";
         }
-        if (dataDict.Count > 0) JSONString = JSONString.Substring(0, JSONString.Length - 1);
+        if (data.Count > 0) JSONString = JSONString.Substring(0, JSONString.Length - 1);
         JSONString = JSONString + "},\"time\":" + unixTimestamp.ToString() + "}";
         return JSONString;
     }
@@ -122,5 +140,21 @@ public class DataPoint
             return true;
         }
         return false;
+    }
+}
+
+public class UnixDateTimeConverter : DateTimeConverterBase
+{
+    public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+    {
+        //DateTime dt = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
+        //return dt.AddMilliseconds(float.Parse(reader.Value.ToString())).ToLocalTime();
+        float unixTime = float.Parse(reader.Value.ToString());
+        return DateTimeOffset.FromUnixTimeMilliseconds((long)unixTime).DateTime;
+    }
+
+    public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+    {
+        writer.WriteValue(((DateTimeOffset)value).ToUnixTimeMilliseconds());
     }
 }

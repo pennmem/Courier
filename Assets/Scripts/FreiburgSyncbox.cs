@@ -40,12 +40,12 @@ public class FreiburgSyncbox : EventLoop {
             StopPulse();
             StartLoop();
 
-            Debug.Log("Successful Init");
+            Debug.Log("Successful FreiburgSyncbox Init");
 
             return true;
         }
 
-        Debug.Log("Failed Init");
+        Debug.Log("Failed FreiburgSyncbox Init");
         return false;
 	}
 

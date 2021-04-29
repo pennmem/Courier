@@ -19,11 +19,11 @@ public class DeliveryExperiment : CoroutineExperiment
     private static bool useNicls;
 
     // JPB: TODO: Make this a configuration variable
-    private static bool standaloneTesting = true; // JPB: TODO: Change to false
+    private static bool standaloneTesting = false; // JPB: TODO: Make this a config variable
 
     private const string DBOY_VERSION = "v4.2.0";
     private const string RECALL_TEXT = "*******";
-    private const int DELIVERIES_PER_TRIAL = 13; // 13;
+    private const int DELIVERIES_PER_TRIAL = 16; // 16;
     private const int PRACTICE_DELIVERIES_PER_TRIAL = 4; // 4;
     private const int TRIALS_PER_SESSION = 12;
     private const int PRACTICE_VIDEO_TRIAL_NUM = 1;
@@ -85,7 +85,7 @@ public class DeliveryExperiment : CoroutineExperiment
 		// need to do this because macos thinks it knows better than you do
 	}
 
-	void Start ()
+	void Start()
     {
         if(UnityEPL.viewCheck) {
             return;
@@ -97,7 +97,8 @@ public class DeliveryExperiment : CoroutineExperiment
         QualitySettings.vSyncCount = 1;
 
         // Start syncpulses
-        standaloneTesting = true;
+        // JPB: TODO: FIX BEFORE RUNNING ON ACTUAL
+        //standaloneTesting = true;
         if (!standaloneTesting)
         {
             syncs = GameObject.Find("SyncBox").GetComponent<Syncbox>();
@@ -124,8 +125,6 @@ public class DeliveryExperiment : CoroutineExperiment
         if (useRamulator)
             yield return ramulatorInterface.BeginNewSession(sessionNumber);
 
-        //yield return niclsInterface.Test();
-
         useNicls = true;
         if (useNicls)
             yield return niclsInterface.BeginNewSession(sessionNumber);
@@ -142,6 +141,7 @@ public class DeliveryExperiment : CoroutineExperiment
                                      LanguageSource.GetLanguageString("playing"),
                                      LanguageSource.GetLanguageString("recording confirmation"));
         yield return DoFamiliarization();
+
         yield return messageImageDisplayer.DisplayLanguageMessage(messageImageDisplayer.delivery_restart_messages);
 
 
@@ -498,17 +498,15 @@ public class DeliveryExperiment : CoroutineExperiment
                 AudioClip deliveredItem = (practice && i == craft_shop_delivery_num)
                     ? nextStore.PopSpecificItem(LanguageSource.GetLanguageString("confetti"))
                     : nextStore.PopItem();
-
-                WaitUntilWithTimeout waitForClassifier = new WaitUntilWithTimeout(niclsInterface.classifierReady, 5);
-                yield return waitForClassifier;
-                if (waitForClassifier.timedOut())
+                
+                if (practice)
                 {
-                    Debug.Log("Classifier wait timed out");
-                    // JPB: TODO: Send message back to NICLServer
+                    niclsInterface.SendEncodingToNicls(1);
+                    yield return new WaitForSeconds(1);
                 }
                 else
                 {
-                    Debug.Log("CLASSIFIER SAID TO GO ---------------------------------------------------------");
+                    yield return WaitForClassifier();
                 }
 
                 string deliveredItemName = deliveredItem.name;
@@ -540,8 +538,8 @@ public class DeliveryExperiment : CoroutineExperiment
 
                 scriptedEventReporter.ReportScriptedEvent("audio presentation finished",
                                                           new Dictionary<string, object>());
-
-                playerMovement.Unfreeze(); 
+                playerMovement.Unfreeze();
+                niclsInterface.SendEncodingToNicls(0);
             }
         }
 

@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using UnityEngine;
 using NetMQ;
+using Newtonsoft.Json;
 
 public class NiclsInterface : MonoBehaviour
 {
@@ -22,7 +23,9 @@ public class NiclsInterface : MonoBehaviour
     private int unreceivedHeartbeats = 0;
 
     private NetMQ.Sockets.PairSocket zmqSocket;
-    private const string address = "tcp://localhost:8889";
+    // JPB: TODO: FIX BEFORE RUNNING ON ACTUAL
+    //private const string address = "tcp://localhost:8889";
+    private const string address = "tcp://130.91.28.243:8889";
 
     //private NiclsEventLoop niclsEventLoop;
     private volatile int classifierResult = 0;
@@ -41,6 +44,37 @@ public class NiclsInterface : MonoBehaviour
         return classifierResult == 1;
     }
 
+    private IEnumerator WaitForJson(string containingString, string errorMessage, int timeout = timeoutDelay)
+    {
+        niclsWarning.SetActive(true);
+        niclsWarningText.text = "Waiting on NICLS";
+
+        string receivedMessage = "";
+        float startTime = Time.time;
+
+        while (receivedMessage == null || !receivedMessage.Contains(containingString))
+        {
+            zmqSocket.TryReceiveFrameString(out receivedMessage);
+            if (receivedMessage != "" && receivedMessage != null)
+            {
+                string messageString = receivedMessage.ToString();
+                Debug.Log("received: " + messageString);
+                DataPointNicls dataPoint = DataPointNicls.FromJsonString(messageString);
+                ReportMessage(messageString, false);
+            }
+
+            //if we have exceeded the timeout time, show warning and stop trying to connect
+            if (Time.time >= startTime + timeout)
+            {
+                niclsWarningText.text = errorMessage;
+                Debug.LogWarning("Timed out waiting for NICLS");
+                yield break;
+            }
+            yield return null;
+        }
+        niclsWarning.SetActive(false);
+    }
+
     //this coroutine connects to NICLS and communicates how NICLS expects it to
     //in order to start the experiment session.  follow it up with BeginNewTrial and
     //SetState calls
@@ -54,19 +88,23 @@ public class NiclsInterface : MonoBehaviour
         SendMessageToNicls("CONNECTED");
         yield return WaitForMessage("CONNECTED", "NICLS not connected.");
 
+        //yield return WaitForJson("CONNECTED", "NICLS not connected");
+
+        //yield break;
+
         //niclsEventLoop = new NiclsEventLoop();
         //niclsEventLoop.Init();
 
         //SendSessionEvent//////////////////////////////////////////////////////////////////////
-        System.Collections.Generic.Dictionary<string, object> sessionData = new Dictionary<string, object>();
-        sessionData.Add("name", UnityEPL.GetExperimentName());
-        sessionData.Add("version", Application.version);
-        sessionData.Add("subject", UnityEPL.GetParticipants()[0]);
-        sessionData.Add("session_number", sessionNumber.ToString());
-        DataPoint sessionDataPoint = new DataPoint("SESSION", DataReporter.RealWorldTime(), sessionData);
-        SendMessageToNicls(sessionDataPoint.ToJSON());
-        Debug.Log(sessionDataPoint.ToJSON());
-        yield return null;
+        //Dictionary<string, object> sessionData = new Dictionary<string, object>();
+        //sessionData.Add("name", UnityEPL.GetExperimentName());
+        //sessionData.Add("version", Application.version);
+        //sessionData.Add("subject", UnityEPL.GetParticipants()[0]);
+        //sessionData.Add("session_number", sessionNumber.ToString());
+        //DataPoint sessionDataPoint = new DataPoint("SESSION", DataReporter.RealWorldTime(), sessionData);
+        //SendMessageToNicls(sessionDataPoint.ToJSON());
+        //Debug.Log(sessionDataPoint.ToJSON());
+        //yield return null;
 
         SendMessageToNicls("CONFIGURE");
         yield return WaitForMessage("CONFIGURE", "NICLS not configured.");
@@ -176,7 +214,7 @@ public class NiclsInterface : MonoBehaviour
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.isPlaying = false;
 #else
-			Application.Quit();
+            Application.Quit();
 #endif
         }
 
@@ -214,6 +252,13 @@ public class NiclsInterface : MonoBehaviour
 
             ReportMessage(messageString, false);
         }
+    }
+
+    public void SendEncodingToNicls(int enable)
+    {
+        var enableDict = new Dictionary<string, object> { { "enable", enable } };
+        var dataPointNicls = new DataPointNicls("ENCODING", DataReporter.RealWorldTime(), enableDict);
+        SendMessageToNicls(dataPointNicls.ToJSON());
     }
 
     private void SendMessageToNicls(string message)

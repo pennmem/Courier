@@ -40,11 +40,11 @@ public class UPennSyncbox : EventLoop {
             StopPulse();
             StartLoop();
 
-            Debug.Log("Successful Init");
+            Debug.Log("Successful UpennSyncbox Init");
 
             return true;
         }
-        Debug.Log("Failed Init");
+        Debug.Log("Failed UPennSyncbox Init");
         return false;
     }
 

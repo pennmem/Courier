@@ -27,6 +27,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private const int PRACTICE_DELIVERIES_PER_TRIAL = 4; // 4;
     private const int TRIALS_PER_SESSION = 12;
     private const int PRACTICE_VIDEO_TRIAL_NUM = 1;
+    private const int NUM_READ_ONLY_TRIALS = 2; // 2
     private const float MIN_FAMILIARIZATION_ISI = 0.4f;
     private const float MAX_FAMILIARIZATION_ISI = 0.6f;
     private const float FAMILIARIZATION_PRESENTATION_LENGTH = 1.5f;
@@ -97,7 +98,7 @@ public class DeliveryExperiment : CoroutineExperiment
         QualitySettings.vSyncCount = 1;
 
         // Start syncpulses
-        // JPB: TODO: FIX BEFORE RUNNING ON ACTUAL
+        // JPB: TODO: COMMENT OUT FOR TESTING
         //standaloneTesting = true;
         if (!standaloneTesting)
         {
@@ -158,11 +159,11 @@ public class DeliveryExperiment : CoroutineExperiment
         }
         scriptedEventReporter.ReportScriptedEvent("store mappings", storeMappings);
 
+        niclsInterface.SendReadOnlyStateToNicls(1);
         // Practice Trials
         if (sessionNumber == 0)
         {
             Debug.Log("Practice trials");
-
             yield return new WaitForSeconds(0.1f);
             textDisplayer.DisplayText("proceed to first practice day prompt", LanguageSource.GetLanguageString("first practice day"));
             while (!Input.GetButtonDown("q (secret)") && !Input.GetButtonDown("x (continue)"))
@@ -318,7 +319,15 @@ public class DeliveryExperiment : CoroutineExperiment
         textDisplayer.ClearText();
         foreach (StoreComponent cueStore in this_trial_presented_stores)
         {
-            yield return WaitForClassifier();
+            if (trial_number < 2)
+            {
+                yield return new WaitForSeconds(1);
+            }
+            else
+            {
+                yield return new WaitForSeconds(1);
+                yield return WaitForClassifier();
+            }
 
             cueStore.familiarization_object.SetActive(true);
             messageImageDisplayer.SetCuedRecallMessage(true);
@@ -501,11 +510,12 @@ public class DeliveryExperiment : CoroutineExperiment
                 
                 if (practice)
                 {
-                    niclsInterface.SendEncodingToNicls(1);
                     yield return new WaitForSeconds(1);
+                    niclsInterface.SendEncodingToNicls(1);
                 }
                 else
                 {
+                    yield return new WaitForSeconds(1);
                     yield return WaitForClassifier();
                 }
 
@@ -539,7 +549,7 @@ public class DeliveryExperiment : CoroutineExperiment
                 scriptedEventReporter.ReportScriptedEvent("audio presentation finished",
                                                           new Dictionary<string, object>());
                 playerMovement.Unfreeze();
-                niclsInterface.SendEncodingToNicls(0);
+                //niclsInterface.SendEncodingToNicls(0);
             }
         }
 
@@ -558,6 +568,10 @@ public class DeliveryExperiment : CoroutineExperiment
                              LanguageSource.GetLanguageString("next practice day video"),
                              VideoSelector.VideoType.PostpracticeIntro);
             }
+
+            if (trial_number == NUM_READ_ONLY_TRIALS)
+                niclsInterface.SendReadOnlyStateToNicls(0);
+            yield return null;
 
             Dictionary<string, object> trialData = new Dictionary<string, object>();
             trialData.Add("trial number", trialNumber);

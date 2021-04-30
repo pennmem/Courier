@@ -23,9 +23,10 @@ public class NiclsInterface : MonoBehaviour
     private int unreceivedHeartbeats = 0;
 
     private NetMQ.Sockets.PairSocket zmqSocket;
-    // JPB: TODO: FIX BEFORE RUNNING ON ACTUAL
+    // JPB: TODO: COMMENT OUT FOR TESTING
     //private const string address = "tcp://localhost:8889";
-    private const string address = "tcp://130.91.28.243:8889";
+    //private const string address = "tcp://130.91.28.243:8889";
+    private const string address = "tcp://130.91.29.94:8889";
 
     //private NiclsEventLoop niclsEventLoop;
     private volatile int classifierResult = 0;
@@ -109,7 +110,7 @@ public class NiclsInterface : MonoBehaviour
         SendMessageToNicls("CONFIGURE");
         yield return WaitForMessage("CONFIGURE", "NICLS not configured.");
 
-        // JPB: TODO: MVP2: Change this to use EventLoop system
+        // JPB: TODO: NextDeliverable: Change this to use EventLoop system
         InvokeRepeating("ReceiveClassifierInfo", 0, 1);
         yield return null;
 
@@ -241,7 +242,7 @@ public class NiclsInterface : MonoBehaviour
             Debug.Log("classifierInfo received: " + messageString);
             classifierResult = Int32.Parse(messageString);
             Debug.Log(classifierResult);
-            // JPB: TODO: MVP2: Use DataPoint for classifier info
+            // JPB: TODO: NextDeliverable: Use DataPoint for classifier info
             //DataPoint dataPoint = DataPoint.FromJsonString(messageString);
             //Dictionary<string, object> dictionary = dataPoint.getData();
             //Debug.Log("classifierInfo data: " + dataPoint.getData()["label"]);
@@ -258,6 +259,13 @@ public class NiclsInterface : MonoBehaviour
     {
         var enableDict = new Dictionary<string, object> { { "enable", enable } };
         var dataPointNicls = new DataPointNicls("ENCODING", DataReporter.RealWorldTime(), enableDict);
+        SendMessageToNicls(dataPointNicls.ToJSON());
+    }
+
+    public void SendReadOnlyStateToNicls(int enable)
+    {
+        var enableDict = new Dictionary<string, object> { { "enable", enable } };
+        var dataPointNicls = new DataPointNicls("READ_ONLY_STATE", DataReporter.RealWorldTime(), enableDict);
         SendMessageToNicls(dataPointNicls.ToJSON());
     }
 

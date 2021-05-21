@@ -11,9 +11,16 @@ public class MessageImageDisplayer : MonoBehaviour
     public GameObject[] store_images_presentation_messages;
     public GameObject[] free_recall_message;
     public GameObject[] free_recall_keypress_message;
+    public GameObject[] free_recall_keypress_message_bold_left;
+    public GameObject[] free_recall_keypress_message_bold_right;
     public GameObject[] fixation_message;
     public GameObject[] object_recall_message;
+    public GameObject[] object_recall_message_bold_left;
+    public GameObject[] object_recall_message_bold_right;
     public GameObject[] store_recall_message;
+    public GameObject[] store_recall_message_bold_left;
+    public GameObject[] store_recall_message_bold_right;
+    public GameObject[] cued_recall_message;
 
     public GameObject please_find_the_blah;
     public UnityEngine.UI.Text please_find_the_blah_text;
@@ -29,18 +36,28 @@ public class MessageImageDisplayer : MonoBehaviour
         yield return DisplayMessage(language_messages[(int)LanguageSource.current_language]);
     }
 
-    public IEnumerator DisplayLanguageMessageFixedDuration(GameObject[] language_messages, float time, bool isFreeRecall)
+    //DisplayLanguageMessageFixedDuration shows the game object for a fixed amount of time, X keypress not required to proceed
+    public IEnumerator DisplayLanguageMessageFixedDuration(GameObject[] m, float time)
     {
-        if (!isFreeRecall)
-        {
-            yield return DisplayMessageWithoutX(language_messages[(int)LanguageSource.current_language], time);
-        }
-        else
-        {
-            yield return DisplayMessageWithoutX_Keypress(language_messages[(int)LanguageSource.current_language], time);
-        }
+        yield return DisplayMessageWithoutX(m[(int)LanguageSource.current_language], time); 
     }
- 
+    //DisplayLanguageMessageFixedDurationKeyPress shows the game object for a fixed amount of time, X keypress not required to proceed
+    //it also records the keypress during the display
+    public IEnumerator DisplayLanguageMessageFixedDurationKeyPress(GameObject[] m, GameObject[] m_left, GameObject[] m_right, float time)
+    {
+        yield return DisplayMessageWithoutX_Keypress(m[(int)LanguageSource.current_language], m_left[(int)LanguageSource.current_language], m_right[(int)LanguageSource.current_language], time);
+    }
+
+    //display message for cued recall
+    public void SetCuedRecallMessage(bool isActive)
+    {
+        GameObject message = cued_recall_message[(int)LanguageSource.current_language];
+        if (isActive)
+            message.SetActive(true);
+        else
+            message.SetActive(false);
+    }
+
     private IEnumerator DisplayMessage(GameObject message)
     {
         Dictionary<string, object> messageData = new Dictionary<string, object>();
@@ -72,8 +89,9 @@ public class MessageImageDisplayer : MonoBehaviour
         message.SetActive(false);
     }
 
-    private IEnumerator DisplayMessageWithoutX_Keypress(GameObject message, float waitTime)
+    private IEnumerator DisplayMessageWithoutX_Keypress(GameObject message, GameObject message_left, GameObject message_right, float waitTime)
     {
+        float WAIT = 0.5f;
         Dictionary<string, object> messageData = new Dictionary<string, object>();
         messageData.Add("message name", message.name);
         scriptedEventReporter.ReportScriptedEvent("instruction message displayed", messageData);
@@ -89,21 +107,46 @@ public class MessageImageDisplayer : MonoBehaviour
 
             if (Input.GetButtonDown("correct"))
             {
-                string thisone = "correct" + i.ToString();
+                string thisone = i.ToString() +"th keypress: correct";
                 data.Add(thisone, currTime);
                 i++;
+                message_right.SetActive(true);
+                message.SetActive(false);
+                while (Time.time < currTime + WAIT || Input.GetButtonDown("correct"))
+                {
+                    yield return null;
+                }
+                message_right.SetActive(false);
+                message.SetActive(true);
+
             } else if (Input.GetButtonDown("false"))
             {
-                string thisone = "false" + i.ToString();
+                string thisone = i.ToString() + "th keypress: incorrect";
                 data.Add(thisone, currTime);
                 i++;
+                message.SetActive(false);
+                message_left.SetActive(true);
+                while (Time.time < currTime + WAIT || Input.GetButtonDown("false"))
+                {
+                    yield return null;
+                }
+                message_left.SetActive(false);
+                message.SetActive(true);
+
             } else if (Input.anyKeyDown)
             {
-                string thisone = "invalid" + i.ToString();
-                data.Add(thisone, currTime);
-                i++;
+                foreach (KeyCode kcode in System.Enum.GetValues(typeof(KeyCode)))
+                {
+                    if (Input.GetKey(kcode))
+                    {
+                        string thisone = i.ToString() + "th keypress: " + kcode.ToString();
+                        data.Add(thisone, currTime);
+                        i++;
+                    }
+                }
+                
             }
-            
+
             yield return null;
         }
         scriptedEventReporter.ReportScriptedEvent("key press", data);
@@ -113,7 +156,7 @@ public class MessageImageDisplayer : MonoBehaviour
 
     public void SetReminderText(string store_name)
     {
-        string prompt_string = LanguageSource.GetLanguageString("please find prompt") + LanguageSource.GetLanguageString(store_name);
+        string prompt_string = LanguageSource.GetLanguageString("please find prompt") + "<b>" + LanguageSource.GetLanguageString(store_name) + "</b>";
         please_find_the_blah_reminder_text.text = prompt_string;
     }
 
@@ -123,9 +166,9 @@ public class MessageImageDisplayer : MonoBehaviour
         string update_name = "";
         foreach (char c in prompt_string)
         {
-            if(char.IsLetter(c))
+            if(char.IsLetter(c)||c == '\'')
             {
-                update_name += char.ToUpper(c);
+                update_name += char.ToLower(c);
             } else
             {
                 update_name += " ";

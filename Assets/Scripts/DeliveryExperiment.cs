@@ -158,6 +158,10 @@ public class DeliveryExperiment : CoroutineExperiment
         scriptedEventReporter.ReportScriptedEvent("store mappings", storeMappings);
 
         niclsInterface.SendReadOnlyStateToNicls(1);
+
+        // JPB: TODO: Make this a default
+        pointer.SetActive(false);
+
         // Practice delivery day
         if (sessionNumber == 0) {
             WorldScreen();
@@ -495,12 +499,19 @@ public class DeliveryExperiment : CoroutineExperiment
             playerMovement.Freeze();
             messageImageDisplayer.please_find_the_blah_reminder.SetActive(false);
             messageImageDisplayer.SetReminderText(nextStore.GetStoreName());
-            yield return DoPointingTask(nextStore);
+            //yield return DoPointingTask(nextStore);
             messageImageDisplayer.please_find_the_blah_reminder.SetActive(true);
             playerMovement.Unfreeze();
 
+            float startTime = Time.time;
             while (!nextStore.PlayerInDeliveryPosition())
             {
+                if (Time.time - startTime > 10) {
+                    playerMovement.Freeze();
+                    yield return DisplayPointingIndicator(nextStore);
+                    playerMovement.Unfreeze();
+                    startTime = Time.time;
+                }
                 yield return null;
             }
 
@@ -676,6 +687,19 @@ public class DeliveryExperiment : CoroutineExperiment
             yield return null;
         }
         scriptedEventReporter.ReportScriptedEvent("pointer message cleared", new Dictionary<string, object>());
+        pointerParticleSystem.Stop();
+        pointer.SetActive(false);
+        pointerMessage.SetActive(false);
+    }
+
+    private IEnumerator DisplayPointingIndicator(StoreComponent nextStore)
+    {
+        pointer.SetActive(true);
+        ColorPointer(new Color(0.5f, 0.5f, 1f));
+        pointer.transform.eulerAngles = new Vector3(0, Random.Range(0, 360), 0);
+        pointerParticleSystem.Play();
+        yield return PointArrowToStore(nextStore.gameObject);
+        yield return new WaitForSeconds(1);
         pointerParticleSystem.Stop();
         pointer.SetActive(false);
         pointerMessage.SetActive(false);

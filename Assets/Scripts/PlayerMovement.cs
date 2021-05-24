@@ -6,7 +6,7 @@ public class PlayerMovement : MonoBehaviour
 {
 	protected float forwardSpeed = 16f;
 	protected float backwardSpeed = 10f;
-	protected float turnSpeed = 70f;
+	protected float turnSpeed = 80f;
     protected float turnThreshhold = 0.5f;
 
 	public GameObject rotateMe;

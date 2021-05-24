@@ -21,7 +21,7 @@ public class DeliveryExperiment : CoroutineExperiment
     // JPB: TODO: Make this a configuration variable
     private static bool standaloneTesting = false; // JPB: TODO: Make this a config variable
 
-    private const string DBOY_VERSION = "v4.2.0";
+    private const string DBOY_VERSION = "v4.2.2";
     private const string RECALL_TEXT = "*******";
     private const int DELIVERIES_PER_TRIAL = 16; // 16;
     private const int PRACTICE_DELIVERIES_PER_TRIAL = 4; // 4;

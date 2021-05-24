@@ -19,7 +19,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private static bool useNicls;
 
     // JPB: TODO: Make this a configuration variable
-    private static bool standaloneTesting = false; // JPB: TODO: Make this a config variable
+    private static bool standaloneTesting = true; // JPB: TODO: Make this a config variable
 
     private const string DBOY_VERSION = "v4.2.2";
     private const string RECALL_TEXT = "*******";
@@ -98,8 +98,6 @@ public class DeliveryExperiment : CoroutineExperiment
         QualitySettings.vSyncCount = 1;
 
         // Start syncpulses
-        // JPB: TODO: COMMENT OUT FOR TESTING
-        //standaloneTesting = true;
         if (!standaloneTesting)
         {
             syncs = GameObject.Find("SyncBox").GetComponent<Syncbox>();
@@ -126,9 +124,11 @@ public class DeliveryExperiment : CoroutineExperiment
         if (useRamulator)
             yield return ramulatorInterface.BeginNewSession(sessionNumber);
 
-        useNicls = true;
+        useNicls = false;
         if (useNicls)
             yield return niclsInterface.BeginNewSession(sessionNumber);
+        else
+            yield return niclsInterface.BeginNewSession(sessionNumber, true);
 
         BlackScreen();
         yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
@@ -145,8 +145,6 @@ public class DeliveryExperiment : CoroutineExperiment
 
         yield return messageImageDisplayer.DisplayLanguageMessage(messageImageDisplayer.delivery_restart_messages);
 
-
-
         Environment environment = EnableEnvironment();
 
         Dictionary<string, object> storeMappings = new Dictionary<string, object>();
@@ -160,8 +158,14 @@ public class DeliveryExperiment : CoroutineExperiment
         scriptedEventReporter.ReportScriptedEvent("store mappings", storeMappings);
 
         niclsInterface.SendReadOnlyStateToNicls(1);
-        // Practice Trials
-        if (sessionNumber == 0)
+        // Practice delivery day
+        if (sessionNumber == 0) {
+            WorldScreen();
+            yield return DoDelivery(environment, 0, true);
+        }
+
+        int trial_number = 0;
+        for (trial_number = 0; trial_number < 12; trial_number++)
         {
             Debug.Log("Practice trials");
             yield return new WaitForSeconds(0.1f);

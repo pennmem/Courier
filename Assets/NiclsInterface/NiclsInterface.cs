@@ -31,6 +31,8 @@ public class NiclsInterface : MonoBehaviour
     //private NiclsEventLoop niclsEventLoop;
     private volatile int classifierResult = 0;
 
+    private bool disabled = false;
+
     void OnApplicationQuit()
     {
         if (zmqSocket != null)
@@ -79,8 +81,13 @@ public class NiclsInterface : MonoBehaviour
     //this coroutine connects to NICLS and communicates how NICLS expects it to
     //in order to start the experiment session.  follow it up with BeginNewTrial and
     //SetState calls
-    public IEnumerator BeginNewSession(int sessionNumber)
+    public IEnumerator BeginNewSession(int sessionNumber, bool disabled = false)
     {
+        if (disabled) {
+            this.disabled = disabled;
+            yield break;
+        }
+
         //Connect to nicls///////////////////////////////////////////////////////////////////
         zmqSocket = new NetMQ.Sockets.PairSocket();
         zmqSocket.Connect(address);
@@ -271,9 +278,12 @@ public class NiclsInterface : MonoBehaviour
 
     private void SendMessageToNicls(string message)
     {
-        bool wouldNotHaveBlocked = zmqSocket.TrySendFrame(message, more: false);
-        Debug.Log("Tried to send a message: " + message + " \nWouldNotHaveBlocked: " + wouldNotHaveBlocked.ToString());
-        ReportMessage(message, true);
+        if (!disabled)
+        {
+            bool wouldNotHaveBlocked = zmqSocket.TrySendFrame(message, more: false);
+            Debug.Log("Tried to send a message: " + message + " \nWouldNotHaveBlocked: " + wouldNotHaveBlocked.ToString());
+            ReportMessage(message, true);
+        }
     }
 
     private void ReportMessage(string message, bool sent)

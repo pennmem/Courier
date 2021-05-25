@@ -159,14 +159,19 @@ public class DeliveryExperiment : CoroutineExperiment
 
         niclsInterface.SendReadOnlyStateToNicls(1);
 
-        // JPB: TODO: Make this a default
+        // JPB: TODO: Make these defaults
         pointer.SetActive(false);
+        pointerMessage.SetActive(false);
 
         // Practice delivery day
         if (sessionNumber == 0) {
+            yield return DisplayMessageAndWait("Spatial Learning Phase", "Spatial Learning Phase: you'll be asked to find all the stores");
             WorldScreen();
             yield return DoDelivery(environment, 0, true);
+            yield return DoDelivery(environment, 0, true);
         }
+
+        yield return messageImageDisplayer.DisplayLanguageMessage(messageImageDisplayer.delivery_restart_messages);
 
         int trial_number = 0;
         for (trial_number = 0; trial_number < 12; trial_number++)
@@ -244,6 +249,18 @@ public class DeliveryExperiment : CoroutineExperiment
         playerMovement.Zero();
     }
 
+    protected IEnumerator DisplayMessageAndWait(string description, string message)
+    {
+        yield return null;
+        SetRamulatorState("WAITING", true, new Dictionary<string, object>());
+        textDisplayer.DisplayText(description, message + "\r\nPress (x) to continue");
+        while (!Input.GetButton("q (secret)") && !Input.GetButton("x (continue)"))
+        {
+            yield return null;
+        }
+        textDisplayer.ClearText();
+        SetRamulatorState("WAITING", false, new Dictionary<string, object>());
+    }
 
     private IEnumerator DoRecall(int trial_number, bool practice = false)
     {
@@ -503,15 +520,11 @@ public class DeliveryExperiment : CoroutineExperiment
             messageImageDisplayer.please_find_the_blah_reminder.SetActive(true);
             playerMovement.Unfreeze();
 
-            pointerMessage.SetActive(false);
             float startTime = Time.time;
             while (!nextStore.PlayerInDeliveryPosition())
             {
                 if (Time.time - startTime > 10) {
-                    //playerMovement.Freeze();
                     yield return DisplayPointingIndicator(nextStore, true);
-                    //playerMovement.Unfreeze();
-                    //startTime = Time.time;
                 }
                 yield return null;
             }
@@ -567,6 +580,12 @@ public class DeliveryExperiment : CoroutineExperiment
                                                           new Dictionary<string, object>());
                 playerMovement.Unfreeze();
                 //niclsInterface.SendEncodingToNicls(0);
+            }
+            else if (practice)
+            {
+                playerMovement.Freeze();
+                yield return new  WaitForSeconds(1);
+                playerMovement.Unfreeze();
             }
         }
 
@@ -703,16 +722,13 @@ public class DeliveryExperiment : CoroutineExperiment
         } else {
             pointer.SetActive(false);
         }
+    }
 
-        //pointer.SetActive(true);
-        //ColorPointer(new Color(0.5f, 0.5f, 1f));
-        //pointer.transform.eulerAngles = new Vector3(0, Random.Range(0, 360), 0);
-        //pointerParticleSystem.Play();
-        //yield return PointArrowToStore(nextStore.gameObject);
-        //yield return new WaitForSeconds(1);
-        //pointerParticleSystem.Stop();
-        //pointer.SetActive(false);
-        //pointerMessage.SetActive(false);
+    private IEnumerator PointArrowToStore(GameObject pointToStore)
+    {
+        Vector3 lookDirection = pointToStore.transform.position - pointer.transform.position;
+        pointer.transform.rotation = Quaternion.Slerp(pointer.transform.rotation, Quaternion.LookRotation(lookDirection), 1); //Time.deltaTime * rotationSpeed);
+        yield return null;
     }
 
     private float PointerError(GameObject toStore)
@@ -728,23 +744,6 @@ public class DeliveryExperiment : CoroutineExperiment
                                                                                                           {"pointed direction (degrees)", actualYRotation} });
 
         return offByRads;
-    }
-
-    private IEnumerator PointArrowToStore(GameObject pointToStore)
-    {
-        //float rotationSpeed = 1f; // 1f
-        Vector3 lookDirection = pointToStore.transform.position - pointer.transform.position;
-        pointer.transform.rotation = Quaternion.Slerp(pointer.transform.rotation, Quaternion.LookRotation(lookDirection), 1); //Time.deltaTime * rotationSpeed);
-        yield return null;
-
-        //float rotationSpeed = 2f; // 1f
-        //float startTime = Time.time;
-        //Vector3 lookDirection = pointToStore.transform.position - pointer.transform.position;
-        //while (Time.time < startTime + ARROW_CORRECTION_TIME)
-        //{
-        //    pointer.transform.rotation = Quaternion.Slerp(pointer.transform.rotation, Quaternion.LookRotation(lookDirection), Time.deltaTime * rotationSpeed);
-        //    yield return null;
-        //}
     }
 
     private void AppendWordToLst(string lstFilePath, string word)

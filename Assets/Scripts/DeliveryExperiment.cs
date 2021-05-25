@@ -503,17 +503,19 @@ public class DeliveryExperiment : CoroutineExperiment
             messageImageDisplayer.please_find_the_blah_reminder.SetActive(true);
             playerMovement.Unfreeze();
 
+            pointerMessage.SetActive(false);
             float startTime = Time.time;
             while (!nextStore.PlayerInDeliveryPosition())
             {
                 if (Time.time - startTime > 10) {
-                    playerMovement.Freeze();
-                    yield return DisplayPointingIndicator(nextStore);
-                    playerMovement.Unfreeze();
-                    startTime = Time.time;
+                    //playerMovement.Freeze();
+                    yield return DisplayPointingIndicator(nextStore, true);
+                    //playerMovement.Unfreeze();
+                    //startTime = Time.time;
                 }
                 yield return null;
             }
+            yield return DisplayPointingIndicator(nextStore, false);
 
             ///AUDIO PRESENTATION OF OBJECT///
             if (i != deliveries - 1)
@@ -692,17 +694,25 @@ public class DeliveryExperiment : CoroutineExperiment
         pointerMessage.SetActive(false);
     }
 
-    private IEnumerator DisplayPointingIndicator(StoreComponent nextStore)
+    private IEnumerator DisplayPointingIndicator(StoreComponent nextStore, bool on = false)
     {
-        pointer.SetActive(true);
-        ColorPointer(new Color(0.5f, 0.5f, 1f));
-        pointer.transform.eulerAngles = new Vector3(0, Random.Range(0, 360), 0);
-        pointerParticleSystem.Play();
-        yield return PointArrowToStore(nextStore.gameObject);
-        yield return new WaitForSeconds(1);
-        pointerParticleSystem.Stop();
-        pointer.SetActive(false);
-        pointerMessage.SetActive(false);
+        if (on) {
+            pointer.SetActive(true);
+            ColorPointer(new Color(0.5f, 0.5f, 1f));
+            yield return PointArrowToStore(nextStore.gameObject);
+        } else {
+            pointer.SetActive(false);
+        }
+
+        //pointer.SetActive(true);
+        //ColorPointer(new Color(0.5f, 0.5f, 1f));
+        //pointer.transform.eulerAngles = new Vector3(0, Random.Range(0, 360), 0);
+        //pointerParticleSystem.Play();
+        //yield return PointArrowToStore(nextStore.gameObject);
+        //yield return new WaitForSeconds(1);
+        //pointerParticleSystem.Stop();
+        //pointer.SetActive(false);
+        //pointerMessage.SetActive(false);
     }
 
     private float PointerError(GameObject toStore)
@@ -722,14 +732,19 @@ public class DeliveryExperiment : CoroutineExperiment
 
     private IEnumerator PointArrowToStore(GameObject pointToStore)
     {
-        float rotationSpeed = 1f;
-        float startTime = Time.time;
+        //float rotationSpeed = 1f; // 1f
         Vector3 lookDirection = pointToStore.transform.position - pointer.transform.position;
-        while (Time.time < startTime + ARROW_CORRECTION_TIME)
-        {
-            pointer.transform.rotation = Quaternion.Slerp(pointer.transform.rotation, Quaternion.LookRotation(lookDirection), Time.deltaTime * rotationSpeed);
-            yield return null;
-        }
+        pointer.transform.rotation = Quaternion.Slerp(pointer.transform.rotation, Quaternion.LookRotation(lookDirection), 1); //Time.deltaTime * rotationSpeed);
+        yield return null;
+
+        //float rotationSpeed = 2f; // 1f
+        //float startTime = Time.time;
+        //Vector3 lookDirection = pointToStore.transform.position - pointer.transform.position;
+        //while (Time.time < startTime + ARROW_CORRECTION_TIME)
+        //{
+        //    pointer.transform.rotation = Quaternion.Slerp(pointer.transform.rotation, Quaternion.LookRotation(lookDirection), Time.deltaTime * rotationSpeed);
+        //    yield return null;
+        //}
     }
 
     private void AppendWordToLst(string lstFilePath, string word)

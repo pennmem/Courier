@@ -45,6 +45,10 @@ public class DeliveryExperiment : CoroutineExperiment
     private const float DISPLAY_ITEM_PAUSE = 5f;
     private const float AUDIO_TEXT_DISPLAY = 1.2f;
 
+    private const int DOUBLE_PRACTICE_DAYS = 1;
+    private const int TOTAL_PRACTICE_DAYS = 4;
+    private const int POINTING_INDICATOR_DELAY = 15;
+
     public Camera regularCamera;
     public Camera blackScreenCamera;
     public Familiarizer familiarizer;
@@ -163,11 +167,18 @@ public class DeliveryExperiment : CoroutineExperiment
         pointer.SetActive(false);
         pointerMessage.SetActive(false);
 
-        // Practice delivery day
-        if (sessionNumber == 0) {
+        // Practice delivery days
+        if (sessionNumber <= DOUBLE_PRACTICE_DAYS)
+        {
             yield return DisplayMessageAndWait("Spatial Learning Phase", "Spatial Learning Phase: you'll be asked to find all the stores");
             WorldScreen();
             yield return DoDelivery(environment, 0, true);
+            yield return DoDelivery(environment, 0, true);
+        }
+        else if (sessionNumber <= TOTAL_PRACTICE_DAYS)
+        {
+            yield return DisplayMessageAndWait("Spatial Learning Phase", "Spatial Learning Phase: you'll be asked to find all the stores");
+            WorldScreen();
             yield return DoDelivery(environment, 0, true);
         }
 
@@ -523,7 +534,7 @@ public class DeliveryExperiment : CoroutineExperiment
             float startTime = Time.time;
             while (!nextStore.PlayerInDeliveryPosition())
             {
-                if (Time.time - startTime > 10) {
+                if (Time.time - startTime > POINTING_INDICATOR_DELAY) {
                     yield return DisplayPointingIndicator(nextStore, true);
                 }
                 yield return null;
@@ -580,12 +591,6 @@ public class DeliveryExperiment : CoroutineExperiment
                                                           new Dictionary<string, object>());
                 playerMovement.Unfreeze();
                 //niclsInterface.SendEncodingToNicls(0);
-            }
-            else if (practice)
-            {
-                playerMovement.Freeze();
-                yield return new  WaitForSeconds(1);
-                playerMovement.Unfreeze();
             }
         }
 

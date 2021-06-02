@@ -31,6 +31,8 @@ public class MessageImageDisplayer : MonoBehaviour
     public UnityEngine.UI.Text please_speak_now_text;
     public ScriptedEventReporter scriptedEventReporter;
 
+    private const float BUTTON_MSG_DISPLAY_WAIT = 0.3f;
+
     public IEnumerator DisplayLanguageMessage(GameObject[] language_messages)
     {
         yield return DisplayMessage(language_messages[(int)LanguageSource.current_language]);
@@ -52,10 +54,7 @@ public class MessageImageDisplayer : MonoBehaviour
     public void SetCuedRecallMessage(bool isActive)
     {
         GameObject message = cued_recall_message[(int)LanguageSource.current_language];
-        if (isActive)
-            message.SetActive(true);
-        else
-            message.SetActive(false);
+        message.SetActive(isActive);
     }
 
     private IEnumerator DisplayMessage(GameObject message)
@@ -91,7 +90,6 @@ public class MessageImageDisplayer : MonoBehaviour
 
     private IEnumerator DisplayMessageWithoutX_Keypress(GameObject message, GameObject message_left, GameObject message_right, float waitTime)
     {
-        float WAIT = 0.5f;
         Dictionary<string, object> messageData = new Dictionary<string, object>();
         messageData.Add("message name", message.name);
         scriptedEventReporter.ReportScriptedEvent("instruction message displayed", messageData);
@@ -107,33 +105,33 @@ public class MessageImageDisplayer : MonoBehaviour
 
             if (Input.GetButtonDown("correct"))
             {
-                string thisone = i.ToString() +"th keypress: correct";
+                string thisone = i.ToString() + "th keypress: correct";
                 data.Add(thisone, currTime);
                 i++;
                 message_right.SetActive(true);
                 message.SetActive(false);
-                while (Time.time < currTime + WAIT || Input.GetButtonDown("correct"))
+                while (Time.time < currTime + BUTTON_MSG_DISPLAY_WAIT || Input.GetButton("correct"))
                 {
                     yield return null;
                 }
                 message_right.SetActive(false);
                 message.SetActive(true);
-
-            } else if (Input.GetButtonDown("false"))
+            }
+            else if (Input.GetButtonDown("false"))
             {
                 string thisone = i.ToString() + "th keypress: incorrect";
                 data.Add(thisone, currTime);
                 i++;
                 message.SetActive(false);
                 message_left.SetActive(true);
-                while (Time.time < currTime + WAIT || Input.GetButtonDown("false"))
+                while (Time.time < currTime + BUTTON_MSG_DISPLAY_WAIT || Input.GetButton("false"))
                 {
                     yield return null;
                 }
                 message_left.SetActive(false);
                 message.SetActive(true);
-
-            } else if (Input.anyKeyDown)
+            }
+            else if (Input.anyKeyDown)
             {
                 foreach (KeyCode kcode in System.Enum.GetValues(typeof(KeyCode)))
                 {
@@ -169,7 +167,8 @@ public class MessageImageDisplayer : MonoBehaviour
             if(char.IsLetter(c)||c == '\'')
             {
                 update_name += char.ToLower(c);
-            } else
+            } 
+            else
             {
                 update_name += " ";
             }

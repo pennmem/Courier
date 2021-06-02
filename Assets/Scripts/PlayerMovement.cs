@@ -4,13 +4,13 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
-	public float forwardSpeed = 1f;
-	public float backwardSpeed = 0.5f;
-	public float turnSpeed = 1f;
-    public float turnThreshhold = 0f;
+    protected float forwardSpeed = 12f; //6f
+    protected float backwardSpeed = 6f; //3f
+    protected float turnSpeed = 65f; //40f
+    protected float turnThreshhold = 0.5f;
 
 	public GameObject rotateMe;
-	public float maxRotation = 30f;
+	protected float maxRotation = 30f;
 
     private int freeze_level = 0;
     private Transform xform;
@@ -18,8 +18,9 @@ public class PlayerMovement : MonoBehaviour
     void Start() {
         xform = gameObject.transform;
     }
-	void Update ()
-	{
+
+    void Update ()
+    {
         float turnAmount = Input.GetAxis("Horizontal");
         if (Mathf.Abs(turnAmount) < turnThreshhold)
             turnAmount = 0;
@@ -33,11 +34,11 @@ public class PlayerMovement : MonoBehaviour
                 xform.position = Vector3.Lerp(xform.position, xform.position + Input.GetAxis("Vertical") * xform.forward, forwardSpeed * Time.deltaTime);
             else
                 xform.position = Vector3.Lerp(xform.position, xform.position + Input.GetAxis("Vertical") * xform.forward, backwardSpeed * Time.deltaTime);
-
+            
             //rotate the handlebars smoothly, limit to maxRotation
             rotateMe.transform.localRotation = Quaternion.Euler(rotateMe.transform.rotation.eulerAngles.x, Input.GetAxis("Horizontal") * maxRotation, rotateMe.transform.rotation.eulerAngles.z);
         }
-	}
+    }
 
     public bool IsFrozen()
     {

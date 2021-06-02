@@ -19,18 +19,17 @@ public class DeliveryExperiment : CoroutineExperiment
 
     private const string DBOY_VERSION = "v4.2.0";
     private const string RECALL_TEXT = "*******";
-    private const int DELIVERIES_PER_TRIAL = 4; //13
+    private const int DELIVERIES_PER_TRIAL = 2; //13
     private const float MIN_FAMILIARIZATION_ISI = 0.4f;
     private const float MAX_FAMILIARIZATION_ISI = 0.6f;
     private const float FAMILIARIZATION_PRESENTATION_LENGTH = 1.5f;
     private const float RECALL_MESSAGE_DISPLAY_LENGTH = 6f;
     private const float RECALL_TEXT_DISPLAY_LENGTH = 1f;
-    private const float FREE_RECALL_LENGTH = 90f;
+    private const float FREE_RECALL_LENGTH = 10f; // 90f
     private const float STORE_FINAL_RECALL_LENGTH = 90f;
     private const float FINAL_RECALL_LENGTH = 240f;
     private const float TIME_BETWEEN_DIFFERENT_RECALL_PHASES = 2f;
     private const float CUED_RECALL_TIME_PER_STORE = 10f;
-    private const float CUED_RECALL_ISI = 1f;
     private const float ARROW_CORRECTION_TIME = 3f;
     private const float PAUSE_BEFORE_RETRIEVAL = 10f;
     private const float DISPLAY_ITEM_PAUSE = 5f;
@@ -218,6 +217,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
     private IEnumerator DoFreeRecall(int trial_number, bool practice = false)
     {
+        BlackScreen();
         messageImageDisplayer.SetSpeakNowText("");
         textDisplayer.ClearText();
         highBeep.Play();
@@ -238,7 +238,6 @@ public class DeliveryExperiment : CoroutineExperiment
         Dictionary<string, object> keypressData = new Dictionary<string, object>(); 
         if (practice)
         {
-            BlackScreen();
             messageImageDisplayer.SetSpeakNowText("(please speak now)");
             yield return SkippableWait(PRACTICE_FREE_RECALL_LENGTH);
         } 
@@ -265,6 +264,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
         BlackScreen();
         this_trial_presented_stores.Shuffle(new System.Random());
+        Debug.Log(this_trial_presented_stores);
 
         textDisplayer.DisplayText("display day cued recall prompt", LanguageSource.GetLanguageString("store cue recall"));
         yield return SkippableWait(RECALL_MESSAGE_DISPLAY_LENGTH);
@@ -279,36 +279,29 @@ public class DeliveryExperiment : CoroutineExperiment
             cueStore.familiarization_object.SetActive(true);
             messageImageDisplayer.SetCuedRecallMessage(true);
 
-            if (practice)
-            {
-                float startTime = Time.time;
-                while ((!Input.GetButtonDown("x (continue)") || Time.time < startTime + 3f) 
-                       && Time.time < startTime + CUED_RECALL_TIME_PER_STORE)
-                    yield return null;
-            }
-            else
-            {
-                string output_file_name = trial_number.ToString() + "-" + cueStore.GetStoreName();
-                string output_directory = UnityEPL.GetDataPath();
-                string wavFilePath = System.IO.Path.Combine(output_directory, output_file_name) + ".wav";
-                string lstFilepath = System.IO.Path.Combine(output_directory, output_file_name) + ".lst";
-                AppendWordToLst(lstFilepath, cueStore.GetLastPoppedItemName());
-                Dictionary<string, object> cuedRecordingData = new Dictionary<string, object>();
-                cuedRecordingData.Add("trial number", trial_number);
-                cuedRecordingData.Add("store", cueStore.GetStoreName());
-                cuedRecordingData.Add("item", cueStore.GetLastPoppedItemName());
-                cuedRecordingData.Add("store position", cueStore.transform.position.ToString());
-                scriptedEventReporter.ReportScriptedEvent("cued recall recording start", cuedRecordingData);
-                soundRecorder.StartRecording(wavFilePath);
+            string output_file_name = practice 
+                        ? trial_number.ToString() + "-" + cueStore.GetStoreName() 
+                        : "practice-" + cueStore.GetStoreName();
+            string output_directory = UnityEPL.GetDataPath();
+            string wavFilePath = System.IO.Path.Combine(output_directory, output_file_name) + ".wav";
+            string lstFilepath = System.IO.Path.Combine(output_directory, output_file_name) + ".lst";
+            AppendWordToLst(lstFilepath, cueStore.GetLastPoppedItemName());
+            Dictionary<string, object> cuedRecordingData = new Dictionary<string, object>();
+            cuedRecordingData.Add("trial number", trial_number);
+            cuedRecordingData.Add("store", cueStore.GetStoreName());
+            cuedRecordingData.Add("item", cueStore.GetLastPoppedItemName());
+            cuedRecordingData.Add("store position", cueStore.transform.position.ToString());
 
-                float startTime = Time.time;
-                while ((!Input.GetButtonDown("x (continue)") || Time.time < startTime + 3f) 
-                       && Time.time < startTime + CUED_RECALL_TIME_PER_STORE)
-                    yield return null;
+            scriptedEventReporter.ReportScriptedEvent("cued recall recording start", cuedRecordingData);
+            soundRecorder.StartRecording(wavFilePath);
 
-                scriptedEventReporter.ReportScriptedEvent("cued recall recording stop", cuedRecordingData);
-                soundRecorder.StopRecording();
-            }
+            float startTime = Time.time;
+            while (!Input.GetButtonDown("x (continue)") 
+                   && Time.time < startTime + CUED_RECALL_TIME_PER_STORE)
+                yield return null;
+
+            scriptedEventReporter.ReportScriptedEvent("cued recall recording stop", cuedRecordingData);
+            soundRecorder.StopRecording();
 
             cueStore.familiarization_object.SetActive(false);
             lowBeep.Play();
@@ -434,7 +427,7 @@ public class DeliveryExperiment : CoroutineExperiment
             }
 
             ///AUDIO PRESENTATION OF OBJECT///
-            if (i != DELIVERIES_PER_TRIAL - 1)
+            if (i != deliveries - 1)
             {
                 playerMovement.Freeze();
                 AudioClip deliveredItem = nextStore.PopItem();
@@ -567,6 +560,7 @@ public class DeliveryExperiment : CoroutineExperiment
             pointerText.text = pointerText.text + LanguageSource.GetLanguageString("rating improved");
         }
 
+        pointerText.text = pointerText.text + LanguageSource.GetLanguageString("continue");
 
         yield return null;
         yield return PointArrowToStore(nextStore.gameObject);

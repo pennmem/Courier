@@ -75,7 +75,7 @@ public class StoreComponent : MonoBehaviour
 
     public AudioClip PopSpecificItem(string itemName)
     {
-        AudioClip item = deliveryItems.PopSpecificItem(storeName, itemName);
+        AudioClip item = deliveryItems.UsePracticeItem(storeName, itemName);
         mostRecentlyPoppedItem = item.name;
         return item;
     }

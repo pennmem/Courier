@@ -112,21 +112,23 @@ public class DeliveryItems : MonoBehaviour
         return storeName;
     }
 
-    // This assumes that the item is ONLY in the practice lis and NOT in the main list!
-    public AudioClip PopSpecificItem(string storeName, string itemName) 
+    // This assumes that the item is ONLY in the practice list and NOT in the main list!
+    // This does not remove the item from the remainingItems file
+    public AudioClip UsePracticeItem(string storeName, string itemName) 
     {
+        //get the item
         StoreAudio storeAudio = System.Array.Find(practiceStoreNamesToItems, 
                                                   store => store.storeName.Equals(storeName));
         if (storeAudio.storeName == null)
-            throw new UnityException("Possible language mismatch. I couldn't find the store: " + storeName);
+            throw new UnityException("I couldn't find the store: " + storeName);
         
-        AudioClip[] languageAudio;
+        AudioClip[] languageAudioClips;
         if (LanguageSource.current_language.Equals(LanguageSource.LANGUAGE.ENGLISH))
-            languageAudio = storeAudio.englishAudio;
+            languageAudioClips = storeAudio.englishAudio;
         else
-            languageAudio = storeAudio.germanAudio;
+            languageAudioClips = storeAudio.germanAudio;
 
-        AudioClip item = System.Array.Find(languageAudio, 
+        AudioClip item = System.Array.Find(languageAudioClips, 
                                            clip => clip.name.Equals(itemName));
         if (item == null)
             throw new UnityException("Possible language mismatch. I couldn't find: " + itemName + " in " + storeName);
@@ -134,82 +136,37 @@ public class DeliveryItems : MonoBehaviour
         return item;
     }
 
-
-    // JPB: IN DEVELOPMENT
-    public AudioClip PopItem2(string storeName)
+    public AudioClip PopItem(string storeName)
     {
-        //get the item
+        // Get the item
         string remainingItemsPath = RemainingItemsPath(storeName);
         string[] remainingItems = System.IO.File.ReadAllLines(remainingItemsPath);
         int randomItemIndex = Random.Range(0, remainingItems.Length);
         string randomItemName = remainingItems[randomItemIndex];
 
-        StoreAudio storeAudio = System.Array.Find(practiceStoreNamesToItems,
+        StoreAudio storeAudio = System.Array.Find(storeNamesToItems,
                                                   store => store.storeName.Equals(storeName));
         if (storeAudio.storeName == null)
-            throw new UnityException("Possible language mismatch. I couldn't find the store: " + storeName);
+            throw new UnityException("I couldn't find the store: " + storeName);
         
-        AudioClip[] languageAudio;
+        AudioClip[] languageAudioClips;
         if (LanguageSource.current_language.Equals(LanguageSource.LANGUAGE.ENGLISH))
-            languageAudio = storeAudio.englishAudio;
+            languageAudioClips = storeAudio.englishAudio;
         else
-            languageAudio = storeAudio.germanAudio;
+            languageAudioClips = storeAudio.germanAudio;
         
-        AudioClip randomItem = System.Array.Find(languageAudio,
-                                           clip => clip.name.Equals(randomItemName));
+        AudioClip randomItem = System.Array.Find(languageAudioClips, 
+                                                 clip => clip.name.Equals(randomItemName));
         if (randomItem == null)
             throw new UnityException("Possible language mismatch. I couldn't find an item for: " + storeName);
 
-        //delete it from remaining items
+        // Delete it from remaining items
         System.Array.Copy(remainingItems, randomItemIndex + 1, 
                           remainingItems, randomItemIndex, 
                           remainingItems.Length - randomItemIndex - 1);
         System.Array.Resize(ref remainingItems, remainingItems.Length - 1);
         System.IO.File.WriteAllLines(remainingItemsPath, remainingItems);
         Debug.Log("Items remaining: " + remainingItems.Length.ToString());
-
-        //return the item
-        return randomItem;
-    }
-
-    public AudioClip PopItem(string storeName)
-    {
-        //get the item
-        string remainingItemsPath = RemainingItemsPath(storeName);
-        string[] remainingItems = System.IO.File.ReadAllLines(remainingItemsPath);
-        int randomItemIndex = Random.Range(0, remainingItems.Length);
-        string randomItemName = remainingItems[randomItemIndex];
-
-        AudioClip randomItem = null;
-        foreach (StoreAudio storeAudio in storeNamesToItems)
-        {
-            AudioClip[] languageAudio;
-            if (LanguageSource.current_language.Equals(LanguageSource.LANGUAGE.ENGLISH))
-                languageAudio = storeAudio.englishAudio;
-            else
-                languageAudio = storeAudio.germanAudio;
-            
-            foreach (AudioClip clip in languageAudio)
-            {
-                if (clip.name.Equals(randomItemName))
-                    randomItem = clip;
-            }
-        }
-        if (randomItem == null)
-            throw new UnityException("Possible language mismatch. I couldn't find an item for: " + storeName);
-
-        //delete it from remaining items
-        string[] remainingItemsMinusRandomItem = new string[remainingItems.Length - 1];
-        for (int i = 0; i < remainingItems.Length; i++)
-        {
-            if (i < randomItemIndex)
-                remainingItemsMinusRandomItem[i] = remainingItems[i];
-            if (i > randomItemIndex)
-                remainingItemsMinusRandomItem[i - 1] = remainingItems[i];
-        }
-        System.IO.File.WriteAllLines(remainingItemsPath, remainingItemsMinusRandomItem);
-
-        Debug.Log("Items remaining: " + remainingItemsMinusRandomItem.Length.ToString());
 
         //return the item
         return randomItem;

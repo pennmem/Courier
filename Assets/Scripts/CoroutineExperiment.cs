@@ -9,6 +9,7 @@ public abstract class CoroutineExperiment : MonoBehaviour
     public SoundRecorder soundRecorder;
     public TextDisplayer textDisplayer;
     public VideoControl videoPlayer;
+    public VideoSelector videoSelector;
 
     public GameObject titleMessage;
     public UnityEngine.UI.Text titleText;
@@ -93,7 +94,7 @@ public abstract class CoroutineExperiment : MonoBehaviour
         titleMessage.SetActive(false);
     }
 
-    protected IEnumerator DoIntroductionVideo(string playPrompt, string repeatPrompt)
+    protected IEnumerator DoVideo(string playPrompt, string repeatPrompt, VideoSelector.VideoType videoType)
     {
         yield return PressAnyKey(playPrompt);
 
@@ -102,6 +103,7 @@ public abstract class CoroutineExperiment : MonoBehaviour
         {
             //start video player and wait for it to stop playing
             SetRamulatorState("INSTRUCT", true, new Dictionary<string, object>());
+            videoSelector.SetIntroductionVideo(videoType);
             videoPlayer.StartVideo();
             while (videoPlayer.IsPlaying())
                 yield return null;

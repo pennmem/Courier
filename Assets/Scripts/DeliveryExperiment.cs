@@ -20,6 +20,8 @@ public class DeliveryExperiment : CoroutineExperiment
     private const string DBOY_VERSION = "v4.2.0";
     private const string RECALL_TEXT = "*******";
     private const int DELIVERIES_PER_TRIAL = 2; //13
+    private const int PRACTICE_DELIVERIES_PER_TRIAL = 4;
+    private const int TRIALS_PER_SESSION = 2; //12
     private const float MIN_FAMILIARIZATION_ISI = 0.4f;
     private const float MAX_FAMILIARIZATION_ISI = 0.6f;
     private const float FAMILIARIZATION_PRESENTATION_LENGTH = 1.5f;
@@ -34,11 +36,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private const float PAUSE_BEFORE_RETRIEVAL = 10f;
     private const float DISPLAY_ITEM_PAUSE = 5f;
     private const float AUDIO_TEXT_DISPLAY = 1.2f;
-
-    private const int PRACTICE_DELIVERIES_PER_TRIAL = 3;
     private const float PRACTICE_FREE_RECALL_LENGTH = 30f;
-
-    private const int TRIALS_PER_SESSION = 2; //12
 
     public Camera regularCamera;
     public Camera blackScreenCamera;
@@ -116,7 +114,10 @@ public class DeliveryExperiment : CoroutineExperiment
 
         BlackScreen();
         //TODO: fix runtime bug
-        //yield return DoIntroductionVideo(LanguageSource.GetLanguageString("play movie"), LanguageSource.GetLanguageString("first day"));
+        //videoSelector.SetIntroductionVideo();
+        yield return DoVideo(LanguageSource.GetLanguageString("play movie"), 
+                             LanguageSource.GetLanguageString("first day"), 
+                             VideoSelector.VideoType.MainIntro);
         //yield return DoSubjectSessionQuitPrompt(sessionNumber,
                                                 //LanguageSource.GetLanguageString("running participant"));
         //yield return DoMicrophoneTest(LanguageSource.GetLanguageString("microphone test"),
@@ -148,6 +149,9 @@ public class DeliveryExperiment : CoroutineExperiment
         {
             Debug.Log("Practice trials");
             yield return DoTrials(environment, 1, true);
+            yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
+                             LanguageSource.GetLanguageString("first day"),
+                             VideoSelector.VideoType.PostpracticeIntro);
         }
             
         Debug.Log("Real trials");
@@ -397,22 +401,42 @@ public class DeliveryExperiment : CoroutineExperiment
 
         SetRamulatorState("ENCODING", true, new Dictionary<string, object>());  
         int deliveries = practice ? PRACTICE_DELIVERIES_PER_TRIAL : DELIVERIES_PER_TRIAL;
+        int craft_shop_delivery_num = Random.Range(0, deliveries-1);
+
         for (int i = 0; i < deliveries; i++)
         {
             StoreComponent nextStore = null;
             int random_store_index = -1;
             int tries = 0;
 
-            do
+            int craft_shop_index = unvisitedStores.FindIndex(store => store.GetStoreName() == "craft shop");
+            if (practice && i == craft_shop_delivery_num)
             {
-                tries++;
-                random_store_index = Random.Range(0, unvisitedStores.Count);
+                random_store_index = craft_shop_index;
                 nextStore = unvisitedStores[random_store_index];
+            } 
+            else if (practice)
+            {
+                do
+                {
+                    tries++;
+                    random_store_index = Random.Range(0, unvisitedStores.Count);
+                    nextStore = unvisitedStores[random_store_index];
+                }
+                while (nextStore.IsVisible() && tries < 17 && random_store_index != craft_shop_index);
             }
-            while (nextStore.IsVisible() && tries < 17);
+            else
+            {
+                do
+                {
+                    tries++;
+                    random_store_index = Random.Range(0, unvisitedStores.Count);
+                    nextStore = unvisitedStores[random_store_index];
+                }
+                while (nextStore.IsVisible() && tries < 17);
+            }
 
             unvisitedStores.RemoveAt(random_store_index);
-
 
             playerMovement.Freeze();
             messageImageDisplayer.please_find_the_blah_reminder.SetActive(false);
@@ -430,7 +454,9 @@ public class DeliveryExperiment : CoroutineExperiment
             if (i != deliveries - 1)
             {
                 playerMovement.Freeze();
-                AudioClip deliveredItem = nextStore.PopItem();
+                AudioClip deliveredItem = (practice && i == craft_shop_delivery_num)
+                    ? nextStore.PopSpecificItem(LanguageSource.GetLanguageString("confetti"))
+                    : nextStore.PopItem();
                 string deliveredItemName = deliveredItem.name;
                 audioPlayback.clip = deliveredItem;
                 audioPlayback.Play();

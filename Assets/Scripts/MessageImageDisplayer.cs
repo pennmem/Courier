@@ -101,13 +101,14 @@ public class MessageImageDisplayer : MonoBehaviour
         int i = 0;
         while (Time.time < startTime + waitTime)
         {
-            float currTime = Time.time;
+            float currTime = Time.time / 100f;
 
             if (Input.GetButtonDown("correct"))
             {
-                string thisone = i.ToString() + "th keypress: correct";
-                data.Add(thisone, currTime);
+                string keypressInfo = i.ToString() + "th keypress: correct";
+                data.Add(keypressInfo, currTime);
                 i++;
+
                 message_right.SetActive(true);
                 message.SetActive(false);
                 while (Time.time < currTime + BUTTON_MSG_DISPLAY_WAIT || Input.GetButton("correct"))
@@ -119,9 +120,10 @@ public class MessageImageDisplayer : MonoBehaviour
             }
             else if (Input.GetButtonDown("false"))
             {
-                string thisone = i.ToString() + "th keypress: incorrect";
-                data.Add(thisone, currTime);
+                string keypressInfo = i.ToString() + "th keypress: incorrect";
+                data.Add(keypressInfo, currTime);
                 i++;
+
                 message.SetActive(false);
                 message_left.SetActive(true);
                 while (Time.time < currTime + BUTTON_MSG_DISPLAY_WAIT || Input.GetButton("false"))
@@ -137,8 +139,8 @@ public class MessageImageDisplayer : MonoBehaviour
                 {
                     if (Input.GetKey(kcode))
                     {
-                        string thisone = i.ToString() + "th keypress: " + kcode.ToString();
-                        data.Add(thisone, currTime);
+                        string keypressInfo = i.ToString() + "th keypress: " + kcode.ToString();
+                        data.Add(keypressInfo, currTime);
                         i++;
                     }
                 }

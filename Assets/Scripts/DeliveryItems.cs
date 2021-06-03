@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 
@@ -18,6 +17,7 @@ public class DeliveryItems : MonoBehaviour
     private System.Random random;
 
     public StoreAudio[] storeNamesToItems;
+    public StoreAudio[] practiceStoreNamesToItems;
 
     private static string RemainingItemsPath(string storeName)
     {
@@ -112,31 +112,87 @@ public class DeliveryItems : MonoBehaviour
         return storeName;
     }
 
+    // This assumes that the item is ONLY in the practice lis and NOT in the main list!
+    public AudioClip PopSpecificItem(string storeName, string itemName) 
+    {
+        StoreAudio storeAudio = System.Array.Find(practiceStoreNamesToItems, 
+                                                  store => store.storeName.Equals(storeName));
+        if (storeAudio.storeName == null)
+            throw new UnityException("Possible language mismatch. I couldn't find the store: " + storeName);
+        
+        AudioClip[] languageAudio;
+        if (LanguageSource.current_language.Equals(LanguageSource.LANGUAGE.ENGLISH))
+            languageAudio = storeAudio.englishAudio;
+        else
+            languageAudio = storeAudio.germanAudio;
+
+        AudioClip item = System.Array.Find(languageAudio, 
+                                           clip => clip.name.Equals(itemName));
+        if (item == null)
+            throw new UnityException("Possible language mismatch. I couldn't find: " + itemName + " in " + storeName);
+
+        return item;
+    }
+
+
+    // JPB: IN DEVELOPMENT
+    public AudioClip PopItem2(string storeName)
+    {
+        //get the item
+        string remainingItemsPath = RemainingItemsPath(storeName);
+        string[] remainingItems = System.IO.File.ReadAllLines(remainingItemsPath);
+        int randomItemIndex = Random.Range(0, remainingItems.Length);
+        string randomItemName = remainingItems[randomItemIndex];
+
+        StoreAudio storeAudio = System.Array.Find(practiceStoreNamesToItems,
+                                                  store => store.storeName.Equals(storeName));
+        if (storeAudio.storeName == null)
+            throw new UnityException("Possible language mismatch. I couldn't find the store: " + storeName);
+        
+        AudioClip[] languageAudio;
+        if (LanguageSource.current_language.Equals(LanguageSource.LANGUAGE.ENGLISH))
+            languageAudio = storeAudio.englishAudio;
+        else
+            languageAudio = storeAudio.germanAudio;
+        
+        AudioClip randomItem = System.Array.Find(languageAudio,
+                                           clip => clip.name.Equals(randomItemName));
+        if (randomItem == null)
+            throw new UnityException("Possible language mismatch. I couldn't find an item for: " + storeName);
+
+        //delete it from remaining items
+        System.Array.Copy(remainingItems, randomItemIndex + 1, 
+                          remainingItems, randomItemIndex, 
+                          remainingItems.Length - randomItemIndex - 1);
+        System.Array.Resize(ref remainingItems, remainingItems.Length - 1);
+        System.IO.File.WriteAllLines(remainingItemsPath, remainingItems);
+        Debug.Log("Items remaining: " + remainingItems.Length.ToString());
+
+        //return the item
+        return randomItem;
+    }
+
     public AudioClip PopItem(string storeName)
     {
         //get the item
         string remainingItemsPath = RemainingItemsPath(storeName);
         string[] remainingItems = System.IO.File.ReadAllLines(remainingItemsPath);
-        int randomItemIndex = UnityEngine.Random.Range(0, remainingItems.Length);
+        int randomItemIndex = Random.Range(0, remainingItems.Length);
         string randomItemName = remainingItems[randomItemIndex];
+
         AudioClip randomItem = null;
         foreach (StoreAudio storeAudio in storeNamesToItems)
         {
             AudioClip[] languageAudio;
             if (LanguageSource.current_language.Equals(LanguageSource.LANGUAGE.ENGLISH))
-            {
                 languageAudio = storeAudio.englishAudio;
-            }
             else
-            {
                 languageAudio = storeAudio.germanAudio;
-            }
+            
             foreach (AudioClip clip in languageAudio)
             {
                 if (clip.name.Equals(randomItemName))
-                {
                     randomItem = clip;
-                }
             }
         }
         if (randomItem == null)

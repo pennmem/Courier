@@ -17,7 +17,7 @@ public static class LanguageSource
         { "rating improved", new string[] {"Your rating improved!", "Ihre Wertung hat sich verbessert!"} },
         //{ "you now have", new string[] {"You now have points: ", "Aktuelle Punktzahl: "} },
         //{ "you earn points", new string[] {"You earned points: ", "Verdiente Punkte: "} },
-        { "continue", new string[] {"\nPress (X) to continue.", "\nDrücken Sie (X) um fortzufahren."}},
+        { "continue", new string[] {"\nPress (X) to continue.", "\nDrücken Sie (X) um fortzufahren."} },
         { "please point", new string[] {"Please point to the ", "Bitte richten Sie den Pfeil aus auf "} },
         { "joystick", new string[] {"Use the joystick to adjust the arrow, then press (X) to continue.", "Nutzen Sie den Joystick um den Pfeil zu rotieren und (X) um zu bestätigen."} },
         { "wrong by", new string[] {"Not quite. The arrow will now show the exact direction. That was off by degrees: ", "Nicht ganz! Der Pfeil zeigt Ihnen nur die richtige Richtung. Abweichung in Grad zur korrekten Antwort: "} },
@@ -53,6 +53,8 @@ public static class LanguageSource
         { "music store", new string[] {"music store", "das Musikgeschäft"} },
         { "pharmacy", new string[] {"pharmacy", "die Apotheke"} },
         { "toy store", new string[] {"toy store", "den Spielwarenladen"} }, 
+
+        { "confetti", new string[] {"confetti", "Konfetti"} },
     };
 
     public static string GetLanguageString(string string_name)

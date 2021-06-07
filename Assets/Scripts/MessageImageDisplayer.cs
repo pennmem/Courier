@@ -13,7 +13,9 @@ public class MessageImageDisplayer : MonoBehaviour
     public GameObject[] free_recall_keypress_message;
     public GameObject[] free_recall_keypress_message_bold_left;
     public GameObject[] free_recall_keypress_message_bold_right;
+    public GameObject[] free_recall_retry_message;
     public GameObject[] fixation_message;
+    public GameObject[] practice_fixation_message;
     public GameObject[] object_recall_message;
     public GameObject[] object_recall_message_bold_left;
     public GameObject[] object_recall_message_bold_right;
@@ -90,68 +92,81 @@ public class MessageImageDisplayer : MonoBehaviour
 
     private IEnumerator DisplayMessageWithoutX_Keypress(GameObject message, GameObject message_left, GameObject message_right, float waitTime)
     {
-        Dictionary<string, object> messageData = new Dictionary<string, object>();
-        messageData.Add("message name", message.name);
-        scriptedEventReporter.ReportScriptedEvent("instruction message displayed", messageData);
-        message.SetActive(true);
-        yield return null;
-        float startTime = Time.time;
-        Dictionary<string, object> data = new Dictionary<string, object>();
-        data.Add("recording start", startTime);
-        int i = 0;
-        while (Time.time < startTime + waitTime)
+        const int REQUIRED_VALID_BUTTON_PRESSES = 1;
+        int numValidButtonPresses = 0;
+        while (numValidButtonPresses < REQUIRED_VALID_BUTTON_PRESSES)
         {
-            float currTime = Time.time / 100f;
-
-            if (Input.GetButtonDown("correct"))
-            {
-                string keypressInfo = i.ToString() + "th keypress: correct";
-                data.Add(keypressInfo, currTime);
-                i++;
-
-                message_right.SetActive(true);
-                message.SetActive(false);
-                while (Time.time < currTime + BUTTON_MSG_DISPLAY_WAIT || Input.GetButton("correct"))
-                {
-                    yield return null;
-                }
-                message_right.SetActive(false);
-                message.SetActive(true);
-            }
-            else if (Input.GetButtonDown("false"))
-            {
-                string keypressInfo = i.ToString() + "th keypress: incorrect";
-                data.Add(keypressInfo, currTime);
-                i++;
-
-                message.SetActive(false);
-                message_left.SetActive(true);
-                while (Time.time < currTime + BUTTON_MSG_DISPLAY_WAIT || Input.GetButton("false"))
-                {
-                    yield return null;
-                }
-                message_left.SetActive(false);
-                message.SetActive(true);
-            }
-            else if (Input.anyKeyDown)
-            {
-                foreach (KeyCode kcode in System.Enum.GetValues(typeof(KeyCode)))
-                {
-                    if (Input.GetKey(kcode))
-                    {
-                        string keypressInfo = i.ToString() + "th keypress: " + kcode.ToString();
-                        data.Add(keypressInfo, currTime);
-                        i++;
-                    }
-                }
-                
-            }
-
+            Dictionary<string, object> messageData = new Dictionary<string, object>();
+            messageData.Add("message name", message.name);
+            scriptedEventReporter.ReportScriptedEvent("instruction message displayed", messageData);
+            message.SetActive(true);
             yield return null;
+            float startTime = Time.time;
+            Dictionary<string, object> data = new Dictionary<string, object>();
+            data.Add("recording start", startTime);
+            int i = 0;
+
+            while (Time.time < startTime + waitTime)
+            {
+                float currTime = Time.time / 100f;  // centi-seconds to seconds 
+
+                if (Input.GetButtonDown("correct"))
+                {
+                    string keypressInfo = i.ToString() + "th keypress: correct";
+                    data.Add(keypressInfo, currTime);
+                    numValidButtonPresses++;
+                    i++;
+
+                    message_right.SetActive(true);
+                    message.SetActive(false);
+                    while (Time.time < currTime + BUTTON_MSG_DISPLAY_WAIT || Input.GetButton("correct"))
+                    {
+                        yield return null;
+                    }
+                    message_right.SetActive(false);
+                    message.SetActive(true);
+                }
+                else if (Input.GetButtonDown("false"))
+                {
+                    string keypressInfo = i.ToString() + "th keypress: incorrect";
+                    data.Add(keypressInfo, currTime);
+                    numValidButtonPresses++;
+                    i++;
+
+                    message.SetActive(false);
+                    message_left.SetActive(true);
+                    while (Time.time < currTime + BUTTON_MSG_DISPLAY_WAIT || Input.GetButton("false"))
+                    {
+                        yield return null;
+                    }
+                    message_left.SetActive(false);
+                    message.SetActive(true);
+                }
+                else if (Input.anyKeyDown)
+                {
+                    foreach (KeyCode kcode in System.Enum.GetValues(typeof(KeyCode)))
+                    {
+                        if (Input.GetKey(kcode))
+                        {
+                            string keypressInfo = i.ToString() + "th keypress: " + kcode.ToString();
+                            data.Add(keypressInfo, currTime);
+                            i++;
+                        }
+                    }
+                    
+                }
+
+                yield return null;
+            }
+            scriptedEventReporter.ReportScriptedEvent("key press", data);
+            scriptedEventReporter.ReportScriptedEvent("instruction message cleared", messageData);
+            message.SetActive(false);
+
+            if (numValidButtonPresses < REQUIRED_VALID_BUTTON_PRESSES)
+            {
+                yield return DisplayLanguageMessage(free_recall_retry_message);
+            }
         }
-        scriptedEventReporter.ReportScriptedEvent("key press", data);
-        scriptedEventReporter.ReportScriptedEvent("instruction message cleared", messageData);
-        message.SetActive(false);
     }
 
     public void SetReminderText(string store_name)

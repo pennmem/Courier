@@ -19,24 +19,26 @@ public class DeliveryExperiment : CoroutineExperiment
 
     private const string DBOY_VERSION = "v4.2.0";
     private const string RECALL_TEXT = "*******";
-    private const int DELIVERIES_PER_TRIAL = 2; //13
-    private const int PRACTICE_DELIVERIES_PER_TRIAL = 4;
-    private const int TRIALS_PER_SESSION = 2; //12
+    private const int DELIVERIES_PER_TRIAL = 13; // 13;
+    private const int PRACTICE_DELIVERIES_PER_TRIAL = 4; // 4;
+    private const int TRIALS_PER_SESSION = 12;
+    private const int PRACTICE_VIDEO_TRIAL_NUM = 1;
     private const float MIN_FAMILIARIZATION_ISI = 0.4f;
     private const float MAX_FAMILIARIZATION_ISI = 0.6f;
     private const float FAMILIARIZATION_PRESENTATION_LENGTH = 1.5f;
     private const float RECALL_MESSAGE_DISPLAY_LENGTH = 6f;
     private const float RECALL_TEXT_DISPLAY_LENGTH = 1f;
-    private const float FREE_RECALL_LENGTH = 10f; // 90f
+    private const float FREE_RECALL_LENGTH = 90f;
+    private const float PRACTICE_FREE_RECALL_LENGTH = 20f;
     private const float STORE_FINAL_RECALL_LENGTH = 90f;
     private const float FINAL_RECALL_LENGTH = 240f;
     private const float TIME_BETWEEN_DIFFERENT_RECALL_PHASES = 2f;
-    private const float CUED_RECALL_TIME_PER_STORE = 10f;
+    private const float MIN_CUED_RECALL_TIME_PER_STORE = 2f;
+    private const float MAX_CUED_RECALL_TIME_PER_STORE = 10f;
     private const float ARROW_CORRECTION_TIME = 3f;
     private const float PAUSE_BEFORE_RETRIEVAL = 10f;
     private const float DISPLAY_ITEM_PAUSE = 5f;
     private const float AUDIO_TEXT_DISPLAY = 1.2f;
-    private const float PRACTICE_FREE_RECALL_LENGTH = 30f;
 
     public Camera regularCamera;
     public Camera blackScreenCamera;
@@ -113,20 +115,17 @@ public class DeliveryExperiment : CoroutineExperiment
             yield return ramulatorInterface.BeginNewSession(sessionNumber);
 
         BlackScreen();
-        //TODO: fix runtime bug
-        //videoSelector.SetIntroductionVideo();
-        yield return DoVideo(LanguageSource.GetLanguageString("play movie"), 
-                             LanguageSource.GetLanguageString("first day"), 
+        yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
+                             LanguageSource.GetLanguageString("first video"),
                              VideoSelector.VideoType.MainIntro);
-        //yield return DoSubjectSessionQuitPrompt(sessionNumber,
-                                                //LanguageSource.GetLanguageString("running participant"));
-        //yield return DoMicrophoneTest(LanguageSource.GetLanguageString("microphone test"),
-        //                             LanguageSource.GetLanguageString("after the beep"),
-        //                             LanguageSource.GetLanguageString("recording"),
-        //                             LanguageSource.GetLanguageString("playing"),
-        //                             LanguageSource.GetLanguageString("recording confirmation"));
-
-        //yield return DoFamiliarization();
+        yield return DoSubjectSessionQuitPrompt(sessionNumber,
+                                                LanguageSource.GetLanguageString("running participant"));
+        yield return DoMicrophoneTest(LanguageSource.GetLanguageString("microphone test"),
+                                     LanguageSource.GetLanguageString("after the beep"),
+                                     LanguageSource.GetLanguageString("recording"),
+                                     LanguageSource.GetLanguageString("playing"),
+                                     LanguageSource.GetLanguageString("recording confirmation"));
+        yield return DoFamiliarization();
 
         yield return messageImageDisplayer.DisplayLanguageMessage(messageImageDisplayer.delivery_restart_messages);
 
@@ -148,10 +147,20 @@ public class DeliveryExperiment : CoroutineExperiment
         if (sessionNumber == 0)
         {
             Debug.Log("Practice trials");
-            yield return DoTrials(environment, 1, true);
-            yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
-                             LanguageSource.GetLanguageString("first day"),
-                             VideoSelector.VideoType.PostpracticeIntro);
+
+            yield return new WaitForSeconds(0.1f);
+            textDisplayer.DisplayText("proceed to first practice day prompt", LanguageSource.GetLanguageString("first practice day"));
+            while (!Input.GetButtonDown("q (secret)") && !Input.GetButtonDown("x (continue)"))
+                yield return null;
+            textDisplayer.ClearText();
+
+            yield return DoTrials(environment, 2, true);
+
+            yield return new WaitForSeconds(0.1f);
+            textDisplayer.DisplayText("proceed to first day prompt", LanguageSource.GetLanguageString("first day"));
+            while (!Input.GetButtonDown("q (secret)") && !Input.GetButtonDown("x (continue)"))
+                yield return null;
+            textDisplayer.ClearText();
         }
             
         Debug.Log("Real trials");
@@ -185,7 +194,7 @@ public class DeliveryExperiment : CoroutineExperiment
         playerMovement.Freeze();
     }
 
-    private IEnumerator Fixation(float time)
+    private IEnumerator Fixation(float time, bool practice = false)
     {
         pauser.ForbidPausing();
         memoryWordCanvas.SetActive(true);
@@ -193,7 +202,12 @@ public class DeliveryExperiment : CoroutineExperiment
         blackScreenCamera.enabled = true;
         starSystem.gameObject.SetActive(false);
         playerMovement.Freeze();
-        yield return messageImageDisplayer.DisplayLanguageMessageFixedDuration(messageImageDisplayer.fixation_message, time);
+        if (practice)
+            yield return messageImageDisplayer.DisplayLanguageMessageFixedDuration(
+                            messageImageDisplayer.practice_fixation_message, time);
+        else
+            yield return messageImageDisplayer.DisplayLanguageMessageFixedDuration(
+                            messageImageDisplayer.fixation_message, time);
     }
 
     private void WorldScreen()
@@ -224,6 +238,7 @@ public class DeliveryExperiment : CoroutineExperiment
         BlackScreen();
         messageImageDisplayer.SetSpeakNowText("");
         textDisplayer.ClearText();
+
         highBeep.Play();
         scriptedEventReporter.ReportScriptedEvent("Sound played", new Dictionary<string, object>() { { "sound name", "high beep" }, { "sound duration", highBeep.clip.length.ToString() } });
         textDisplayer.DisplayText("display recall text", RECALL_TEXT);
@@ -233,18 +248,26 @@ public class DeliveryExperiment : CoroutineExperiment
         
         string output_directory = UnityEPL.GetDataPath();
         string wavFilePath = practice 
-                    ? System.IO.Path.Combine(output_directory, "practice") + ".wav" 
+                    ? System.IO.Path.Combine(output_directory, "practice" + trial_number.ToString()) + ".wav" 
                     : System.IO.Path.Combine(output_directory, trial_number.ToString()) + ".wav";
         Dictionary<string, object> recordingData = new Dictionary<string, object>();
         recordingData.Add("trial number", trial_number);
         scriptedEventReporter.ReportScriptedEvent("object recall recording start", recordingData);
         soundRecorder.StartRecording(wavFilePath);
         Dictionary<string, object> keypressData = new Dictionary<string, object>(); 
-        if (practice)
+        if (practice && trial_number == 0)
         {
             messageImageDisplayer.SetSpeakNowText("(please speak now)");
             yield return SkippableWait(PRACTICE_FREE_RECALL_LENGTH);
-        } 
+        }
+        else if (practice)
+        {
+            yield return messageImageDisplayer.DisplayLanguageMessageFixedDurationKeyPress(
+                messageImageDisplayer.free_recall_keypress_message,
+                messageImageDisplayer.free_recall_keypress_message_bold_left,
+                messageImageDisplayer.free_recall_keypress_message_bold_right,
+                PRACTICE_FREE_RECALL_LENGTH);
+        }
         else
         {
             yield return messageImageDisplayer.DisplayLanguageMessageFixedDurationKeyPress(
@@ -283,9 +306,9 @@ public class DeliveryExperiment : CoroutineExperiment
             cueStore.familiarization_object.SetActive(true);
             messageImageDisplayer.SetCuedRecallMessage(true);
 
-            string output_file_name = practice 
+            string output_file_name = practice
                         ? trial_number.ToString() + "-" + cueStore.GetStoreName() 
-                        : "practice-" + cueStore.GetStoreName();
+                        : "practice" + trial_number.ToString() + "-" + cueStore.GetStoreName();
             string output_directory = UnityEPL.GetDataPath();
             string wavFilePath = System.IO.Path.Combine(output_directory, output_file_name) + ".wav";
             string lstFilepath = System.IO.Path.Combine(output_directory, output_file_name) + ".lst";
@@ -300,8 +323,8 @@ public class DeliveryExperiment : CoroutineExperiment
             soundRecorder.StartRecording(wavFilePath);
 
             float startTime = Time.time;
-            while (!Input.GetButtonDown("x (continue)") 
-                   && Time.time < startTime + CUED_RECALL_TIME_PER_STORE)
+            while ((!Input.GetButtonDown("x (continue)") || Time.time < startTime + MIN_CUED_RECALL_TIME_PER_STORE) 
+                   && Time.time < startTime + MAX_CUED_RECALL_TIME_PER_STORE)
                 yield return null;
 
             scriptedEventReporter.ReportScriptedEvent("cued recall recording stop", cuedRecordingData);
@@ -401,7 +424,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
         SetRamulatorState("ENCODING", true, new Dictionary<string, object>());  
         int deliveries = practice ? PRACTICE_DELIVERIES_PER_TRIAL : DELIVERIES_PER_TRIAL;
-        int craft_shop_delivery_num = Random.Range(0, deliveries-1);
+        int craft_shop_delivery_num = Random.Range(0, deliveries - 1);
 
         for (int i = 0; i < deliveries; i++)
         {
@@ -423,7 +446,8 @@ public class DeliveryExperiment : CoroutineExperiment
                     random_store_index = Random.Range(0, unvisitedStores.Count);
                     nextStore = unvisitedStores[random_store_index];
                 }
-                while (nextStore.IsVisible() && tries < 17 && random_store_index != craft_shop_index);
+                while (nextStore.IsVisible() && tries < environment.stores.Length 
+                       && random_store_index == craft_shop_index);
             }
             else
             {
@@ -433,7 +457,7 @@ public class DeliveryExperiment : CoroutineExperiment
                     random_store_index = Random.Range(0, unvisitedStores.Count);
                     nextStore = unvisitedStores[random_store_index];
                 }
-                while (nextStore.IsVisible() && tries < 17);
+                while (nextStore.IsVisible() && tries < environment.stores.Length);
             }
 
             unvisitedStores.RemoveAt(random_store_index);
@@ -467,7 +491,10 @@ public class DeliveryExperiment : CoroutineExperiment
                                                                                              {"serial position", i+1},
                                                                                              {"player position", playerMovement.transform.position.ToString()},
                                                                                              {"store position", nextStore.transform.position.ToString()}});
-                AppendWordToLst(System.IO.Path.Combine(UnityEPL.GetDataPath(), trialNumber.ToString() + ".lst"), deliveredItemName);
+                string lstFilepath = practice
+                            ? System.IO.Path.Combine(UnityEPL.GetDataPath(), "practice" + trialNumber.ToString() + ".lst")
+                            : System.IO.Path.Combine(UnityEPL.GetDataPath(), trialNumber.ToString() + ".lst");
+                AppendWordToLst(lstFilepath, deliveredItemName);
                 this_trial_presented_stores.Add(nextStore);
                 all_presented_objects.Add(deliveredItemName);
 
@@ -495,13 +522,15 @@ public class DeliveryExperiment : CoroutineExperiment
 
     private IEnumerator DoTrials(Environment environment, int numTrials, bool practice = false)
     {
-        if (practice)
-            Debug.Log("Practice Trials");
-        else
-            Debug.Log("Real Trials");
-
         for (int trialNumber = 0; trialNumber < numTrials; trialNumber++)
         {
+            if (practice && trialNumber == PRACTICE_VIDEO_TRIAL_NUM)
+            {
+                yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
+                             LanguageSource.GetLanguageString("next practice day video"),
+                             VideoSelector.VideoType.PostpracticeIntro);
+            }
+
             Dictionary<string, object> trialData = new Dictionary<string, object>();
             trialData.Add("trial number", trialNumber);
             if (practice)
@@ -515,19 +544,25 @@ public class DeliveryExperiment : CoroutineExperiment
 
             yield return DoDelivery(environment, trialNumber, practice);
             BlackScreen();
-            if (!practice)
-                yield return Fixation(PAUSE_BEFORE_RETRIEVAL);
+            if (!practice || (practice && trialNumber >= 1))
+                yield return Fixation(PAUSE_BEFORE_RETRIEVAL, practice);
             yield return DoRecall(trialNumber, practice);
 
             SetRamulatorState("WAITING", true, new Dictionary<string, object>());
             yield return null;
             if (!DeliveryItems.ItemsExhausted())
             {
-                textDisplayer.DisplayText("proceed to next day prompt", LanguageSource.GetLanguageString("next day"));
-                while (!Input.GetButton("q (secret)") && !Input.GetButton("x (continue)"))
+                yield return new WaitForSeconds(0.1f);
+                if (practice && trialNumber < numTrials - 1)
+                    textDisplayer.DisplayText("proceed to next practice day prompt", 
+                                              LanguageSource.GetLanguageString("next practice day"));
+                else
+                    textDisplayer.DisplayText("proceed to next day prompt", 
+                                              LanguageSource.GetLanguageString("next day"));
+                while (!Input.GetButtonDown("q (secret)") && !Input.GetButtonDown("x (continue)"))
                     yield return null;
-
                 textDisplayer.ClearText();
+
                 if (Input.GetButton("q (secret)"))
                     break;
             }

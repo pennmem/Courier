@@ -19,15 +19,19 @@ public class DeliveryExperiment : CoroutineExperiment
     private static bool useNicls;
 
     // JPB: TODO: Make this a configuration variable
-    private static bool standaloneTesting = true; // JPB: TODO: Make this a config variable
+    private const bool STANDALONE_TESTING = true;
+    private const bool EFR_ENABLED = true;
 
     private const string DBOY_VERSION = "v4.2.2";
     private const string RECALL_TEXT = "*******";
-    private const int DELIVERIES_PER_TRIAL = 16; // 16;
+    private const int DELIVERIES_PER_TRIAL = 3; // 16;
     private const int PRACTICE_DELIVERIES_PER_TRIAL = 4; // 4;
-    private const int TRIALS_PER_SESSION = 12;
+    private const int TRIALS_PER_SESSION = 8;
     private const int PRACTICE_VIDEO_TRIAL_NUM = 1;
     private const int NUM_READ_ONLY_TRIALS = 2; // 2
+    private const int DOUBLE_TOWN_LEARNING_DAYS = 1;
+    private const int TOTAL_TOWN_LEARNING_DAYS = 4;
+    private const int POINTING_INDICATOR_DELAY = 15;
     private const float MIN_FAMILIARIZATION_ISI = 0.4f;
     private const float MAX_FAMILIARIZATION_ISI = 0.6f;
     private const float FAMILIARIZATION_PRESENTATION_LENGTH = 1.5f;
@@ -44,10 +48,9 @@ public class DeliveryExperiment : CoroutineExperiment
     private const float PAUSE_BEFORE_RETRIEVAL = 10f;
     private const float DISPLAY_ITEM_PAUSE = 5f;
     private const float AUDIO_TEXT_DISPLAY = 1.2f;
-
-    private const int DOUBLE_PRACTICE_DAYS = 1;
-    private const int TOTAL_PRACTICE_DAYS = 4;
-    private const int POINTING_INDICATOR_DELAY = 15;
+    private const float WORD_PRESENTATION_DELAY = 1f;
+    private const float WORD_PRESENTATION_JITTER = 0.25f;
+    private const float BREAK_LENGTH = 120f;
 
     public Camera regularCamera;
     public Camera blackScreenCamera;
@@ -102,7 +105,7 @@ public class DeliveryExperiment : CoroutineExperiment
         QualitySettings.vSyncCount = 1;
 
         // Start syncpulses
-        if (!standaloneTesting)
+        if (!STANDALONE_TESTING)
         {
             syncs = GameObject.Find("SyncBox").GetComponent<Syncbox>();
             syncs.StartPulse();
@@ -127,8 +130,8 @@ public class DeliveryExperiment : CoroutineExperiment
 
         if (useRamulator)
             yield return ramulatorInterface.BeginNewSession(sessionNumber);
-
-        useNicls = false;
+        
+        useNicls = true;
         if (useNicls)
             yield return niclsInterface.BeginNewSession(sessionNumber);
         else
@@ -138,19 +141,16 @@ public class DeliveryExperiment : CoroutineExperiment
         yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
                              LanguageSource.GetLanguageString("first video"),
                              VideoSelector.VideoType.MainIntro);
-        yield return DoSubjectSessionQuitPrompt(sessionNumber,
-                                                LanguageSource.GetLanguageString("running participant"));
-        yield return DoMicrophoneTest(LanguageSource.GetLanguageString("microphone test"),
-                                     LanguageSource.GetLanguageString("after the beep"),
-                                     LanguageSource.GetLanguageString("recording"),
-                                     LanguageSource.GetLanguageString("playing"),
-                                     LanguageSource.GetLanguageString("recording confirmation"));
-        yield return DoFamiliarization();
-
-        yield return messageImageDisplayer.DisplayLanguageMessage(messageImageDisplayer.delivery_restart_messages);
+        //yield return DoSubjectSessionQuitPrompt(sessionNumber,
+        //                                        LanguageSource.GetLanguageString("running participant"));
+        //yield return DoMicrophoneTest(LanguageSource.GetLanguageString("microphone test"),
+        //                             LanguageSource.GetLanguageString("after the beep"),
+        //                             LanguageSource.GetLanguageString("recording"),
+        //                             LanguageSource.GetLanguageString("playing"),
+        //                             LanguageSource.GetLanguageString("recording confirmation"));
+        //yield return DoFamiliarization();
 
         Environment environment = EnableEnvironment();
-
         Dictionary<string, object> storeMappings = new Dictionary<string, object>();
         foreach (StoreComponent store in environment.stores)
         {
@@ -161,50 +161,49 @@ public class DeliveryExperiment : CoroutineExperiment
         }
         scriptedEventReporter.ReportScriptedEvent("store mappings", storeMappings);
 
-        niclsInterface.SendReadOnlyStateToNicls(1);
+        int trialsPerSession = TRIALS_PER_SESSION;
+        //if (useNicls)
+        //{
+        //    niclsInterface.SendReadOnlyStateToNicls(1);
 
-        // JPB: TODO: Make these defaults
-        pointer.SetActive(false);
-        pointerMessage.SetActive(false);
+        //    // Town learning days
+        //    // JPB: TODO: Refactor into function?
+        //    if (sessionNumber < DOUBLE_TOWN_LEARNING_DAYS)
+        //    {
+        //        yield return DisplayMessageAndWait("Spatial Learning Phase", "Spatial Learning Phase: You will locate all the stores one by one");
+        //        WorldScreen();
+        //        yield return DoDelivery(environment, 0, townLearning: true);
+        //        yield return DoDelivery(environment, 0, townLearning: true);
+        //        trialsPerSession = 5;
+        //    }
+        //    else if (sessionNumber < TOTAL_TOWN_LEARNING_DAYS)
+        //    {
+        //        yield return DisplayMessageAndWait("Spatial Learning Phase", "Spatial Learning Phase: You will locate all the stores one by one");
+        //        WorldScreen();
+        //        yield return DoDelivery(environment, 0, townLearning: true);
+        //    }
+        //}
 
-        // Practice delivery days
-        if (sessionNumber <= DOUBLE_PRACTICE_DAYS)
-        {
-            yield return DisplayMessageAndWait("Spatial Learning Phase", "Spatial Learning Phase: you'll be asked to find all the stores");
-            WorldScreen();
-            yield return DoDelivery(environment, 0, true);
-            yield return DoDelivery(environment, 0, true);
-        }
-        else if (sessionNumber <= TOTAL_PRACTICE_DAYS)
-        {
-            yield return DisplayMessageAndWait("Spatial Learning Phase", "Spatial Learning Phase: you'll be asked to find all the stores");
-            WorldScreen();
-            yield return DoDelivery(environment, 0, true);
-        }
-
+        BlackScreen();
         yield return messageImageDisplayer.DisplayLanguageMessage(messageImageDisplayer.delivery_restart_messages);
 
-        int trial_number = 0;
-        for (trial_number = 0; trial_number < 12; trial_number++)
-        {
-            Debug.Log("Practice trials");
-            yield return new WaitForSeconds(0.1f);
-            textDisplayer.DisplayText("proceed to first practice day prompt", LanguageSource.GetLanguageString("first practice day"));
-            while (!Input.GetButtonDown("q (secret)") && !Input.GetButtonDown("x (continue)"))
-                yield return null;
-            textDisplayer.ClearText();
+        Debug.Log("Practice trials");
+        yield return new WaitForSeconds(0.1f);
+        textDisplayer.DisplayText("proceed to first practice day prompt", LanguageSource.GetLanguageString("first practice day"));
+        while (!Input.GetButtonDown("q (secret)") && !Input.GetButtonDown("x (continue)"))
+            yield return null;
+        textDisplayer.ClearText();
 
-            yield return DoTrials(environment, 2, true);
+        yield return DoTrials(environment, 2, true);
 
-            yield return new WaitForSeconds(0.1f);
-            textDisplayer.DisplayText("proceed to first day prompt", LanguageSource.GetLanguageString("first day"));
-            while (!Input.GetButtonDown("q (secret)") && !Input.GetButtonDown("x (continue)"))
-                yield return null;
-            textDisplayer.ClearText();
-        }
+        yield return new WaitForSeconds(0.1f);
+        textDisplayer.DisplayText("proceed to first day prompt", LanguageSource.GetLanguageString("first day"));
+        while (!Input.GetButtonDown("q (secret)") && !Input.GetButtonDown("x (continue)"))
+            yield return null;
+        textDisplayer.ClearText();
             
         Debug.Log("Real trials");
-        yield return DoTrials(environment, TRIALS_PER_SESSION);
+        yield return DoTrials(environment, trialsPerSession);
 
         BlackScreen();
         yield return messageImageDisplayer.DisplayLanguageMessage(messageImageDisplayer.final_recall_messages);
@@ -306,8 +305,7 @@ public class DeliveryExperiment : CoroutineExperiment
         recordingData.Add("trial number", trial_number);
         scriptedEventReporter.ReportScriptedEvent("object recall recording start", recordingData);
         soundRecorder.StartRecording(wavFilePath);
-        Dictionary<string, object> keypressData = new Dictionary<string, object>(); 
-        if (practice && trial_number == 0)
+        if (practice && trial_number == 0 || !EFR_ENABLED)
         {
             messageImageDisplayer.SetSpeakNowText("(please speak now)");
             yield return SkippableWait(PRACTICE_FREE_RECALL_LENGTH);
@@ -475,7 +473,7 @@ public class DeliveryExperiment : CoroutineExperiment
         yield return familiarizer.DoFamiliarization(MIN_FAMILIARIZATION_ISI, MAX_FAMILIARIZATION_ISI, FAMILIARIZATION_PRESENTATION_LENGTH);
     }
 
-    private IEnumerator DoDelivery(Environment environment, int trialNumber, bool practice = false)
+    private IEnumerator DoDelivery(Environment environment, int trialNumber, bool practice = false, bool townLearning = false)
     {
 
         SetRamulatorState("ENCODING", true, new Dictionary<string, object>());
@@ -529,6 +527,8 @@ public class DeliveryExperiment : CoroutineExperiment
             messageImageDisplayer.SetReminderText(nextStore.GetStoreName());
             //yield return DoPointingTask(nextStore);
             messageImageDisplayer.please_find_the_blah_reminder.SetActive(true);
+            if (townLearning) // Town Learning
+                yield return new WaitForSeconds(0.5f);
             playerMovement.Unfreeze();
 
             float startTime = Time.time;
@@ -542,22 +542,24 @@ public class DeliveryExperiment : CoroutineExperiment
             yield return DisplayPointingIndicator(nextStore, false);
 
             ///AUDIO PRESENTATION OF OBJECT///
-            if (i != deliveries - 1)
+            if ((i != deliveries - 1) && !townLearning)
             {
                 playerMovement.Freeze();
                 AudioClip deliveredItem = (practice && i == craft_shop_delivery_num)
                     ? nextStore.PopSpecificItem(LanguageSource.GetLanguageString("confetti"))
                     : nextStore.PopItem();
                 
-                if (practice)
+                float wordDelay = Random.Range(WORD_PRESENTATION_DELAY - WORD_PRESENTATION_JITTER, 
+                                               WORD_PRESENTATION_DELAY + WORD_PRESENTATION_JITTER);
+                yield return new WaitForSeconds(wordDelay);
+                Debug.Log(wordDelay);
+
+                if (useNicls)
                 {
-                    yield return new WaitForSeconds(1);
-                    niclsInterface.SendEncodingToNicls(1);
-                }
-                else
-                {
-                    yield return new WaitForSeconds(1);
-                    yield return WaitForClassifier();
+                    if (practice)
+                        niclsInterface.SendEncodingToNicls(1);
+                    else
+                        yield return WaitForClassifier();
                 }
 
                 string deliveredItemName = deliveredItem.name;
@@ -610,7 +612,14 @@ public class DeliveryExperiment : CoroutineExperiment
                              VideoSelector.VideoType.PostpracticeIntro);
             }
 
-            if (trial_number == NUM_READ_ONLY_TRIALS)
+            // Required break
+            if ((sessionNumber < DOUBLE_TOWN_LEARNING_DAYS) && (trialNumber == 1 || trialNumber == 3))
+                yield return DoBreak();
+            else if ((sessionNumber >= DOUBLE_TOWN_LEARNING_DAYS) && (trialNumber == 3 || trialNumber == 6))
+                yield return DoBreak();
+
+            // Turn off ReadOnlyState
+            if (trialNumber == NUM_READ_ONLY_TRIALS)
                 niclsInterface.SendReadOnlyStateToNicls(0);
             yield return null;
 
@@ -716,6 +725,17 @@ public class DeliveryExperiment : CoroutineExperiment
         pointerParticleSystem.Stop();
         pointer.SetActive(false);
         pointerMessage.SetActive(false);
+    }
+
+    private IEnumerator DoBreak()
+    {
+        scriptedEventReporter?.ReportScriptedEvent("required break start", new Dictionary<string, object>());
+        BlackScreen();
+        textDisplayer.DisplayText("break prompt", LanguageSource.GetLanguageString("break"));
+        while (!Input.GetKeyDown(KeyCode.Space))
+            yield return null;
+        WorldScreen();
+        scriptedEventReporter?.ReportScriptedEvent("required break stop", new Dictionary<string, object>());
     }
 
     private IEnumerator DisplayPointingIndicator(StoreComponent nextStore, bool on = false)

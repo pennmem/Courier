@@ -12,10 +12,15 @@ public class BeginExperiment : MonoBehaviour
     public UnityEngine.GameObject languageMismatchButton;
     public UnityEngine.UI.InputField participantCodeInput;
     public UnityEngine.UI.Toggle useRamulatorToggle;
+    public UnityEngine.UI.Toggle useNiclsToggle;
     public UnityEngine.UI.Text beginButtonText;
     public UnityEngine.UI.InputField sessionInput;
 
     private const string scene_name = "MainGame";
+    private const string experiment_name = "CourierNicls";
+
+    public const string EXP_NAME_COURIER = "Courier";
+    public const string EXP_NAME_NICLS = "CourierNicls";
 
     private void OnEnable() {
         Cursor.lockState = CursorLockMode.None;
@@ -112,12 +117,19 @@ public class BeginExperiment : MonoBehaviour
 
         UnityEPL.SetSessionNumber(NextSessionNumber());
         UnityEPL.AddParticipant(participantCodeInput.text);
-        UnityEPL.SetExperimentName("DBOY1");
+        if (experiment_name == EXP_NAME_NICLS)
+        {
+            if (useNiclsToggle.isOn)
+                UnityEPL.SetExperimentName(EXP_NAME_NICLS + "ClosedLoop");
+            else
+                UnityEPL.SetExperimentName(EXP_NAME_NICLS + "ReadOnly");
+        }
 
         LockLanguage();
         // JPB: TODO: Change true to useNcislToggle
-        DeliveryExperiment.ConfigureExperiment(useRamulatorToggle.isOn, true, NextSessionNumber(), participantCodeInput.text);
+        DeliveryExperiment.ConfigureExperiment(useRamulatorToggle.isOn, useNiclsToggle.isOn, NextSessionNumber(), participantCodeInput.text);
         Debug.Log(useRamulatorToggle.isOn);
+        Debug.Log(useNiclsToggle.isOn);
         SceneManager.LoadScene(scene_name);
     }
 

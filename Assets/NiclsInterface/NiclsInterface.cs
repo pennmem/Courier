@@ -24,9 +24,9 @@ public class NiclsInterface : MonoBehaviour
 
     private NetMQ.Sockets.PairSocket zmqSocket;
     // JPB: TODO: COMMENT OUT FOR TESTING
-    //private const string address = "tcp://localhost:8889";
+    private const string address = "tcp://localhost:8889";
     //private const string address = "tcp://130.91.28.243:8889";
-    private const string address = "tcp://130.91.29.94:8889";
+    //private const string address = "tcp://130.91.29.94:8889";
 
     //private NiclsEventLoop niclsEventLoop;
     private volatile int classifierResult = 0;
@@ -246,9 +246,9 @@ public class NiclsInterface : MonoBehaviour
         if (receivedMessage != "" && receivedMessage != null)
         {
             string messageString = receivedMessage.ToString();
-            Debug.Log("classifierInfo received: " + messageString);
+            //Debug.Log("classifierInfo received: " + messageString);
             classifierResult = Int32.Parse(messageString);
-            Debug.Log(classifierResult);
+            //Debug.Log(classifierResult);
             // JPB: TODO: NextDeliverable: Use DataPoint for classifier info
             //DataPoint dataPoint = DataPoint.FromJsonString(messageString);
             //Dictionary<string, object> dictionary = dataPoint.getData();

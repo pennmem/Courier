@@ -23,6 +23,7 @@ public class MessageImageDisplayer : MonoBehaviour
     public GameObject[] store_recall_message_bold_left;
     public GameObject[] store_recall_message_bold_right;
     public GameObject[] cued_recall_message;
+    public GameObject[] town_learning_message;
 
     public GameObject please_find_the_blah;
     public UnityEngine.UI.Text please_find_the_blah_text;

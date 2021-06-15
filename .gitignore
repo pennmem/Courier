@@ -75,3 +75,5 @@ crashlytics-build.properties
 Assets/Town Constructor 3/Textures
 Assets/Town Constructor 3
 
+# Other
+.DS_Store

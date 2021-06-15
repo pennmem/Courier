@@ -142,6 +142,10 @@ public class MessageImageDisplayer : MonoBehaviour
                     message_left.SetActive(false);
                     message.SetActive(true);
                 }
+                else if (Input.GetButtonDown("q (secret)")
+                {
+                    break;
+                }
                 else if (Input.anyKeyDown)
                 {
                     foreach (KeyCode kcode in System.Enum.GetValues(typeof(KeyCode)))
@@ -162,6 +166,7 @@ public class MessageImageDisplayer : MonoBehaviour
             scriptedEventReporter.ReportScriptedEvent("instruction message cleared", messageData);
             message.SetActive(false);
 
+            // JPB: TODO: Make this only for practice!!!!
             if (numValidButtonPresses < REQUIRED_VALID_BUTTON_PRESSES)
             {
                 yield return DisplayLanguageMessage(free_recall_retry_message);

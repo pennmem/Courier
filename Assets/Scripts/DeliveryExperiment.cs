@@ -29,16 +29,16 @@ public class DeliveryExperiment : CoroutineExperiment
     private const float RECALL_MESSAGE_DISPLAY_LENGTH = 6f;
     private const float RECALL_TEXT_DISPLAY_LENGTH = 1f;
     private const float FREE_RECALL_LENGTH = 90f;
-    private const float PRACTICE_FREE_RECALL_LENGTH = 20f;
+    private const float PRACTICE_FREE_RECALL_LENGTH = 25f;
     private const float STORE_FINAL_RECALL_LENGTH = 90f;
-    private const float FINAL_RECALL_LENGTH = 240f;
+    private const float FINAL_RECALL_LENGTH = 180f;
     private const float TIME_BETWEEN_DIFFERENT_RECALL_PHASES = 2f;
     private const float MIN_CUED_RECALL_TIME_PER_STORE = 2f;
     private const float MAX_CUED_RECALL_TIME_PER_STORE = 10f;
     private const float ARROW_CORRECTION_TIME = 3f;
     private const float PAUSE_BEFORE_RETRIEVAL = 10f;
     private const float DISPLAY_ITEM_PAUSE = 5f;
-    private const float AUDIO_TEXT_DISPLAY = 1.2f;
+    private const float AUDIO_TEXT_DISPLAY = 1.6f;
 
     public Camera regularCamera;
     public Camera blackScreenCamera;
@@ -366,7 +366,6 @@ public class DeliveryExperiment : CoroutineExperiment
         ClearTitle();
         BlackScreen();
         yield return messageImageDisplayer.DisplayLanguageMessageFixedDurationKeyPress(messageImageDisplayer.store_recall_message, messageImageDisplayer.store_recall_message_bold_left, messageImageDisplayer.store_recall_message_bold_right, STORE_FINAL_RECALL_LENGTH);
-        //Old version: yield return SkippableWait(STORE_FINAL_RECALL_LENGTH);
 
         scriptedEventReporter.ReportScriptedEvent("final store recall recording stop", new Dictionary<string, object>());
         soundRecorder.StopRecording();
@@ -395,7 +394,6 @@ public class DeliveryExperiment : CoroutineExperiment
         ClearTitle();
         BlackScreen();
         yield return messageImageDisplayer.DisplayLanguageMessageFixedDurationKeyPress(messageImageDisplayer.object_recall_message, messageImageDisplayer.object_recall_message_bold_left, messageImageDisplayer.object_recall_message_bold_right, FINAL_RECALL_LENGTH);
-        //old version; yield return SkippableWait(FINAL_RECALL_LENGTH);
         scriptedEventReporter.ReportScriptedEvent("final object recall recording stop", new Dictionary<string, object>());
         soundRecorder.StopRecording();
 
@@ -433,21 +431,24 @@ public class DeliveryExperiment : CoroutineExperiment
             int tries = 0;
 
             int craft_shop_index = unvisitedStores.FindIndex(store => store.GetStoreName() == "craft shop");
-            if (practice && i == craft_shop_delivery_num)
+            if (practice && trialNumber == 0)
             {
-                random_store_index = craft_shop_index;
-                nextStore = unvisitedStores[random_store_index];
-            } 
-            else if (practice)
-            {
-                do
+                if (i == craft_shop_delivery_num)
                 {
-                    tries++;
-                    random_store_index = Random.Range(0, unvisitedStores.Count);
+                    random_store_index = craft_shop_index;
                     nextStore = unvisitedStores[random_store_index];
                 }
-                while (nextStore.IsVisible() && tries < environment.stores.Length 
+                else
+                {
+                    do
+                    {
+                        tries++;
+                        random_store_index = Random.Range(0, unvisitedStores.Count);
+                        nextStore = unvisitedStores[random_store_index];
+                    }
+                    while (nextStore.IsVisible() && tries < environment.stores.Length
                        && random_store_index == craft_shop_index);
+                }
             }
             else
             {
@@ -478,8 +479,8 @@ public class DeliveryExperiment : CoroutineExperiment
             if (i != deliveries - 1)
             {
                 playerMovement.Freeze();
-                AudioClip deliveredItem = (practice && i == craft_shop_delivery_num)
-                    ? nextStore.PopSpecificItem(LanguageSource.GetLanguageString("confetti"))
+                AudioClip deliveredItem = (practice && trialNumber == 0 && i == craft_shop_delivery_num)
+                    ? nextStore.PopPracticeItem(LanguageSource.GetLanguageString("confetti"))
                     : nextStore.PopItem();
                 string deliveredItemName = deliveredItem.name;
                 audioPlayback.clip = deliveredItem;
@@ -502,7 +503,6 @@ public class DeliveryExperiment : CoroutineExperiment
                 //add visuals with sound
                 messageImageDisplayer.deliver_item_visual_dislay.SetActive(true);
                 messageImageDisplayer.SetDeliverItemText(deliveredItemName);
-                //yield return SkippableWait(deliveredItem.length);
                 yield return SkippableWait(AUDIO_TEXT_DISPLAY);
                 messageImageDisplayer.deliver_item_visual_dislay.SetActive(false);
 

@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
-    protected float forwardSpeed = 7f; //7f //6f
+    protected float forwardSpeed = 8f; //7f //6f
     protected float backwardSpeed = 4f; //4f //3f
     protected float turnSpeed = 45f; //45f //40f
     protected float turnThreshhold = 0.5f;

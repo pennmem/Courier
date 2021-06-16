@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Luminosity.IO;
 
 [System.Serializable]
 public struct Environment
@@ -39,6 +40,8 @@ public class DeliveryExperiment : CoroutineExperiment
     private const float PAUSE_BEFORE_RETRIEVAL = 10f;
     private const float DISPLAY_ITEM_PAUSE = 5f;
     private const float AUDIO_TEXT_DISPLAY = 1.6f;
+
+    private const bool COUNTER_BALANCE_CORRECT_INCORRECT_BUTTONS = true; 
 
     public Camera regularCamera;
     public Camera blackScreenCamera;
@@ -129,10 +132,10 @@ public class DeliveryExperiment : CoroutineExperiment
 
         yield return messageImageDisplayer.DisplayLanguageMessage(messageImageDisplayer.delivery_restart_messages);
 
-
+        if (COUNTER_BALANCE_CORRECT_INCORRECT_BUTTONS)
+            SetControls();
 
         Environment environment = EnableEnvironment();
-
         Dictionary<string, object> storeMappings = new Dictionary<string, object>();
         foreach (StoreComponent store in environment.stores)
         {
@@ -150,7 +153,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
             yield return new WaitForSeconds(0.1f);
             textDisplayer.DisplayText("proceed to first practice day prompt", LanguageSource.GetLanguageString("first practice day"));
-            while (!Input.GetButtonDown("q (secret)") && !Input.GetButtonDown("x (continue)"))
+            while (!InputManager.GetButtonDown("Secret") && !InputManager.GetButtonDown("Continue"))
                 yield return null;
             textDisplayer.ClearText();
 
@@ -158,7 +161,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
             yield return new WaitForSeconds(0.1f);
             textDisplayer.DisplayText("proceed to first day prompt", LanguageSource.GetLanguageString("first day"));
-            while (!Input.GetButtonDown("q (secret)") && !Input.GetButtonDown("x (continue)"))
+            while (!InputManager.GetButtonDown("Secret") && !InputManager.GetButtonDown("Continue"))
                 yield return null;
             textDisplayer.ClearText();
         }
@@ -323,7 +326,7 @@ public class DeliveryExperiment : CoroutineExperiment
             soundRecorder.StartRecording(wavFilePath);
 
             float startTime = Time.time;
-            while ((!Input.GetButtonDown("x (continue)") || Time.time < startTime + MIN_CUED_RECALL_TIME_PER_STORE) 
+            while ((!InputManager.GetButtonDown("Continue") || Time.time < startTime + MIN_CUED_RECALL_TIME_PER_STORE) 
                    && Time.time < startTime + MAX_CUED_RECALL_TIME_PER_STORE)
                 yield return null;
 
@@ -559,11 +562,11 @@ public class DeliveryExperiment : CoroutineExperiment
                 else
                     textDisplayer.DisplayText("proceed to next day prompt", 
                                               LanguageSource.GetLanguageString("next day"));
-                while (!Input.GetButtonDown("q (secret)") && !Input.GetButtonDown("x (continue)"))
+                while (!InputManager.GetButtonDown("Secret") && !InputManager.GetButtonDown("Continue"))
                     yield return null;
                 textDisplayer.ClearText();
 
-                if (Input.GetButton("q (secret)"))
+                if (InputManager.GetButton("Secret"))
                     break;
             }
             else
@@ -594,10 +597,10 @@ public class DeliveryExperiment : CoroutineExperiment
                            LanguageSource.GetLanguageString(nextStore.GetStoreName()) + "." + "\n\n" + 
                            LanguageSource.GetLanguageString("joystick");
         yield return null;
-        while (!Input.GetButtonDown("x (continue)"))
+        while (!InputManager.GetButtonDown("Continue"))
         {
             if (!playerMovement.IsDoubleFrozen())
-                pointer.transform.eulerAngles = pointer.transform.eulerAngles + new Vector3(0, Input.GetAxis("Horizontal") * Time.deltaTime * pointerRotationSpeed, 0);
+                pointer.transform.eulerAngles = pointer.transform.eulerAngles + new Vector3(0, InputManager.GetAxis("Horizontal") * Time.deltaTime * pointerRotationSpeed, 0);
             yield return null;
         }
 
@@ -625,7 +628,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
         yield return null;
         yield return PointArrowToStore(nextStore.gameObject);
-        while (!Input.GetButtonDown("x (continue)"))
+        while (!InputManager.GetButtonDown("Continue"))
         {
             yield return null;
         }
@@ -685,6 +688,31 @@ public class DeliveryExperiment : CoroutineExperiment
         return environment;
     }
 
+    private void SetControls()
+    {
+        var correctAction = InputManager.GetAction("DefaultControls", "Correct");
+        var incorrectAction = InputManager.GetAction("DefaultControls", "Incorrect");
+
+        System.Random reliable_random = new System.Random(UnityEPL.GetParticipants()[0].GetHashCode());
+        int option = reliable_random.Next(0, 2);
+        if (option == 0)
+        {
+            // Right button is correct, left button is incorrect
+            correctAction.Bindings[0].Positive = KeyCode.JoystickButton7;
+            correctAction.Bindings[1].Positive = KeyCode.Slash;
+            incorrectAction.Bindings[0].Positive = KeyCode.JoystickButton6;
+            incorrectAction.Bindings[1].Positive = KeyCode.Z;
+        }
+        else
+        {
+            // Left button is correct, right button is incorrect
+            correctAction.Bindings[0].Positive = KeyCode.JoystickButton6;
+            correctAction.Bindings[1].Positive = KeyCode.Z;
+            incorrectAction.Bindings[0].Positive = KeyCode.JoystickButton7;
+            incorrectAction.Bindings[1].Positive = KeyCode.Slash;
+        }
+    }
+
     //WAITING, INSTRUCT, COUNTDOWN, ENCODING, WORD, DISTRACT, RETRIEVAL
     protected override void SetRamulatorState(string stateName, bool state, Dictionary<string, object> extraData)
     {
@@ -699,36 +727,10 @@ public class DeliveryExperiment : CoroutineExperiment
         float startTime = Time.time;
         while (Time.time < startTime + waitTime)
         {
-            if (Input.GetButtonDown("q (secret)"))
+            if (InputManager.GetButtonDown("Secret"))
                 break;
             yield return null;
         }
-    }
-
-    private IEnumerator RecallWait(float waitTime, Dictionary<string, object> data)
-    {
-        float startTime = Time.time;
-        data.Add("recording start", startTime);
-        int i = 0;
-        while (Time.time < startTime + waitTime)
-        {
-            float currTime = Time.time;
-            
-            if (Input.GetButtonDown("correct"))
-            {
-                string thisone = "correct" + i.ToString();
-                data.Add(thisone, currTime); 
-                i++;
-            }
-            if (Input.GetButtonDown("false"))
-            {
-                string thisone = "false" + i.ToString();
-                data.Add(thisone, currTime);
-                i++;
-            }
-            yield return null;
-        }
-        scriptedEventReporter.ReportScriptedEvent("key press", data);
     }
 
     public string GetStoreNameFromGameObjectName(string gameObjectName)

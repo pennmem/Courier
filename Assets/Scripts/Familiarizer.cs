@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Luminosity.IO;
 
 public class Familiarizer : MonoBehaviour
 {
@@ -14,7 +15,7 @@ public class Familiarizer : MonoBehaviour
         yield return new WaitForSeconds(Random.Range(minISI, maxISI));
         for (int i = 0; i < stores.Length; i++)
         {
-            if (Input.GetButton("q (secret)"))
+            if (InputManager.GetButton("Secret"))
                 break;
             Dictionary<string, object> displayData = new Dictionary<string, object>();
             displayData.Add("store name", deliveryExperiment.GetStoreNameFromGameObjectName(stores[i].name));

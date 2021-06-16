@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using Luminosity.IO;
 
 public class Look : MonoBehaviour {
 
@@ -10,8 +11,8 @@ public class Look : MonoBehaviour {
 	private float pitch = 0.0f;
 
 	void Update () {
-		yaw += speedH * Input.GetAxis("Mouse X");
-		pitch -= speedV * Input.GetAxis("Mouse Y");
+		yaw += speedH * InputManager.GetAxis("Mouse X");
+		pitch -= speedV * InputManager.GetAxis("Mouse Y");
 
 		transform.localEulerAngles = new Vector3(pitch, yaw, 0.0f);
 	}

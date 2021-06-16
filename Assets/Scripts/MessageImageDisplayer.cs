@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using Luminosity.IO;
 
 public class MessageImageDisplayer : MonoBehaviour
 {
@@ -66,7 +67,7 @@ public class MessageImageDisplayer : MonoBehaviour
         scriptedEventReporter.ReportScriptedEvent("instruction message displayed", messageData);
         message.SetActive(true);
         yield return null;
-        while (!Input.GetButtonDown("x (continue)"))
+        while (!InputManager.GetButtonDown("Continue"))
             yield return null;
         scriptedEventReporter.ReportScriptedEvent("instruction message cleared", messageData);
         message.SetActive(false);
@@ -82,7 +83,7 @@ public class MessageImageDisplayer : MonoBehaviour
         float startTime = Time.time;
         while (Time.time < startTime + waitTime)
         {
-            if (Input.GetButtonDown("q (secret)"))
+            if (InputManager.GetButtonDown("Secret"))
                 break;
             yield return null;
         }
@@ -110,7 +111,7 @@ public class MessageImageDisplayer : MonoBehaviour
             {
                 float currTime = Time.time / 100f;  // centi-seconds to seconds 
 
-                if (Input.GetButtonDown("correct"))
+                if (InputManager.GetButtonDown("Correct"))
                 {
                     string keypressInfo = i.ToString() + "th keypress: correct";
                     data.Add(keypressInfo, currTime);
@@ -119,14 +120,14 @@ public class MessageImageDisplayer : MonoBehaviour
 
                     message_right.SetActive(true);
                     message.SetActive(false);
-                    while (Time.time < currTime + BUTTON_MSG_DISPLAY_WAIT || Input.GetButton("correct"))
+                    while (Time.time < currTime + BUTTON_MSG_DISPLAY_WAIT || InputManager.GetButton("Correct"))
                     {
                         yield return null;
                     }
                     message_right.SetActive(false);
                     message.SetActive(true);
                 }
-                else if (Input.GetButtonDown("false"))
+                else if (InputManager.GetButtonDown("Incorrect"))
                 {
                     string keypressInfo = i.ToString() + "th keypress: incorrect";
                     data.Add(keypressInfo, currTime);
@@ -135,22 +136,22 @@ public class MessageImageDisplayer : MonoBehaviour
 
                     message.SetActive(false);
                     message_left.SetActive(true);
-                    while (Time.time < currTime + BUTTON_MSG_DISPLAY_WAIT || Input.GetButton("false"))
+                    while (Time.time < currTime + BUTTON_MSG_DISPLAY_WAIT || InputManager.GetButton("Incorrect"))
                     {
                         yield return null;
                     }
                     message_left.SetActive(false);
                     message.SetActive(true);
                 }
-                else if (Input.GetButtonDown("q (secret)")
+                else if (InputManager.GetButtonDown("Secret"))
                 {
                     break;
                 }
-                else if (Input.anyKeyDown)
+                else if (InputManager.anyKeyDown)
                 {
                     foreach (KeyCode kcode in System.Enum.GetValues(typeof(KeyCode)))
                     {
-                        if (Input.GetKey(kcode))
+                        if (InputManager.GetKey(kcode))
                         {
                             string keypressInfo = i.ToString() + "th keypress: " + kcode.ToString();
                             data.Add(keypressInfo, currTime);

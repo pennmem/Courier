@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using UnityEngine;
+using Luminosity.IO;
 
 [AddComponentMenu("UnityEPL/Reporters/Input Reporter")]
 public class InputReporter : DataReporter
@@ -70,11 +71,11 @@ public class InputReporter : DataReporter
         {
             foreach (KeyCode keyCode in System.Enum.GetValues(typeof(KeyCode)))
             {
-                if (Input.GetKeyDown(keyCode))
+                if (InputManager.GetKeyDown(keyCode))
                 {
                     ReportKey((int)keyCode, true, DataReporter.RealWorldTime());
                 }
-                if (Input.GetKeyUp(keyCode))
+                if (InputManager.GetKeyUp(keyCode))
                 {
                     ReportKey((int)keyCode, false, DataReporter.RealWorldTime());
                 }
@@ -96,7 +97,7 @@ public class InputReporter : DataReporter
     void CollectMousePosition()
     {
         Dictionary<string, object> dataDict = new Dictionary<string, object>();
-        dataDict.Add("position", Input.mousePosition);
+        dataDict.Add("position", InputManager.mousePosition);
         eventQueue.Enqueue(new DataPoint("mouse position", DataReporter.RealWorldTime(), dataDict));
         lastMousePositionReportFrame = Time.frameCount;
     }

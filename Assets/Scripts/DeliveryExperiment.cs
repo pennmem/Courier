@@ -21,6 +21,7 @@ public class DeliveryExperiment : CoroutineExperiment
     // JPB: TODO: Make this a configuration variable
     private const bool STANDALONE_TESTING = true;
     private const bool EFR_ENABLED = true;
+    private const bool NICLS_COURIER = false;
 
     private const string DBOY_VERSION = "v4.2.2";
     private const string RECALL_TEXT = "*******";
@@ -131,7 +132,6 @@ public class DeliveryExperiment : CoroutineExperiment
         if (useRamulator)
             yield return ramulatorInterface.BeginNewSession(sessionNumber);
         
-        useNicls = true;
         if (useNicls)
             yield return niclsInterface.BeginNewSession(sessionNumber);
         else
@@ -141,14 +141,14 @@ public class DeliveryExperiment : CoroutineExperiment
         yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
                              LanguageSource.GetLanguageString("first video"),
                              VideoSelector.VideoType.MainIntro);
-        //yield return DoSubjectSessionQuitPrompt(sessionNumber,
-        //                                        LanguageSource.GetLanguageString("running participant"));
-        //yield return DoMicrophoneTest(LanguageSource.GetLanguageString("microphone test"),
-        //                             LanguageSource.GetLanguageString("after the beep"),
-        //                             LanguageSource.GetLanguageString("recording"),
-        //                             LanguageSource.GetLanguageString("playing"),
-        //                             LanguageSource.GetLanguageString("recording confirmation"));
-        //yield return DoFamiliarization();
+        yield return DoSubjectSessionQuitPrompt(sessionNumber,
+                                                LanguageSource.GetLanguageString("running participant"));
+        yield return DoMicrophoneTest(LanguageSource.GetLanguageString("microphone test"),
+                                     LanguageSource.GetLanguageString("after the beep"),
+                                     LanguageSource.GetLanguageString("recording"),
+                                     LanguageSource.GetLanguageString("playing"),
+                                     LanguageSource.GetLanguageString("recording confirmation"));
+        yield return DoFamiliarization();
 
         Environment environment = EnableEnvironment();
         Dictionary<string, object> storeMappings = new Dictionary<string, object>();
@@ -162,27 +162,27 @@ public class DeliveryExperiment : CoroutineExperiment
         scriptedEventReporter.ReportScriptedEvent("store mappings", storeMappings);
 
         int trialsPerSession = TRIALS_PER_SESSION;
-        //if (useNicls)
-        //{
-        //    niclsInterface.SendReadOnlyStateToNicls(1);
+        if (NICLS_COURIER)
+        {
+            niclsInterface.SendReadOnlyStateToNicls(1);
 
-        //    // Town learning days
-        //    // JPB: TODO: Refactor into function?
-        //    if (sessionNumber < DOUBLE_TOWN_LEARNING_DAYS)
-        //    {
-        //        yield return DisplayMessageAndWait("Spatial Learning Phase", "Spatial Learning Phase: You will locate all the stores one by one");
-        //        WorldScreen();
-        //        yield return DoDelivery(environment, 0, townLearning: true);
-        //        yield return DoDelivery(environment, 0, townLearning: true);
-        //        trialsPerSession = 5;
-        //    }
-        //    else if (sessionNumber < TOTAL_TOWN_LEARNING_DAYS)
-        //    {
-        //        yield return DisplayMessageAndWait("Spatial Learning Phase", "Spatial Learning Phase: You will locate all the stores one by one");
-        //        WorldScreen();
-        //        yield return DoDelivery(environment, 0, townLearning: true);
-        //    }
-        //}
+            // Town learning days
+            // JPB: TODO: Refactor into function?
+            if (sessionNumber < DOUBLE_TOWN_LEARNING_DAYS)
+            {
+                yield return DisplayMessageAndWait("Spatial Learning Phase", "Spatial Learning Phase: You will locate all the stores one by one");
+                WorldScreen();
+                yield return DoTownLearning(environment);
+                yield return DoTownLearning(environment);
+                trialsPerSession = 5;
+            }
+            else if (sessionNumber < TOTAL_TOWN_LEARNING_DAYS)
+            {
+                yield return DisplayMessageAndWait("Spatial Learning Phase", "Spatial Learning Phase: You will locate all the stores one by one");
+                WorldScreen();
+                yield return DoTownLearning(environment);
+            }
+        }
 
         BlackScreen();
         yield return messageImageDisplayer.DisplayLanguageMessage(messageImageDisplayer.delivery_restart_messages);
@@ -353,14 +353,14 @@ public class DeliveryExperiment : CoroutineExperiment
         textDisplayer.ClearText();
         foreach (StoreComponent cueStore in this_trial_presented_stores)
         {
-            if (trial_number < 2)
+            float wordDelay = Random.Range(WORD_PRESENTATION_DELAY - WORD_PRESENTATION_JITTER,
+                                               WORD_PRESENTATION_DELAY + WORD_PRESENTATION_JITTER);
+            yield return new WaitForSeconds(wordDelay);
+
+            if (trial_number >= NUM_READ_ONLY_TRIALS)
             {
-                yield return new WaitForSeconds(1);
-            }
-            else
-            {
-                yield return new WaitForSeconds(1);
-                yield return WaitForClassifier();
+                if (NICLS_COURIER)
+                    yield return WaitForClassifier();
             }
 
             cueStore.familiarization_object.SetActive(true);
@@ -473,7 +473,52 @@ public class DeliveryExperiment : CoroutineExperiment
         yield return familiarizer.DoFamiliarization(MIN_FAMILIARIZATION_ISI, MAX_FAMILIARIZATION_ISI, FAMILIARIZATION_PRESENTATION_LENGTH);
     }
 
-    private IEnumerator DoDelivery(Environment environment, int trialNumber, bool practice = false, bool townLearning = false)
+    private IEnumerator DoTownLearning(Environment environment)
+    {
+        SetRamulatorState("ENCODING", true, new Dictionary<string, object>());
+        messageImageDisplayer.please_find_the_blah_reminder.SetActive(true);
+
+        this_trial_presented_stores = new List<StoreComponent>();
+        List<StoreComponent> unvisitedStores = new List<StoreComponent>(environment.stores);
+
+        for (int i = 0; i < environment.stores.Length; i++)
+        {
+            StoreComponent nextStore = null;
+            int random_store_index = -1;
+            int tries = 0;
+
+            do
+            {
+                tries++;
+                random_store_index = Random.Range(0, unvisitedStores.Count);
+                nextStore = unvisitedStores[random_store_index];
+            }
+            while (nextStore.IsVisible() && tries < environment.stores.Length);
+
+            unvisitedStores.RemoveAt(random_store_index);
+
+            playerMovement.Freeze();
+            messageImageDisplayer.SetReminderText(nextStore.GetStoreName());
+            yield return new WaitForSeconds(0.5f);
+            playerMovement.Unfreeze();
+
+            float startTime = Time.time;
+            while (!nextStore.PlayerInDeliveryPosition())
+            {
+                if (Time.time - startTime > POINTING_INDICATOR_DELAY)
+                {
+                    yield return DisplayPointingIndicator(nextStore, true);
+                }
+                yield return null;
+            }
+            yield return DisplayPointingIndicator(nextStore, false);
+        }
+
+        messageImageDisplayer.please_find_the_blah_reminder.SetActive(false);
+        SetRamulatorState("ENCODING", false, new Dictionary<string, object>());
+    }
+
+    private IEnumerator DoDelivery(Environment environment, int trialNumber, bool practice = false)
     {
 
         SetRamulatorState("ENCODING", true, new Dictionary<string, object>());
@@ -482,7 +527,6 @@ public class DeliveryExperiment : CoroutineExperiment
         this_trial_presented_stores = new List<StoreComponent>();
         List<StoreComponent> unvisitedStores = new List<StoreComponent>(environment.stores);
 
-        SetRamulatorState("ENCODING", true, new Dictionary<string, object>());  
         int deliveries = practice ? PRACTICE_DELIVERIES_PER_TRIAL : DELIVERIES_PER_TRIAL;
         int craft_shop_delivery_num = Random.Range(0, deliveries - 1);
 
@@ -523,12 +567,10 @@ public class DeliveryExperiment : CoroutineExperiment
             unvisitedStores.RemoveAt(random_store_index);
 
             playerMovement.Freeze();
-            messageImageDisplayer.please_find_the_blah_reminder.SetActive(false);
+            //messageImageDisplayer.please_find_the_blah_reminder.SetActive(false);
             messageImageDisplayer.SetReminderText(nextStore.GetStoreName());
             //yield return DoPointingTask(nextStore);
-            messageImageDisplayer.please_find_the_blah_reminder.SetActive(true);
-            if (townLearning) // Town Learning
-                yield return new WaitForSeconds(0.5f);
+            //messageImageDisplayer.please_find_the_blah_reminder.SetActive(true);
             playerMovement.Unfreeze();
 
             float startTime = Time.time;
@@ -542,7 +584,7 @@ public class DeliveryExperiment : CoroutineExperiment
             yield return DisplayPointingIndicator(nextStore, false);
 
             ///AUDIO PRESENTATION OF OBJECT///
-            if ((i != deliveries - 1) && !townLearning)
+            if (i != deliveries - 1)
             {
                 playerMovement.Freeze();
                 AudioClip deliveredItem = (practice && i == craft_shop_delivery_num)
@@ -552,7 +594,6 @@ public class DeliveryExperiment : CoroutineExperiment
                 float wordDelay = Random.Range(WORD_PRESENTATION_DELAY - WORD_PRESENTATION_JITTER, 
                                                WORD_PRESENTATION_DELAY + WORD_PRESENTATION_JITTER);
                 yield return new WaitForSeconds(wordDelay);
-                Debug.Log(wordDelay);
 
                 if (useNicls)
                 {

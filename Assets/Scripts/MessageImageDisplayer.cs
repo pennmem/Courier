@@ -102,7 +102,8 @@ public class MessageImageDisplayer : MonoBehaviour
     }
 
     public IEnumerator DisplayMessageTimedWithKeypressToggle(
-        GameObject display, Text correctText, Text incorrectText, float waitTime, bool repeat = false)
+        GameObject display, Text leftText, Text rightText, float waitTime, 
+        string leftLogMessage = "leftKey", string rightLogMessage = "rightKey", bool repeat = false)
     {
         var messageData = new Dictionary<string, object>();
         messageData.Add("message name", display.name);
@@ -126,17 +127,17 @@ public class MessageImageDisplayer : MonoBehaviour
                 {
                     break;
                 }
-                else if (InputManager.GetButtonDown("Correct"))
+                else if (InputManager.GetButtonDown("EfrLeft"))
                 {
-                    keypresses.Add(new Dictionary<string, object> { { "time", DataReporter.RealWorldTime() }, { "response", "correct" } });
+                    keypresses.Add(new Dictionary<string, object> { { "time", DataReporter.RealWorldTime() }, { "response", leftLogMessage } });
+                    yield return SetTextBoldTimedOrButton("EfrLeft", leftText, BUTTON_MSG_DISPLAY_WAIT);
                     numValidButtonPresses++;
-                    yield return SetTextBoldTimed("Correct", correctText, BUTTON_MSG_DISPLAY_WAIT);
                 }
-                else if (InputManager.GetButtonDown("Incorrect"))
+                else if (InputManager.GetButtonDown("EfrRight"))
                 {
-                    keypresses.Add(new Dictionary<string, object> { { "time", DataReporter.RealWorldTime() }, { "response", "incorrect" } });
+                    keypresses.Add(new Dictionary<string, object> { { "time", DataReporter.RealWorldTime() }, { "response", rightLogMessage } });
+                    yield return SetTextBoldTimedOrButton("EfrRight", rightText, BUTTON_MSG_DISPLAY_WAIT);
                     numValidButtonPresses++;
-                    yield return SetTextBoldTimed("Incorrect", incorrectText, BUTTON_MSG_DISPLAY_WAIT);
                 }
                 else if (InputManager.anyKeyDown)
                 {
@@ -179,13 +180,9 @@ public class MessageImageDisplayer : MonoBehaviour
         foreach (char c in prompt_string)
         {
             if(char.IsLetter(c)||c == '\'')
-            {
                 update_name += char.ToLower(c);
-            } 
             else
-            {
                 update_name += " ";
-            }
             
         }
         Button btn = deliver_item_visual_dislay.GetComponent<Button>();
@@ -199,7 +196,7 @@ public class MessageImageDisplayer : MonoBehaviour
         efr_display_right_button.text = rightButton;
     }
 
-    public IEnumerator SetTextBoldTimed(string buttonName, Text displayText, float waitTime)
+    public IEnumerator SetTextBoldTimedOrButton(string buttonName, Text displayText, float waitTime)
     {
         string buttonText = displayText.text;
         Vector2 anchorMin = displayText.GetComponentInParent<RectTransform>().anchorMin;

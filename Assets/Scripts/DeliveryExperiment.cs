@@ -64,7 +64,9 @@ public class DeliveryExperiment : CoroutineExperiment
 
     public Environment[] environments;
 
-    private int efrCorrectIncorrectSide = 0; 
+    private int efrCorrectIncorrectSide = 0;
+    private string efrLeftLogMsg = "incorrect";
+    private string efrRightLogMsg = "correct";
 
     private List<StoreComponent> this_trial_presented_stores = new List<StoreComponent>();
     private List<string> all_presented_objects = new List<string>();
@@ -100,7 +102,7 @@ public class DeliveryExperiment : CoroutineExperiment
         //syncs.StartPulse();
 
         if (COUNTER_BALANCE_CORRECT_INCORRECT_BUTTONS)
-            SetControls();
+            SetEfrDisplay();
 
         Dictionary<string, object> sceneData = new Dictionary<string, object>();
         sceneData.Add("sceneName", "MainGame");
@@ -670,29 +672,26 @@ public class DeliveryExperiment : CoroutineExperiment
         return environment;
     }
 
-    private void SetControls()
+    private void SetEfrDisplay()
     {
-        var correctAction = InputManager.GetAction("DefaultControls", "Correct");
-        var incorrectAction = InputManager.GetAction("DefaultControls", "Incorrect");
-
         System.Random reliable_random = new System.Random(UnityEPL.GetParticipants()[0].GetHashCode());
         efrCorrectIncorrectSide = reliable_random.Next(0, 2);
         efrCorrectIncorrectSide = 1;
         if (efrCorrectIncorrectSide == 0)
         {
-            // Right button is correct, left button is incorrect
-            correctAction.Bindings[0].Positive = KeyCode.JoystickButton7;
-            correctAction.Bindings[1].Positive = KeyCode.Slash;
-            incorrectAction.Bindings[0].Positive = KeyCode.JoystickButton6;
-            incorrectAction.Bindings[1].Positive = KeyCode.Z;
+            efrLeftLogMsg = "incorrect";
+            efrRightLogMsg = "correct";
+            messageImageDisplayer.SetEfrText("",
+                                             LanguageSource.GetLanguageString("efr left button incorrect message"),
+                                             LanguageSource.GetLanguageString("efr right button correct message"));
         }
         else
         {
-            // Left button is correct, right button is incorrect
-            correctAction.Bindings[0].Positive = KeyCode.JoystickButton6;
-            correctAction.Bindings[1].Positive = KeyCode.Z;
-            incorrectAction.Bindings[0].Positive = KeyCode.JoystickButton7;
-            incorrectAction.Bindings[1].Positive = KeyCode.Slash;
+            efrLeftLogMsg = "correct";
+            efrRightLogMsg = "incorrect";
+            messageImageDisplayer.SetEfrText("",
+                                             LanguageSource.GetLanguageString("efr left button correct message"),
+                                             LanguageSource.GetLanguageString("efr right button incorrect message"));
         }
     }
 
@@ -700,38 +699,19 @@ public class DeliveryExperiment : CoroutineExperiment
     {
         BlackScreen();
         yield return messageImageDisplayer.DisplayMessageTimed(
-            messageImageDisplayer.free_recall_display, 
+            messageImageDisplayer.free_recall_display,
             waitTime);
     }
 
     private IEnumerator DoEfrDisplay(string title, float waitTime, bool practice = false)
     {
         BlackScreen();
-
-        if (efrCorrectIncorrectSide == 0)
-        {
-            // Right button is correct, left button is incorrect
-            messageImageDisplayer.SetEfrText(title,
-                                             LanguageSource.GetLanguageString("efr left button incorrect message"),
-                                             LanguageSource.GetLanguageString("efr right button correct message"));
-            yield return messageImageDisplayer.DisplayMessageTimedWithKeypressToggle(
-                messageImageDisplayer.efr_display,
-                messageImageDisplayer.efr_display_right_button,
-                messageImageDisplayer.efr_display_left_button,
-                waitTime, practice);
-        }
-        else
-        {
-            // Left button is correct, right button is incorrect
-            messageImageDisplayer.SetEfrText(title,
-                                             LanguageSource.GetLanguageString("efr left button correct message"),
-                                             LanguageSource.GetLanguageString("efr right button incorrect message"));
-            yield return messageImageDisplayer.DisplayMessageTimedWithKeypressToggle(
+        messageImageDisplayer.efr_display_title.text = title;
+        yield return messageImageDisplayer.DisplayMessageTimedWithKeypressToggle(
                 messageImageDisplayer.efr_display,
                 messageImageDisplayer.efr_display_left_button,
                 messageImageDisplayer.efr_display_right_button,
-                waitTime, practice);
-        }
+                waitTime, efrLeftLogMsg, efrRightLogMsg, practice);
     }
 
     private IEnumerator DoEfrKeypressCheck()

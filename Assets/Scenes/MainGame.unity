@@ -27751,7 +27751,7 @@ MonoBehaviour:
         m_gamepadButton: 0
         m_gamepadAxis: 0
         m_gamepadIndex: 0
-    - m_name: Correct
+    - m_name: EfrRight
       m_description: 
       m_bindings:
       - m_positive: 47
@@ -27784,7 +27784,7 @@ MonoBehaviour:
         m_gamepadButton: 0
         m_gamepadAxis: 0
         m_gamepadIndex: 0
-    - m_name: Incorrect
+    - m_name: EfrLeft
       m_description: 
       m_bindings:
       - m_positive: 122

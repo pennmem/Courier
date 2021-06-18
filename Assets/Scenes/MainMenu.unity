@@ -580,7 +580,7 @@ MonoBehaviour:
         m_sensitivity: 3
         m_scale: 1
         m_snap: 0
-        m_invert: 0
+        m_invert: 1
         m_type: 6
         m_axis: 1
         m_joystick: 0
@@ -595,7 +595,7 @@ MonoBehaviour:
         m_sensitivity: 3
         m_scale: 1
         m_snap: 0
-        m_invert: 0
+        m_invert: 1
         m_type: 6
         m_axis: 3
         m_joystick: 0

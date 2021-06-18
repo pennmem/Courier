@@ -7,6 +7,8 @@ public static class LanguageSource
     public enum LANGUAGE { ENGLISH, GERMAN };
     public static LANGUAGE current_language;
 
+    private const string GERMAN_TRANSLATION_NEEDED = "GERMAN TRANSLATION NEEDED";
+
     private static Dictionary<string, string[]> language_string_dict = new Dictionary<string, string[]>()
     {
         { "final recall", new string[] {"All items exhausted. Press any key to proceed to final recall.", "Alle Gegenstände ausgeliefert. Weiter mit beliebiger Taste."} },
@@ -36,6 +38,16 @@ public static class LanguageSource
                                              "Drücken Sie (X) um die nächste trainier Auslieferungsrunde zu starten."} },
         { "first day", new string[] {"Press (X) to proceed to the first delivery day.", "Drücken Sie (X) um die erste Auslieferungsrunde zu starten."} },
         { "next day", new string[] {"Press (X) to proceed to the next delivery day.", "Drücken Sie (X) um die nächste Auslieferungsrunde zu starten."} },
+
+        // JPB: TODO: NEEDS GERMAN
+        { "efr left button correct message", new string [] {"Press the <i>left</i> button for correct recall", 
+                                                            GERMAN_TRANSLATION_NEEDED}},
+        { "efr left button incorrect message", new string [] {"Press the <i>left</i> button for incorrect recall", 
+                                                              GERMAN_TRANSLATION_NEEDED}},
+        { "efr right button correct message", new string [] {"Press the <i>right</i> button for correct recall", 
+                                                             GERMAN_TRANSLATION_NEEDED}},
+        { "efr right button incorrect message", new string [] {"Press the <i>right</i> button for incorrect recall", 
+                                                               GERMAN_TRANSLATION_NEEDED}},
 
         { "play movie", new string[] {"Press any key to play movie.", "Starten Sie das Video mit beliebiger Taste."} },
         { "recording confirmation", new string[] {"Did you hear the recording? \n(Y = Continue / N = Try Again / C = Cancel).", 

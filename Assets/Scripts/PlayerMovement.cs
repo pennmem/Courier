@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Luminosity.IO;
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -21,7 +22,7 @@ public class PlayerMovement : MonoBehaviour
 
     void Update ()
     {
-        float turnAmount = Input.GetAxis("Horizontal");
+        float turnAmount = InputManager.GetAxis("Horizontal");
         if (Mathf.Abs(turnAmount) < turnThreshhold)
             turnAmount = 0;
         turnAmount = turnAmount * turnSpeed * Time.deltaTime;
@@ -30,13 +31,13 @@ public class PlayerMovement : MonoBehaviour
             xform.Rotate(new Vector3(0, turnAmount, 0));
 
             //move forward or more slowly backward
-            if (Input.GetAxis("Vertical") > 0)
-                xform.position = Vector3.Lerp(xform.position, xform.position + Input.GetAxis("Vertical") * xform.forward, forwardSpeed * Time.deltaTime);
+            if (InputManager.GetAxis("Vertical") > 0)
+                xform.position = Vector3.Lerp(xform.position, xform.position + InputManager.GetAxis("Vertical") * xform.forward, forwardSpeed * Time.deltaTime);
             else
-                xform.position = Vector3.Lerp(xform.position, xform.position + Input.GetAxis("Vertical") * xform.forward, backwardSpeed * Time.deltaTime);
+                xform.position = Vector3.Lerp(xform.position, xform.position + InputManager.GetAxis("Vertical") * xform.forward, backwardSpeed * Time.deltaTime);
             
             //rotate the handlebars smoothly, limit to maxRotation
-            rotateMe.transform.localRotation = Quaternion.Euler(rotateMe.transform.rotation.eulerAngles.x, Input.GetAxis("Horizontal") * maxRotation, rotateMe.transform.rotation.eulerAngles.z);
+            rotateMe.transform.localRotation = Quaternion.Euler(rotateMe.transform.rotation.eulerAngles.x, InputManager.GetAxis("Horizontal") * maxRotation, rotateMe.transform.rotation.eulerAngles.z);
         }
     }
 

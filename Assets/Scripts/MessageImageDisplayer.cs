@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -26,32 +27,37 @@ public class MessageImageDisplayer : MonoBehaviour
     public GameObject[] cued_recall_message;
 
     public GameObject please_find_the_blah;
-    public UnityEngine.UI.Text please_find_the_blah_text;
+    public Text please_find_the_blah_text;
     public GameObject please_find_the_blah_reminder;
-    public UnityEngine.UI.Text please_find_the_blah_reminder_text;
+    public Text please_find_the_blah_reminder_text;
     public GameObject deliver_item_visual_dislay;
-    public UnityEngine.UI.Text deliver_item_display_text;
-    public UnityEngine.UI.Text please_speak_now_text;
+    public Text deliver_item_display_text;
+    public GameObject free_recall_display;
+    public GameObject efr_display;
+    public Text efr_display_title;
+    public Text efr_display_left_button;
+    public Text efr_display_right_button;
     public ScriptedEventReporter scriptedEventReporter;
 
     private const float BUTTON_MSG_DISPLAY_WAIT = 0.3f;
+    private const int REQUIRED_VALID_BUTTON_PRESSES = 1;
 
-    public IEnumerator DisplayLanguageMessage(GameObject[] language_messages)
+    public IEnumerator DisplayLanguageMessage(GameObject[] language_messages, string buttonName = "Continue")
     {
-        yield return DisplayMessage(language_messages[(int)LanguageSource.current_language]);
+        yield return DisplayMessage(language_messages[(int)LanguageSource.current_language], buttonName);
     }
 
     //DisplayLanguageMessageFixedDuration shows the game object for a fixed amount of time, X keypress not required to proceed
-    public IEnumerator DisplayLanguageMessageFixedDuration(GameObject[] m, float time)
+    public IEnumerator DisplayLanguageMessageTimed(GameObject[] m, float time)
     {
-        yield return DisplayMessageWithoutX(m[(int)LanguageSource.current_language], time); 
+        yield return DisplayMessageTimed(m[(int)LanguageSource.current_language], time); 
     }
     //DisplayLanguageMessageFixedDurationKeyPress shows the game object for a fixed amount of time, X keypress not required to proceed
     //it also records the keypress during the display
-    public IEnumerator DisplayLanguageMessageFixedDurationKeyPress(GameObject[] m, GameObject[] m_left, GameObject[] m_right, float time)
-    {
-        yield return DisplayMessageWithoutX_Keypress(m[(int)LanguageSource.current_language], m_left[(int)LanguageSource.current_language], m_right[(int)LanguageSource.current_language], time);
-    }
+    //public IEnumerator DisplayLanguageMessageTimedWithKeypressToggle(GameObject[] m, GameObject[] m_left, GameObject[] m_right, float time)
+    //{
+    //    yield return DisplayMessageTimedWithKeypressToggle(m[(int)LanguageSource.current_language], m_left[(int)LanguageSource.current_language], m_right[(int)LanguageSource.current_language], time);
+    //}
 
     //display message for cued recall
     public void SetCuedRecallMessage(bool isActive)
@@ -60,20 +66,24 @@ public class MessageImageDisplayer : MonoBehaviour
         message.SetActive(isActive);
     }
 
-    private IEnumerator DisplayMessage(GameObject message)
+    public IEnumerator DisplayMessage(GameObject message, string buttonName = "Continue")
     {
         Dictionary<string, object> messageData = new Dictionary<string, object>();
         messageData.Add("message name", message.name);
         scriptedEventReporter.ReportScriptedEvent("instruction message displayed", messageData);
         message.SetActive(true);
         yield return null;
-        while (!InputManager.GetButtonDown("Continue"))
-            yield return null;
+        if (buttonName == "")
+            while (!InputManager.anyKeyDown)
+                yield return null;
+        else
+            while (!InputManager.GetButtonDown(buttonName))
+                yield return null;
         scriptedEventReporter.ReportScriptedEvent("instruction message cleared", messageData);
         message.SetActive(false);
     }
 
-    private IEnumerator DisplayMessageWithoutX(GameObject message, float waitTime)
+    public IEnumerator DisplayMessageTimed(GameObject message, float waitTime)
     {
         Dictionary<string, object> messageData = new Dictionary<string, object>();
         messageData.Add("message name", message.name);
@@ -91,61 +101,42 @@ public class MessageImageDisplayer : MonoBehaviour
         message.SetActive(false);
     }
 
-    private IEnumerator DisplayMessageWithoutX_Keypress(GameObject message, GameObject message_left, GameObject message_right, float waitTime)
+    public IEnumerator DisplayMessageTimedWithKeypressToggle(
+        GameObject display, Text correctText, Text incorrectText, float waitTime, bool repeat = false)
     {
-        const int REQUIRED_VALID_BUTTON_PRESSES = 1;
+        var messageData = new Dictionary<string, object>();
+        messageData.Add("message name", display.name);
+        scriptedEventReporter.ReportScriptedEvent("instruction message displayed", messageData);
+
         int numValidButtonPresses = 0;
         while (numValidButtonPresses < REQUIRED_VALID_BUTTON_PRESSES)
         {
-            Dictionary<string, object> messageData = new Dictionary<string, object>();
-            messageData.Add("message name", message.name);
-            scriptedEventReporter.ReportScriptedEvent("instruction message displayed", messageData);
-            message.SetActive(true);
-            yield return null;
-            float startTime = Time.time;
-            Dictionary<string, object> data = new Dictionary<string, object>();
-            data.Add("recording start", startTime);
-            int i = 0;
+            display.SetActive(true);
 
+            Dictionary<string, object> data = new Dictionary<string, object>();
+            data.Add("recording start", DataReporter.RealWorldTime());
+            var keypresses = new List<Dictionary<string, object>>();
+
+            float startTime = Time.time;
             while (Time.time < startTime + waitTime)
             {
-                float currTime = Time.time / 100f;  // centi-seconds to seconds 
+                yield return null;
 
-                if (InputManager.GetButtonDown("Correct"))
+                if (InputManager.GetButtonDown("Secret"))
                 {
-                    string keypressInfo = i.ToString() + "th keypress: correct";
-                    data.Add(keypressInfo, currTime);
+                    break;
+                }
+                else if (InputManager.GetButtonDown("Correct"))
+                {
+                    keypresses.Add(new Dictionary<string, object> { { "time", DataReporter.RealWorldTime() }, { "response", "correct" } });
                     numValidButtonPresses++;
-                    i++;
-
-                    message_right.SetActive(true);
-                    message.SetActive(false);
-                    while (Time.time < currTime + BUTTON_MSG_DISPLAY_WAIT || InputManager.GetButton("Correct"))
-                    {
-                        yield return null;
-                    }
-                    message_right.SetActive(false);
-                    message.SetActive(true);
+                    yield return SetTextBoldTimed("Correct", correctText, BUTTON_MSG_DISPLAY_WAIT);
                 }
                 else if (InputManager.GetButtonDown("Incorrect"))
                 {
-                    string keypressInfo = i.ToString() + "th keypress: incorrect";
-                    data.Add(keypressInfo, currTime);
+                    keypresses.Add(new Dictionary<string, object> { { "time", DataReporter.RealWorldTime() }, { "response", "incorrect" } });
                     numValidButtonPresses++;
-                    i++;
-
-                    message.SetActive(false);
-                    message_left.SetActive(true);
-                    while (Time.time < currTime + BUTTON_MSG_DISPLAY_WAIT || InputManager.GetButton("Incorrect"))
-                    {
-                        yield return null;
-                    }
-                    message_left.SetActive(false);
-                    message.SetActive(true);
-                }
-                else if (InputManager.GetButtonDown("Secret"))
-                {
-                    break;
+                    yield return SetTextBoldTimed("Incorrect", incorrectText, BUTTON_MSG_DISPLAY_WAIT);
                 }
                 else if (InputManager.anyKeyDown)
                 {
@@ -153,21 +144,21 @@ public class MessageImageDisplayer : MonoBehaviour
                     {
                         if (InputManager.GetKey(kcode))
                         {
-                            string keypressInfo = i.ToString() + "th keypress: " + kcode.ToString();
-                            data.Add(keypressInfo, currTime);
-                            i++;
+                            keypresses.Add(new Dictionary<string, object> { { "time", DataReporter.RealWorldTime() }, { "response", kcode.ToString() } });
                         }
                     }
-                    
                 }
-
-                yield return null;
             }
-            scriptedEventReporter.ReportScriptedEvent("key press", data);
-            scriptedEventReporter.ReportScriptedEvent("instruction message cleared", messageData);
-            message.SetActive(false);
 
-            // JPB: TODO: Make this only for practice!!!!
+            data.Add("keypresses", keypresses);
+            scriptedEventReporter.ReportScriptedEvent("keypress data", data);
+            scriptedEventReporter.ReportScriptedEvent("instruction message cleared", messageData);
+
+            display.SetActive(false);
+
+            if (!repeat)
+                break;
+
             if (numValidButtonPresses < REQUIRED_VALID_BUTTON_PRESSES)
             {
                 yield return DisplayLanguageMessage(free_recall_retry_message);
@@ -201,8 +192,33 @@ public class MessageImageDisplayer : MonoBehaviour
         deliver_item_display_text.text = update_name;
     }
 
-    public void SetSpeakNowText(string text)
+    public void SetEfrText(string title, string leftButton, string rightButton)
     {
-        please_speak_now_text.text = text;
+        efr_display_title.text = title;
+        efr_display_left_button.text = leftButton;
+        efr_display_right_button.text = rightButton;
+    }
+
+    public IEnumerator SetTextBoldTimed(string buttonName, Text displayText, float waitTime)
+    {
+        string buttonText = displayText.text;
+        Vector2 anchorMin = displayText.GetComponentInParent<RectTransform>().anchorMin;
+        Vector2 anchorMax = displayText.GetComponentInParent<RectTransform>().anchorMax;
+
+        displayText.text = "<b>" + buttonText + "</b>";
+        displayText.GetComponentInParent<RectTransform>().anchorMin -= new Vector2(0.01f, 0f);
+        displayText.GetComponentInParent<RectTransform>().anchorMax += new Vector2(0.01f, 0f);
+
+        float startTime = Time.time;
+        float currTime = startTime;
+        while ((currTime < startTime + waitTime) || InputManager.GetButton(buttonName))
+        {
+            currTime = Time.time;
+            yield return null;
+        }
+
+        displayText.GetComponentInParent<RectTransform>().anchorMin = anchorMin;
+        displayText.GetComponentInParent<RectTransform>().anchorMax = anchorMax;
+        displayText.text = buttonText;
     }
 }

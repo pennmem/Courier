@@ -64,6 +64,8 @@ public class DeliveryExperiment : CoroutineExperiment
 
     public Environment[] environments;
 
+    private int efrCorrectIncorrectSide = 0; 
+
     private List<StoreComponent> this_trial_presented_stores = new List<StoreComponent>();
     private List<string> all_presented_objects = new List<string>();
 
@@ -97,6 +99,9 @@ public class DeliveryExperiment : CoroutineExperiment
         syncs = GameObject.Find("SyncBox").GetComponent<Syncbox>();
         //syncs.StartPulse();
 
+        if (COUNTER_BALANCE_CORRECT_INCORRECT_BUTTONS)
+            SetControls();
+
         Dictionary<string, object> sceneData = new Dictionary<string, object>();
         sceneData.Add("sceneName", "MainGame");
         scriptedEventReporter.ReportScriptedEvent("loadScene", sceneData);
@@ -106,6 +111,8 @@ public class DeliveryExperiment : CoroutineExperiment
 	
 	private IEnumerator ExperimentCoroutine()
     {
+        yield return DoEfrDisplay("Test Title", PRACTICE_FREE_RECALL_LENGTH, true);
+
         if (sessionNumber == -1)
         {
             throw new UnityException("Please call ConfigureExperiment before beginning the experiment.");
@@ -131,9 +138,6 @@ public class DeliveryExperiment : CoroutineExperiment
         yield return DoFamiliarization();
 
         yield return messageImageDisplayer.DisplayLanguageMessage(messageImageDisplayer.delivery_restart_messages);
-
-        if (COUNTER_BALANCE_CORRECT_INCORRECT_BUTTONS)
-            SetControls();
 
         Environment environment = EnableEnvironment();
         Dictionary<string, object> storeMappings = new Dictionary<string, object>();
@@ -186,7 +190,6 @@ public class DeliveryExperiment : CoroutineExperiment
         scriptedEventReporter.ReportScriptedEvent("versions", versionsData);
     }
 
-    
     private void BlackScreen()
     {
         pauser.ForbidPausing();
@@ -206,10 +209,10 @@ public class DeliveryExperiment : CoroutineExperiment
         starSystem.gameObject.SetActive(false);
         playerMovement.Freeze();
         if (practice)
-            yield return messageImageDisplayer.DisplayLanguageMessageFixedDuration(
+            yield return messageImageDisplayer.DisplayLanguageMessageTimed(
                             messageImageDisplayer.practice_fixation_message, time);
         else
-            yield return messageImageDisplayer.DisplayLanguageMessageFixedDuration(
+            yield return messageImageDisplayer.DisplayLanguageMessageTimed(
                             messageImageDisplayer.fixation_message, time);
     }
 
@@ -239,7 +242,6 @@ public class DeliveryExperiment : CoroutineExperiment
     private IEnumerator DoFreeRecall(int trial_number, bool practice = false)
     {
         BlackScreen();
-        messageImageDisplayer.SetSpeakNowText("");
         textDisplayer.ClearText();
 
         highBeep.Play();
@@ -259,33 +261,17 @@ public class DeliveryExperiment : CoroutineExperiment
         soundRecorder.StartRecording(wavFilePath);
         Dictionary<string, object> keypressData = new Dictionary<string, object>(); 
         if (practice && trial_number == 0)
-        {
-            messageImageDisplayer.SetSpeakNowText("(please speak now)");
-            yield return SkippableWait(PRACTICE_FREE_RECALL_LENGTH);
-        }
+            yield return DoFreeRecallDisplay(PRACTICE_FREE_RECALL_LENGTH);
         else if (practice)
-        {
-            yield return messageImageDisplayer.DisplayLanguageMessageFixedDurationKeyPress(
-                messageImageDisplayer.free_recall_keypress_message,
-                messageImageDisplayer.free_recall_keypress_message_bold_left,
-                messageImageDisplayer.free_recall_keypress_message_bold_right,
-                PRACTICE_FREE_RECALL_LENGTH);
-        }
+            yield return DoEfrDisplay("", PRACTICE_FREE_RECALL_LENGTH, practice);
         else
-        {
-            yield return messageImageDisplayer.DisplayLanguageMessageFixedDurationKeyPress(
-                messageImageDisplayer.free_recall_keypress_message,
-                messageImageDisplayer.free_recall_keypress_message_bold_left,
-                messageImageDisplayer.free_recall_keypress_message_bold_right,
-                FREE_RECALL_LENGTH);
-        }
+            yield return DoEfrDisplay("", FREE_RECALL_LENGTH);
             
         scriptedEventReporter.ReportScriptedEvent("object recall recording stop", recordingData);
         soundRecorder.StopRecording();
         textDisplayer.ClearText();
         lowBeep.Play();
         scriptedEventReporter.ReportScriptedEvent("Sound played", new Dictionary<string, object>() { { "sound name", "low beep" }, { "sound duration", lowBeep.clip.length.ToString() } });
-        messageImageDisplayer.SetSpeakNowText("");
         BlackScreen();
     }
 
@@ -346,7 +332,6 @@ public class DeliveryExperiment : CoroutineExperiment
 
     private IEnumerator DoFinalRecall(Environment environment)
     {
-        messageImageDisplayer.SetSpeakNowText("");
         SetRamulatorState("RETRIEVAL", true, new Dictionary<string, object>());
 
         highBeep.Play();
@@ -367,8 +352,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
         textDisplayer.ClearText();
         ClearTitle();
-        BlackScreen();
-        yield return messageImageDisplayer.DisplayLanguageMessageFixedDurationKeyPress(messageImageDisplayer.store_recall_message, messageImageDisplayer.store_recall_message_bold_left, messageImageDisplayer.store_recall_message_bold_right, STORE_FINAL_RECALL_LENGTH);
+        yield return DoEfrDisplay(LanguageSource.GetLanguageString("all objects recall"), STORE_FINAL_RECALL_LENGTH);
 
         scriptedEventReporter.ReportScriptedEvent("final store recall recording stop", new Dictionary<string, object>());
         soundRecorder.StopRecording();
@@ -395,8 +379,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
         textDisplayer.ClearText();
         ClearTitle();
-        BlackScreen();
-        yield return messageImageDisplayer.DisplayLanguageMessageFixedDurationKeyPress(messageImageDisplayer.object_recall_message, messageImageDisplayer.object_recall_message_bold_left, messageImageDisplayer.object_recall_message_bold_right, FINAL_RECALL_LENGTH);
+        yield return DoEfrDisplay(LanguageSource.GetLanguageString("all stores recall"), FINAL_RECALL_LENGTH);
         scriptedEventReporter.ReportScriptedEvent("final object recall recording stop", new Dictionary<string, object>());
         soundRecorder.StopRecording();
 
@@ -405,7 +388,6 @@ public class DeliveryExperiment : CoroutineExperiment
         scriptedEventReporter.ReportScriptedEvent("Sound played", new Dictionary<string, object>() { { "sound name", "low beep" }, { "sound duration", lowBeep.clip.length.ToString() } });
 
         SetRamulatorState("RETRIEVAL", false, new Dictionary<string, object>());
-        messageImageDisplayer.SetSpeakNowText("");
     }
 
     private IEnumerator DoFamiliarization()
@@ -694,8 +676,9 @@ public class DeliveryExperiment : CoroutineExperiment
         var incorrectAction = InputManager.GetAction("DefaultControls", "Incorrect");
 
         System.Random reliable_random = new System.Random(UnityEPL.GetParticipants()[0].GetHashCode());
-        int option = reliable_random.Next(0, 2);
-        if (option == 0)
+        efrCorrectIncorrectSide = reliable_random.Next(0, 2);
+        efrCorrectIncorrectSide = 1;
+        if (efrCorrectIncorrectSide == 0)
         {
             // Right button is correct, left button is incorrect
             correctAction.Bindings[0].Positive = KeyCode.JoystickButton7;
@@ -711,6 +694,96 @@ public class DeliveryExperiment : CoroutineExperiment
             incorrectAction.Bindings[0].Positive = KeyCode.JoystickButton7;
             incorrectAction.Bindings[1].Positive = KeyCode.Slash;
         }
+    }
+
+    private IEnumerator DoFreeRecallDisplay(float waitTime)
+    {
+        BlackScreen();
+        yield return messageImageDisplayer.DisplayMessageTimed(
+            messageImageDisplayer.free_recall_display, 
+            waitTime);
+    }
+
+    private IEnumerator DoEfrDisplay(string title, float waitTime, bool practice = false)
+    {
+        BlackScreen();
+
+        if (efrCorrectIncorrectSide == 0)
+        {
+            // Right button is correct, left button is incorrect
+            messageImageDisplayer.SetEfrText(title,
+                                             LanguageSource.GetLanguageString("efr left button incorrect message"),
+                                             LanguageSource.GetLanguageString("efr right button correct message"));
+            yield return messageImageDisplayer.DisplayMessageTimedWithKeypressToggle(
+                messageImageDisplayer.efr_display,
+                messageImageDisplayer.efr_display_right_button,
+                messageImageDisplayer.efr_display_left_button,
+                waitTime, practice);
+        }
+        else
+        {
+            // Left button is correct, right button is incorrect
+            messageImageDisplayer.SetEfrText(title,
+                                             LanguageSource.GetLanguageString("efr left button correct message"),
+                                             LanguageSource.GetLanguageString("efr right button incorrect message"));
+            yield return messageImageDisplayer.DisplayMessageTimedWithKeypressToggle(
+                messageImageDisplayer.efr_display,
+                messageImageDisplayer.efr_display_left_button,
+                messageImageDisplayer.efr_display_right_button,
+                waitTime, practice);
+        }
+    }
+
+    private IEnumerator DoEfrKeypressCheck()
+    {
+        yield return null;
+        // Display practice message
+
+        // Display press Correct key
+        if (efrCorrectIncorrectSide == 0)
+        {
+            //yield return messageImageDisplayer.DisplayLanguageMessage(messageImageDisplayer.free_recall_keypress_message_bold_right_correct_ask, "Correct");
+            //yield return messageImageDisplayer.DisplayLanguageMessageTimed(messageImageDisplayer.free_recall_keypress_message_bold_right, 0.5f);
+            //yield return messageImageDisplayer.DisplayLanguageMessageTimedWithKeypressToggle(
+                //messageImageDisplayer.free_recall_keypress_message_bold_right_correct_ask,
+                //messageImageDisplayer.free_recall_keypress_message_bold_left,
+                //messageImageDisplayer.free_recall_keypress_message_bold_right,
+                //1);
+        }
+        else
+        {
+            //yield return messageImageDisplayer.DisplayLanguageMessage(messageImageDisplayer.free_recall_keypress_message_bold_left_correct_ask, "Correct");
+            //yield return messageImageDisplayer.DisplayLanguageMessageTimed(messageImageDisplayer.free_recall_keypress_message_bold_right, 0.5f);
+            //yield return messageImageDisplayer.DisplayLanguageMessageTimedWithKeypressToggle(
+                //messageImageDisplayer.free_recall_keypress_message_bold_left_correct_ask,
+                //messageImageDisplayer.free_recall_keypress_message_bold_left,
+                //messageImageDisplayer.free_recall_keypress_message_bold_right,
+                //1);
+        }
+        
+        // Display press Incorrect key
+        if (efrCorrectIncorrectSide == 0)
+        {
+            //yield return messageImageDisplayer.DisplayLanguageMessage(messageImageDisplayer.free_recall_keypress_message_bold_left_incorrect_ask, "Incorrect");
+            //yield return messageImageDisplayer.DisplayLanguageMessageTimed(messageImageDisplayer.free_recall_keypress_message_bold_right, 0.5f);
+            //yield return messageImageDisplayer.DisplayLanguageMessageTimedWithKeypressToggle(
+                //messageImageDisplayer.free_recall_keypress_message_bold_left_incorrect_ask,
+                //messageImageDisplayer.free_recall_keypress_message_bold_left,
+                //messageImageDisplayer.free_recall_keypress_message_bold_right,
+                //1);
+        }
+        else
+        {
+            //yield return messageImageDisplayer.DisplayLanguageMessage(messageImageDisplayer.free_recall_keypress_message_bold_right_incorrect_ask, "Incorrect");
+            //yield return messageImageDisplayer.DisplayLanguageMessageTimed(messageImageDisplayer.free_recall_keypress_message_bold_right, 0.5f);
+            //yield return messageImageDisplayer.DisplayLanguageMessageTimedWithKeypressToggle(
+                //messageImageDisplayer.free_recall_keypress_message_bold_right_incorrect_ask,
+                //messageImageDisplayer.free_recall_keypress_message_bold_left,
+                //messageImageDisplayer.free_recall_keypress_message_bold_right,
+                //1);
+        }
+        
+        // Display closing practice message
     }
 
     //WAITING, INSTRUCT, COUNTDOWN, ENCODING, WORD, DISTRACT, RETRIEVAL

@@ -541,7 +541,7 @@
         <GamepadIndex>GamepadOne</GamepadIndex>
       </Binding>
     </Action>
-    <Action name="Correct">
+    <Action name="EfrRight">
       <Description />
       <Binding>
         <Positive>Slash</Positive>
@@ -578,7 +578,7 @@
         <GamepadIndex>GamepadOne</GamepadIndex>
       </Binding>
     </Action>
-    <Action name="Incorrect">
+    <Action name="EfrLeft">
       <Description />
       <Binding>
         <Positive>Z</Positive>

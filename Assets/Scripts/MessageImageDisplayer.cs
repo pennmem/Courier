@@ -34,9 +34,7 @@ public class MessageImageDisplayer : MonoBehaviour
     public Text deliver_item_display_text;
     public GameObject free_recall_display;
     public GameObject efr_display;
-    public Text efr_display_title;
-    public Text efr_display_left_button;
-    public Text efr_display_right_button;
+    public GameObject general_message_display;
     public ScriptedEventReporter scriptedEventReporter;
 
     private const float BUTTON_MSG_DISPLAY_WAIT = 0.3f;
@@ -70,6 +68,7 @@ public class MessageImageDisplayer : MonoBehaviour
     {
         Dictionary<string, object> messageData = new Dictionary<string, object>();
         messageData.Add("message name", message.name);
+        // JPB: TODO: Change this so that it takes a logging name
         scriptedEventReporter.ReportScriptedEvent("instruction message displayed", messageData);
         message.SetActive(true);
         yield return null;
@@ -77,7 +76,7 @@ public class MessageImageDisplayer : MonoBehaviour
             while (!InputManager.anyKeyDown)
                 yield return null;
         else
-            while (!InputManager.GetButtonDown(buttonName))
+            while (!InputManager.GetButtonDown(buttonName) && !InputManager.GetButtonDown("Secret"))
                 yield return null;
         scriptedEventReporter.ReportScriptedEvent("instruction message cleared", messageData);
         message.SetActive(false);
@@ -101,10 +100,56 @@ public class MessageImageDisplayer : MonoBehaviour
         message.SetActive(false);
     }
 
-    public IEnumerator DisplayMessageTimedWithKeypressToggle(
-        GameObject display, Text leftText, Text rightText, float waitTime, 
-        string leftLogMessage = "leftKey", string rightLogMessage = "rightKey", bool repeat = false)
+    public enum BoldToggleButton
     {
+        EfrLeftButton,
+        EfrRightButton
+    }
+
+    public IEnumerator DisplayMessageKeypressToggle(GameObject display, BoldToggleButton boldToggleButton)
+    {
+        display.SetActive(true);
+
+        // Report instruction displayed
+        var messageData = new Dictionary<string, object>();
+        messageData.Add("message name", display.name);
+        scriptedEventReporter.ReportScriptedEvent("instruction message displayed", messageData);
+
+        while (true)
+        {
+            yield return null;
+
+            if (InputManager.GetButtonDown("Secret"))
+            {
+                break;
+            }
+            else if (InputManager.GetButtonDown("EfrLeft") && (boldToggleButton == BoldToggleButton.EfrLeftButton))
+            {
+                Text toggleText = display.transform.Find("left button text").GetComponent<Text>();
+                yield return DoTextBoldTimedOrButton("EfrLeft", toggleText, BUTTON_MSG_DISPLAY_WAIT);
+                break;
+            }
+            else if (InputManager.GetButtonDown("EfrRight") && (boldToggleButton == BoldToggleButton.EfrRightButton))
+            {
+                Text toggleText = display.transform.Find("right button text").GetComponent<Text>();
+                yield return DoTextBoldTimedOrButton("EfrRight", toggleText, BUTTON_MSG_DISPLAY_WAIT);
+                break;
+            }
+        }
+
+        // Report instruction cleared
+        scriptedEventReporter.ReportScriptedEvent("instruction message cleared", messageData);
+
+        display.SetActive(false);
+    }
+
+    public IEnumerator DisplayMessageTimedLRKeypressToggle(GameObject display, float waitTime, 
+        string leftLogMessage = "leftKey", string rightLogMessage = "rightKey", bool retry = false)
+    {
+        Text leftText = display.transform.Find("left button text").GetComponent<Text>();
+        Text rightText = display.transform.Find("right button text").GetComponent<Text>();
+
+        // Report instruction displayed
         var messageData = new Dictionary<string, object>();
         messageData.Add("message name", display.name);
         scriptedEventReporter.ReportScriptedEvent("instruction message displayed", messageData);
@@ -114,6 +159,7 @@ public class MessageImageDisplayer : MonoBehaviour
         {
             display.SetActive(true);
 
+            // Start keypress dictionary
             Dictionary<string, object> data = new Dictionary<string, object>();
             data.Add("recording start", DataReporter.RealWorldTime());
             var keypresses = new List<Dictionary<string, object>>();
@@ -130,13 +176,13 @@ public class MessageImageDisplayer : MonoBehaviour
                 else if (InputManager.GetButtonDown("EfrLeft"))
                 {
                     keypresses.Add(new Dictionary<string, object> { { "time", DataReporter.RealWorldTime() }, { "response", leftLogMessage } });
-                    yield return SetTextBoldTimedOrButton("EfrLeft", leftText, BUTTON_MSG_DISPLAY_WAIT);
+                    yield return DoTextBoldTimedOrButton("EfrLeft", leftText, BUTTON_MSG_DISPLAY_WAIT);
                     numValidButtonPresses++;
                 }
                 else if (InputManager.GetButtonDown("EfrRight"))
                 {
                     keypresses.Add(new Dictionary<string, object> { { "time", DataReporter.RealWorldTime() }, { "response", rightLogMessage } });
-                    yield return SetTextBoldTimedOrButton("EfrRight", rightText, BUTTON_MSG_DISPLAY_WAIT);
+                    yield return DoTextBoldTimedOrButton("EfrRight", rightText, BUTTON_MSG_DISPLAY_WAIT);
                     numValidButtonPresses++;
                 }
                 else if (InputManager.anyKeyDown)
@@ -144,25 +190,28 @@ public class MessageImageDisplayer : MonoBehaviour
                     foreach (KeyCode kcode in System.Enum.GetValues(typeof(KeyCode)))
                     {
                         if (InputManager.GetKey(kcode))
-                        {
                             keypresses.Add(new Dictionary<string, object> { { "time", DataReporter.RealWorldTime() }, { "response", kcode.ToString() } });
-                        }
                     }
                 }
             }
 
+            // Report keypress dictionary
             data.Add("keypresses", keypresses);
             scriptedEventReporter.ReportScriptedEvent("keypress data", data);
+
+            // Report instruction cleared
             scriptedEventReporter.ReportScriptedEvent("instruction message cleared", messageData);
 
             display.SetActive(false);
 
-            if (!repeat)
-                break;
-
-            if (numValidButtonPresses < REQUIRED_VALID_BUTTON_PRESSES)
+            if (!retry)
             {
-                yield return DisplayLanguageMessage(free_recall_retry_message);
+                break;
+            }
+            else if (numValidButtonPresses < REQUIRED_VALID_BUTTON_PRESSES)
+            {
+                SetGeneralMessageText(mainText: "efr check try again main", descriptiveText: "efr check try again description");
+                yield return DisplayMessage(general_message_display);
             }
         }
     }
@@ -189,23 +238,52 @@ public class MessageImageDisplayer : MonoBehaviour
         deliver_item_display_text.text = update_name;
     }
 
-    public void SetEfrText(string title, string leftButton, string rightButton)
+    public void SetEfrText(string title = null, string leftButton = null, string rightButton = null, string descriptiveText = null)
     {
-        efr_display_title.text = title;
-        efr_display_left_button.text = leftButton;
-        efr_display_right_button.text = rightButton;
+        if (title != null)
+            efr_display.transform.Find("title text").GetComponent<Text>().text = LanguageSource.GetLanguageString(title);
+        if (leftButton != null)
+            efr_display.transform.Find("left button text").GetComponent<Text>().text = LanguageSource.GetLanguageString(leftButton);
+        if (rightButton != null)
+            efr_display.transform.Find("right button text").GetComponent<Text>().text = LanguageSource.GetLanguageString(rightButton);
+        if (descriptiveText != null)
+            efr_display.transform.Find("descriptive text").GetComponent<Text>().text = LanguageSource.GetLanguageString(descriptiveText);
     }
 
-    public IEnumerator SetTextBoldTimedOrButton(string buttonName, Text displayText, float waitTime)
+    public void SetActiveEfrPracticeElements(bool? speakNowText = null, bool? controllerImage = null, bool? descriptiveText = null)
+    {
+        if (speakNowText.HasValue)
+            efr_display.transform.Find("speak now text").GetComponent<Text>().gameObject.SetActive(speakNowText.Value);
+        if (controllerImage.HasValue) 
+            efr_display.transform.Find("speak now text").GetComponent<Text>().gameObject.SetActive(controllerImage.Value); // JPB: TODO: Fix
+        if (descriptiveText.HasValue)
+            efr_display.transform.Find("descriptive text").GetComponent<Text>().gameObject.SetActive(descriptiveText.Value);
+    }
+
+    public void SetGeneralMessageText(string title = "", string mainText = "", string descriptiveText = "")
+    {
+        general_message_display.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString("continue");
+
+        if (title != null)
+            general_message_display.transform.Find("title text").GetComponent<Text>().text = LanguageSource.GetLanguageString(title);
+        if (mainText != null)
+            general_message_display.transform.Find("main text").GetComponent<Text>().text = LanguageSource.GetLanguageString(mainText);
+        if (descriptiveText != null)
+            general_message_display.transform.Find("descriptive text").GetComponent<Text>().text = LanguageSource.GetLanguageString(descriptiveText);
+    }
+
+    public IEnumerator DoTextBoldTimedOrButton(string buttonName, Text displayText, float waitTime)
     {
         string buttonText = displayText.text;
         Vector2 anchorMin = displayText.GetComponentInParent<RectTransform>().anchorMin;
         Vector2 anchorMax = displayText.GetComponentInParent<RectTransform>().anchorMax;
 
+        // Bold and increase font
         displayText.text = "<b>" + buttonText + "</b>";
         displayText.GetComponentInParent<RectTransform>().anchorMin -= new Vector2(0.01f, 0f);
         displayText.GetComponentInParent<RectTransform>().anchorMax += new Vector2(0.01f, 0f);
 
+        // Wait for timeout and button release
         float startTime = Time.time;
         float currTime = startTime;
         while ((currTime < startTime + waitTime) || InputManager.GetButton(buttonName))
@@ -214,6 +292,7 @@ public class MessageImageDisplayer : MonoBehaviour
             yield return null;
         }
 
+        // Unbold and decrease font
         displayText.GetComponentInParent<RectTransform>().anchorMin = anchorMin;
         displayText.GetComponentInParent<RectTransform>().anchorMax = anchorMax;
         displayText.text = buttonText;

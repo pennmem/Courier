@@ -11,20 +11,6 @@ public class MessageImageDisplayer : MonoBehaviour
     public GameObject[] final_recall_messages;
     public GameObject[] delivery_restart_messages;
     public GameObject[] store_images_presentation_messages;
-    public GameObject[] free_recall_message;
-    public GameObject[] free_recall_keypress_message;
-    public GameObject[] free_recall_keypress_message_bold_left;
-    public GameObject[] free_recall_keypress_message_bold_right;
-    public GameObject[] free_recall_retry_message;
-    public GameObject[] fixation_message;
-    public GameObject[] practice_fixation_message;
-    public GameObject[] object_recall_message;
-    public GameObject[] object_recall_message_bold_left;
-    public GameObject[] object_recall_message_bold_right;
-    public GameObject[] store_recall_message;
-    public GameObject[] store_recall_message_bold_left;
-    public GameObject[] store_recall_message_bold_right;
-    public GameObject[] cued_recall_message;
 
     public GameObject please_find_the_blah;
     public Text please_find_the_blah_text;
@@ -34,6 +20,7 @@ public class MessageImageDisplayer : MonoBehaviour
     public Text deliver_item_display_text;
     public GameObject free_recall_display;
     public GameObject efr_display;
+    public GameObject cued_recall_message;
     public GameObject general_message_display;
     public GameObject general_big_message_display;
     public ScriptedEventReporter scriptedEventReporter;
@@ -41,28 +28,20 @@ public class MessageImageDisplayer : MonoBehaviour
     private const float BUTTON_MSG_DISPLAY_WAIT = 0.3f;
     private const int REQUIRED_VALID_BUTTON_PRESSES = 1;
 
-    public IEnumerator DisplayLanguageMessage(GameObject[] language_messages, string buttonName = "Continue")
+    public enum EfrButton
     {
-        yield return DisplayMessage(language_messages[(int)LanguageSource.current_language], buttonName);
+        LeftButton,
+        RightButton
     }
 
-    //DisplayLanguageMessageFixedDuration shows the game object for a fixed amount of time, X keypress not required to proceed
-    public IEnumerator DisplayLanguageMessageTimed(GameObject[] m, float time)
+    public IEnumerator DisplayLanguageMessage(GameObject[] langMessages, string buttonName = "Continue")
     {
-        yield return DisplayMessageTimed(m[(int)LanguageSource.current_language], time); 
+        yield return DisplayMessage(langMessages[(int)LanguageSource.current_language], buttonName);
     }
-    //DisplayLanguageMessageFixedDurationKeyPress shows the game object for a fixed amount of time, X keypress not required to proceed
-    //it also records the keypress during the display
-    //public IEnumerator DisplayLanguageMessageTimedWithKeypressToggle(GameObject[] m, GameObject[] m_left, GameObject[] m_right, float time)
-    //{
-    //    yield return DisplayMessageTimedWithKeypressToggle(m[(int)LanguageSource.current_language], m_left[(int)LanguageSource.current_language], m_right[(int)LanguageSource.current_language], time);
-    //}
 
-    //display message for cued recall
-    public void SetCuedRecallMessage(bool isActive)
+    public IEnumerator DisplayLanguageMessageTimed(GameObject[] langMessages, float time)
     {
-        GameObject message = cued_recall_message[(int)LanguageSource.current_language];
-        message.SetActive(isActive);
+        yield return DisplayMessageTimed(langMessages[(int)LanguageSource.current_language], time); 
     }
 
     public IEnumerator DisplayMessage(GameObject message, string buttonName = "Continue")
@@ -99,12 +78,6 @@ public class MessageImageDisplayer : MonoBehaviour
         }
         scriptedEventReporter.ReportScriptedEvent("instruction message cleared", messageData);
         message.SetActive(false);
-    }
-
-    public enum EfrButton
-    {
-        LeftButton,
-        RightButton
     }
 
     public IEnumerator DisplayMessageKeypressBold(GameObject display, EfrButton boldButton)
@@ -215,6 +188,13 @@ public class MessageImageDisplayer : MonoBehaviour
                 yield return DisplayMessage(general_message_display);
             }
         }
+    }
+
+    //display message for cued recall
+    public void SetCuedRecallMessage(bool isActive)
+    {
+        cued_recall_message.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString("cued recall message");
+        cued_recall_message.SetActive(isActive);
     }
 
     public void SetReminderText(string store_name)

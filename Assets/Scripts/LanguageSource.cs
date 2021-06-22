@@ -82,6 +82,8 @@ public static class LanguageSource
         { "fixation item", new string [] {"+", "+"}},
         { "fixation practice message", new string [] {"Please look at the plus sign", GERMAN_TRANSLATION_NEEDED}},
 
+        { "cued recall message", new string [] {"Press the (X) key after recalling the item to move to the next store", GERMAN_TRANSLATION_NEEDED}},
+
         { "play movie", new string[] {"Press any key to play movie.", "Starten Sie das Video mit beliebiger Taste."} },
         { "recording confirmation", new string[] {"Did you hear the recording? \n(Y = Continue / N = Try Again / C = Cancel).", 
                                                   "War die Aufnahme verständlich? \n(Y = Ja, weiter / N = Neuer Versuch / C = Abbrechen)."} },

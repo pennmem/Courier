@@ -164,7 +164,7 @@ public class DeliveryExperiment : CoroutineExperiment
         {
             Debug.Log("Practice trials");
             messageImageDisplayer.SetGeneralMessageText(mainText: "practice invitation");
-            messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
+            yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
             yield return DoTrials(environment, 2, true);
         }
 

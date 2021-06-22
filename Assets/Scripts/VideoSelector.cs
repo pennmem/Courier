@@ -7,8 +7,8 @@ public class VideoSelector : MonoBehaviour
     public UnityEngine.Video.VideoPlayer videoPlayer;
     public UnityEngine.Video.VideoClip englishIntro;
     public UnityEngine.Video.VideoClip germanIntro;
-    public UnityEngine.Video.VideoClip englishPostpracticeIntro;
-    public UnityEngine.Video.VideoClip germanPostpracticeIntro;
+    public UnityEngine.Video.VideoClip englishEfrIntro;
+    public UnityEngine.Video.VideoClip germanEfrIntro;
 
     void OnEnable()
     {
@@ -37,9 +37,9 @@ public class VideoSelector : MonoBehaviour
                 break;
             case VideoType.PostpracticeIntro:
                 if (LanguageSource.current_language == LanguageSource.LANGUAGE.GERMAN)
-                    videoPlayer.clip = germanPostpracticeIntro;
+                    videoPlayer.clip = germanEfrIntro;
                 else
-                    videoPlayer.clip = englishPostpracticeIntro;
+                    videoPlayer.clip = englishEfrIntro;
                 break;
             default: break;
         }

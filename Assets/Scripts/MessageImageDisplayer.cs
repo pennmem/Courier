@@ -35,6 +35,7 @@ public class MessageImageDisplayer : MonoBehaviour
     public GameObject free_recall_display;
     public GameObject efr_display;
     public GameObject general_message_display;
+    public GameObject general_big_message_display;
     public ScriptedEventReporter scriptedEventReporter;
 
     private const float BUTTON_MSG_DISPLAY_WAIT = 0.3f;
@@ -100,13 +101,13 @@ public class MessageImageDisplayer : MonoBehaviour
         message.SetActive(false);
     }
 
-    public enum BoldToggleButton
+    public enum EfrButton
     {
-        EfrLeftButton,
-        EfrRightButton
+        LeftButton,
+        RightButton
     }
 
-    public IEnumerator DisplayMessageKeypressToggle(GameObject display, BoldToggleButton boldToggleButton)
+    public IEnumerator DisplayMessageKeypressBold(GameObject display, EfrButton boldButton)
     {
         display.SetActive(true);
 
@@ -123,13 +124,13 @@ public class MessageImageDisplayer : MonoBehaviour
             {
                 break;
             }
-            else if (InputManager.GetButtonDown("EfrLeft") && (boldToggleButton == BoldToggleButton.EfrLeftButton))
+            else if (InputManager.GetButtonDown("EfrLeft") && (boldButton == EfrButton.LeftButton))
             {
                 Text toggleText = display.transform.Find("left button text").GetComponent<Text>();
                 yield return DoTextBoldTimedOrButton("EfrLeft", toggleText, BUTTON_MSG_DISPLAY_WAIT);
                 break;
             }
-            else if (InputManager.GetButtonDown("EfrRight") && (boldToggleButton == BoldToggleButton.EfrRightButton))
+            else if (InputManager.GetButtonDown("EfrRight") && (boldButton == EfrButton.RightButton))
             {
                 Text toggleText = display.transform.Find("right button text").GetComponent<Text>();
                 yield return DoTextBoldTimedOrButton("EfrRight", toggleText, BUTTON_MSG_DISPLAY_WAIT);
@@ -143,7 +144,7 @@ public class MessageImageDisplayer : MonoBehaviour
         display.SetActive(false);
     }
 
-    public IEnumerator DisplayMessageTimedLRKeypressToggle(GameObject display, float waitTime, 
+    public IEnumerator DisplayMessageTimedLRKeypressBold(GameObject display, float waitTime, 
         string leftLogMessage = "leftKey", string rightLogMessage = "rightKey", bool retry = false)
     {
         Text leftText = display.transform.Find("left button text").GetComponent<Text>();
@@ -238,38 +239,49 @@ public class MessageImageDisplayer : MonoBehaviour
         deliver_item_display_text.text = update_name;
     }
 
-    public void SetEfrText(string title = null, string leftButton = null, string rightButton = null, string descriptiveText = null)
+    public void SetEfrText(string titleText = "", string descriptiveText = "", string leftButton = null, string rightButton = null)
     {
-        if (title != null)
-            efr_display.transform.Find("title text").GetComponent<Text>().text = LanguageSource.GetLanguageString(title);
+        if (titleText != null)
+            efr_display.transform.Find("title text").GetComponent<Text>().text = LanguageSource.GetLanguageString(titleText);
+        if (descriptiveText != null)
+            efr_display.transform.Find("descriptive text").GetComponent<Text>().text = LanguageSource.GetLanguageString(descriptiveText);
         if (leftButton != null)
             efr_display.transform.Find("left button text").GetComponent<Text>().text = LanguageSource.GetLanguageString(leftButton);
         if (rightButton != null)
             efr_display.transform.Find("right button text").GetComponent<Text>().text = LanguageSource.GetLanguageString(rightButton);
-        if (descriptiveText != null)
-            efr_display.transform.Find("descriptive text").GetComponent<Text>().text = LanguageSource.GetLanguageString(descriptiveText);
     }
 
-    public void SetActiveEfrPracticeElements(bool? speakNowText = null, bool? controllerImage = null, bool? descriptiveText = null)
+    public void SetEfrElementsActive(bool speakNowText = false, bool descriptiveText = false, 
+                                             bool controllerLeftButtonImage = false, bool controllerRightButtonImage = false)
     {
-        if (speakNowText.HasValue)
-            efr_display.transform.Find("speak now text").GetComponent<Text>().gameObject.SetActive(speakNowText.Value);
-        if (controllerImage.HasValue) 
-            efr_display.transform.Find("speak now text").GetComponent<Text>().gameObject.SetActive(controllerImage.Value); // JPB: TODO: Fix
-        if (descriptiveText.HasValue)
-            efr_display.transform.Find("descriptive text").GetComponent<Text>().gameObject.SetActive(descriptiveText.Value);
+        efr_display.transform.Find("speak now text").GetComponent<Text>().gameObject.SetActive(speakNowText);
+        efr_display.transform.Find("descriptive text").GetComponent<Text>().gameObject.SetActive(descriptiveText);
+        efr_display.transform.Find("controller left button image")
+                   .GetComponent<Image>().gameObject.SetActive(controllerLeftButtonImage);
+        efr_display.transform.Find("controller right button image")
+                   .GetComponent<Image>().gameObject.SetActive(controllerRightButtonImage);
     }
 
-    public void SetGeneralMessageText(string title = "", string mainText = "", string descriptiveText = "")
+    public void SetGeneralMessageText(string titleText = "", string mainText = "", string descriptiveText = "", string continueText = "continue")
     {
-        general_message_display.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString("continue");
-
-        if (title != null)
-            general_message_display.transform.Find("title text").GetComponent<Text>().text = LanguageSource.GetLanguageString(title);
+        if (titleText != null)
+            general_message_display.transform.Find("title text").GetComponent<Text>().text = LanguageSource.GetLanguageString(titleText);
         if (mainText != null)
             general_message_display.transform.Find("main text").GetComponent<Text>().text = LanguageSource.GetLanguageString(mainText);
         if (descriptiveText != null)
             general_message_display.transform.Find("descriptive text").GetComponent<Text>().text = LanguageSource.GetLanguageString(descriptiveText);
+        if (continueText != null)
+            general_message_display.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString(continueText);
+    }
+
+    public void SetGeneralBigMessageText(string titleText = "", string mainText = "", string continueText = "continue")
+    {
+        if (titleText != null)
+            general_big_message_display.transform.Find("title text").GetComponent<Text>().text = LanguageSource.GetLanguageString(titleText);
+        if (mainText != null)
+            general_big_message_display.transform.Find("main text").GetComponent<Text>().text = LanguageSource.GetLanguageString(mainText);
+        if (continueText != null)
+            general_big_message_display.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString(continueText);
     }
 
     public IEnumerator DoTextBoldTimedOrButton(string buttonName, Text displayText, float waitTime)

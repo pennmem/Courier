@@ -73,7 +73,7 @@ public class StoreComponent : MonoBehaviour
         return deliveryZone.PlayerInDeliveryZone();
     }
 
-    public AudioClip PopSpecificItem(string itemName)
+    public AudioClip PopPracticeItem(string itemName)
     {
         AudioClip item = deliveryItems.UsePracticeItem(storeName, itemName);
         mostRecentlyPoppedItem = item.name;

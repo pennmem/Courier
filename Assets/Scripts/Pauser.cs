@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Luminosity.IO;
 
 public class Pauser : MonoBehaviour
 {
@@ -14,14 +15,14 @@ public class Pauser : MonoBehaviour
 	
 	void Update ()
     {
-        if (allowPausing && Input.GetKeyDown(KeyCode.P) && !paused)
+        if (allowPausing && InputManager.GetKeyDown(KeyCode.P) && !paused)
         {
             pauseScreen.SetActive(true);
             playerMovement.Freeze();
             paused = true;
             scriptedEventReporter.ReportScriptedEvent("pause", new Dictionary<string, object>());
         }
-        else if (allowPausing && Input.GetKeyDown(KeyCode.P) && paused)
+        else if (allowPausing && InputManager.GetKeyDown(KeyCode.P) && paused)
         {
             pauseScreen.SetActive(false);
             playerMovement.Unfreeze();

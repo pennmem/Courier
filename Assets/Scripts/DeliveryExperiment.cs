@@ -1,6 +1,10 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Luminosity.IO;
+using System.Linq;
+
+using static MessageImageDisplayer;
 
 [System.Serializable]
 public struct Environment
@@ -22,6 +26,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private const bool STANDALONE_TESTING = true;
     private const bool EFR_ENABLED = true;
     private const bool NICLS_COURIER = false;
+    private const bool COUNTER_BALANCE_CORRECT_INCORRECT_BUTTONS = false;
 
     private const string DBOY_VERSION = "v4.2.2";
     private const string RECALL_TEXT = "*******";
@@ -33,25 +38,27 @@ public class DeliveryExperiment : CoroutineExperiment
     private const int DOUBLE_TOWN_LEARNING_DAYS = 1;
     private const int TOTAL_TOWN_LEARNING_DAYS = 4;
     private const int POINTING_INDICATOR_DELAY = 15;
+    private const int EFR_KEYPRESS_PRACTICES = 8;
     private const float MIN_FAMILIARIZATION_ISI = 0.4f;
     private const float MAX_FAMILIARIZATION_ISI = 0.6f;
     private const float FAMILIARIZATION_PRESENTATION_LENGTH = 1.5f;
     private const float RECALL_MESSAGE_DISPLAY_LENGTH = 6f;
     private const float RECALL_TEXT_DISPLAY_LENGTH = 1f;
     private const float FREE_RECALL_LENGTH = 90f;
-    private const float PRACTICE_FREE_RECALL_LENGTH = 20f;
+    private const float PRACTICE_FREE_RECALL_LENGTH = 25f;
     private const float STORE_FINAL_RECALL_LENGTH = 90f;
-    private const float FINAL_RECALL_LENGTH = 240f;
+    private const float FINAL_RECALL_LENGTH = 180f;
     private const float TIME_BETWEEN_DIFFERENT_RECALL_PHASES = 2f;
     private const float MIN_CUED_RECALL_TIME_PER_STORE = 2f;
     private const float MAX_CUED_RECALL_TIME_PER_STORE = 10f;
     private const float ARROW_CORRECTION_TIME = 3f;
     private const float PAUSE_BEFORE_RETRIEVAL = 10f;
     private const float DISPLAY_ITEM_PAUSE = 5f;
-    private const float AUDIO_TEXT_DISPLAY = 1.2f;
+    private const float AUDIO_TEXT_DISPLAY = 1.6f;
     private const float WORD_PRESENTATION_DELAY = 1f;
     private const float WORD_PRESENTATION_JITTER = 0.25f;
     private const float BREAK_LENGTH = 120f;
+    private const float EFR_KEYPRESS_PRACTICE_PAUSE = 2f;
 
     public Camera regularCamera;
     public Camera blackScreenCamera;
@@ -75,6 +82,12 @@ public class DeliveryExperiment : CoroutineExperiment
 
     public Environment[] environments;
 
+    System.Random rng = new System.Random();
+
+    private EfrButton efrCorrectButtonSide = EfrButton.RightButton;
+    private string efrLeftLogMsg = "incorrect";
+    private string efrRightLogMsg = "correct";
+
     private List<StoreComponent> this_trial_presented_stores = new List<StoreComponent>();
     private List<string> all_presented_objects = new List<string>();
 
@@ -87,22 +100,23 @@ public class DeliveryExperiment : CoroutineExperiment
         sessionNumber = newSessionNumber;
     }
 
-	void Update()
-	{
-		Cursor.visible = false;
-        Cursor.lockState = CursorLockMode.Locked;
-		// need to do this because macos thinks it knows better than you do
-	}
-
-	void Start()
+    void Update()
     {
-        if(UnityEPL.viewCheck) {
+        Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Locked;
+        // need to do this because macos thinks it knows better than you do
+    }
+
+    void Start()
+    {
+        if (UnityEPL.viewCheck)
+        {
             return;
         }
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
         Application.targetFrameRate = 300;
-        Cursor.SetCursor(new Texture2D(0,0), new Vector2(0,0), CursorMode.ForceSoftware);
+        Cursor.SetCursor(new Texture2D(0, 0), new Vector2(0, 0), CursorMode.ForceSoftware);
         QualitySettings.vSyncCount = 1;
 
         // Start syncpulses
@@ -112,19 +126,24 @@ public class DeliveryExperiment : CoroutineExperiment
             syncs.StartPulse();
         }
 
+        if (COUNTER_BALANCE_CORRECT_INCORRECT_BUTTONS)
+        {
+            // We want randomness for different people, but consistency between sessions
+            System.Random reliableRandom = new System.Random(UnityEPL.GetParticipants()[0].GetHashCode());
+            efrCorrectButtonSide = (EfrButton)reliableRandom.Next(0, 2);
+        }
+
         Dictionary<string, object> sceneData = new Dictionary<string, object>();
         sceneData.Add("sceneName", "MainGame");
         scriptedEventReporter.ReportScriptedEvent("loadScene", sceneData);
 
-		StartCoroutine(ExperimentCoroutine());
-	}
+        StartCoroutine(ExperimentCoroutine());
+    }
 
-	private IEnumerator ExperimentCoroutine()
+    private IEnumerator ExperimentCoroutine()
     {
         if (sessionNumber == -1)
-        {
             throw new UnityException("Please call ConfigureExperiment before beginning the experiment.");
-        }
 
         //write versions to logfile
         LogVersions();
@@ -187,30 +206,26 @@ public class DeliveryExperiment : CoroutineExperiment
         BlackScreen();
         yield return messageImageDisplayer.DisplayLanguageMessage(messageImageDisplayer.delivery_restart_messages);
 
-        Debug.Log("Practice trials");
-        yield return new WaitForSeconds(0.1f);
-        textDisplayer.DisplayText("proceed to first practice day prompt", LanguageSource.GetLanguageString("first practice day"));
-        while (!Input.GetButtonDown("q (secret)") && !Input.GetButtonDown("x (continue)"))
-            yield return null;
-        textDisplayer.ClearText();
+        if (sessionNumber == 0)
+        {
+            Debug.Log("Practice trials");
+            messageImageDisplayer.SetGeneralMessageText(mainText: "practice invitation");
+            yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
+            yield return DoTrials(environment, 2, true);
+        }
 
-        yield return DoTrials(environment, 2, true);
-
-        yield return new WaitForSeconds(0.1f);
-        textDisplayer.DisplayText("proceed to first day prompt", LanguageSource.GetLanguageString("first day"));
-        while (!Input.GetButtonDown("q (secret)") && !Input.GetButtonDown("x (continue)"))
-            yield return null;
-        textDisplayer.ClearText();
-            
         Debug.Log("Real trials");
-        yield return DoTrials(environment, trialsPerSession);
+        messageImageDisplayer.SetGeneralMessageText(mainText: "first day main", descriptiveText: "first day description");
+        yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
+        yield return DoTrials(environment, TRIALS_PER_SESSION);
 
+        Debug.Log("Final Recalls");
         BlackScreen();
         yield return messageImageDisplayer.DisplayLanguageMessage(messageImageDisplayer.final_recall_messages);
         yield return DoFinalRecall(environment);
 
         //int delivered_objects = trial_number == 12 ? (trial_number) * 12 : (trial_number + 1) * 12;
-        textDisplayer.DisplayText("end text", LanguageSource.GetLanguageString("end message") + starSystem.CumulativeRating().ToString("+#.##;-#.##") );
+        textDisplayer.DisplayText("end text", LanguageSource.GetLanguageString("end message") + starSystem.CumulativeRating().ToString("+#.##;-#.##"));
     }
 
     private void LogVersions()
@@ -222,7 +237,6 @@ public class DeliveryExperiment : CoroutineExperiment
         scriptedEventReporter.ReportScriptedEvent("versions", versionsData);
     }
 
-    
     private void BlackScreen()
     {
         pauser.ForbidPausing();
@@ -233,7 +247,7 @@ public class DeliveryExperiment : CoroutineExperiment
         playerMovement.Freeze();
     }
 
-    private IEnumerator Fixation(float time, bool practice = false)
+    private IEnumerator DoFixation(float time, bool practice = false)
     {
         pauser.ForbidPausing();
         memoryWordCanvas.SetActive(true);
@@ -241,12 +255,16 @@ public class DeliveryExperiment : CoroutineExperiment
         blackScreenCamera.enabled = true;
         starSystem.gameObject.SetActive(false);
         playerMovement.Freeze();
+
         if (practice)
-            yield return messageImageDisplayer.DisplayLanguageMessageFixedDuration(
-                            messageImageDisplayer.practice_fixation_message, time);
+            messageImageDisplayer.SetGeneralBigMessageText(titleText: "fixation practice message",
+                                                           mainText: "fixation item", 
+                                                           continueText: "");
         else
-            yield return messageImageDisplayer.DisplayLanguageMessageFixedDuration(
-                            messageImageDisplayer.fixation_message, time);
+            messageImageDisplayer.SetGeneralBigMessageText(mainText: "fixation item", 
+                                                           continueText: "");
+        
+        yield return messageImageDisplayer.DisplayMessageTimed(messageImageDisplayer.general_big_message_display, time);
     }
 
     private void WorldScreen()
@@ -275,7 +293,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private IEnumerator DoRecall(int trial_number, bool practice = false)
     {
         SetRamulatorState("RETRIEVAL", true, new Dictionary<string, object>());
-        
+
         yield return DoFreeRecall(trial_number, practice);
 
         yield return DoCuedRecall(trial_number, practice);
@@ -287,7 +305,6 @@ public class DeliveryExperiment : CoroutineExperiment
     private IEnumerator DoFreeRecall(int trial_number, bool practice = false)
     {
         BlackScreen();
-        messageImageDisplayer.SetSpeakNowText("");
         textDisplayer.ClearText();
 
         highBeep.Play();
@@ -296,43 +313,28 @@ public class DeliveryExperiment : CoroutineExperiment
         yield return SkippableWait(RECALL_TEXT_DISPLAY_LENGTH);
         textDisplayer.ClearText();
 
-        
+
         string output_directory = UnityEPL.GetDataPath();
-        string wavFilePath = practice 
-                    ? System.IO.Path.Combine(output_directory, "practice" + trial_number.ToString()) + ".wav" 
+        string wavFilePath = practice
+                    ? System.IO.Path.Combine(output_directory, "practice" + trial_number.ToString()) + ".wav"
                     : System.IO.Path.Combine(output_directory, trial_number.ToString()) + ".wav";
         Dictionary<string, object> recordingData = new Dictionary<string, object>();
         recordingData.Add("trial number", trial_number);
         scriptedEventReporter.ReportScriptedEvent("object recall recording start", recordingData);
         soundRecorder.StartRecording(wavFilePath);
-        if (practice && trial_number == 0 || !EFR_ENABLED)
-        {
-            messageImageDisplayer.SetSpeakNowText("(please speak now)");
-            yield return SkippableWait(PRACTICE_FREE_RECALL_LENGTH);
-        }
+
+        if ((practice && trial_number == 0) || !EFR_ENABLED)
+            yield return DoFreeRecallDisplay(PRACTICE_FREE_RECALL_LENGTH);
         else if (practice)
-        {
-            yield return messageImageDisplayer.DisplayLanguageMessageFixedDurationKeyPress(
-                messageImageDisplayer.free_recall_keypress_message,
-                messageImageDisplayer.free_recall_keypress_message_bold_left,
-                messageImageDisplayer.free_recall_keypress_message_bold_right,
-                PRACTICE_FREE_RECALL_LENGTH);
-        }
+            yield return DoEfrDisplay("", PRACTICE_FREE_RECALL_LENGTH, practice);
         else
-        {
-            yield return messageImageDisplayer.DisplayLanguageMessageFixedDurationKeyPress(
-                messageImageDisplayer.free_recall_keypress_message,
-                messageImageDisplayer.free_recall_keypress_message_bold_left,
-                messageImageDisplayer.free_recall_keypress_message_bold_right,
-                FREE_RECALL_LENGTH);
-        }
-            
+            yield return DoEfrDisplay("", FREE_RECALL_LENGTH);
+
         scriptedEventReporter.ReportScriptedEvent("object recall recording stop", recordingData);
         soundRecorder.StopRecording();
         textDisplayer.ClearText();
         lowBeep.Play();
         scriptedEventReporter.ReportScriptedEvent("Sound played", new Dictionary<string, object>() { { "sound name", "low beep" }, { "sound duration", lowBeep.clip.length.ToString() } });
-        messageImageDisplayer.SetSpeakNowText("");
         BlackScreen();
     }
 
@@ -340,7 +342,7 @@ public class DeliveryExperiment : CoroutineExperiment
     {
 
         BlackScreen();
-        this_trial_presented_stores.Shuffle(new System.Random());
+        this_trial_presented_stores.Shuffle(rng);
         Debug.Log(this_trial_presented_stores);
 
         textDisplayer.DisplayText("display day cued recall prompt", LanguageSource.GetLanguageString("store cue recall"));
@@ -367,7 +369,7 @@ public class DeliveryExperiment : CoroutineExperiment
             messageImageDisplayer.SetCuedRecallMessage(true);
 
             string output_file_name = practice
-                        ? trial_number.ToString() + "-" + cueStore.GetStoreName() 
+                        ? trial_number.ToString() + "-" + cueStore.GetStoreName()
                         : "practice" + trial_number.ToString() + "-" + cueStore.GetStoreName();
             string output_directory = UnityEPL.GetDataPath();
             string wavFilePath = System.IO.Path.Combine(output_directory, output_file_name) + ".wav";
@@ -383,7 +385,7 @@ public class DeliveryExperiment : CoroutineExperiment
             soundRecorder.StartRecording(wavFilePath);
 
             float startTime = Time.time;
-            while ((!Input.GetButtonDown("x (continue)") || Time.time < startTime + MIN_CUED_RECALL_TIME_PER_STORE) 
+            while ((!InputManager.GetButtonDown("Continue") || Time.time < startTime + MIN_CUED_RECALL_TIME_PER_STORE)
                    && Time.time < startTime + MAX_CUED_RECALL_TIME_PER_STORE)
                 yield return null;
 
@@ -403,7 +405,6 @@ public class DeliveryExperiment : CoroutineExperiment
 
     private IEnumerator DoFinalRecall(Environment environment)
     {
-        messageImageDisplayer.SetSpeakNowText("");
         SetRamulatorState("RETRIEVAL", true, new Dictionary<string, object>());
 
         highBeep.Play();
@@ -411,7 +412,7 @@ public class DeliveryExperiment : CoroutineExperiment
         textDisplayer.DisplayText("display recall text", RECALL_TEXT);
         yield return SkippableWait(RECALL_TEXT_DISPLAY_LENGTH);
         textDisplayer.ClearText();
-      
+
         string output_directory = UnityEPL.GetDataPath();
         string output_file_name = "store recall";
         string wavFilePath = System.IO.Path.Combine(output_directory, output_file_name) + ".wav";
@@ -424,9 +425,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
         textDisplayer.ClearText();
         ClearTitle();
-        BlackScreen();
-        yield return messageImageDisplayer.DisplayLanguageMessageFixedDurationKeyPress(messageImageDisplayer.store_recall_message, messageImageDisplayer.store_recall_message_bold_left, messageImageDisplayer.store_recall_message_bold_right, STORE_FINAL_RECALL_LENGTH);
-        //Old version: yield return SkippableWait(STORE_FINAL_RECALL_LENGTH);
+        yield return DoEfrDisplay("all objects recall", STORE_FINAL_RECALL_LENGTH);
 
         scriptedEventReporter.ReportScriptedEvent("final store recall recording stop", new Dictionary<string, object>());
         soundRecorder.StopRecording();
@@ -453,9 +452,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
         textDisplayer.ClearText();
         ClearTitle();
-        BlackScreen();
-        yield return messageImageDisplayer.DisplayLanguageMessageFixedDurationKeyPress(messageImageDisplayer.object_recall_message, messageImageDisplayer.object_recall_message_bold_left, messageImageDisplayer.object_recall_message_bold_right, FINAL_RECALL_LENGTH);
-        //old version; yield return SkippableWait(FINAL_RECALL_LENGTH);
+        yield return DoEfrDisplay("all stores recall", FINAL_RECALL_LENGTH);
         scriptedEventReporter.ReportScriptedEvent("final object recall recording stop", new Dictionary<string, object>());
         soundRecorder.StopRecording();
 
@@ -464,7 +461,6 @@ public class DeliveryExperiment : CoroutineExperiment
         scriptedEventReporter.ReportScriptedEvent("Sound played", new Dictionary<string, object>() { { "sound name", "low beep" }, { "sound duration", lowBeep.clip.length.ToString() } });
 
         SetRamulatorState("RETRIEVAL", false, new Dictionary<string, object>());
-        messageImageDisplayer.SetSpeakNowText("");
     }
 
     private IEnumerator DoFamiliarization()
@@ -528,7 +524,7 @@ public class DeliveryExperiment : CoroutineExperiment
         List<StoreComponent> unvisitedStores = new List<StoreComponent>(environment.stores);
 
         int deliveries = practice ? PRACTICE_DELIVERIES_PER_TRIAL : DELIVERIES_PER_TRIAL;
-        int craft_shop_delivery_num = Random.Range(0, deliveries - 1);
+        int craft_shop_delivery_num = rng.Next(deliveries - 1);
 
         for (int i = 0; i < deliveries; i++)
         {
@@ -537,28 +533,31 @@ public class DeliveryExperiment : CoroutineExperiment
             int tries = 0;
 
             int craft_shop_index = unvisitedStores.FindIndex(store => store.GetStoreName() == "craft shop");
-            if (practice && i == craft_shop_delivery_num)
+            if (practice && trialNumber == 0)
             {
-                random_store_index = craft_shop_index;
-                nextStore = unvisitedStores[random_store_index];
-            } 
-            else if (practice)
-            {
-                do
+                if (i == craft_shop_delivery_num)
                 {
-                    tries++;
-                    random_store_index = Random.Range(0, unvisitedStores.Count);
+                    random_store_index = craft_shop_index;
                     nextStore = unvisitedStores[random_store_index];
                 }
-                while (nextStore.IsVisible() && tries < environment.stores.Length 
+                else
+                {
+                    do
+                    {
+                        tries++;
+                        random_store_index = rng.Next(unvisitedStores.Count);
+                        nextStore = unvisitedStores[random_store_index];
+                    }
+                    while (nextStore.IsVisible() && tries < environment.stores.Length
                        && random_store_index == craft_shop_index);
+                }
             }
             else
             {
                 do
                 {
                     tries++;
-                    random_store_index = Random.Range(0, unvisitedStores.Count);
+                    random_store_index = rng.Next(unvisitedStores.Count);
                     nextStore = unvisitedStores[random_store_index];
                 }
                 while (nextStore.IsVisible() && tries < environment.stores.Length);
@@ -587,8 +586,8 @@ public class DeliveryExperiment : CoroutineExperiment
             if (i != deliveries - 1)
             {
                 playerMovement.Freeze();
-                AudioClip deliveredItem = (practice && i == craft_shop_delivery_num)
-                    ? nextStore.PopSpecificItem(LanguageSource.GetLanguageString("confetti"))
+                AudioClip deliveredItem = (practice && trialNumber == 0 && i == craft_shop_delivery_num)
+                    ? nextStore.PopPracticeItem(LanguageSource.GetLanguageString("confetti"))
                     : nextStore.PopItem();
                 
                 float wordDelay = Random.Range(WORD_PRESENTATION_DELAY - WORD_PRESENTATION_JITTER, 
@@ -620,11 +619,10 @@ public class DeliveryExperiment : CoroutineExperiment
                 this_trial_presented_stores.Add(nextStore);
                 all_presented_objects.Add(deliveredItemName);
 
-                SetRamulatorState("WORD", true, new Dictionary<string, object>() { { "word", deliveredItemName} });
+                SetRamulatorState("WORD", true, new Dictionary<string, object>() { { "word", deliveredItemName } });
                 //add visuals with sound
                 messageImageDisplayer.deliver_item_visual_dislay.SetActive(true);
                 messageImageDisplayer.SetDeliverItemText(deliveredItemName);
-                //yield return SkippableWait(deliveredItem.length);
                 yield return SkippableWait(AUDIO_TEXT_DISPLAY);
                 messageImageDisplayer.deliver_item_visual_dislay.SetActive(false);
 
@@ -633,7 +631,6 @@ public class DeliveryExperiment : CoroutineExperiment
                 scriptedEventReporter.ReportScriptedEvent("audio presentation finished",
                                                           new Dictionary<string, object>());
                 playerMovement.Unfreeze();
-                //niclsInterface.SendEncodingToNicls(0);
             }
         }
 
@@ -651,6 +648,8 @@ public class DeliveryExperiment : CoroutineExperiment
                 yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
                              LanguageSource.GetLanguageString("next practice day video"),
                              VideoSelector.VideoType.PostpracticeIntro);
+                yield return DoEfrKeypressCheck();
+                yield return DoEfrKeypressPractice();
             }
 
             // Required break
@@ -678,7 +677,7 @@ public class DeliveryExperiment : CoroutineExperiment
             yield return DoDelivery(environment, trialNumber, practice);
             BlackScreen();
             if (!practice || (practice && trialNumber >= 1))
-                yield return Fixation(PAUSE_BEFORE_RETRIEVAL, practice);
+                yield return DoFixation(PAUSE_BEFORE_RETRIEVAL, practice);
             yield return DoRecall(trialNumber, practice);
 
             SetRamulatorState("WAITING", true, new Dictionary<string, object>());
@@ -687,16 +686,16 @@ public class DeliveryExperiment : CoroutineExperiment
             {
                 yield return new WaitForSeconds(0.1f);
                 if (practice && trialNumber < numTrials - 1)
-                    textDisplayer.DisplayText("proceed to next practice day prompt", 
+                    textDisplayer.DisplayText("proceed to next practice day prompt",
                                               LanguageSource.GetLanguageString("next practice day"));
-                else
-                    textDisplayer.DisplayText("proceed to next day prompt", 
+                else if (trialNumber < numTrials - 1)
+                    textDisplayer.DisplayText("proceed to next day prompt",
                                               LanguageSource.GetLanguageString("next day"));
-                while (!Input.GetButtonDown("q (secret)") && !Input.GetButtonDown("x (continue)"))
+                while (!InputManager.GetButtonDown("Secret") && !InputManager.GetButtonDown("Continue"))
                     yield return null;
                 textDisplayer.ClearText();
 
-                if (Input.GetButton("q (secret)"))
+                if (InputManager.GetButton("Secret"))
                     break;
             }
             else
@@ -718,19 +717,19 @@ public class DeliveryExperiment : CoroutineExperiment
     {
         pointer.SetActive(true);
         ColorPointer(new Color(0.5f, 0.5f, 1f));
-        pointer.transform.eulerAngles = new Vector3(0, Random.Range(0, 360), 0);
-        scriptedEventReporter.ReportScriptedEvent("pointing begins", new Dictionary<string, object>() { {"start direction", pointer.transform.eulerAngles.y}, {"store", nextStore.GetStoreName() } });
+        pointer.transform.eulerAngles = new Vector3(0, rng.Next(360), 0);
+        scriptedEventReporter.ReportScriptedEvent("pointing begins", new Dictionary<string, object>() { { "start direction", pointer.transform.eulerAngles.y }, { "store", nextStore.GetStoreName() } });
         pointerMessage.SetActive(true);
         pointerText.text = LanguageSource.GetLanguageString("next package prompt") + "<b>" +
                            LanguageSource.GetLanguageString(nextStore.GetStoreName()) + "</b>" + ". " +
                            LanguageSource.GetLanguageString("please point") +
-                           LanguageSource.GetLanguageString(nextStore.GetStoreName()) + "." + "\n\n" + 
+                           LanguageSource.GetLanguageString(nextStore.GetStoreName()) + "." + "\n\n" +
                            LanguageSource.GetLanguageString("joystick");
         yield return null;
-        while (!Input.GetButtonDown("x (continue)"))
+        while (!InputManager.GetButtonDown("Continue"))
         {
             if (!playerMovement.IsDoubleFrozen())
-                pointer.transform.eulerAngles = pointer.transform.eulerAngles + new Vector3(0, Input.GetAxis("Horizontal") * Time.deltaTime * pointerRotationSpeed, 0);
+                pointer.transform.eulerAngles = pointer.transform.eulerAngles + new Vector3(0, InputManager.GetAxis("Horizontal") * Time.deltaTime * pointerRotationSpeed, 0);
             yield return null;
         }
 
@@ -758,7 +757,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
         yield return null;
         yield return PointArrowToStore(nextStore.gameObject);
-        while (!Input.GetButtonDown("x (continue)"))
+        while (!InputManager.GetButtonDown("Continue"))
         {
             yield return null;
         }
@@ -829,10 +828,128 @@ public class DeliveryExperiment : CoroutineExperiment
 
     private Environment EnableEnvironment()
     {
-        System.Random reliable_random = new System.Random(UnityEPL.GetParticipants()[0].GetHashCode());
-        Environment environment = environments[reliable_random.Next(environments.Length)];
+        // We want randomness for different people, but consistency between sessions
+        System.Random reliableRandom = new System.Random(UnityEPL.GetParticipants()[0].GetHashCode());
+        Environment environment = environments[reliableRandom.Next(environments.Length)];
         environment.parent.SetActive(true);
         return environment;
+    }
+
+    private IEnumerator DoFreeRecallDisplay(float waitTime)
+    {
+        BlackScreen();
+        yield return messageImageDisplayer.DisplayMessageTimed(
+            messageImageDisplayer.free_recall_display,
+            waitTime);
+    }
+
+    private IEnumerator DoEfrDisplay(string title, float waitTime, bool practice = false)
+    {
+        BlackScreen();
+        SetEfrDisplay();
+
+        messageImageDisplayer.SetEfrText(titleText: title);
+        messageImageDisplayer.SetEfrElementsActive(speakNowText: true);
+        yield return messageImageDisplayer.DisplayMessageTimedLRKeypressBold(
+                messageImageDisplayer.efr_display, waitTime,
+                efrLeftLogMsg, efrRightLogMsg, practice);
+    }
+
+    private void SetEfrDisplay(EfrButton? keypressPractice = null)
+    {
+        if (efrCorrectButtonSide == EfrButton.RightButton)
+        {
+            efrLeftLogMsg = "incorrect";
+            efrRightLogMsg = "correct";
+            if (keypressPractice == EfrButton.LeftButton)
+                messageImageDisplayer.SetEfrText(leftButton: "efr keypress practice left button incorrect message",
+                                                 rightButton: "efr right button correct message");
+            else if (keypressPractice == EfrButton.RightButton)
+                messageImageDisplayer.SetEfrText(leftButton: "efr left button incorrect message",
+                                                 rightButton: "efr keypress practice right button correct message");
+            else
+                messageImageDisplayer.SetEfrText(leftButton: "efr left button incorrect message",
+                                                 rightButton: "efr right button correct message");
+        }
+        else if (efrCorrectButtonSide == EfrButton.LeftButton)
+        {
+            efrLeftLogMsg = "correct";
+            efrRightLogMsg = "incorrect";
+            if (keypressPractice == EfrButton.LeftButton)
+                messageImageDisplayer.SetEfrText(leftButton: "efr keypress practice left button correct message",
+                                                 rightButton: "efr right button incorrect message");
+            if (keypressPractice == EfrButton.RightButton)
+                messageImageDisplayer.SetEfrText(leftButton: "efr left button correct message",
+                                                 rightButton: "efr keypress practice right button incorrect message");
+            else
+                messageImageDisplayer.SetEfrText(leftButton: "efr left button correct message",
+                                                 rightButton: "efr right button incorrect message");
+        }
+    }
+
+    private IEnumerator DoEfrKeypressCheck()
+    {
+        BlackScreen();
+        SetEfrDisplay();
+
+        // Display intro message
+        messageImageDisplayer.SetGeneralMessageText(mainText: "efr check main");
+        yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
+
+        // Ask for right button press
+        messageImageDisplayer.SetEfrText(descriptiveText: "efr check description right button");
+        messageImageDisplayer.SetEfrElementsActive(descriptiveText: true, controllerRightButtonImage: true);
+        yield return messageImageDisplayer.DisplayMessageKeypressBold(
+           messageImageDisplayer.efr_display, EfrButton.RightButton);
+        yield return messageImageDisplayer.DisplayMessageTimedLRKeypressBold(
+            messageImageDisplayer.efr_display, 1f, efrLeftLogMsg, efrRightLogMsg);
+
+        // Ask for left button press
+        messageImageDisplayer.SetEfrText(descriptiveText: "efr check description left button");
+        messageImageDisplayer.SetEfrElementsActive(descriptiveText: true, controllerLeftButtonImage: true);
+        yield return messageImageDisplayer.DisplayMessageKeypressBold(
+            messageImageDisplayer.efr_display, EfrButton.LeftButton);
+        yield return messageImageDisplayer.DisplayMessageTimedLRKeypressBold(
+            messageImageDisplayer.efr_display, 1f, efrLeftLogMsg, efrRightLogMsg);
+    }
+
+    private IEnumerator DoEfrKeypressPractice()
+    {
+        BlackScreen();
+
+        // Display intro message
+        messageImageDisplayer.SetGeneralBigMessageText(titleText: "efr keypress practice main", 
+                                                       mainText: "efr keypress practice description");
+        yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
+
+        // Setup EFR display
+        messageImageDisplayer.SetEfrElementsActive();
+
+        // Show equal number of left and right keypress practices in random order
+        List<EfrButton> lrButtonIndicator = Enumerable.Repeat(EfrButton.LeftButton, EFR_KEYPRESS_PRACTICES)
+                                                      .Concat(Enumerable.Repeat(EfrButton.RightButton, EFR_KEYPRESS_PRACTICES))
+                                                      .ToList();
+        lrButtonIndicator.Shuffle(rng);
+
+        foreach (var buttonIndicator in lrButtonIndicator)
+        {
+            SetEfrDisplay();
+            yield return messageImageDisplayer.DisplayMessageTimed(
+                messageImageDisplayer.efr_display, EFR_KEYPRESS_PRACTICE_PAUSE);
+
+            if (buttonIndicator == EfrButton.LeftButton)
+            {
+                SetEfrDisplay(EfrButton.LeftButton);
+                yield return messageImageDisplayer.DisplayMessageKeypressBold(
+                    messageImageDisplayer.efr_display, EfrButton.LeftButton);
+            }
+            else if (buttonIndicator == EfrButton.RightButton)
+            {
+                SetEfrDisplay(EfrButton.RightButton);
+                yield return messageImageDisplayer.DisplayMessageKeypressBold(
+                    messageImageDisplayer.efr_display, EfrButton.RightButton);
+            }
+        }
     }
 
     //WAITING, INSTRUCT, COUNTDOWN, ENCODING, WORD, DISTRACT, RETRIEVAL
@@ -849,7 +966,7 @@ public class DeliveryExperiment : CoroutineExperiment
         float startTime = Time.time;
         while (Time.time < startTime + waitTime)
         {
-            if (Input.GetButtonDown("q (secret)"))
+            if (InputManager.GetButtonDown("Secret"))
                 break;
             yield return null;
         }
@@ -879,18 +996,18 @@ public class DeliveryExperiment : CoroutineExperiment
 public static class IListExtensions
 {
     /// <summary>
+    /// Knuth (Fisher-Yates) Shuffle
     /// Shuffles the element order of the specified list.
     /// </summary>
-    public static void Shuffle<T>(this IList<T> ts, System.Random random)
+    public static void Shuffle<T>(this IList<T> list, System.Random rng)
     {
-        var count = ts.Count;
-        var last = count - 1;
-        for (var i = 0; i < last; ++i)
+        var count = list.Count;
+        for (int i = 0; i < count; ++i)
         {
-            var r = random.Next(i, count);
-            var tmp = ts[i];
-            ts[i] = ts[r];
-            ts[r] = tmp;
+            int r = rng.Next(i, count);
+            T tmp = list[i];
+            list[i] = list[r];
+            list[r] = tmp;
         }
     }
 }

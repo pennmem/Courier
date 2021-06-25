@@ -30,20 +30,17 @@ public static class LanguageSource
         { "all stores recall", new string[] {"Please recall all the stores that you delivered objects to.", "Bitte erinnern Sie alle Geschäfte, zu denen Sie Pakete geliefert haben."} },
         { "end message", new string[] {"Thank you for being a great delivery person! Your cumulative score is: ", "Vielen Dank für Ihre Teilnahme! Ihre abschließende Wertung ist: "} },
 
-        { "first video", new string[] {"Press (Y) to continue, \n Press (N) to replay instructional video.",
-                                       "Drücken Sie (Y) um fortzufahren, \n Drücken Sie (N) um das Video noch einmal zu sehen."} },
-        //{ "first practice day", new string[] {"Press (X) to proceed to the first practice delivery day.", 
-        //                                      "Drücken Sie (X) um die erste trainier Auslieferungsrunde zu starten."} },
-        { "next practice day video", new string[] {"Press (Y) to continue to the next practice delivery day, \n Press (N) to replay instructional video.", 
-                                                   "Drücken Sie (Y) um die nächste trainier Auslieferungsrunde zu starten, \n Drücken Sie (N) um das Video noch einmal zu sehen."} },
+        { "standard intro video", new string[] {"Press (Y) to continue, \n Press (N) to replay instructional video.",
+                                                "Drücken Sie (Y) um fortzufahren, \n Drücken Sie (N) um das Video noch einmal zu sehen."} },
+        { "efr intro video", new string[] {"Press (Y) to continue to the next practice delivery day, \n Press (N) to replay instructional video.", 
+                                           "Drücken Sie (Y) um die nächste trainier Auslieferungsrunde zu starten, \n Drücken Sie (N) um das Video noch einmal zu sehen."} },
+
+        { "next day", new string[] {"Press (X) to proceed to the next delivery day.", "Drücken Sie (X) um die nächste Auslieferungsrunde zu starten."} },
         { "next practice day", new string[] {"Press (X) to proceed to the next practice delivery day.",
                                              "Drücken Sie (X) um die nächste trainier Auslieferungsrunde zu starten."} },
-        
-        //{ "first day", new string[] {"Press (X) to proceed to the first delivery day.", "Drücken Sie (X) um die erste Auslieferungsrunde zu starten."} },
-        { "next day", new string[] {"Press (X) to proceed to the next delivery day.", "Drücken Sie (X) um die nächste Auslieferungsrunde zu starten."} },
 
         { "first day main", new string [] {"Let’s start the first delivery day!", GERMAN_TRANSLATION_NEEDED}},
-        { "first day description", new string [] {"Don’t forget to continue pressing the left/right buttons when recalling items at the end of each delivery day.",
+        { "efr first day description", new string [] {"Don’t forget to continue pressing the left/right buttons when recalling items at the end of each delivery day.",
                                                   GERMAN_TRANSLATION_NEEDED}},
 
         // JPB: TODO: NEEDS GERMAN
@@ -66,6 +63,7 @@ public static class LanguageSource
                                                                                  GERMAN_TRANSLATION_NEEDED}},
 
         { "practice invitation", new string [] {"Let's practice!", GERMAN_TRANSLATION_NEEDED}},
+
         { "efr check main", new string [] {"Let's make sure your keys are working.", GERMAN_TRANSLATION_NEEDED}},
         { "efr check description left button", new string [] {"Please press the <i><b>left button</b></i>, and make sure the text on the left is bolded:",
                                                               GERMAN_TRANSLATION_NEEDED}},

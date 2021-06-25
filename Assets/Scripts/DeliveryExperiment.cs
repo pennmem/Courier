@@ -23,7 +23,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private static bool useNicls;
 
     // JPB: TODO: Make this a configuration variable
-    private const bool STANDALONE_TESTING = false;
+    private const bool STANDALONE_TESTING = true;
     private const bool EFR_ENABLED = true;
     private const bool NICLS_COURIER = true;
     private const bool COUNTER_BALANCE_CORRECT_INCORRECT_BUTTONS = false;
@@ -159,15 +159,15 @@ public class DeliveryExperiment : CoroutineExperiment
 
         BlackScreen();
         yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
-                             LanguageSource.GetLanguageString("first video"),
+                             LanguageSource.GetLanguageString("standard intro video"),
                              VideoSelector.VideoType.MainIntro);
         yield return DoSubjectSessionQuitPrompt(sessionNumber,
                                                 LanguageSource.GetLanguageString("running participant"));
         yield return DoMicrophoneTest(LanguageSource.GetLanguageString("microphone test"),
-                                     LanguageSource.GetLanguageString("after the beep"),
-                                     LanguageSource.GetLanguageString("recording"),
-                                     LanguageSource.GetLanguageString("playing"),
-                                     LanguageSource.GetLanguageString("recording confirmation"));
+                                      LanguageSource.GetLanguageString("after the beep"),
+                                      LanguageSource.GetLanguageString("recording"),
+                                      LanguageSource.GetLanguageString("playing"),
+                                      LanguageSource.GetLanguageString("recording confirmation"));
         yield return DoFamiliarization();
 
         Environment environment = EnableEnvironment();
@@ -218,7 +218,11 @@ public class DeliveryExperiment : CoroutineExperiment
         }
 
         Debug.Log("Real trials");
-        messageImageDisplayer.SetGeneralMessageText(mainText: "first day main", descriptiveText: "first day description");
+        if (EFR_ENABLED)
+            messageImageDisplayer.SetGeneralMessageText(mainText: "first day main", descriptiveText: "efr first day description");
+        else
+            messageImageDisplayer.SetGeneralMessageText(mainText: "first day main");
+
         yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
         yield return DoTrials(environment, trialsPerSession);
 
@@ -646,11 +650,11 @@ public class DeliveryExperiment : CoroutineExperiment
     {
         for (int trialNumber = 0; trialNumber < numTrials; trialNumber++)
         {
-            if (practice && trialNumber == PRACTICE_VIDEO_TRIAL_NUM)
+            if (EFR_ENABLED && practice && trialNumber == PRACTICE_VIDEO_TRIAL_NUM)
             {
                 yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
-                             LanguageSource.GetLanguageString("next practice day video"),
-                             VideoSelector.VideoType.PostpracticeIntro);
+                             LanguageSource.GetLanguageString("efr intro video"),
+                             VideoSelector.VideoType.EfrIntro);
                 yield return DoEfrKeypressCheck();
                 yield return DoEfrKeypressPractice();
             }

@@ -22,7 +22,7 @@ public class VideoSelector : MonoBehaviour
     public enum VideoType
     {
         MainIntro,
-        PostpracticeIntro
+        EfrIntro
     }
 
     public void SetIntroductionVideo(VideoType videoType)
@@ -35,7 +35,7 @@ public class VideoSelector : MonoBehaviour
                 else
                     videoPlayer.clip = englishIntro;
                 break;
-            case VideoType.PostpracticeIntro:
+            case VideoType.EfrIntro:
                 if (LanguageSource.current_language == LanguageSource.LANGUAGE.GERMAN)
                     videoPlayer.clip = germanEfrIntro;
                 else

@@ -51,16 +51,18 @@ public abstract class CoroutineExperiment : MonoBehaviour
             textDisplayer.ChangeColor(Color.red);
             yield return new WaitForSeconds(lowBeep.clip.length);
             wavFilePath = System.IO.Path.Combine(UnityEPL.GetDataPath(), "microphone_test_" + DataReporter.RealWorldTime().ToString("yyyy-MM-dd_HH_mm_ss") + ".wav");
-            soundRecorder.StartRecording(wavFilePath);
-            yield return new WaitForSeconds(MICROPHONE_TEST_LENGTH);
 
+            soundRecorder.StartRecording(wavFilePath);
+            float startTime = Time.time;
+            while ((Time.time < startTime + MICROPHONE_TEST_LENGTH) && !InputManager.GetButtonDown("Secret"))
+                yield return null;
             audioPlayback.clip = soundRecorder.StopRecording();
 
             textDisplayer.DisplayText("microphone test playing", playing);
             textDisplayer.ChangeColor(Color.green);
 
             audioPlayback.Play();
-            yield return new WaitForSeconds(MICROPHONE_TEST_LENGTH);
+            yield return new WaitForSeconds(audioPlayback.clip.length);
             textDisplayer.ClearText();
             textDisplayer.OriginalColor();
 

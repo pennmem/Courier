@@ -277,12 +277,8 @@ public class MessageImageDisplayer : MonoBehaviour
 
         // Wait for timeout and button release
         float startTime = Time.time;
-        float currTime = startTime;
-        while ((currTime < startTime + waitTime) || InputManager.GetButton(buttonName))
-        {
-            currTime = Time.time;
+        while ((Time.time < startTime + waitTime) || InputManager.GetButton(buttonName))
             yield return null;
-        }
 
         // Unbold and decrease font
         displayText.GetComponentInParent<RectTransform>().anchorMin = anchorMin;

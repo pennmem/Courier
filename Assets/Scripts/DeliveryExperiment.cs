@@ -34,7 +34,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private const int PRACTICE_DELIVERIES_PER_TRIAL = 4;
     private const int TRIALS_PER_SESSION = 5;
     private const int TRIALS_PER_SESSION_SINGLE_TOWN_LEARNING = 5;
-    private const int TRIALS_PER_SESSION_DOUNLE_TOWN_LEARNING = 5;
+    private const int TRIALS_PER_SESSION_DOUBLE_TOWN_LEARNING = 5;
     private const int PRACTICE_VIDEO_TRIAL_NUM = 1;
     private const int NUM_READ_ONLY_TRIALS = 2;
     private const int SINGLE_TOWN_LEARNING_DAYS = 3;
@@ -187,22 +187,22 @@ public class DeliveryExperiment : CoroutineExperiment
             Debug.Log("Town Learning Phase");
             niclsInterface.SendReadOnlyStateToNicls(1);
 
-            // Town learning days
-            // JPB: TODO: Refactor into function?
-            if (sessionNumber < DOUBLE_TOWN_LEARNING_DAYS)
-            {
-                trialsPerSession = TRIALS_PER_SESSION_DOUNLE_TOWN_LEARNING;
-                yield return DisplayMessageAndWait("Spatial Learning Phase", "Spatial Learning Phase: You will locate all the stores one by one");
-                WorldScreen();
-                yield return DoTownLearning(environment);
-                yield return DoTownLearning(environment);
-            }
-            else if (sessionNumber < SINGLE_TOWN_LEARNING_DAYS + DOUBLE_TOWN_LEARNING_DAYS)
+            if (sessionNumber < SINGLE_TOWN_LEARNING_DAYS + DOUBLE_TOWN_LEARNING_DAYS)
             {
                 trialsPerSession = TRIALS_PER_SESSION_SINGLE_TOWN_LEARNING;
-                yield return DisplayMessageAndWait("Spatial Learning Phase", "Spatial Learning Phase: You will locate all the stores one by one");
+                messageImageDisplayer.SetGeneralMessageText("town learning title", "town learning main 1");
+                yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
                 WorldScreen();
                 yield return DoTownLearning(environment);
+
+                if (sessionNumber < DOUBLE_TOWN_LEARNING_DAYS)
+                {
+                    trialsPerSession = TRIALS_PER_SESSION_DOUBLE_TOWN_LEARNING;
+                    messageImageDisplayer.SetGeneralMessageText("town learning title", "town learning main 2");
+                    yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
+                    WorldScreen();
+                    yield return DoTownLearning(environment);
+                }
             }
         }
 
@@ -484,7 +484,8 @@ public class DeliveryExperiment : CoroutineExperiment
         this_trial_presented_stores = new List<StoreComponent>();
         List<StoreComponent> unvisitedStores = new List<StoreComponent>(environment.stores);
 
-        for (int i = 0; i < environment.stores.Length; i++)
+        //for (int i = 0; i < environment.stores.Length; i++)
+        for (int i = 0; i < 3; i++)
         {
             StoreComponent nextStore = null;
             int random_store_index = -1;

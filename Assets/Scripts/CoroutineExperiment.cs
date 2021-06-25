@@ -54,8 +54,13 @@ public abstract class CoroutineExperiment : MonoBehaviour
 
             soundRecorder.StartRecording(wavFilePath);
             float startTime = Time.time;
-            while ((Time.time < startTime + MICROPHONE_TEST_LENGTH) && !InputManager.GetButtonDown("Secret"))
+            while (Time.time < startTime + MICROPHONE_TEST_LENGTH)
+            {
                 yield return null;
+                if (InputManager.GetButtonDown("Secret") && Time.time - startTime > 0.1f)
+                    break;
+            }
+
             audioPlayback.clip = soundRecorder.StopRecording();
 
             textDisplayer.DisplayText("microphone test playing", playing);

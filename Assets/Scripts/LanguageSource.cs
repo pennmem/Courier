@@ -9,6 +9,7 @@ public static class LanguageSource
 
     private const string GERMAN_TRANSLATION_NEEDED = "GERMAN TRANSLATION NEEDED";
 
+    // JPB: TODO: Needs German translations
     private static Dictionary<string, string[]> language_string_dict = new Dictionary<string, string[]>()
     {
         {"", new string[] {"", ""}},
@@ -43,7 +44,10 @@ public static class LanguageSource
         { "efr first day description", new string [] {"Don’t forget to continue pressing the left/right buttons when recalling items at the end of each delivery day.",
                                                   GERMAN_TRANSLATION_NEEDED}},
 
-        // JPB: TODO: NEEDS GERMAN
+        { "town learning title", new string [] { "Town Learning Phase", GERMAN_TRANSLATION_NEEDED } },
+        { "town learning main 1", new string [] { "Please locate all of the stores one by one.", GERMAN_TRANSLATION_NEEDED } },
+        { "town learning main 2", new string [] { "Let's do it again!\nPlease locate all of the stores one by one.", GERMAN_TRANSLATION_NEEDED } },
+
         { "efr left button correct message", new string [] {" Press the <i>left button</i> \nfor correct recall",
                                                             GERMAN_TRANSLATION_NEEDED}},
         { "efr left button incorrect message", new string [] {" Press the <i>left button</i> \nfor incorrect recall",

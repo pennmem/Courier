@@ -23,20 +23,22 @@ public class DeliveryExperiment : CoroutineExperiment
     private static bool useNicls;
 
     // JPB: TODO: Make this a configuration variable
-    private const bool STANDALONE_TESTING = true;
+    private const bool STANDALONE_TESTING = false;
     private const bool EFR_ENABLED = true;
-    private const bool NICLS_COURIER = false;
+    private const bool NICLS_COURIER = true;
     private const bool COUNTER_BALANCE_CORRECT_INCORRECT_BUTTONS = false;
 
     private const string DBOY_VERSION = "v4.2.2";
     private const string RECALL_TEXT = "*******";
-    private const int DELIVERIES_PER_TRIAL = 3; // 16;
-    private const int PRACTICE_DELIVERIES_PER_TRIAL = 4; // 4;
-    private const int TRIALS_PER_SESSION = 8;
+    private const int DELIVERIES_PER_TRIAL = STANDALONE_TESTING ? 3 : 16;
+    private const int PRACTICE_DELIVERIES_PER_TRIAL = 4;
+    private const int TRIALS_PER_SESSION = 5;
+    private const int TRIALS_PER_SESSION_SINGLE_TOWN_LEARNING = 5;
+    private const int TRIALS_PER_SESSION_DOUNLE_TOWN_LEARNING = 5;
     private const int PRACTICE_VIDEO_TRIAL_NUM = 1;
-    private const int NUM_READ_ONLY_TRIALS = 2; // 2
+    private const int NUM_READ_ONLY_TRIALS = 2;
+    private const int SINGLE_TOWN_LEARNING_DAYS = 3;
     private const int DOUBLE_TOWN_LEARNING_DAYS = 1;
-    private const int TOTAL_TOWN_LEARNING_DAYS = 4;
     private const int POINTING_INDICATOR_DELAY = 15;
     private const int EFR_KEYPRESS_PRACTICES = 8;
     private const float MIN_FAMILIARIZATION_ISI = 0.4f;
@@ -57,7 +59,6 @@ public class DeliveryExperiment : CoroutineExperiment
     private const float AUDIO_TEXT_DISPLAY = 1.6f;
     private const float WORD_PRESENTATION_DELAY = 1f;
     private const float WORD_PRESENTATION_JITTER = 0.25f;
-    private const float BREAK_LENGTH = 120f;
     private const float EFR_KEYPRESS_PRACTICE_PAUSE = 2f;
 
     public Camera regularCamera;
@@ -183,20 +184,22 @@ public class DeliveryExperiment : CoroutineExperiment
         int trialsPerSession = TRIALS_PER_SESSION;
         if (NICLS_COURIER)
         {
+            Debug.Log("Town Learning Phase");
             niclsInterface.SendReadOnlyStateToNicls(1);
 
             // Town learning days
             // JPB: TODO: Refactor into function?
             if (sessionNumber < DOUBLE_TOWN_LEARNING_DAYS)
             {
+                trialsPerSession = TRIALS_PER_SESSION_DOUNLE_TOWN_LEARNING;
                 yield return DisplayMessageAndWait("Spatial Learning Phase", "Spatial Learning Phase: You will locate all the stores one by one");
                 WorldScreen();
                 yield return DoTownLearning(environment);
                 yield return DoTownLearning(environment);
-                trialsPerSession = 5;
             }
-            else if (sessionNumber < TOTAL_TOWN_LEARNING_DAYS)
+            else if (sessionNumber < SINGLE_TOWN_LEARNING_DAYS + DOUBLE_TOWN_LEARNING_DAYS)
             {
+                trialsPerSession = TRIALS_PER_SESSION_SINGLE_TOWN_LEARNING;
                 yield return DisplayMessageAndWait("Spatial Learning Phase", "Spatial Learning Phase: You will locate all the stores one by one");
                 WorldScreen();
                 yield return DoTownLearning(environment);
@@ -217,7 +220,7 @@ public class DeliveryExperiment : CoroutineExperiment
         Debug.Log("Real trials");
         messageImageDisplayer.SetGeneralMessageText(mainText: "first day main", descriptiveText: "first day description");
         yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
-        yield return DoTrials(environment, TRIALS_PER_SESSION);
+        yield return DoTrials(environment, trialsPerSession);
 
         Debug.Log("Final Recalls");
         BlackScreen();
@@ -279,14 +282,14 @@ public class DeliveryExperiment : CoroutineExperiment
 
     protected IEnumerator DisplayMessageAndWait(string description, string message)
     {
-        yield return null;
         SetRamulatorState("WAITING", true, new Dictionary<string, object>());
+
+        BlackScreen();
         textDisplayer.DisplayText(description, message + "\r\nPress (x) to continue");
-        while (!Input.GetButton("q (secret)") && !Input.GetButton("x (continue)"))
-        {
+        while (!InputManager.GetButtonDown("Secret") && !InputManager.GetButtonDown("Continue"))
             yield return null;
-        }
         textDisplayer.ClearText();
+
         SetRamulatorState("WAITING", false, new Dictionary<string, object>());
     }
 
@@ -361,7 +364,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
             if (trial_number >= NUM_READ_ONLY_TRIALS)
             {
-                if (NICLS_COURIER)
+                if (useNicls)
                     yield return WaitForClassifier();
             }
 

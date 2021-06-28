@@ -51,13 +51,30 @@ public class DataPoint
             string valueJSONString = ValueToString(value);
             JSONString = JSONString + "\"" + key + "\":" + valueJSONString + ",";
         }
-        if (dataDict.Count > 0) JSONString = JSONString.Substring(0, JSONString.Length - 1);
+        if (dataDict.Count > 0) // Remove the last comma
+            JSONString = JSONString.Substring(0, JSONString.Length - 1);
         JSONString = JSONString + "},\"time\":" + unixTimestamp.ToString() + "}";
         return JSONString;
     }
 
     public string ValueToString(dynamic value) {
-        if(value.GetType().IsArray || value is IList)
+        if (value is Dictionary<string, object>)
+        {
+            var dataDict = value;
+            string JSONString = "{";
+            foreach (string key in dataDict.Keys)
+            {
+                dynamic dataVal = dataDict[key];
+
+                string valueJSONString = ValueToString(dataVal);
+                JSONString = JSONString + "\"" + key + "\":" + valueJSONString + ",";
+            }
+            if (dataDict.Count > 0) // Remove the last comma
+                JSONString = JSONString.Substring(0, JSONString.Length - 1);
+            JSONString = JSONString + "}";
+            return JSONString;
+        }
+        else if(value.GetType().IsArray || value is IList)
         { 
             string json = "[";
             foreach (object val in (IEnumerable)value) { 

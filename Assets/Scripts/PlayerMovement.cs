@@ -5,9 +5,12 @@ using Luminosity.IO;
 
 public class PlayerMovement : MonoBehaviour
 {
-	protected float forwardSpeed = 16f; //8f
-	protected float backwardSpeed = 10f; //4f
-	protected float turnSpeed = 80f; //45f
+    // JPB: TODO: Make these configuration variables
+    private const bool NICLS_COURIER = false;
+
+    protected float forwardSpeed = NICLS_COURIER ? 16f : 8f;
+    protected float backwardSpeed = NICLS_COURIER ? 10f : 4f;
+    protected float turnSpeed = NICLS_COURIER ? 80f : 45f;
     protected float turnThreshhold = 0.5f;
 
 	public GameObject rotateMe;
@@ -46,6 +49,7 @@ public class PlayerMovement : MonoBehaviour
         return freeze_level > 0;
     }
 
+    // JPB: TODO: Fix this whole system
     public bool IsDoubleFrozen()
     {
         return freeze_level > 1;

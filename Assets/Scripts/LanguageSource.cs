@@ -95,7 +95,7 @@ public static class LanguageSource
         { "running participant", new string[] {"Running a new session of Delivery Person. \n Press (Y) to continue, (N) to quit.",
                                                "Wir starten jetzt eine neue Session Fahrradkurier.\n Drücken Sie (Y) um fortzufahren, (N) um abzubrechen.",} },
         { "begin session", new string[] {"Begin session", "Beginne Session"} },
-        { "break", new string[] {"It's time for a short break.\nPlease wait for the researcher to come check on you before continuing the experiment.\n\nResearcher: Press space to resume the experiment.",
+        { "break", new string[] {"It's time for a short break.\nPlease wait for the researcher\nto come check on you before continuing the experiment.\n\nResearcher: Press space to resume the experiment.",
                                  ""} },
 
         { "please find prompt", new string[] {"please find the ", "Bitte finden Sie "} },

@@ -38,7 +38,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private const int TRIALS_PER_SESSION = 5;
     private const int TRIALS_PER_SESSION_SINGLE_TOWN_LEARNING = 5;
     private const int TRIALS_PER_SESSION_DOUBLE_TOWN_LEARNING = 5;
-    private const int PRACTICE_VIDEO_TRIAL_NUM = 1;
+    private const int EFR_PRACTICE_TRIAL_NUM = 1;
     private const int NUM_READ_ONLY_TRIALS = 2;
     private const int SINGLE_TOWN_LEARNING_DAYS = 3;
     private const int DOUBLE_TOWN_LEARNING_DAYS = 1;
@@ -266,12 +266,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private IEnumerator DoFixation(float time, bool practice = false)
     {
         scriptedEventReporter.ReportScriptedEvent("start fixation", new Dictionary<string, object>());
-        pauser.ForbidPausing();
-        memoryWordCanvas.SetActive(true);
-        regularCamera.enabled = false;
-        blackScreenCamera.enabled = true;
-        starSystem.gameObject.SetActive(false);
-        playerMovement.Freeze();
+        BlackScreen();
 
         if (practice)
             messageImageDisplayer.SetGeneralBigMessageText(titleText: "fixation practice message",
@@ -579,8 +574,8 @@ public class DeliveryExperiment : CoroutineExperiment
                         random_store_index = rng.Next(unvisitedStores.Count);
                         nextStore = unvisitedStores[random_store_index];
                     }
-                    while (nextStore.IsVisible() && tries < environment.stores.Length
-                       && random_store_index == craft_shop_index);
+                    while ((nextStore.IsVisible() && tries < environment.stores.Length)
+                            || random_store_index == craft_shop_index);
                 }
             }
             else
@@ -676,15 +671,6 @@ public class DeliveryExperiment : CoroutineExperiment
         scriptedEventReporter.ReportScriptedEvent("start trials", new Dictionary<string, object>());
         for (int trialNumber = 0; trialNumber < numTrials; trialNumber++)
         {
-            if (EFR_ENABLED && practice && trialNumber == PRACTICE_VIDEO_TRIAL_NUM)
-            {
-                yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
-                             LanguageSource.GetLanguageString("efr intro video"),
-                             VideoSelector.VideoType.EfrIntro);
-                yield return DoEfrKeypressCheck();
-                yield return DoEfrKeypressPractice();
-            }
-
             // Required break
             if (NICLS_COURIER && !practice)
             {
@@ -695,29 +681,34 @@ public class DeliveryExperiment : CoroutineExperiment
             }
 
             // Turn off ReadOnlyState
-            if (trialNumber == NUM_READ_ONLY_TRIALS)
+            if (NICLS_COURIER && !practice && trialNumber == NUM_READ_ONLY_TRIALS)
                 niclsInterface.SendReadOnlyStateToNicls(0);
 
-            yield return DoDeliveries(environment, trialNumber, practice);
-            BlackScreen();
-            if (!practice || (practice && trialNumber >= 1))
-                yield return DoFixation(PAUSE_BEFORE_RETRIEVAL, practice);
-            yield return DoRecall(trialNumber, practice);
+            // EFR instructions
+            if (EFR_ENABLED && practice && trialNumber == EFR_PRACTICE_TRIAL_NUM)
+            {
+                yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
+                             LanguageSource.GetLanguageString("efr intro video"),
+                             VideoSelector.VideoType.EfrIntro);
+                yield return DoEfrKeypressCheck();
+                yield return DoEfrKeypressPractice();
+            }
 
+            // Next day message
             SetRamulatorState("WAITING", true, new Dictionary<string, object>());
             if (!DeliveryItems.ItemsExhausted())
             {
-                yield return new WaitForSeconds(0.2f);
                 BlackScreen();
-                if (practice && trialNumber < numTrials - 1)
-                    textDisplayer.DisplayText("proceed to next practice day prompt",
-                                              LanguageSource.GetLanguageString("next practice day"));
-                else if (trialNumber < numTrials - 1)
-                    textDisplayer.DisplayText("proceed to next day prompt",
-                                              LanguageSource.GetLanguageString("next day"));
-                while (!InputManager.GetButtonDown("Secret") && !InputManager.GetButtonDown("Continue"))
-                    yield return null;
-                textDisplayer.ClearText();
+                if (practice && trialNumber > 0)
+                {
+                    messageImageDisplayer.SetGeneralBigMessageText(mainText: "next practice day");
+                    yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
+                }
+                else if (trialNumber > 0)
+                {
+                    messageImageDisplayer.SetGeneralBigMessageText(mainText: "next day");
+                    yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
+                }
 
                 // Skip the rest of the trials
                 if (InputManager.GetButton("Secret"))
@@ -732,6 +723,12 @@ public class DeliveryExperiment : CoroutineExperiment
                 break;
             }
             SetRamulatorState("WAITING", false, new Dictionary<string, object>());
+
+            // Do deliveries and recall
+            yield return DoDeliveries(environment, trialNumber, practice);
+            if (!(practice && trialNumber < EFR_PRACTICE_TRIAL_NUM))
+                yield return DoFixation(PAUSE_BEFORE_RETRIEVAL, practice);
+            yield return DoRecall(trialNumber, practice);
         }
         scriptedEventReporter.ReportScriptedEvent("stop trials", new Dictionary<string, object>());
     }
@@ -982,14 +979,18 @@ public class DeliveryExperiment : CoroutineExperiment
             if (buttonIndicator == EfrButton.LeftButton)
             {
                 SetEfrDisplay(EfrButton.LeftButton);
+                messageImageDisplayer.SetEfrTextResize(LeftButtonSize: 0.3f);
                 yield return messageImageDisplayer.DisplayMessageKeypressBold(
                     messageImageDisplayer.efr_display, EfrButton.LeftButton);
+                messageImageDisplayer.SetEfrTextResize(LeftButtonSize: -0.3f);
             }
             else if (buttonIndicator == EfrButton.RightButton)
             {
                 SetEfrDisplay(EfrButton.RightButton);
+                messageImageDisplayer.SetEfrTextResize(rightButtonSize: 0.3f);
                 yield return messageImageDisplayer.DisplayMessageKeypressBold(
                     messageImageDisplayer.efr_display, EfrButton.RightButton);
+                messageImageDisplayer.SetEfrTextResize(rightButtonSize: -0.3f);
             }
         }
 

@@ -242,6 +242,19 @@ public class MessageImageDisplayer : MonoBehaviour
                    .GetComponent<Image>().gameObject.SetActive(controllerRightButtonImage);
     }
 
+    public void SetEfrTextResize(float LeftButtonSize = 0, float rightButtonSize = 0)
+    {
+        // Left Button
+        Text leftText = efr_display.transform.Find("left button text").GetComponent<Text>();
+        leftText.GetComponent<RectTransform>().anchorMin -= new Vector2(0, LeftButtonSize / 100);
+        leftText.GetComponent<RectTransform>().anchorMax += new Vector2(0, LeftButtonSize / 100);
+
+        // Right Button
+        Text rightText = efr_display.transform.Find("right button text").GetComponent<Text>();
+        rightText.GetComponent<RectTransform>().anchorMin -= new Vector2(0f, rightButtonSize / 100);
+        rightText.GetComponent<RectTransform>().anchorMax += new Vector2(0f, rightButtonSize / 100);
+    }
+
     public void SetGeneralMessageText(string titleText = "", string mainText = "", string descriptiveText = "", string continueText = "continue")
     {
         if (titleText != null)
@@ -272,8 +285,8 @@ public class MessageImageDisplayer : MonoBehaviour
 
         // Bold and increase font
         displayText.text = "<b>" + buttonText + "</b>";
-        displayText.GetComponentInParent<RectTransform>().anchorMin -= new Vector2(0.01f, 0f);
-        displayText.GetComponentInParent<RectTransform>().anchorMax += new Vector2(0.01f, 0f);
+        displayText.GetComponentInParent<RectTransform>().anchorMin -= new Vector2(0, 0.003f);
+        displayText.GetComponentInParent<RectTransform>().anchorMax += new Vector2(0, 0.003f);
 
         // Wait for timeout and button release
         float startTime = Time.time;

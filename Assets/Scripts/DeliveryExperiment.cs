@@ -202,7 +202,7 @@ public class DeliveryExperiment : CoroutineExperiment
                 messageImageDisplayer.SetGeneralMessageText("town learning title", "town learning main 1");
                 yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
                 WorldScreen();
-                yield return DoTownLearning(environment);
+                yield return DoTownLearning(environment, 0, environment.stores.Length);
 
                 if (sessionNumber < DOUBLE_TOWN_LEARNING_DAYS)
                 {
@@ -210,7 +210,7 @@ public class DeliveryExperiment : CoroutineExperiment
                     messageImageDisplayer.SetGeneralMessageText("town learning title", "town learning main 2");
                     yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
                     WorldScreen();
-                    yield return DoTownLearning(environment);
+                    yield return DoTownLearning(environment, 1, environment.stores.Length);
                 }
             }
         }
@@ -487,7 +487,7 @@ public class DeliveryExperiment : CoroutineExperiment
         yield return familiarizer.DoFamiliarization(MIN_FAMILIARIZATION_ISI, MAX_FAMILIARIZATION_ISI, FAMILIARIZATION_PRESENTATION_LENGTH);
     }
 
-    private IEnumerator DoTownLearning(Environment environment)
+    private IEnumerator DoTownLearning(Environment environment, int trialNumber, int numDeliveries)
     {
         scriptedEventReporter.ReportScriptedEvent("start town learning", new Dictionary<string, object>());
         messageImageDisplayer.please_find_the_blah_reminder.SetActive(true);
@@ -496,7 +496,7 @@ public class DeliveryExperiment : CoroutineExperiment
         List<StoreComponent> unvisitedStores = new List<StoreComponent>(environment.stores);
 
         //for (int i = 0; i < environment.stores.Length; i++)
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < numDeliveries; i++)
         {
             StoreComponent nextStore = null;
             int random_store_index = -1;
@@ -525,6 +525,13 @@ public class DeliveryExperiment : CoroutineExperiment
                     yield return DisplayPointingIndicator(nextStore, true);
             }
             yield return DisplayPointingIndicator(nextStore, false);
+
+            scriptedEventReporter.ReportScriptedEvent("store visited",
+                new Dictionary<string, object>() { {"trial number", trialNumber},
+                                                   {"store name", nextStore.GetStoreName()},
+                                                   {"serial position", i+1},
+                                                   {"player position", playerMovement.transform.position.ToString()},
+                                                   {"store position", nextStore.transform.position.ToString()}});
         }
 
         messageImageDisplayer.please_find_the_blah_reminder.SetActive(false);

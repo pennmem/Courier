@@ -795,9 +795,21 @@ public class DeliveryExperiment : CoroutineExperiment
         textDisplayer.DisplayText("break prompt", LanguageSource.GetLanguageString("break"));
         while (!Input.GetKeyDown(KeyCode.Space))
             yield return null;
-        WorldScreen();
+        WorldScreen(); // JPB: TODO: Erase this
         textDisplayer.ClearText();
         scriptedEventReporter.ReportScriptedEvent("stop required break", new Dictionary<string, object>());
+    }
+
+    private IEnumerator DoMovie()
+    {
+        scriptedEventReporter.ReportScriptedEvent("start movie", new Dictionary<string, object>());
+        BlackScreen();
+        // JPB: TODO: Change this to work
+        yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
+                             LanguageSource.GetLanguageString("efr intro video"),
+                             VideoSelector.VideoType.EfrIntro);
+        WorldScreen(); // JPB: TODO: Erase this
+        scriptedEventReporter.ReportScriptedEvent("stop movie", new Dictionary<string, object>());
     }
 
     private IEnumerator DisplayPointingIndicator(StoreComponent nextStore, bool on = false)
@@ -893,7 +905,7 @@ public class DeliveryExperiment : CoroutineExperiment
             efrLeftLogMsg = "incorrect";
             efrRightLogMsg = "correct";
             if (keypressPractice == EfrButton.LeftButton)
-                messageImageDisplayer.SetEfrText(leftButton: "efr keypress practice left button incorrect message",
+                messageImageDisplayer.SetEfrText(leftButton: "efr practice left button incorrect message",
                                                  rightButton: "efr right button correct message");
             else if (keypressPractice == EfrButton.RightButton)
                 messageImageDisplayer.SetEfrText(leftButton: "efr left button incorrect message",

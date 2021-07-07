@@ -133,11 +133,6 @@ public class MessageImageDisplayer : MonoBehaviour
         {
             display.SetActive(true);
 
-            // Start keypress dictionary
-            Dictionary<string, object> data = new Dictionary<string, object>();
-            data.Add("recording start", DataReporter.RealWorldTime());
-            var keypresses = new List<Dictionary<string, object>>();
-
             float startTime = Time.time;
             while (Time.time < startTime + waitTime)
             {
@@ -145,17 +140,21 @@ public class MessageImageDisplayer : MonoBehaviour
 
                 if (InputManager.GetButtonDown("Secret"))
                 {
+                    scriptedEventReporter.ReportScriptedEvent("keypress",
+                        new Dictionary<string, object> { { "response", "Secret" } });
                     break;
                 }
                 else if (InputManager.GetButtonDown("EfrLeft"))
                 {
-                    keypresses.Add(new Dictionary<string, object> { { "time", DataReporter.RealWorldTime() }, { "response", leftLogMessage } });
+                    scriptedEventReporter.ReportScriptedEvent("keypress",
+                        new Dictionary<string, object> { { "response", leftLogMessage } });
                     yield return DoTextBoldTimedOrButton("EfrLeft", leftText, BUTTON_MSG_DISPLAY_WAIT);
                     numValidButtonPresses++;
                 }
                 else if (InputManager.GetButtonDown("EfrRight"))
                 {
-                    keypresses.Add(new Dictionary<string, object> { { "time", DataReporter.RealWorldTime() }, { "response", rightLogMessage } });
+                    scriptedEventReporter.ReportScriptedEvent("keypress",
+                        new Dictionary<string, object> { { "response", rightLogMessage } });
                     yield return DoTextBoldTimedOrButton("EfrRight", rightText, BUTTON_MSG_DISPLAY_WAIT);
                     numValidButtonPresses++;
                 }
@@ -164,14 +163,11 @@ public class MessageImageDisplayer : MonoBehaviour
                     foreach (KeyCode kcode in System.Enum.GetValues(typeof(KeyCode)))
                     {
                         if (InputManager.GetKey(kcode))
-                            keypresses.Add(new Dictionary<string, object> { { "time", DataReporter.RealWorldTime() }, { "response", kcode.ToString() } });
+                            scriptedEventReporter.ReportScriptedEvent("keypress",
+                                new Dictionary<string, object> { { "response", kcode.ToString() } });
                     }
                 }
             }
-
-            // Report keypress dictionary
-            data.Add("keypresses", keypresses);
-            scriptedEventReporter.ReportScriptedEvent("keypress data", data);
 
             // Report instruction cleared
             scriptedEventReporter.ReportScriptedEvent("instruction message cleared", messageData);
@@ -184,7 +180,8 @@ public class MessageImageDisplayer : MonoBehaviour
             }
             else if (numValidButtonPresses < REQUIRED_VALID_BUTTON_PRESSES)
             {
-                SetGeneralMessageText(mainText: "efr check try again main", descriptiveText: "efr check try again description");
+                SetGeneralMessageText(mainText: "efr check try again main",
+                                      descriptiveText: "efr check try again description");
                 yield return DisplayMessage(general_message_display);
             }
         }

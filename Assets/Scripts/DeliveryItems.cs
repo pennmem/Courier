@@ -21,7 +21,7 @@ public class DeliveryItems : MonoBehaviour
 
     private static string RemainingItemsPath(string storeName)
     {
-        return System.IO.Path.Combine(UnityEPL.GetParticipantFolder(), "remaining_items", storeName);
+        return System.IO.Path.Combine(UnityEPL.GetDataPath(), "remaining_items", storeName);
     }
 
     private void WriteRemainingItemsFiles()

@@ -29,12 +29,15 @@ public static class LanguageSource
         { "correct to within", new string[] {"Good! That was correct to within degrees: ", "Fast perfekt! Abweichung in Grad zur korrekten Antwort: "} },
         { "all objects recall", new string[] {"Please recall all the objects that you delivered.", "Bitte erinnern Sie alle Gegenstände, die Sie zugestellt haben."} },
         { "all stores recall", new string[] {"Please recall all the stores that you delivered objects to.", "Bitte erinnern Sie alle Geschäfte, zu denen Sie Pakete geliefert haben."} },
-        { "end message", new string[] {"Thank you for being a great delivery person! Your cumulative score is: ", "Vielen Dank für Ihre Teilnahme! Ihre abschließende Wertung ist: "} },
+        { "end message", new string[] {"Thank you for being a great delivery person!", "Vielen Dank für Ihre Teilnahme!"} },
+        { "end message scored", new string[] {"Thank you for being a great delivery person! Your cumulative score is: ", "Vielen Dank für Ihre Teilnahme! Ihre abschließende Wertung ist: "} },
 
         { "standard intro video", new string[] {"Press (Y) to continue, \n Press (N) to replay instructional video.",
                                                 "Drücken Sie (Y) um fortzufahren, \n Drücken Sie (N) um das Video noch einmal zu sehen."} },
         { "efr intro video", new string[] {"Press (Y) to continue to the next practice delivery day, \n Press (N) to replay instructional video.", 
                                            "Drücken Sie (Y) um die nächste trainier Auslieferungsrunde zu starten, \n Drücken Sie (N) um das Video noch einmal zu sehen."} },
+
+        { "nicls movie", new string[] {"Now we will return to the memory task.\nPress (Y) to continue.", GERMAN_TRANSLATION_NEEDED } },
 
         { "next day", new string[] {"Press (X) to proceed to the next delivery day.", "Drücken Sie (X) um die nächste Auslieferungsrunde zu starten."} },
         { "next practice day", new string[] {"Press (X) to proceed to the next practice delivery day.",
@@ -96,7 +99,7 @@ public static class LanguageSource
                                                "Wir starten jetzt eine neue Session Fahrradkurier.\n Drücken Sie (Y) um fortzufahren, (N) um abzubrechen.",} },
         { "begin session", new string[] {"Begin session", "Beginne Session"} },
         { "break", new string[] {"It's time for a short break.\nPlease wait for the researcher\nto come check on you before continuing the experiment.\n\nResearcher: Press space to resume the experiment.",
-                                 ""} },
+                                 GERMAN_TRANSLATION_NEEDED} },
 
         { "please find prompt", new string[] {"please find the ", "Bitte finden Sie "} },
         { "bakery", new string[] {"bakery", "die Bäckerei"} },

@@ -456484,6 +456484,14 @@ MonoBehaviour:
   germanIntro: {fileID: 32900000, guid: 553af4f761c2b4e3082f43af645ecccc, type: 3}
   englishEfrIntro: {fileID: 32900000, guid: 570d649d0a5c74bb3809b081d16a2826, type: 3}
   germanEfrIntro: {fileID: 0}
+  niclsEnglishIntro: {fileID: 32900000, guid: 07507cbc8c70743c4b59f74be7f610bb, type: 3}
+  niclsMovie:
+  - {fileID: 32900000, guid: bcd909944fe574d02bf4e394ed01cfe4, type: 3}
+  - {fileID: 32900000, guid: 26c5dabe39d3b48f99e269b6a456ce17, type: 3}
+  - {fileID: 32900000, guid: ff1d9de35a15f4c45acebc5ef6845b81, type: 3}
+  - {fileID: 32900000, guid: 3eaf3dfb6b82e481ca194cbe4f6c96dd, type: 3}
+  - {fileID: 32900000, guid: f43da59c9626f4b6dae5ccf3756f8bec, type: 3}
+  - {fileID: 32900000, guid: a106a4cf44f5a45c993744c72d9c2233, type: 3}
 --- !u!328 &1556425424 stripped
 VideoPlayer:
   m_PrefabParentObject: {fileID: 328937643129792720, guid: 941b5dccbc0da4585a324a844ffff8a8,

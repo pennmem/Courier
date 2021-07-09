@@ -6,7 +6,7 @@ using Luminosity.IO;
 public class PlayerMovement : MonoBehaviour
 {
     // JPB: TODO: Make these configuration variables
-    private const bool NICLS_COURIER = false;
+    private const bool NICLS_COURIER = true;
 
     protected float forwardSpeed = NICLS_COURIER ? 16f : 8f;
     protected float backwardSpeed = NICLS_COURIER ? 10f : 4f;

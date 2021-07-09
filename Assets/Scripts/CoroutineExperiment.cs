@@ -102,7 +102,7 @@ public abstract class CoroutineExperiment : MonoBehaviour
         titleMessage.SetActive(false);
     }
 
-    protected IEnumerator DoVideo(string playPrompt, string repeatPrompt, VideoSelector.VideoType videoType)
+    protected IEnumerator DoVideo(string playPrompt, string repeatPrompt, VideoSelector.VideoType videoType, int videoIndex = 0)
     {
         yield return PressAnyKey(playPrompt);
 
@@ -111,7 +111,7 @@ public abstract class CoroutineExperiment : MonoBehaviour
         {
             //start video player and wait for it to stop playing
             SetRamulatorState("INSTRUCT", true, new Dictionary<string, object>());
-            videoSelector.SetIntroductionVideo(videoType);
+            videoSelector.SetIntroductionVideo(videoType, videoIndex);
             videoPlayer.StartVideo();
             while (videoPlayer.IsPlaying())
                 yield return null;

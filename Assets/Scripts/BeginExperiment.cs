@@ -17,11 +17,15 @@ public class BeginExperiment : MonoBehaviour
     public UnityEngine.UI.Text beginButtonText;
     public UnityEngine.UI.InputField sessionInput;
 
+    // JPB: TODO: Make these configuration variables
+    private const bool NICLS_COURIER = true;
+
+    string experiment_name = NICLS_COURIER ? "NiclsCourier" : "StandardCourier";
+
     private const string scene_name = "MainGame";
-    private const string experiment_name = "CourierNicls";
 
     public const string EXP_NAME_COURIER = "Courier";
-    public const string EXP_NAME_NICLS = "CourierNicls";
+    public const string EXP_NAME_NICLS = "NiclsCourier";
 
     private void OnEnable() {
         Cursor.lockState = CursorLockMode.None;
@@ -57,6 +61,7 @@ public class BeginExperiment : MonoBehaviour
             beginExperimentButton.SetActive(true);
             greyedOutButton.SetActive(false);
             int nextSessionNumber = NextSessionNumber();
+            Debug.Log("UpdateParticipant: " + nextSessionNumber);
             sessionInput.text = nextSessionNumber.ToString();
             beginButtonText.text = LanguageSource.GetLanguageString("begin session") + " " + nextSessionNumber.ToString();
         }
@@ -73,6 +78,7 @@ public class BeginExperiment : MonoBehaviour
         if(System.Int32.TryParse(sessionInput.text, out session)) {
             beginButtonText.text = LanguageSource.GetLanguageString("begin session") + " " + session.ToString();
             UnityEPL.SetSessionNumber(session);
+            Debug.Log("UpdateSession: " + UnityEPL.GetSessionNumber());
             beginExperimentButton.SetActive(true);
             greyedOutButton.SetActive(false);
         }
@@ -116,19 +122,21 @@ public class BeginExperiment : MonoBehaviour
             throw new UnityException("You are trying to start the experiment with an invalid participant name!");
         }
 
-        UnityEPL.SetSessionNumber(NextSessionNumber());
+        //UnityEPL.SetSessionNumber(NextSessionNumber());
         UnityEPL.AddParticipant(participantCodeInput.text);
         if (experiment_name == EXP_NAME_NICLS)
         {
             if (useNiclsToggle.isOn)
-                UnityEPL.SetExperimentName(EXP_NAME_NICLS + "ClosedLoop");
+                experiment_name += "ClosedLoop";
             else
-                UnityEPL.SetExperimentName(EXP_NAME_NICLS + "ReadOnly");
+                experiment_name += "ReadOnly";
         }
+        UnityEPL.SetExperimentName(experiment_name);
 
         LockLanguage();
-        // JPB: TODO: Change true to useNcislToggle
-        DeliveryExperiment.ConfigureExperiment(useRamulatorToggle.isOn, useNiclsToggle.isOn, NextSessionNumber(), participantCodeInput.text);
+        // JPB: TODO: Use NextSessionNumber()
+        Debug.Log("TEST: " + UnityEPL.GetSessionNumber());
+        DeliveryExperiment.ConfigureExperiment(useRamulatorToggle.isOn, useNiclsToggle.isOn, UnityEPL.GetSessionNumber(), experiment_name);
         Debug.Log(useRamulatorToggle.isOn);
         Debug.Log(useNiclsToggle.isOn);
         SceneManager.LoadScene(scene_name);
@@ -137,15 +145,17 @@ public class BeginExperiment : MonoBehaviour
     private int NextSessionNumber()
     {
         string dataPath = UnityEPL.GetParticipantFolder();
-		System.IO.Directory.CreateDirectory (dataPath);
+		System.IO.Directory.CreateDirectory(dataPath);
         string[] sessionFolders = System.IO.Directory.GetDirectories(dataPath);
         int mostRecentSessionNumber = -1;
         foreach (string folder in sessionFolders)
         {
+            Debug.Log("NextSessionNumber: " + folder);
             int thisSessionNumber = -1;
             if (int.TryParse(folder.Substring(folder.LastIndexOf('_')+1), out thisSessionNumber) && thisSessionNumber > mostRecentSessionNumber)
                 mostRecentSessionNumber = thisSessionNumber;
         }
+        Debug.Log("NextSessionNumber: " + mostRecentSessionNumber + 1);
         return mostRecentSessionNumber + 1;
     }
 

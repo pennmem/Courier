@@ -9,6 +9,8 @@ public class VideoSelector : MonoBehaviour
     public UnityEngine.Video.VideoClip germanIntro;
     public UnityEngine.Video.VideoClip englishEfrIntro;
     public UnityEngine.Video.VideoClip germanEfrIntro;
+    public UnityEngine.Video.VideoClip niclsEnglishIntro;
+    public UnityEngine.Video.VideoClip[] niclsMovie;
 
     void OnEnable()
     {
@@ -22,10 +24,12 @@ public class VideoSelector : MonoBehaviour
     public enum VideoType
     {
         MainIntro,
-        EfrIntro
+        EfrIntro,
+        NiclsMainIntro,
+        NiclsMovie
     }
 
-    public void SetIntroductionVideo(VideoType videoType)
+    public void SetIntroductionVideo(VideoType videoType, int videoIndex = 0)
     {
         switch (videoType)
         {
@@ -40,6 +44,12 @@ public class VideoSelector : MonoBehaviour
                     videoPlayer.clip = germanEfrIntro;
                 else
                     videoPlayer.clip = englishEfrIntro;
+                break;
+            case VideoType.NiclsMainIntro:
+                videoPlayer.clip = niclsEnglishIntro;
+                break;
+            case VideoType.NiclsMovie:
+                videoPlayer.clip = niclsMovie[videoIndex];
                 break;
             default: break;
         }

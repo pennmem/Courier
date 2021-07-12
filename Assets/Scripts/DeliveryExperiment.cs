@@ -25,11 +25,11 @@ public class DeliveryExperiment : CoroutineExperiment
     private static string expName;
 
     // JPB: TODO: Make these configuration variables
-    private const bool NO_SYNCBOX = true;
+    //private const bool NO_SYNCBOX = true;
     private const bool LESS_TRIALS = false;
-    private const bool LESS_DELIVERIES = false;
-    private const bool SKIP_INTROS = false;
-    private const bool SKIP_TOWN_LEARNING = false;
+    private const bool LESS_DELIVERIES = true;
+    private const bool SKIP_INTROS = true;
+    private const bool SKIP_TOWN_LEARNING = true;
 
     private const bool EFR_ENABLED = true;
     private const bool NICLS_COURIER = true;
@@ -101,11 +101,6 @@ public class DeliveryExperiment : CoroutineExperiment
     private List<StoreComponent> this_trial_presented_stores = new List<StoreComponent>();
     private List<string> all_presented_objects = new List<string>();
 
-    // JPB: TODO: Make these configs object robust
-    // CONFIG OBJECTS
-    const string SYSTEM_CONFIG = "config.json";
-    dynamic systemConfig = null;
-
     private Syncbox syncs;
 
     public static void ConfigureExperiment(bool newUseRamulator, bool newUseNicls, int newSessionNumber, string newExpName)
@@ -114,6 +109,7 @@ public class DeliveryExperiment : CoroutineExperiment
         useNicls = newUseNicls;
         sessionNumber = newSessionNumber;
         expName = newExpName;
+        Config.experimentConfigName = expName;
     }
 
     void Update()
@@ -134,15 +130,10 @@ public class DeliveryExperiment : CoroutineExperiment
         Cursor.SetCursor(new Texture2D(0, 0), new Vector2(0, 0), CursorMode.ForceSoftware);
         QualitySettings.vSyncCount = 1;
 
-        //// Setup config files
-        //string configPath = System.IO.Path.Combine(
-        //    Directory.GetParent(Directory.GetParent(UnityEPL.GetParticipantFolder()).FullName).FullName,
-        //    "configs");
-        //string text = File.ReadAllText(Path.Combine(configPath, SYSTEM_CONFIG));
-        //systemConfig = FlexibleConfig.LoadFromText(text);
+        Debug.Log(Config.GetExperimentConfig().noSyncbox);
 
         // Start syncpulses
-        if (!NO_SYNCBOX)
+        if (!Config.GetExperimentConfig().noSyncbox)
         {
             syncs = GameObject.Find("SyncBox").GetComponent<Syncbox>();
             syncs.StartPulse();
@@ -898,10 +889,12 @@ public class DeliveryExperiment : CoroutineExperiment
         scriptedEventReporter.ReportScriptedEvent("stop movie", new Dictionary<string, object>());
     }
 
-    private IEnumerator DisplayPointingIndicator(StoreComponent nextStore, bool on = false)
+    private bool lastPointingIndicatorState = false;
+    private IEnumerator DisplayPointingIndicator(StoreComponent nextStore, bool enable = false)
     {
-        if (on) {
-            scriptedEventReporter.ReportScriptedEvent("continuous pointer", new Dictionary<string, object>());
+        if (enable) {
+            if (lastPointingIndicatorState != enable)
+                scriptedEventReporter.ReportScriptedEvent("continuous pointer", new Dictionary<string, object>());
             pointer.SetActive(true);
             ColorPointer(new Color(0.5f, 0.5f, 1f));
             yield return PointArrowToStore(nextStore.gameObject);
@@ -909,6 +902,7 @@ public class DeliveryExperiment : CoroutineExperiment
             pointer.SetActive(false);
             yield return null;
         }
+        lastPointingIndicatorState = enable;
     }
 
     private IEnumerator PointArrowToStore(GameObject pointToStore, float arrowRotationSpeed = 0f, float arrowCorrectionTime = 0f)

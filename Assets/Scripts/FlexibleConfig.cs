@@ -8,7 +8,79 @@ using System.Dynamic;
 using System.Collections.Generic;
 using UnityEngine;
 
+public class Config
+{
+    const string SYSTEM_CONFIG_NAME = "config.json";
+
+    static object configLock = new object();
+    static dynamic systemConfig = null;
+    static dynamic experimentConfig = null;
+
+    public static string experimentConfigName = null;
+
+    public static dynamic GetSystemConfig()
+    {
+        if (systemConfig == null)
+        {
+            // Setup config file
+            string configPath = System.IO.Path.Combine(
+                Directory.GetParent(Directory.GetParent(UnityEPL.GetParticipantFolder()).FullName).FullName,
+                "configs");
+            string text = File.ReadAllText(Path.Combine(configPath, SYSTEM_CONFIG_NAME));
+            systemConfig = FlexibleConfig.LoadFromText(text);
+        }
+
+        return systemConfig;
+    }
+
+    public static dynamic GetExperimentConfig()
+    {
+        if(experimentConfig == null)
+        {
+            // Setup config file
+            string configPath = System.IO.Path.Combine(
+                Directory.GetParent(Directory.GetParent(UnityEPL.GetParticipantFolder()).FullName).FullName,
+                "configs");
+            string text = File.ReadAllText(Path.Combine(configPath, experimentConfigName + ".json"));
+            experimentConfig = FlexibleConfig.LoadFromText(text);
+        }
+
+        return experimentConfig;
+    }
+
+    //public static dynamic GetSetting(string setting)
+    //{
+    //    dynamic value = null;
+    //    if (value == null)
+    //    value = ((IDictionary<string, dynamic>)GetSystemConfig())[setting];
+        
+
+    //    throw new MissingFieldException("Missing Setting " + setting + ".");
+    //}
+
+    //public static dynamic GetSetting(string setting)
+    //{
+    //    lock (configLock)
+    //    {
+    //        JToken value = null;
+
+    //        if (experimentConfig != null)
+    //            if (experimentConfig.TryGetValue(setting, out value))
+    //                if (value != null)
+    //                    return value;
+
+    //        if (systemConfig != null)
+    //            if (systemConfig.TryGetValue(setting, out value))
+    //                if (value != null)
+    //                    return value;
+
+    //        throw new MissingFieldException("Missing Setting " + setting + ".");
+    //    }
+    //}
+}
+
 public class FlexibleConfig {
+
     public static dynamic LoadFromText(string json) {
         JObject cfg = JObject.Parse(json);
         return CastToStatic(cfg);

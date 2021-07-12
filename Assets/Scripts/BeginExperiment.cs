@@ -135,7 +135,7 @@ public class BeginExperiment : MonoBehaviour
         // JPB: TODO: Use NextSessionNumber()
         DeliveryExperiment.ConfigureExperiment(useRamulatorToggle.isOn, useNiclsToggle.isOn, UnityEPL.GetSessionNumber(), experiment_name);
         Debug.Log("Ram On: " + useRamulatorToggle.isOn);
-        Debug.Log("Nicls On" + useNiclsToggle.isOn);
+        Debug.Log("Nicls On: " + useNiclsToggle.isOn);
         SceneManager.LoadScene(scene_name);
     }
 

@@ -27,8 +27,6 @@ public class NiclsInterface : MonoBehaviour
     private NetMQ.Sockets.PairSocket zmqSocket;
     private string address = "tcp://localhost:8889";
 
-    const string SYSTEM_CONFIG = "config.json";
-
     //private NiclsEventLoop niclsEventLoop;
     private volatile int classifierResult = 0;
 
@@ -36,14 +34,12 @@ public class NiclsInterface : MonoBehaviour
 
     private void Awake()
     {
-        string configPath = System.IO.Path.Combine(
-            Directory.GetParent(Directory.GetParent(UnityEPL.GetParticipantFolder()).FullName).FullName,
-            "configs");
-        string text = File.ReadAllText(Path.Combine(configPath, SYSTEM_CONFIG));
-        var systemConfig = FlexibleConfig.LoadFromText(text);
-        address = "tcp://" + systemConfig.niclServerIP + ":" + systemConfig.niclServerPort;
+        address = "tcp://" + Config.GetSystemConfig().niclServerIP + ":" + Config.GetSystemConfig().niclServerPort;
         Debug.Log(address);
+        //Debug.Log("MEEP1: " + Config.GetSetting("niclsServerIP"));
+        //Debug.Log("MEEP2: " + Config.GetSetting("noSyncbox"));
     }
+
 
     void OnApplicationQuit()
     {

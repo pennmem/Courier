@@ -61,7 +61,6 @@ public class BeginExperiment : MonoBehaviour
             beginExperimentButton.SetActive(true);
             greyedOutButton.SetActive(false);
             int nextSessionNumber = NextSessionNumber();
-            Debug.Log("UpdateParticipant: " + nextSessionNumber);
             sessionInput.text = nextSessionNumber.ToString();
             beginButtonText.text = LanguageSource.GetLanguageString("begin session") + " " + nextSessionNumber.ToString();
         }
@@ -78,7 +77,6 @@ public class BeginExperiment : MonoBehaviour
         if(System.Int32.TryParse(sessionInput.text, out session)) {
             beginButtonText.text = LanguageSource.GetLanguageString("begin session") + " " + session.ToString();
             UnityEPL.SetSessionNumber(session);
-            Debug.Log("UpdateSession: " + UnityEPL.GetSessionNumber());
             beginExperimentButton.SetActive(true);
             greyedOutButton.SetActive(false);
         }
@@ -135,10 +133,9 @@ public class BeginExperiment : MonoBehaviour
 
         LockLanguage();
         // JPB: TODO: Use NextSessionNumber()
-        Debug.Log("TEST: " + UnityEPL.GetSessionNumber());
         DeliveryExperiment.ConfigureExperiment(useRamulatorToggle.isOn, useNiclsToggle.isOn, UnityEPL.GetSessionNumber(), experiment_name);
-        Debug.Log(useRamulatorToggle.isOn);
-        Debug.Log(useNiclsToggle.isOn);
+        Debug.Log("Ram On: " + useRamulatorToggle.isOn);
+        Debug.Log("Nicls On" + useNiclsToggle.isOn);
         SceneManager.LoadScene(scene_name);
     }
 
@@ -150,12 +147,10 @@ public class BeginExperiment : MonoBehaviour
         int mostRecentSessionNumber = -1;
         foreach (string folder in sessionFolders)
         {
-            Debug.Log("NextSessionNumber: " + folder);
             int thisSessionNumber = -1;
             if (int.TryParse(folder.Substring(folder.LastIndexOf('_')+1), out thisSessionNumber) && thisSessionNumber > mostRecentSessionNumber)
                 mostRecentSessionNumber = thisSessionNumber;
         }
-        Debug.Log("NextSessionNumber: " + mostRecentSessionNumber + 1);
         return mostRecentSessionNumber + 1;
     }
 

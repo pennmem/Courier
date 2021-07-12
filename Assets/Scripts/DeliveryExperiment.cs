@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using Luminosity.IO;
 using System.Linq;
@@ -34,7 +35,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private const bool NICLS_COURIER = true;
     private const bool COUNTER_BALANCE_CORRECT_INCORRECT_BUTTONS = false;
 
-    private const string COURIER_VERSION = "v5.0.5";
+    private const string COURIER_VERSION = "v5.0.7";
     private const string RECALL_TEXT = "*******";
     private const int DELIVERIES_PER_TRIAL = LESS_DELIVERIES ? 3 : (NICLS_COURIER ? 16 : 13);
     private const int PRACTICE_DELIVERIES_PER_TRIAL = 4;
@@ -42,7 +43,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private const int TRIALS_PER_SESSION_SINGLE_TOWN_LEARNING = LESS_TRIALS ? 2 : 5;
     private const int TRIALS_PER_SESSION_DOUBLE_TOWN_LEARNING = LESS_TRIALS ? 1 : 3;
     private const int EFR_PRACTICE_TRIAL_NUM = 1;
-    private const int NUM_READ_ONLY_TRIALS = 2;
+    private const int NUM_READ_ONLY_TRIALS = 1;
     private const int SINGLE_TOWN_LEARNING_SESSIONS = 1000; // All sessions
     private const int DOUBLE_TOWN_LEARNING_SESSIONS = 1;
     private const int POINTING_INDICATOR_DELAY = NICLS_COURIER ? 12 : 40;
@@ -100,6 +101,11 @@ public class DeliveryExperiment : CoroutineExperiment
     private List<StoreComponent> this_trial_presented_stores = new List<StoreComponent>();
     private List<string> all_presented_objects = new List<string>();
 
+    // JPB: TODO: Make these configs object robust
+    // CONFIG OBJECTS
+    const string SYSTEM_CONFIG = "config.json";
+    dynamic systemConfig = null;
+
     private Syncbox syncs;
 
     public static void ConfigureExperiment(bool newUseRamulator, bool newUseNicls, int newSessionNumber, string newExpName)
@@ -127,6 +133,13 @@ public class DeliveryExperiment : CoroutineExperiment
         Application.targetFrameRate = 300;
         Cursor.SetCursor(new Texture2D(0, 0), new Vector2(0, 0), CursorMode.ForceSoftware);
         QualitySettings.vSyncCount = 1;
+
+        //// Setup config files
+        //string configPath = System.IO.Path.Combine(
+        //    Directory.GetParent(Directory.GetParent(UnityEPL.GetParticipantFolder()).FullName).FullName,
+        //    "configs");
+        //string text = File.ReadAllText(Path.Combine(configPath, SYSTEM_CONFIG));
+        //systemConfig = FlexibleConfig.LoadFromText(text);
 
         // Start syncpulses
         if (!NO_SYNCBOX)
@@ -414,14 +427,16 @@ public class DeliveryExperiment : CoroutineExperiment
         textDisplayer.ClearText();
         foreach (StoreComponent cueStore in this_trial_presented_stores)
         {
-            float wordDelay = Random.Range(WORD_PRESENTATION_DELAY - WORD_PRESENTATION_JITTER,
-                                               WORD_PRESENTATION_DELAY + WORD_PRESENTATION_JITTER);
-            yield return new WaitForSeconds(wordDelay);
-
-            if (trialNumber >= NUM_READ_ONLY_TRIALS)
+            if (useNicls && (trialNumber >= NUM_READ_ONLY_TRIALS))
             {
-                if (useNicls)
-                    yield return WaitForClassifier();
+                yield return new WaitForSeconds(WORD_PRESENTATION_DELAY);
+                yield return WaitForClassifier();
+            }
+            else
+            {
+                float wordDelay = Random.Range(WORD_PRESENTATION_DELAY - WORD_PRESENTATION_JITTER,
+                                               WORD_PRESENTATION_DELAY + WORD_PRESENTATION_JITTER);
+                yield return new WaitForSeconds(wordDelay);
             }
 
             cueStore.familiarization_object.SetActive(true);
@@ -674,16 +689,19 @@ public class DeliveryExperiment : CoroutineExperiment
                     ? nextStore.PopPracticeItem(LanguageSource.GetLanguageString("confetti"))
                     : nextStore.PopItem();
 
-                float wordDelay = Random.Range(WORD_PRESENTATION_DELAY - WORD_PRESENTATION_JITTER,
-                                               WORD_PRESENTATION_DELAY + WORD_PRESENTATION_JITTER);
-                yield return new WaitForSeconds(wordDelay);
-
-                if (useNicls)
+                if (useNicls && (trialNumber >= NUM_READ_ONLY_TRIALS))
                 {
+                    yield return new WaitForSeconds(WORD_PRESENTATION_DELAY);
                     if (practice)
                         niclsInterface.SendEncodingToNicls(1);
                     else
                         yield return WaitForClassifier();
+                }
+                else
+                {
+                    float wordDelay = Random.Range(WORD_PRESENTATION_DELAY - WORD_PRESENTATION_JITTER,
+                                               WORD_PRESENTATION_DELAY + WORD_PRESENTATION_JITTER);
+                    yield return new WaitForSeconds(wordDelay);
                 }
 
                 string deliveredItemName = deliveredItem.name;

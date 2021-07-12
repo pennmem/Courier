@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using UnityEngine;
 using NetMQ;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 public class NiclsInterface : MonoBehaviour
 {
@@ -23,15 +25,25 @@ public class NiclsInterface : MonoBehaviour
     private int unreceivedHeartbeats = 0;
 
     private NetMQ.Sockets.PairSocket zmqSocket;
-    // JPB: TODO: COMMENT OUT FOR TESTING
-    private const string address = "tcp://localhost:8889";
-    //private const string address = "tcp://130.91.28.243:8889";
-    //private const string address = "tcp://130.91.29.94:8889";
+    private string address = "tcp://localhost:8889";
+
+    const string SYSTEM_CONFIG = "config.json";
 
     //private NiclsEventLoop niclsEventLoop;
     private volatile int classifierResult = 0;
 
     private bool disabled = false;
+
+    private void Awake()
+    {
+        string configPath = System.IO.Path.Combine(
+            Directory.GetParent(Directory.GetParent(UnityEPL.GetParticipantFolder()).FullName).FullName,
+            "configs");
+        string text = File.ReadAllText(Path.Combine(configPath, SYSTEM_CONFIG));
+        var systemConfig = FlexibleConfig.LoadFromText(text);
+        address = "tcp://" + systemConfig.niclServerIP + ":" + systemConfig.niclServerPort;
+        Debug.Log(address);
+    }
 
     void OnApplicationQuit()
     {
@@ -90,6 +102,7 @@ public class NiclsInterface : MonoBehaviour
 
         //Connect to nicls///////////////////////////////////////////////////////////////////
         zmqSocket = new NetMQ.Sockets.PairSocket();
+        Debug.Log("TEST: " + address);
         zmqSocket.Connect(address);
         //Debug.Log ("socket bound");
 

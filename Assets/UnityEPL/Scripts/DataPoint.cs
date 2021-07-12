@@ -58,7 +58,7 @@ public class DataPoint
     }
 
     public string ValueToString(dynamic value) {
-        if (value is Dictionary<string, object>)
+        if (value is Dictionary<string, object>) // JPB: TODO: Remove
         {
             var dataDict = value;
             string JSONString = "{";

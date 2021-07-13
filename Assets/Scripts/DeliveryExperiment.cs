@@ -207,8 +207,9 @@ public class DeliveryExperiment : CoroutineExperiment
                 yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
                                      LanguageSource.GetLanguageString("standard intro video"),
                                      VideoSelector.VideoType.MainIntro);
-            yield return DoSubjectSessionQuitPrompt(sessionNumber,
-                                                    LanguageSource.GetLanguageString("running participant"));
+            if (!NICLS_COURIER)
+                yield return DoSubjectSessionQuitPrompt(sessionNumber,
+                                                        LanguageSource.GetLanguageString("running participant"));
             yield return DoMicrophoneTest(LanguageSource.GetLanguageString("microphone test"),
                                           LanguageSource.GetLanguageString("after the beep"),
                                           LanguageSource.GetLanguageString("recording"),
@@ -235,7 +236,8 @@ public class DeliveryExperiment : CoroutineExperiment
             Debug.Log("Town Learning Phase");
             niclsInterface.SendReadOnlyStateToNicls(1);
 
-            if (sessionNumber < SINGLE_TOWN_LEARNING_SESSIONS + DOUBLE_TOWN_LEARNING_SESSIONS)
+            if (subSessionNum == 0
+                && sessionNumber < SINGLE_TOWN_LEARNING_SESSIONS + DOUBLE_TOWN_LEARNING_SESSIONS)
             {
                 trialsPerSession = Config.trialsPerSessionSingleTownLearning;
                 messageImageDisplayer.SetGeneralMessageText("town learning title", "town learning main 1");
@@ -243,7 +245,7 @@ public class DeliveryExperiment : CoroutineExperiment
                 WorldScreen();
                 yield return DoTownLearning(environment, 0, environment.stores.Length);
 
-                if (sessionNumber < DOUBLE_TOWN_LEARNING_SESSIONS && subSessionNum == 0) // JPB: TODO: Nick fix
+                if (sessionNumber < DOUBLE_TOWN_LEARNING_SESSIONS)
                 {
                     trialsPerSession = Config.trialsPerSessionDoubleTownLearning;
                     messageImageDisplayer.SetGeneralMessageText("town learning title", "town learning main 2");
@@ -870,7 +872,6 @@ public class DeliveryExperiment : CoroutineExperiment
         textDisplayer.DisplayText("break prompt", LanguageSource.GetLanguageString("break"));
         while (!Input.GetKeyDown(KeyCode.Space))
             yield return null;
-        WorldScreen(); // JPB: TODO: Erase this
         textDisplayer.ClearText();
         scriptedEventReporter.ReportScriptedEvent("stop required break", new Dictionary<string, object>());
     }
@@ -884,7 +885,6 @@ public class DeliveryExperiment : CoroutineExperiment
                              LanguageSource.GetLanguageString("nicls movie"),
                              VideoSelector.VideoType.NiclsMovie,
                              movieIndices[sessionNumber]);
-        WorldScreen(); // JPB: TODO: Erase this
         scriptedEventReporter.ReportScriptedEvent("stop movie", new Dictionary<string, object>());
     }
 

@@ -27,7 +27,7 @@ public class DeliveryExperiment : CoroutineExperiment
     // JPB: TODO: Make these configuration variables
     private const bool NICLS_COURIER = true;
 
-    private const string COURIER_VERSION = "v5.0.9";
+    private const string COURIER_VERSION = "v5.0.10";
     private const string RECALL_TEXT = "*******"; // JPB: TODO: Remove this and use display system
     //private const int DELIVERIES_PER_TRIAL = LESS_DELIVERIES ? 3 : (NICLS_COURIER ? 16 : 13);
     //private const int PRACTICE_DELIVERIES_PER_TRIAL = 4;
@@ -346,7 +346,7 @@ public class DeliveryExperiment : CoroutineExperiment
             messageImageDisplayer.SetGeneralBiggerMessageText(mainText: "fixation item",
                                                            continueText: "");
 
-        yield return messageImageDisplayer.DisplayMessageTimed(messageImageDisplayer.general_big_message_display, time);
+        yield return messageImageDisplayer.DisplayMessageTimed(messageImageDisplayer.general_bigger_message_display, time);
         scriptedEventReporter.ReportScriptedEvent("stop fixation", new Dictionary<string, object>());
     }
 

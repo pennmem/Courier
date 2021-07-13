@@ -457100,7 +457100,7 @@ MonoBehaviour:
   germanIntro: {fileID: 32900000, guid: 553af4f761c2b4e3082f43af645ecccc, type: 3}
   englishEfrIntro: {fileID: 32900000, guid: 570d649d0a5c74bb3809b081d16a2826, type: 3}
   germanEfrIntro: {fileID: 0}
-  englishNewEfrIntro: {fileID: 0}
+  englishNewEfrIntro: {fileID: 32900000, guid: 570d649d0a5c74bb3809b081d16a2826, type: 3}
   germanNewEfrIntro: {fileID: 0}
   niclsEnglishIntro: {fileID: 32900000, guid: 07507cbc8c70743c4b59f74be7f610bb, type: 3}
   niclsMovie:

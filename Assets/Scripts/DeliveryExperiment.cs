@@ -25,17 +25,9 @@ public class DeliveryExperiment : CoroutineExperiment
     private static string expName;
 
     // JPB: TODO: Make these configuration variables
-    //private const bool NO_SYNCBOX = true;
-    //private const bool LESS_TRIALS = false;
-    //private const bool LESS_DELIVERIES = true;
-    //private const bool SKIP_INTROS = true;
-    //private const bool SKIP_TOWN_LEARNING = true;
-
-    //private const bool EFR_ENABLED = true;
     private const bool NICLS_COURIER = true;
-    //private const bool COUNTER_BALANCE_CORRECT_INCORRECT_BUTTONS = false;
 
-    private const string COURIER_VERSION = "v5.0.8";
+    private const string COURIER_VERSION = "v5.0.9";
     private const string RECALL_TEXT = "*******"; // JPB: TODO: Remove this and use display system
     //private const int DELIVERIES_PER_TRIAL = LESS_DELIVERIES ? 3 : (NICLS_COURIER ? 16 : 13);
     //private const int PRACTICE_DELIVERIES_PER_TRIAL = 4;
@@ -710,10 +702,10 @@ public class DeliveryExperiment : CoroutineExperiment
                     ? nextStore.PopPracticeItem(LanguageSource.GetLanguageString("confetti"))
                     : nextStore.PopItem();
 
-                if (useNicls && (trialNumber >= NUM_READ_ONLY_TRIALS))
+                if (useNicls && !practice)
                 {
                     yield return new WaitForSeconds(WORD_PRESENTATION_DELAY);
-                    if (practice)
+                    if (trialNumber < NUM_READ_ONLY_TRIALS)
                         niclsInterface.SendEncodingToNicls(1);
                     else
                         yield return WaitForClassifier();
@@ -796,7 +788,7 @@ public class DeliveryExperiment : CoroutineExperiment
                              LanguageSource.GetLanguageString("efr intro video"),
                              VideoSelector.VideoType.NewEfrIntro);
                     yield return DoNewEfrKeypressCheck();
-                    yield return DoNewEfrKeypressPractice();
+                    //yield return DoNewEfrKeypressPractice();
                 }
                 else
                 {
@@ -1020,12 +1012,8 @@ public class DeliveryExperiment : CoroutineExperiment
         BlackScreen();
         if (Config.newEfrEnabled)
         {
-            if (practice)
-                messageImageDisplayer.SetGeneralBiggerMessageText(titleText: "efr practice message",
-                                                                  continueText: "speak now");
-            else
-                messageImageDisplayer.SetGeneralBiggerMessageText(continueText: "speak now");
-
+            messageImageDisplayer.SetGeneralBiggerMessageText(titleText: "new efr message",
+                                                              continueText: "speak now");
             yield return messageImageDisplayer.DisplayMessageTimed(
                 messageImageDisplayer.general_bigger_message_display, waitTime);
         }
@@ -1105,6 +1093,9 @@ public class DeliveryExperiment : CoroutineExperiment
 
     private IEnumerator DoNewEfrKeypressCheck()
     {
+        if (Config.skipNewEfrKeypressCheck)
+            yield break;
+
         scriptedEventReporter.ReportScriptedEvent("start efr keypress check", new Dictionary<string, object>());
         BlackScreen();
 
@@ -1113,7 +1104,7 @@ public class DeliveryExperiment : CoroutineExperiment
         yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
 
         // Ask for reject button press
-        messageImageDisplayer.SetGeneralBiggerMessageText(titleText: "efr practice message",
+        messageImageDisplayer.SetGeneralBiggerMessageText(titleText: "new efr message",
                                                           continueText: "");
         yield return messageImageDisplayer.DisplayMessage(
             messageImageDisplayer.general_bigger_message_display, "EfrReject");
@@ -1171,6 +1162,9 @@ public class DeliveryExperiment : CoroutineExperiment
 
     private IEnumerator DoNewEfrKeypressPractice()
     {
+        if (Config.skipNewEfrKeypressPractice)
+            yield break;
+
         scriptedEventReporter.ReportScriptedEvent("start efr keypress practice", new Dictionary<string, object>());
         BlackScreen();
 
@@ -1180,7 +1174,7 @@ public class DeliveryExperiment : CoroutineExperiment
         yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
 
         // Ask for reject button press
-        messageImageDisplayer.SetGeneralBiggerMessageText(titleText: "efr practice message",
+        messageImageDisplayer.SetGeneralBiggerMessageText(titleText: "new efr message",
                                                           continueText: "");
         for (int i = 0; i < Config.newEfrKeypressPractices; i++)
             yield return messageImageDisplayer.DisplayMessage(

@@ -20,8 +20,12 @@ public class Config
     public static bool noSyncbox { get { return Config.GetSetting("noSyncbox"); } }
     public static bool lessTrials { get { return Config.GetSetting("lessTrials"); } }
     public static bool lessDeliveries { get { return Config.GetSetting("lessDeliveries"); } }
+
+    // Game Section Skips
     public static bool skipIntros { get { return Config.GetSetting("skipIntros"); } }
     public static bool skipTownLearning { get { return Config.GetSetting("skipTownLearning"); } }
+    public static bool skipNewEfrKeypressCheck { get { return Config.GetSetting("skipNewEfrKeypressCheck"); } }
+    public static bool skipNewEfrKeypressPractice { get { return Config.GetSetting("skipNewEfrKeypressPractice"); } }
 
     // Game Logic
     public static bool efrEnabled { get { return Config.GetSetting("efrEnabled"); } }

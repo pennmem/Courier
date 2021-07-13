@@ -96,7 +96,7 @@ public static class LanguageSource
 
         { "fr item", new string [] { "*******", "*******" } },
         { "speak now", new string [] { "(Please speak now)", GERMAN_TRANSLATION_NEEDED} },
-        { "efr practice message", new string [] { "Press the (B) key to reject a recalled item", GERMAN_TRANSLATION_NEEDED } },
+        { "new efr message", new string [] { "Press the (B) key to reject a recalled item", GERMAN_TRANSLATION_NEEDED } },
 
         { "cued recall message", new string [] {"Press the (X) key after recalling the item to move to the next store", GERMAN_TRANSLATION_NEEDED}},
 

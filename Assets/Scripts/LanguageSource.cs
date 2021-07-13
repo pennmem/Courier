@@ -47,6 +47,9 @@ public static class LanguageSource
         { "efr first day description", new string [] {"Don’t forget to continue pressing the left/right buttons when recalling items at the end of each delivery day.",
                                                   GERMAN_TRANSLATION_NEEDED}},
 
+        { "new efr first day description", new string [] {"Don’t forget to continue pressing the (X) button to reject words when recalling items at the end of each delivery day.",
+                                                  GERMAN_TRANSLATION_NEEDED}},
+
         { "town learning title", new string [] { "Town Learning Phase", GERMAN_TRANSLATION_NEEDED } },
         { "town learning main 1", new string [] { "Please locate all of the stores one by one.", GERMAN_TRANSLATION_NEEDED } },
         { "town learning main 2", new string [] { "Let's do it again!\nPlease locate all of the stores one by one.", GERMAN_TRANSLATION_NEEDED } },
@@ -84,8 +87,16 @@ public static class LanguageSource
                                                               "When the <b>left button</b> text becomes bolded - press the\nleft button", 
                                                               GERMAN_TRANSLATION_NEEDED}},
 
-        { "fixation item", new string [] {"+", "+"}},
-        { "fixation practice message", new string [] {"Please look at the plus sign", GERMAN_TRANSLATION_NEEDED}},
+        { "new efr keypress practice main", new string [] {"Let's practice pressing the reject key.", GERMAN_TRANSLATION_NEEDED}},
+        { "new efr keypress practice description", new string [] {"Press the (B) key 20 times and wait about 3 seconds between each keypress.\n\nThe screen will automatically continue when you are done.",
+                                                              GERMAN_TRANSLATION_NEEDED}},
+
+        { "fixation item", new string [] {"+", "+"} },
+        { "fixation practice message", new string [] {"Please look at the plus sign", GERMAN_TRANSLATION_NEEDED} },
+
+        { "fr item", new string [] { "*******", "*******" } },
+        { "speak now", new string [] { "(Please speak now)", GERMAN_TRANSLATION_NEEDED} },
+        { "efr practice message", new string [] { "Press the (B) key to reject a recalled item", GERMAN_TRANSLATION_NEEDED } },
 
         { "cued recall message", new string [] {"Press the (X) key after recalling the item to move to the next store", GERMAN_TRANSLATION_NEEDED}},
 

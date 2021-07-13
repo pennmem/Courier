@@ -9,6 +9,8 @@ public class VideoSelector : MonoBehaviour
     public UnityEngine.Video.VideoClip germanIntro;
     public UnityEngine.Video.VideoClip englishEfrIntro;
     public UnityEngine.Video.VideoClip germanEfrIntro;
+    public UnityEngine.Video.VideoClip englishNewEfrIntro;
+    public UnityEngine.Video.VideoClip germanNewEfrIntro;
     public UnityEngine.Video.VideoClip niclsEnglishIntro;
     public UnityEngine.Video.VideoClip[] niclsMovie;
 
@@ -25,6 +27,7 @@ public class VideoSelector : MonoBehaviour
     {
         MainIntro,
         EfrIntro,
+        NewEfrIntro,
         NiclsMainIntro,
         NiclsMovie
     }
@@ -33,6 +36,7 @@ public class VideoSelector : MonoBehaviour
     {
         switch (videoType)
         {
+            // JPB: TODO: Refactor this to make movies an array of language options
             case VideoType.MainIntro:
                 if (LanguageSource.current_language == LanguageSource.LANGUAGE.GERMAN)
                     videoPlayer.clip = germanIntro;
@@ -44,6 +48,12 @@ public class VideoSelector : MonoBehaviour
                     videoPlayer.clip = germanEfrIntro;
                 else
                     videoPlayer.clip = englishEfrIntro;
+                break;
+            case VideoType.NewEfrIntro:
+                if (LanguageSource.current_language == LanguageSource.LANGUAGE.GERMAN)
+                    videoPlayer.clip = germanNewEfrIntro;
+                else
+                    videoPlayer.clip = englishNewEfrIntro;
                 break;
             case VideoType.NiclsMainIntro:
                 videoPlayer.clip = niclsEnglishIntro;

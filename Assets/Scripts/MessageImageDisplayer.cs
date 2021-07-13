@@ -14,6 +14,7 @@ public class MessageImageDisplayer : MonoBehaviour
 
     public GameObject[] nicls_final_recall_messages; // JPB: TODO: Add the german slide
     public GameObject[] recap_instruction_messages_en; // JPB: TODO: Make this work for german
+    public GameObject[] recap_instruction_messages_new_en;
 
     public GameObject please_find_the_blah;
     public Text please_find_the_blah_text;
@@ -26,6 +27,7 @@ public class MessageImageDisplayer : MonoBehaviour
     public GameObject cued_recall_message;
     public GameObject general_message_display;
     public GameObject general_big_message_display;
+    public GameObject general_bigger_message_display;
     public ScriptedEventReporter scriptedEventReporter;
 
     private const float BUTTON_MSG_DISPLAY_WAIT = 0.3f;
@@ -77,6 +79,18 @@ public class MessageImageDisplayer : MonoBehaviour
         {
             if (InputManager.GetButtonDown("Secret"))
                 break;
+            else if (InputManager.GetButtonDown("Continue"))
+                scriptedEventReporter.ReportScriptedEvent("keypress",
+                    new Dictionary<string, object> { { "response", "reject" } });
+            else if (InputManager.anyKeyDown)
+            {
+                foreach (KeyCode kcode in System.Enum.GetValues(typeof(KeyCode)))
+                {
+                    if (InputManager.GetKey(kcode))
+                        scriptedEventReporter.ReportScriptedEvent("keypress",
+                            new Dictionary<string, object> { { "response", kcode.ToString() } });
+                }
+            }
             yield return null;
         }
         scriptedEventReporter.ReportScriptedEvent("instruction message cleared", messageData);
@@ -275,6 +289,16 @@ public class MessageImageDisplayer : MonoBehaviour
             general_big_message_display.transform.Find("main text").GetComponent<Text>().text = LanguageSource.GetLanguageString(mainText);
         if (continueText != null)
             general_big_message_display.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString(continueText);
+    }
+
+    public void SetGeneralBiggerMessageText(string titleText = "", string mainText = "", string continueText = "continue")
+    {
+        if (titleText != null)
+            general_bigger_message_display.transform.Find("title text").GetComponent<Text>().text = LanguageSource.GetLanguageString(titleText);
+        if (mainText != null)
+            general_bigger_message_display.transform.Find("main text").GetComponent<Text>().text = LanguageSource.GetLanguageString(mainText);
+        if (continueText != null)
+            general_bigger_message_display.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString(continueText);
     }
 
     public IEnumerator DoTextBoldTimedOrButton(string buttonName, Text displayText, float waitTime)

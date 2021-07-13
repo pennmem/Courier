@@ -25,6 +25,7 @@ public class Config
 
     // Game Logic
     public static bool efrEnabled { get { return Config.GetSetting("efrEnabled"); } }
+    public static bool newEfrEnabled { get { return Config.GetSetting("newEfrEnabled"); } }
     public static bool niclsCourier { get { return Config.GetSetting("niclsCourier"); } }
     public static bool counterBalanceCorrectIncorrectButton { get { return Config.GetSetting("counterBalanceCorrectIncorrectButton"); } }
 
@@ -42,6 +43,8 @@ public class Config
             if (lessDeliveries) return 3;
             else return Config.GetSetting("deliveriesPerTrial"); } }
     public static int practiceDeliveriesPerTrial { get { return Config.GetSetting("practiceDeliveriesPerTrial"); } }
+
+    public static int newEfrKeypressPractices { get { return Config.GetSetting("newEfrKeypressPractices"); } }
 
     private const string SYSTEM_CONFIG_NAME = "config.json";
 

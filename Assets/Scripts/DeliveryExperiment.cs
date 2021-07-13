@@ -35,8 +35,8 @@ public class DeliveryExperiment : CoroutineExperiment
     private const bool NICLS_COURIER = true;
     //private const bool COUNTER_BALANCE_CORRECT_INCORRECT_BUTTONS = false;
 
-    private const string COURIER_VERSION = "v5.0.7";
-    private const string RECALL_TEXT = "*******";
+    private const string COURIER_VERSION = "v5.0.8";
+    private const string RECALL_TEXT = "*******"; // JPB: TODO: Remove this and use display system
     //private const int DELIVERIES_PER_TRIAL = LESS_DELIVERIES ? 3 : (NICLS_COURIER ? 16 : 13);
     //private const int PRACTICE_DELIVERIES_PER_TRIAL = 4;
     //private const int TRIALS_PER_SESSION = LESS_TRIALS ? 2 : (NICLS_COURIER ? 5 : 8);
@@ -47,7 +47,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private const int SINGLE_TOWN_LEARNING_SESSIONS = 1000; // All sessions
     private const int DOUBLE_TOWN_LEARNING_SESSIONS = 1;
     private const int POINTING_INDICATOR_DELAY = NICLS_COURIER ? 12 : 40;
-    private const int EFR_KEYPRESS_PRACTICES = 8;
+    private const int EFR_KEYPRESS_PRACTICES = 10;
     private const float MIN_FAMILIARIZATION_ISI = 0.4f;
     private const float MAX_FAMILIARIZATION_ISI = 0.6f;
     private const float FAMILIARIZATION_PRESENTATION_LENGTH = 1.5f;
@@ -251,7 +251,10 @@ public class DeliveryExperiment : CoroutineExperiment
 
         Debug.Log("Real trials");
         if (Config.efrEnabled)
-            messageImageDisplayer.SetGeneralMessageText(mainText: "first day main", descriptiveText: "efr first day description");
+            if (Config.newEfrEnabled)
+                messageImageDisplayer.SetGeneralMessageText(mainText: "first day main", descriptiveText: "new efr first day description");
+            else
+                messageImageDisplayer.SetGeneralMessageText(mainText: "first day main", descriptiveText: "efr first day description");
         else
             messageImageDisplayer.SetGeneralMessageText(mainText: "first day main");
 
@@ -303,16 +306,26 @@ public class DeliveryExperiment : CoroutineExperiment
         BlackScreen();
 
         if (NICLS_COURIER && sessionNumber == 0)
+        {
             yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
                                     LanguageSource.GetLanguageString("standard intro video"),
                                     VideoSelector.VideoType.NiclsMainIntro);
+        }
         else if (NICLS_COURIER) // sessionNumber >= 1
-            foreach (var message in messageImageDisplayer.recap_instruction_messages_en)
+        {
+            var messages = Config.newEfrEnabled
+                ? messageImageDisplayer.recap_instruction_messages_new_en
+                : messageImageDisplayer.recap_instruction_messages_en;
+
+            foreach (var message in messages)
                 yield return messageImageDisplayer.DisplayMessage(message);
+        }
         else if (!NICLS_COURIER)
+        {
             yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
                                     LanguageSource.GetLanguageString("standard intro video"),
                                     VideoSelector.VideoType.MainIntro);
+        }
 
         if (!NICLS_COURIER)
             yield return DoSubjectSessionQuitPrompt(sessionNumber,
@@ -334,11 +347,11 @@ public class DeliveryExperiment : CoroutineExperiment
         BlackScreen();
 
         if (practice)
-            messageImageDisplayer.SetGeneralBigMessageText(titleText: "fixation practice message",
+            messageImageDisplayer.SetGeneralBiggerMessageText(titleText: "fixation practice message",
                                                            mainText: "fixation item",
                                                            continueText: "");
         else
-            messageImageDisplayer.SetGeneralBigMessageText(mainText: "fixation item",
+            messageImageDisplayer.SetGeneralBiggerMessageText(mainText: "fixation item",
                                                            continueText: "");
 
         yield return messageImageDisplayer.DisplayMessageTimed(messageImageDisplayer.general_big_message_display, time);
@@ -393,7 +406,6 @@ public class DeliveryExperiment : CoroutineExperiment
         yield return SkippableWait(RECALL_TEXT_DISPLAY_LENGTH);
         textDisplayer.ClearText();
 
-
         string output_directory = UnityEPL.GetDataPath();
         string wavFilePath = practice
                     ? System.IO.Path.Combine(output_directory, "practice-" + continuousTrialNum.ToString()) + ".wav"
@@ -403,12 +415,12 @@ public class DeliveryExperiment : CoroutineExperiment
         scriptedEventReporter.ReportScriptedEvent("object recall recording start", recordingData);
         soundRecorder.StartRecording(wavFilePath);
 
-        if ((practice && trialNumber == 0) || !Config.efrEnabled)
-            yield return DoFreeRecallDisplay(PRACTICE_FREE_RECALL_LENGTH);
+        if (practice && trialNumber == 0)
+            yield return DoFreeRecallDisplay("", PRACTICE_FREE_RECALL_LENGTH, practice: true, efrDisabled: true);
         else if (practice)
-            yield return DoEfrDisplay("", PRACTICE_FREE_RECALL_LENGTH, practice);
+            yield return DoFreeRecallDisplay("", PRACTICE_FREE_RECALL_LENGTH, practice: true);
         else
-            yield return DoEfrDisplay("", FREE_RECALL_LENGTH);
+            yield return DoFreeRecallDisplay("", FREE_RECALL_LENGTH);
 
         scriptedEventReporter.ReportScriptedEvent("object recall recording stop", recordingData);
         soundRecorder.StopRecording();
@@ -515,7 +527,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
             textDisplayer.ClearText();
             ClearTitle();
-            yield return DoEfrDisplay("all stores recall", STORE_FINAL_RECALL_LENGTH);
+            yield return DoFreeRecallDisplay("all stores recall", STORE_FINAL_RECALL_LENGTH);
 
             scriptedEventReporter.ReportScriptedEvent("final store recall recording stop", new Dictionary<string, object>());
             soundRecorder.StopRecording();
@@ -543,7 +555,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
         textDisplayer.ClearText();
         ClearTitle();
-        yield return DoEfrDisplay("all objects recall", FINAL_RECALL_LENGTH);
+        yield return DoFreeRecallDisplay("all objects recall", FINAL_RECALL_LENGTH);
         scriptedEventReporter.ReportScriptedEvent("final object recall recording stop", new Dictionary<string, object>());
         soundRecorder.StopRecording();
 
@@ -770,7 +782,7 @@ public class DeliveryExperiment : CoroutineExperiment
             //        yield return DoBreak();
             //}
 
-            // Turn off ReadOnlyState
+            //Turn off ReadOnlyState
             if (NICLS_COURIER && !practice && trialNumber == NUM_READ_ONLY_TRIALS)
                 niclsInterface.SendReadOnlyStateToNicls(0);
 
@@ -778,11 +790,22 @@ public class DeliveryExperiment : CoroutineExperiment
             if (Config.efrEnabled && practice
                 && trialNumber == EFR_PRACTICE_TRIAL_NUM && subSessionNum == 0) // JPB: TODO: Nick fix
             {
-                yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
+                if (Config.newEfrEnabled)
+                {
+                    yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
+                             LanguageSource.GetLanguageString("efr intro video"),
+                             VideoSelector.VideoType.NewEfrIntro);
+                    yield return DoNewEfrKeypressCheck();
+                    yield return DoNewEfrKeypressPractice();
+                }
+                else
+                {
+                    yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
                              LanguageSource.GetLanguageString("efr intro video"),
                              VideoSelector.VideoType.EfrIntro);
-                yield return DoEfrKeypressCheck();
-                yield return DoEfrKeypressPractice();
+                    yield return DoEfrKeypressCheck();
+                    yield return DoEfrKeypressPractice();
+                } 
             }
 
             // Next day message
@@ -977,24 +1000,44 @@ public class DeliveryExperiment : CoroutineExperiment
         return environment;
     }
 
-    private IEnumerator DoFreeRecallDisplay(float waitTime)
+    private IEnumerator DoFreeRecallDisplay(string title, float waitTime, bool practice = false, bool efrDisabled = false)
     {
         BlackScreen();
-        yield return messageImageDisplayer.DisplayMessageTimed(
-            messageImageDisplayer.free_recall_display,
-            waitTime);
+        if (Config.efrEnabled && !efrDisabled)
+        {
+            yield return DoEfrDisplay(title, waitTime, practice);
+        }
+        else
+        {
+            messageImageDisplayer.SetGeneralBiggerMessageText(continueText: "speak now");
+            yield return messageImageDisplayer.DisplayMessageTimed(
+                messageImageDisplayer.general_bigger_message_display, waitTime);
+        }
     }
 
     private IEnumerator DoEfrDisplay(string title, float waitTime, bool practice = false)
     {
         BlackScreen();
-        SetEfrDisplay();
+        if (Config.newEfrEnabled)
+        {
+            if (practice)
+                messageImageDisplayer.SetGeneralBiggerMessageText(titleText: "efr practice message",
+                                                                  continueText: "speak now");
+            else
+                messageImageDisplayer.SetGeneralBiggerMessageText(continueText: "speak now");
 
-        messageImageDisplayer.SetEfrText(titleText: title);
-        messageImageDisplayer.SetEfrElementsActive(speakNowText: true);
-        yield return messageImageDisplayer.DisplayMessageTimedLRKeypressBold(
-                messageImageDisplayer.efr_display, waitTime,
-                efrLeftLogMsg, efrRightLogMsg, practice);
+            yield return messageImageDisplayer.DisplayMessageTimed(
+                messageImageDisplayer.general_bigger_message_display, waitTime);
+        }
+        else
+        {
+            SetEfrDisplay();
+            messageImageDisplayer.SetEfrText(titleText: title);
+            messageImageDisplayer.SetEfrElementsActive(speakNowText: true);
+            yield return messageImageDisplayer.DisplayMessageTimedLRKeypressBold(
+                    messageImageDisplayer.efr_display, waitTime,
+                    efrLeftLogMsg, efrRightLogMsg, practice);
+        }
     }
 
     private void SetEfrDisplay(EfrButton? keypressPractice = null)
@@ -1060,6 +1103,24 @@ public class DeliveryExperiment : CoroutineExperiment
         scriptedEventReporter.ReportScriptedEvent("stop efr keypress check", new Dictionary<string, object>());
     }
 
+    private IEnumerator DoNewEfrKeypressCheck()
+    {
+        scriptedEventReporter.ReportScriptedEvent("start efr keypress check", new Dictionary<string, object>());
+        BlackScreen();
+
+        // Display intro message
+        messageImageDisplayer.SetGeneralMessageText(mainText: "efr check main");
+        yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
+
+        // Ask for reject button press
+        messageImageDisplayer.SetGeneralBiggerMessageText(titleText: "efr practice message",
+                                                          continueText: "");
+        yield return messageImageDisplayer.DisplayMessage(
+            messageImageDisplayer.general_bigger_message_display, "EfrReject");
+
+        scriptedEventReporter.ReportScriptedEvent("stop efr keypress check", new Dictionary<string, object>());
+    }
+
     private IEnumerator DoEfrKeypressPractice()
     {
         scriptedEventReporter.ReportScriptedEvent("start efr keypress practice", new Dictionary<string, object>());
@@ -1104,6 +1165,26 @@ public class DeliveryExperiment : CoroutineExperiment
                 messageImageDisplayer.SetEfrTextResize(rightButtonSize: -0.3f);
             }
         }
+
+        scriptedEventReporter.ReportScriptedEvent("stop efr keypress practice", new Dictionary<string, object>());
+    }
+
+    private IEnumerator DoNewEfrKeypressPractice()
+    {
+        scriptedEventReporter.ReportScriptedEvent("start efr keypress practice", new Dictionary<string, object>());
+        BlackScreen();
+
+        // Display intro message
+        messageImageDisplayer.SetGeneralBigMessageText(titleText: "new efr keypress practice main",
+                                                       mainText: "new efr keypress practice description");
+        yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
+
+        // Ask for reject button press
+        messageImageDisplayer.SetGeneralBiggerMessageText(titleText: "efr practice message",
+                                                          continueText: "");
+        for (int i = 0; i < Config.newEfrKeypressPractices; i++)
+            yield return messageImageDisplayer.DisplayMessage(
+                messageImageDisplayer.general_bigger_message_display, "EfrReject");
 
         scriptedEventReporter.ReportScriptedEvent("stop efr keypress practice", new Dictionary<string, object>());
     }

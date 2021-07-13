@@ -197,27 +197,9 @@ public class DeliveryExperiment : CoroutineExperiment
     private IEnumerator DoSubSession(int subSessionNum)
     {
         BlackScreen();
-        if (!Config.skipIntros && subSessionNum == 0) // JPB: TODO: Nick fix
-        {
-            if ((NICLS_COURIER && sessionNumber == 0)) // JPB: TODO: Nick fix
-                yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
-                                     LanguageSource.GetLanguageString("standard intro video"),
-                                     VideoSelector.VideoType.NiclsMainIntro);
-            else if(!NICLS_COURIER)
-                yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
-                                     LanguageSource.GetLanguageString("standard intro video"),
-                                     VideoSelector.VideoType.MainIntro);
-            if (!NICLS_COURIER)
-                yield return DoSubjectSessionQuitPrompt(sessionNumber,
-                                                        LanguageSource.GetLanguageString("running participant"));
-            yield return DoMicrophoneTest(LanguageSource.GetLanguageString("microphone test"),
-                                          LanguageSource.GetLanguageString("after the beep"),
-                                          LanguageSource.GetLanguageString("recording"),
-                                          LanguageSource.GetLanguageString("playing"),
-                                          LanguageSource.GetLanguageString("recording confirmation"));
-            if (!NICLS_COURIER)
-                yield return DoFamiliarization();
-        }
+
+        if (subSessionNum == 0)
+            yield return DoIntros();
 
         Environment environment = EnableEnvironment();
         Dictionary<string, object> storeMappings = new Dictionary<string, object>();
@@ -287,7 +269,10 @@ public class DeliveryExperiment : CoroutineExperiment
 
         Debug.Log("Final Recalls");
         BlackScreen();
-        yield return messageImageDisplayer.DisplayLanguageMessage(messageImageDisplayer.final_recall_messages);
+        if (NICLS_COURIER)
+            yield return messageImageDisplayer.DisplayLanguageMessage(messageImageDisplayer.nicls_final_recall_messages);
+        else
+            yield return messageImageDisplayer.DisplayLanguageMessage(messageImageDisplayer.final_recall_messages);
         yield return DoFinalRecall(environment, subSessionNum);
     }
 
@@ -308,6 +293,39 @@ public class DeliveryExperiment : CoroutineExperiment
         blackScreenCamera.enabled = true;
         starSystem.gameObject.SetActive(false);
         playerMovement.Freeze();
+    }
+
+    private IEnumerator DoIntros()
+    {
+        if (Config.skipIntros)
+            yield break;
+
+        BlackScreen();
+
+        if (NICLS_COURIER && sessionNumber == 0)
+            yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
+                                    LanguageSource.GetLanguageString("standard intro video"),
+                                    VideoSelector.VideoType.NiclsMainIntro);
+        else if (NICLS_COURIER) // sessionNumber >= 1
+            foreach (var message in messageImageDisplayer.recap_instruction_messages_en)
+                yield return messageImageDisplayer.DisplayMessage(message);
+        else if (!NICLS_COURIER)
+            yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
+                                    LanguageSource.GetLanguageString("standard intro video"),
+                                    VideoSelector.VideoType.MainIntro);
+
+        if (!NICLS_COURIER)
+            yield return DoSubjectSessionQuitPrompt(sessionNumber,
+                                                    LanguageSource.GetLanguageString("running participant"));
+
+        yield return DoMicrophoneTest(LanguageSource.GetLanguageString("microphone test"),
+                                        LanguageSource.GetLanguageString("after the beep"),
+                                        LanguageSource.GetLanguageString("recording"),
+                                        LanguageSource.GetLanguageString("playing"),
+                                        LanguageSource.GetLanguageString("recording confirmation"));
+
+        if (!NICLS_COURIER)
+            yield return DoFamiliarization();
     }
 
     private IEnumerator DoFixation(float time, bool practice = false)
@@ -545,7 +563,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
     private IEnumerator DoTownLearning(Environment environment, int trialNumber, int numDeliveries)
     {
-        if (Config.skipTownLearning)
+        if (Config.skipTownLearning || InputManager.GetButton("Secret"))
             yield break;
 
         scriptedEventReporter.ReportScriptedEvent("start town learning", new Dictionary<string, object>());

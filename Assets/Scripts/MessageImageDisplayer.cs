@@ -12,6 +12,9 @@ public class MessageImageDisplayer : MonoBehaviour
     public GameObject[] delivery_restart_messages;
     public GameObject[] store_images_presentation_messages;
 
+    public GameObject[] nicls_final_recall_messages; // JPB: TODO: Add the german slide
+    public GameObject[] recap_instruction_messages_en; // JPB: TODO: Make this work for german
+
     public GameObject please_find_the_blah;
     public Text please_find_the_blah_text;
     public GameObject please_find_the_blah_reminder;

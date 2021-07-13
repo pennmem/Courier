@@ -26,22 +26,22 @@ public class DeliveryExperiment : CoroutineExperiment
 
     // JPB: TODO: Make these configuration variables
     //private const bool NO_SYNCBOX = true;
-    private const bool LESS_TRIALS = false;
-    private const bool LESS_DELIVERIES = true;
-    private const bool SKIP_INTROS = true;
-    private const bool SKIP_TOWN_LEARNING = true;
+    //private const bool LESS_TRIALS = false;
+    //private const bool LESS_DELIVERIES = true;
+    //private const bool SKIP_INTROS = true;
+    //private const bool SKIP_TOWN_LEARNING = true;
 
-    private const bool EFR_ENABLED = true;
+    //private const bool EFR_ENABLED = true;
     private const bool NICLS_COURIER = true;
-    private const bool COUNTER_BALANCE_CORRECT_INCORRECT_BUTTONS = false;
+    //private const bool COUNTER_BALANCE_CORRECT_INCORRECT_BUTTONS = false;
 
     private const string COURIER_VERSION = "v5.0.7";
     private const string RECALL_TEXT = "*******";
-    private const int DELIVERIES_PER_TRIAL = LESS_DELIVERIES ? 3 : (NICLS_COURIER ? 16 : 13);
-    private const int PRACTICE_DELIVERIES_PER_TRIAL = 4;
-    private const int TRIALS_PER_SESSION = LESS_TRIALS ? 2 : (NICLS_COURIER ? 5 : 8);
-    private const int TRIALS_PER_SESSION_SINGLE_TOWN_LEARNING = LESS_TRIALS ? 2 : 5;
-    private const int TRIALS_PER_SESSION_DOUBLE_TOWN_LEARNING = LESS_TRIALS ? 1 : 3;
+    //private const int DELIVERIES_PER_TRIAL = LESS_DELIVERIES ? 3 : (NICLS_COURIER ? 16 : 13);
+    //private const int PRACTICE_DELIVERIES_PER_TRIAL = 4;
+    //private const int TRIALS_PER_SESSION = LESS_TRIALS ? 2 : (NICLS_COURIER ? 5 : 8);
+    //private const int TRIALS_PER_SESSION_SINGLE_TOWN_LEARNING = LESS_TRIALS ? 2 : 5;
+    //private const int TRIALS_PER_SESSION_DOUBLE_TOWN_LEARNING = LESS_TRIALS ? 1 : 3;
     private const int EFR_PRACTICE_TRIAL_NUM = 1;
     private const int NUM_READ_ONLY_TRIALS = 1;
     private const int SINGLE_TOWN_LEARNING_SESSIONS = 1000; // All sessions
@@ -130,17 +130,15 @@ public class DeliveryExperiment : CoroutineExperiment
         Cursor.SetCursor(new Texture2D(0, 0), new Vector2(0, 0), CursorMode.ForceSoftware);
         QualitySettings.vSyncCount = 1;
 
-        Debug.Log(Config.GetExperimentConfig().noSyncbox);
-
         // Start syncpulses
-        if (!Config.GetExperimentConfig().noSyncbox)
+        if (!Config.noSyncbox)
         {
             syncs = GameObject.Find("SyncBox").GetComponent<Syncbox>();
             syncs.StartPulse();
         }
 
         // Randomize efr correct/incorrect button sides
-        if (EFR_ENABLED && COUNTER_BALANCE_CORRECT_INCORRECT_BUTTONS)
+        if (Config.efrEnabled && Config.counterBalanceCorrectIncorrectButton)
         {
             // We want randomness for different people, but consistency between sessions
             System.Random reliableRandom = new System.Random(UnityEPL.GetParticipants()[0].GetHashCode());
@@ -199,7 +197,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private IEnumerator DoSubSession(int subSessionNum)
     {
         BlackScreen();
-        if (!SKIP_INTROS && subSessionNum == 0) // JPB: TODO: Nick fix
+        if (!Config.skipIntros && subSessionNum == 0) // JPB: TODO: Nick fix
         {
             if ((NICLS_COURIER && sessionNumber == 0)) // JPB: TODO: Nick fix
                 yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
@@ -231,7 +229,7 @@ public class DeliveryExperiment : CoroutineExperiment
         }
         scriptedEventReporter.ReportScriptedEvent("store mappings", storeMappings);
 
-        int trialsPerSession = TRIALS_PER_SESSION;
+        int trialsPerSession = Config.trialsPerSession;
         if (NICLS_COURIER)
         {
             Debug.Log("Town Learning Phase");
@@ -239,7 +237,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
             if (sessionNumber < SINGLE_TOWN_LEARNING_SESSIONS + DOUBLE_TOWN_LEARNING_SESSIONS)
             {
-                trialsPerSession = TRIALS_PER_SESSION_SINGLE_TOWN_LEARNING;
+                trialsPerSession = Config.trialsPerSessionSingleTownLearning;
                 messageImageDisplayer.SetGeneralMessageText("town learning title", "town learning main 1");
                 yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
                 WorldScreen();
@@ -247,7 +245,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
                 if (sessionNumber < DOUBLE_TOWN_LEARNING_SESSIONS && subSessionNum == 0) // JPB: TODO: Nick fix
                 {
-                    trialsPerSession = TRIALS_PER_SESSION_DOUBLE_TOWN_LEARNING;
+                    trialsPerSession = Config.trialsPerSessionDoubleTownLearning;
                     messageImageDisplayer.SetGeneralMessageText("town learning title", "town learning main 2");
                     yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
                     WorldScreen();
@@ -268,7 +266,7 @@ public class DeliveryExperiment : CoroutineExperiment
         }
 
         Debug.Log("Real trials");
-        if (EFR_ENABLED)
+        if (Config.efrEnabled)
             messageImageDisplayer.SetGeneralMessageText(mainText: "first day main", descriptiveText: "efr first day description");
         else
             messageImageDisplayer.SetGeneralMessageText(mainText: "first day main");
@@ -278,9 +276,9 @@ public class DeliveryExperiment : CoroutineExperiment
         if (NICLS_COURIER && subSessionNum > 0) // JPB: TODO: Nick fix
         {
             if (sessionNumber < DOUBLE_TOWN_LEARNING_SESSIONS)
-                priorTrialsPerSession = TRIALS_PER_SESSION_DOUBLE_TOWN_LEARNING;
+                priorTrialsPerSession = Config.trialsPerSessionDoubleTownLearning;
             else if (sessionNumber < SINGLE_TOWN_LEARNING_SESSIONS)
-                priorTrialsPerSession = TRIALS_PER_SESSION_SINGLE_TOWN_LEARNING;
+                priorTrialsPerSession = Config.trialsPerSessionSingleTownLearning;
         }
         yield return DoTrials(environment, trialsPerSession, subSessionNum,
                               trialNumOffset: subSessionNum * priorTrialsPerSession); // JPB: TODO: Fix this to work for more than two sub-sessions
@@ -385,7 +383,7 @@ public class DeliveryExperiment : CoroutineExperiment
         scriptedEventReporter.ReportScriptedEvent("object recall recording start", recordingData);
         soundRecorder.StartRecording(wavFilePath);
 
-        if ((practice && trialNumber == 0) || !EFR_ENABLED)
+        if ((practice && trialNumber == 0) || !Config.efrEnabled)
             yield return DoFreeRecallDisplay(PRACTICE_FREE_RECALL_LENGTH);
         else if (practice)
             yield return DoEfrDisplay("", PRACTICE_FREE_RECALL_LENGTH, practice);
@@ -545,7 +543,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
     private IEnumerator DoTownLearning(Environment environment, int trialNumber, int numDeliveries)
     {
-        if (SKIP_TOWN_LEARNING)
+        if (Config.skipTownLearning)
             yield break;
 
         scriptedEventReporter.ReportScriptedEvent("start town learning", new Dictionary<string, object>());
@@ -613,7 +611,7 @@ public class DeliveryExperiment : CoroutineExperiment
         this_trial_presented_stores = new List<StoreComponent>();
         List<StoreComponent> unvisitedStores = new List<StoreComponent>(environment.stores);
 
-        int deliveries = practice ? PRACTICE_DELIVERIES_PER_TRIAL : DELIVERIES_PER_TRIAL;
+        int deliveries = practice ? Config.practiceDeliveriesPerTrial : Config.deliveriesPerTrial;
         int craft_shop_delivery_num = rng.Next(deliveries - 1);
 
         for (int i = 0; i < deliveries; i++)
@@ -757,7 +755,8 @@ public class DeliveryExperiment : CoroutineExperiment
                 niclsInterface.SendReadOnlyStateToNicls(0);
 
             // EFR instructions
-            if (EFR_ENABLED && practice && trialNumber == EFR_PRACTICE_TRIAL_NUM && subSessionNum == 0) // JPB: TODO: Nick fix
+            if (Config.efrEnabled && practice
+                && trialNumber == EFR_PRACTICE_TRIAL_NUM && subSessionNum == 0) // JPB: TODO: Nick fix
             {
                 yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
                              LanguageSource.GetLanguageString("efr intro video"),

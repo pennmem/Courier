@@ -34,10 +34,8 @@ public class NiclsInterface : MonoBehaviour
 
     private void Awake()
     {
-        address = "tcp://" + Config.GetSystemConfig().niclServerIP + ":" + Config.GetSystemConfig().niclServerPort;
-        Debug.Log(address);
-        //Debug.Log("MEEP1: " + Config.GetSetting("niclsServerIP"));
-        //Debug.Log("MEEP2: " + Config.GetSetting("noSyncbox"));
+        address = "tcp://" + Config.niclServerIP + ":" + Config.niclServerPort;
+        Debug.Log("NiclServer address: " + address);
     }
 
 

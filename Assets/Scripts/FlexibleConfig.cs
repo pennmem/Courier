@@ -10,15 +10,60 @@ using UnityEngine;
 
 public class Config
 {
-    const string SYSTEM_CONFIG_NAME = "config.json";
-
-    static object configLock = new object();
-    static dynamic systemConfig = null;
-    static dynamic experimentConfig = null;
-
     public static string experimentConfigName = null;
 
-    public static dynamic GetSystemConfig()
+    // System Settings
+    public static string niclServerIP { get { return Config.GetSetting("niclServerIP"); } }
+    public static int niclServerPort { get { return Config.GetSetting("niclServerPort"); } }
+
+    // Programmer Conveniences
+    public static bool noSyncbox { get { return Config.GetSetting("noSyncbox"); } }
+    public static bool lessTrials { get { return Config.GetSetting("lessTrials"); } }
+    public static bool lessDeliveries { get { return Config.GetSetting("lessDeliveries"); } }
+    public static bool skipIntros { get { return Config.GetSetting("skipIntros"); } }
+    public static bool skipTownLearning { get { return Config.GetSetting("skipTownLearning"); } }
+
+    // Game Logic
+    public static bool efrEnabled { get { return Config.GetSetting("efrEnabled"); } }
+    public static bool niclsCourier { get { return Config.GetSetting("niclsCourier"); } }
+    public static bool counterBalanceCorrectIncorrectButton { get { return Config.GetSetting("counterBalanceCorrectIncorrectButton"); } }
+
+    // Constants
+    public static int trialsPerSession { get {
+            if (lessTrials) return 2;
+            else return Config.GetSetting("trialsPerSession"); } }
+    public static int trialsPerSessionSingleTownLearning { get {
+            if (lessTrials) return 2;
+            else return Config.GetSetting("trialsPerSessionSingleTownLearning"); } }
+    public static int trialsPerSessionDoubleTownLearning { get {
+            if (lessTrials) return 1;
+            else return Config.GetSetting("trialsPerSessionDoubleTownLearning"); } }
+    public static int deliveriesPerTrial { get {
+            if (lessDeliveries) return 3;
+            else return Config.GetSetting("deliveriesPerTrial"); } }
+    public static int practiceDeliveriesPerTrial { get { return Config.GetSetting("practiceDeliveriesPerTrial"); } }
+
+    private const string SYSTEM_CONFIG_NAME = "config.json";
+
+    private static dynamic systemConfig = null;
+    private static dynamic experimentConfig = null;
+
+    private static dynamic GetSetting(string setting)
+    {
+        dynamic value;
+
+        var experimentConfig = (IDictionary<string, dynamic>)GetExperimentConfig();
+        if (experimentConfig.TryGetValue(setting, out value))
+            return value;
+
+        var systemConfig = (IDictionary<string, dynamic>)GetSystemConfig();
+        if (systemConfig.TryGetValue(setting, out value))
+            return value;
+
+        throw new MissingFieldException("Missing Config Setting " + setting + ".");
+    }
+
+    private static dynamic GetSystemConfig()
     {
         if (systemConfig == null)
         {
@@ -33,7 +78,7 @@ public class Config
         return systemConfig;
     }
 
-    public static dynamic GetExperimentConfig()
+    private static dynamic GetExperimentConfig()
     {
         if(experimentConfig == null)
         {
@@ -47,36 +92,6 @@ public class Config
 
         return experimentConfig;
     }
-
-    //public static dynamic GetSetting(string setting)
-    //{
-    //    dynamic value = null;
-    //    if (value == null)
-    //    value = ((IDictionary<string, dynamic>)GetSystemConfig())[setting];
-        
-
-    //    throw new MissingFieldException("Missing Setting " + setting + ".");
-    //}
-
-    //public static dynamic GetSetting(string setting)
-    //{
-    //    lock (configLock)
-    //    {
-    //        JToken value = null;
-
-    //        if (experimentConfig != null)
-    //            if (experimentConfig.TryGetValue(setting, out value))
-    //                if (value != null)
-    //                    return value;
-
-    //        if (systemConfig != null)
-    //            if (systemConfig.TryGetValue(setting, out value))
-    //                if (value != null)
-    //                    return value;
-
-    //        throw new MissingFieldException("Missing Setting " + setting + ".");
-    //    }
-    //}
 }
 
 public class FlexibleConfig {

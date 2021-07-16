@@ -81,7 +81,7 @@ public class MessageImageDisplayer : MonoBehaviour
                 break;
             else if (InputManager.GetButtonDown("Continue"))
                 scriptedEventReporter.ReportScriptedEvent("keypress",
-                    new Dictionary<string, object> { { "response", "reject" } });
+                    new Dictionary<string, object> { { "response", "incorrect" } });
             else if (InputManager.anyKeyDown)
             {
                 foreach (KeyCode kcode in System.Enum.GetValues(typeof(KeyCode)))

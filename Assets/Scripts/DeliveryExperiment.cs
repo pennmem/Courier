@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
@@ -21,13 +22,13 @@ public class DeliveryExperiment : CoroutineExperiment
 
     private static int sessionNumber = -1;
     private static bool useRamulator;
-    private static bool useNicls;
+    private static bool useNiclServer;
     private static string expName;
 
     // JPB: TODO: Make these configuration variables
     private const bool NICLS_COURIER = true;
 
-    private const string COURIER_VERSION = "v5.0.10";
+    private const string COURIER_VERSION = "v5.0.11";
     private const string RECALL_TEXT = "*******"; // JPB: TODO: Remove this and use display system
     //private const int DELIVERIES_PER_TRIAL = LESS_DELIVERIES ? 3 : (NICLS_COURIER ? 16 : 13);
     //private const int PRACTICE_DELIVERIES_PER_TRIAL = 4;
@@ -67,7 +68,8 @@ public class DeliveryExperiment : CoroutineExperiment
     public Familiarizer familiarizer;
     public MessageImageDisplayer messageImageDisplayer;
     public RamulatorInterface ramulatorInterface;
-    public NiclsInterface niclsInterface;
+    //public NiclsInterface niclsInterface;
+    public NiclsInterface3 niclsInterface;
     public PlayerMovement playerMovement;
     public GameObject pointer;
     public ParticleSystem pointerParticleSystem;
@@ -93,12 +95,21 @@ public class DeliveryExperiment : CoroutineExperiment
     private List<StoreComponent> this_trial_presented_stores = new List<StoreComponent>();
     private List<string> all_presented_objects = new List<string>();
 
+    List<NiclsClassifierType> niclsClassifierTypes = null;
+
     private Syncbox syncs;
 
-    public static void ConfigureExperiment(bool newUseRamulator, bool newUseNicls, int newSessionNumber, string newExpName)
+    private enum NiclsClassifierType
+    {
+        Pos,
+        Neg,
+        Sham
+    }
+
+    public static void ConfigureExperiment(bool newUseRamulator, bool newUseNiclServer, int newSessionNumber, string newExpName)
     {
         useRamulator = newUseRamulator;
-        useNicls = newUseNicls;
+        useNiclServer = newUseNiclServer;
         sessionNumber = newSessionNumber;
         expName = newExpName;
         Config.experimentConfigName = expName;
@@ -157,10 +168,15 @@ public class DeliveryExperiment : CoroutineExperiment
         if (useRamulator)
             yield return ramulatorInterface.BeginNewSession(sessionNumber);
 
-        if (useNicls)
+        if (useNiclServer)
+        {
             yield return niclsInterface.BeginNewSession(sessionNumber);
+            SetupNiclsClassifier();
+        }   
         else
+        {
             yield return niclsInterface.BeginNewSession(sessionNumber, true);
+        }
 
         yield return DoSubSession(0);
 
@@ -184,6 +200,26 @@ public class DeliveryExperiment : CoroutineExperiment
 
         while (true)
             yield return null;
+    }
+
+    private void SetupNiclsClassifier()
+    {
+        // Setup which classifiers run
+        List<NiclsClassifierType> subList = Enumerable.Repeat(NiclsClassifierType.Pos, 3)
+                                                .Concat(Enumerable.Repeat(NiclsClassifierType.Neg, 3))
+                                                .Concat(Enumerable.Repeat(NiclsClassifierType.Sham, 2))
+                                                .ToList();
+        subList.Shuffle(rng);
+
+        // 0th and 5th indeces aren't used (ReadOnly trial)
+        niclsClassifierTypes = (new List<NiclsClassifierType> { NiclsClassifierType.Pos })
+            .Concat(subList.GetRange(0, 4))
+            .Concat(new List<NiclsClassifierType> { NiclsClassifierType.Pos })
+            .Concat(subList.GetRange(4, 4))
+            .ToList();
+
+        foreach (var classType in niclsClassifierTypes)
+            Debug.Log(Enum.GetName(typeof(NiclsClassifierType), classType));
     }
 
     private IEnumerator DoSubSession(int subSessionNum)
@@ -219,7 +255,7 @@ public class DeliveryExperiment : CoroutineExperiment
                 WorldScreen();
                 yield return DoTownLearning(environment, 0, environment.stores.Length);
 
-                if (sessionNumber < DOUBLE_TOWN_LEARNING_SESSIONS)
+                if (sessionNumber < DOUBLE_TOWN_LEARNING_SESSIONS && !useNiclServer)
                 {
                     trialsPerSession = Config.trialsPerSessionDoubleTownLearning;
                     messageImageDisplayer.SetGeneralMessageText("town learning title", "town learning main 2");
@@ -233,7 +269,7 @@ public class DeliveryExperiment : CoroutineExperiment
         BlackScreen();
         yield return messageImageDisplayer.DisplayLanguageMessage(messageImageDisplayer.delivery_restart_messages);
 
-        if (sessionNumber == 0 && subSessionNum == 0) // JPB: TODO: Nick fix
+        if (sessionNumber == 0 && subSessionNum == 0 && !useNiclServer) // JPB: TODO: Nick fix
         {
             Debug.Log("Practice trials");
             messageImageDisplayer.SetGeneralMessageText(mainText: "practice invitation");
@@ -297,13 +333,13 @@ public class DeliveryExperiment : CoroutineExperiment
 
         BlackScreen();
 
-        if (NICLS_COURIER && sessionNumber == 0)
+        if (NICLS_COURIER && sessionNumber == 0 && !useNiclServer)
         {
             yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
                                     LanguageSource.GetLanguageString("standard intro video"),
                                     VideoSelector.VideoType.NiclsMainIntro);
         }
-        else if (NICLS_COURIER) // sessionNumber >= 1
+        else if (NICLS_COURIER) // sessionNumber >= 1 || useNiclServer
         {
             var messages = Config.newEfrEnabled
                 ? messageImageDisplayer.recap_instruction_messages_new_en
@@ -312,7 +348,7 @@ public class DeliveryExperiment : CoroutineExperiment
             foreach (var message in messages)
                 yield return messageImageDisplayer.DisplayMessage(message);
         }
-        else if (!NICLS_COURIER)
+        else
         {
             yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
                                     LanguageSource.GetLanguageString("standard intro video"),
@@ -440,14 +476,14 @@ public class DeliveryExperiment : CoroutineExperiment
         textDisplayer.ClearText();
         foreach (StoreComponent cueStore in this_trial_presented_stores)
         {
-            if (useNicls && (trialNumber >= NUM_READ_ONLY_TRIALS))
+            if (useNiclServer && (trialNumber >= NUM_READ_ONLY_TRIALS))
             {
                 yield return new WaitForSeconds(WORD_PRESENTATION_DELAY);
-                yield return WaitForClassifier();
+                yield return WaitForClassifier(niclsClassifierTypes[continuousTrialNum]);
             }
             else
             {
-                float wordDelay = Random.Range(WORD_PRESENTATION_DELAY - WORD_PRESENTATION_JITTER,
+                float wordDelay = UnityEngine.Random.Range(WORD_PRESENTATION_DELAY - WORD_PRESENTATION_JITTER,
                                                WORD_PRESENTATION_DELAY + WORD_PRESENTATION_JITTER);
                 yield return new WaitForSeconds(wordDelay);
             }
@@ -585,7 +621,7 @@ public class DeliveryExperiment : CoroutineExperiment
             do
             {
                 tries++;
-                random_store_index = Random.Range(0, unvisitedStores.Count);
+                random_store_index = UnityEngine.Random.Range(0, unvisitedStores.Count);
                 nextStore = unvisitedStores[random_store_index];
             }
             while (nextStore.IsVisible() && tries < environment.stores.Length);
@@ -702,17 +738,17 @@ public class DeliveryExperiment : CoroutineExperiment
                     ? nextStore.PopPracticeItem(LanguageSource.GetLanguageString("confetti"))
                     : nextStore.PopItem();
 
-                if (useNicls && !practice)
+                if (useNiclServer && !practice)
                 {
                     yield return new WaitForSeconds(WORD_PRESENTATION_DELAY);
                     if (trialNumber < NUM_READ_ONLY_TRIALS)
                         niclsInterface.SendEncodingToNicls(1);
                     else
-                        yield return WaitForClassifier();
+                        yield return WaitForClassifier(niclsClassifierTypes[continuousTrialNum]);
                 }
                 else
                 {
-                    float wordDelay = Random.Range(WORD_PRESENTATION_DELAY - WORD_PRESENTATION_JITTER,
+                    float wordDelay = UnityEngine.Random.Range(WORD_PRESENTATION_DELAY - WORD_PRESENTATION_JITTER,
                                                WORD_PRESENTATION_DELAY + WORD_PRESENTATION_JITTER);
                     yield return new WaitForSeconds(wordDelay);
                 }
@@ -776,7 +812,14 @@ public class DeliveryExperiment : CoroutineExperiment
 
             //Turn off ReadOnlyState
             if (NICLS_COURIER && !practice && trialNumber == NUM_READ_ONLY_TRIALS)
+            {
+                Debug.Log("READ_ONLY_OFF");
                 niclsInterface.SendReadOnlyStateToNicls(0);
+                niclsInterface.SendReadOnlyStateToNicls(0);
+                niclsInterface.SendReadOnlyStateToNicls(0);
+                niclsInterface.SendReadOnlyStateToNicls(0);
+                niclsInterface.SendReadOnlyStateToNicls(0);
+            }
 
             // EFR instructions
             if (Config.efrEnabled && practice
@@ -1134,7 +1177,7 @@ public class DeliveryExperiment : CoroutineExperiment
         foreach (var buttonIndicator in lrButtonIndicator)
         {
             SetEfrDisplay();
-            float efrKeypressPracticedelay = Random.Range(EFR_KEYPRESS_PRACTICE_DELAY - EFR_KEYPRESS_PRACTICE_JITTER,
+            float efrKeypressPracticedelay = UnityEngine.Random.Range(EFR_KEYPRESS_PRACTICE_DELAY - EFR_KEYPRESS_PRACTICE_JITTER,
                                                           EFR_KEYPRESS_PRACTICE_DELAY + EFR_KEYPRESS_PRACTICE_JITTER);
             yield return messageImageDisplayer.DisplayMessageTimed(
                 messageImageDisplayer.efr_display, efrKeypressPracticedelay);
@@ -1203,13 +1246,31 @@ public class DeliveryExperiment : CoroutineExperiment
         }
     }
 
-    private IEnumerator WaitForClassifier()
+    private IEnumerator WaitForClassifier(NiclsClassifierType niclsClassifierType)
     {
         scriptedEventReporter.ReportScriptedEvent("start classifier wait", new Dictionary<string, object>());
-        WaitUntilWithTimeout waitForClassifier = new WaitUntilWithTimeout(niclsInterface.classifierReady, 5);
-        yield return waitForClassifier;
-        scriptedEventReporter.ReportScriptedEvent("stop classifier wait",
-                                                  new Dictionary<string, object> { {"timed out", waitForClassifier.timedOut()} });
+        Debug.Log(Enum.GetName(typeof(NiclsClassifierType), niclsClassifierType));
+        WaitUntilWithTimeout waitForClassifier = null;
+        switch (niclsClassifierType)
+        {
+            case NiclsClassifierType.Pos:
+                waitForClassifier = new WaitUntilWithTimeout(niclsInterface.classifierReady, 5);
+                yield return waitForClassifier;
+                scriptedEventReporter.ReportScriptedEvent("stop classifier wait",
+                    new Dictionary<string, object> { { "type", "Pos" }, { "timed out", waitForClassifier.timedOut() } });
+                break;
+            case NiclsClassifierType.Neg:
+                waitForClassifier = new WaitUntilWithTimeout(niclsInterface.classifierNotReady, 5);
+                yield return waitForClassifier;
+                scriptedEventReporter.ReportScriptedEvent("stop classifier wait",
+                    new Dictionary<string, object> { { "type", "Neg" }, { "timed out", waitForClassifier.timedOut() } });
+                break;
+            case NiclsClassifierType.Sham:
+                yield return new WaitForSeconds((float)rng.NextDouble()*5f);
+                scriptedEventReporter.ReportScriptedEvent("stop classifier wait",
+                    new Dictionary<string, object> { { "type", "Sham" } });
+                break;
+        }
         Debug.Log("CLASSIFIER SAID TO GO ---------------------------------------------------------");
     }
 

@@ -280441,7 +280441,7 @@ MonoBehaviour:
   familiarizer: {fileID: 1485240232}
   messageImageDisplayer: {fileID: 393670696}
   ramulatorInterface: {fileID: 1944656971}
-  niclsInterface: {fileID: 2081545582}
+  niclsInterface: {fileID: 2081545583}
   playerMovement: {fileID: 1558448419}
   pointer: {fileID: 1838878098}
   pointerParticleSystem: {fileID: 1602623931}
@@ -611481,15 +611481,46 @@ Prefab:
       propertyPath: m_RootOrder
       value: 3
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 114996999034505892, guid: 5eb10f8d3feb149fab21fe7302cfc2a7, type: 2}
   m_ParentPrefab: {fileID: 100100000, guid: 5eb10f8d3feb149fab21fe7302cfc2a7, type: 2}
   m_IsPrefabParent: 0
---- !u!114 &2081545582 stripped
-MonoBehaviour:
-  m_PrefabParentObject: {fileID: 114996999034505892, guid: 5eb10f8d3feb149fab21fe7302cfc2a7,
+--- !u!1 &2081545582 stripped
+GameObject:
+  m_PrefabParentObject: {fileID: 1199902433362700, guid: 5eb10f8d3feb149fab21fe7302cfc2a7,
     type: 2}
   m_PrefabInternal: {fileID: 2081545581}
-  m_Script: {fileID: 11500000, guid: f4c6fa20bebb049c9860e9eeff1f36a1, type: 3}
+--- !u!114 &2081545583
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 2081545582}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e42f83d36f1264485aa381adb0e847a2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  niclsWarningText: {fileID: 2081545584}
+  niclsWarning: {fileID: 2081545586}
+  scriptedEventReporter: {fileID: 2081545585}
+--- !u!114 &2081545584 stripped
+MonoBehaviour:
+  m_PrefabParentObject: {fileID: 114638349625479306, guid: 5eb10f8d3feb149fab21fe7302cfc2a7,
+    type: 2}
+  m_PrefabInternal: {fileID: 2081545581}
+  m_Script: {fileID: 708705254, guid: f70555f144d8491a825f0804e09c671c, type: 3}
+--- !u!114 &2081545585 stripped
+MonoBehaviour:
+  m_PrefabParentObject: {fileID: 114816247070176084, guid: 5eb10f8d3feb149fab21fe7302cfc2a7,
+    type: 2}
+  m_PrefabInternal: {fileID: 2081545581}
+  m_Script: {fileID: 11500000, guid: f180c8d2d8e804d2ca402600895da790, type: 3}
+--- !u!1 &2081545586 stripped
+GameObject:
+  m_PrefabParentObject: {fileID: 1068402335984922, guid: 5eb10f8d3feb149fab21fe7302cfc2a7,
+    type: 2}
+  m_PrefabInternal: {fileID: 2081545581}
 --- !u!1 &2081552064
 GameObject:
   m_ObjectHideFlags: 0

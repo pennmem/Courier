@@ -99,6 +99,8 @@ public class DeliveryExperiment : CoroutineExperiment
 
     private Syncbox syncs;
 
+    // These names are used in for what is sent to the log
+    // If you change them, then you have to change the event processing (or the logging code)
     private enum NiclsClassifierType
     {
         Pos,
@@ -275,6 +277,17 @@ public class DeliveryExperiment : CoroutineExperiment
             messageImageDisplayer.SetGeneralMessageText(mainText: "practice invitation");
             yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
             yield return DoTrials(environment, 2, subSessionNum, true);
+
+            messageImageDisplayer.SetGeneralMessageText(titleText: "new efr check understanding title",
+                                                        mainText: "new efr check understanding main");
+            yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
+        }
+
+        if (sessionNumber == 0)
+        {
+            messageImageDisplayer.SetGeneralMessageText(titleText: "navigation note title",
+                                                        mainText: "navigation note main");
+            yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
         }
 
         Debug.Log("Real trials");
@@ -290,7 +303,7 @@ public class DeliveryExperiment : CoroutineExperiment
         int priorTrialsPerSession = 0;
         if (NICLS_COURIER && subSessionNum > 0) // JPB: TODO: Nick fix
         {
-            if (sessionNumber < DOUBLE_TOWN_LEARNING_SESSIONS)
+            if (sessionNumber < DOUBLE_TOWN_LEARNING_SESSIONS && !useNiclServer)
                 priorTrialsPerSession = Config.trialsPerSessionDoubleTownLearning;
             else if (sessionNumber < SINGLE_TOWN_LEARNING_SESSIONS)
                 priorTrialsPerSession = Config.trialsPerSessionSingleTownLearning;
@@ -657,7 +670,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private IEnumerator DoDeliveries(Environment environment, int trialNumber, int continuousTrialNum, bool practice = false)
     {
         Dictionary<string, object> trialData = new Dictionary<string, object>();
-        trialData.Add("trial number", trialNumber);
+        trialData.Add("trial number", continuousTrialNum);
         if (practice)
             scriptedEventReporter.ReportScriptedEvent("start practice deliveries", trialData);
         else
@@ -827,11 +840,10 @@ public class DeliveryExperiment : CoroutineExperiment
             {
                 if (Config.newEfrEnabled)
                 {
-                    yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
-                             LanguageSource.GetLanguageString("efr intro video"),
-                             VideoSelector.VideoType.NewEfrIntro);
+                    messageImageDisplayer.SetGeneralBigMessageText(titleText: "new efr instructions title", mainText: "new efr instructions main");
+                    yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
                     yield return DoNewEfrKeypressCheck();
-                    //yield return DoNewEfrKeypressPractice();
+                    yield return DoNewEfrKeypressPractice();
                 }
                 else
                 {

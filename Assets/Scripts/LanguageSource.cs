@@ -34,7 +34,7 @@ public static class LanguageSource
 
         { "standard intro video", new string[] {"Press (Y) to continue, \n Press (N) to replay instructional video.",
                                                 "Drücken Sie (Y) um fortzufahren, \n Drücken Sie (N) um das Video noch einmal zu sehen."} },
-        { "efr intro video", new string[] {"Press (Y) to continue to the next practice delivery day, \n Press (N) to replay instructional video.", 
+        { "efr intro video", new string[] {"Press (Y) to continue to the next practice delivery day, \n Press (N) to replay instructional video.",
                                            "Drücken Sie (Y) um die nächste trainier Auslieferungsrunde zu starten, \n Drücken Sie (N) um das Video noch einmal zu sehen."} },
 
         { "nicls movie", new string[] {"Now we will return to the memory task.\nPress (Y) to continue.", GERMAN_TRANSLATION_NEEDED } },
@@ -47,7 +47,7 @@ public static class LanguageSource
         { "efr first day description", new string [] {"Don’t forget to continue pressing the left/right buttons when recalling items at the end of each delivery day.",
                                                   GERMAN_TRANSLATION_NEEDED}},
 
-        { "new efr first day description", new string [] {"Don’t forget to continue pressing the (X) button to reject words when recalling items at the end of each delivery day.",
+        { "new efr first day description", new string [] {"Don’t forget to continue pressing the (B) button to reject words when recalling items at the end of each delivery day.",
                                                   GERMAN_TRANSLATION_NEEDED}},
 
         { "town learning title", new string [] { "Town Learning Phase", GERMAN_TRANSLATION_NEEDED } },
@@ -84,12 +84,20 @@ public static class LanguageSource
 
         { "efr keypress practice main", new string [] {"Let's practice pressing the keys.", GERMAN_TRANSLATION_NEEDED}},
         { "efr keypress practice description", new string [] {"When the <b>right button</b> text becomes bolded - press the\nright button\n\n" +
-                                                              "When the <b>left button</b> text becomes bolded - press the\nleft button", 
+                                                              "When the <b>left button</b> text becomes bolded - press the\nleft button",
                                                               GERMAN_TRANSLATION_NEEDED}},
+        { "new efr instructions title", new string[] { "Externalized Free Recall (EFR) Instructions" } },
+        { "new efr instructions main", new string[] { "In this section of the study, we would like you to vocalize words that come to your mind.\n\nPlease continue to recall as many words as possible from the just-presented list. In addition, every time a specific, salient word comes to mind, say it aloud, even if you have already recalled it or if it was not presented on the most recent delivery day.\n\nOnly say other words if they come to mind as you are trying to recall items on the most recently presented list. This is not a free-association task.\n\nIf the word you have just said aloud was NOT presented on the most recent list, or if you have already recalled it in this recall period, press the B key after recalling that word, but before recalling the next word.", GERMAN_TRANSLATION_NEEDED} },
 
-        { "new efr keypress practice main", new string [] {"Let's practice pressing the reject key.", GERMAN_TRANSLATION_NEEDED}},
-        { "new efr keypress practice description", new string [] {"Press the (B) key 20 times and wait about 3 seconds between each keypress.\n\nThe screen will automatically continue when you are done.",
-                                                              GERMAN_TRANSLATION_NEEDED}},
+        { "new efr keypress practice main", new string [] { "Let's practice pressing the reject key.", GERMAN_TRANSLATION_NEEDED } },
+        { "new efr keypress practice description", new string [] { "Press the (B) key 20 times and wait about 3 seconds between each keypress.\n\nThe screen will automatically continue when you are done.",
+                                                              GERMAN_TRANSLATION_NEEDED } },
+
+        { "new efr check understanding title", new string[] { "EFR Review", GERMAN_TRANSLATION_NEEDED } },
+        { "new efr check understanding main", new string[] { "Please press the buzzer to call the researcher in now.", GERMAN_TRANSLATION_NEEDED } },
+
+        { "navigation note title", new string[] { "Quick Note!", GERMAN_TRANSLATION_NEEDED } },
+        { "navigation note main", new string[] { "Please navigate from store to store as quickly and efficiently as you can.", GERMAN_TRANSLATION_NEEDED } },
 
         { "fixation item", new string [] {"+", "+"} },
         { "fixation practice message", new string [] {"Please look at the plus sign", GERMAN_TRANSLATION_NEEDED} },

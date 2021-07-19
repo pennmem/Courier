@@ -28,7 +28,7 @@ public class DeliveryExperiment : CoroutineExperiment
     // JPB: TODO: Make these configuration variables
     private const bool NICLS_COURIER = true;
 
-    private const string COURIER_VERSION = "v5.0.12";
+    private const string COURIER_VERSION = "v5.0.13";
     private const string RECALL_TEXT = "*******"; // JPB: TODO: Remove this and use display system
     //private const int DELIVERIES_PER_TRIAL = LESS_DELIVERIES ? 3 : (NICLS_COURIER ? 16 : 13);
     //private const int PRACTICE_DELIVERIES_PER_TRIAL = 4;
@@ -1269,13 +1269,13 @@ public class DeliveryExperiment : CoroutineExperiment
                 waitForClassifier = new WaitUntilWithTimeout(niclsInterface.classifierReady, 5);
                 yield return waitForClassifier;
                 scriptedEventReporter.ReportScriptedEvent("stop classifier wait",
-                    new Dictionary<string, object> { { "type", "Pos" }, { "timed out", waitForClassifier.timedOut() } });
+                    new Dictionary<string, object> { { "type", "Pos" }, { "timed out", waitForClassifier.timedOut() ? 1 : 0 } });
                 break;
             case NiclsClassifierType.Neg:
                 waitForClassifier = new WaitUntilWithTimeout(niclsInterface.classifierNotReady, 5);
                 yield return waitForClassifier;
                 scriptedEventReporter.ReportScriptedEvent("stop classifier wait",
-                    new Dictionary<string, object> { { "type", "Neg" }, { "timed out", waitForClassifier.timedOut() } });
+                    new Dictionary<string, object> { { "type", "Neg" }, { "timed out", waitForClassifier.timedOut() ? 1 : 0 } });
                 break;
             case NiclsClassifierType.Sham:
                 yield return new WaitForSeconds((float)rng.NextDouble()*5f);

@@ -4,11 +4,16 @@ Continuing development fork of the Unity remake of Delivery Boy Task
 ## Setup
 1. Build the Courier application
 1. Move the application to the "Desktop" folder
-1. Setup the config file
+1. Setup the config files
     1. Create a folder named "data" in your "Desktop" folder
-    1. Copy the "config" folder from the code base into the "data" folder
-    1. Open the experiment type you want to run and make sure the "" variable is set to "false"
-1. Start the application
+    1. Copy the "configs" folder from the code base into the "data" folder
+    1. If your computer does not have a syncbox, open the experiment type you want to run and make sure the "noSyncbox" variable is set to "true"
+    1. If you are running NICLServer on a different computer, make sure to change the "niclServerIP" in the "config.json" file 
+1. Run the application
+    1. If asked to select a resolution, pick the closest one to 1920x1080
+    1. Fill in a valid participant ID
+    1. If you are using NICLServer, then make sure to tick the "Use Nicls" box (this needs to be renamed)
+    1. Click Begin Session
 
 ## Hints about editing this repo:
 ### How the experiment starts

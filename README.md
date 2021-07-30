@@ -1,14 +1,20 @@
 # Courier
 Continuing development fork of the Unity remake of Delivery Boy Task
 
-Hints about editing this repo:
+## Setup
+1. Build the Courier application
+1. Move the application to the "Desktop" folder
+1. Setup the config file
+    1. Create a folder named "data" in your "Desktop" folder
+    1. Copy the "config" folder from the code base into the "data" folder
+    1. Open the experiment type you want to run and make sure the "" variable is set to "false"
+1. Start the application
+
+## Hints about editing this repo:
+### How the experiment starts
 The "MainMenu" scene is responsible for calling DeliveryExperiment.ConfigureExperiment, and then loading the MainGame scene.  In the MainGame scene, just look at DeliveryExperiment.Start which launches the coroutine that controls the entire flow of the experiment.
 
-Following are some examples of steps to accomplish various things in DBoy.  As you can see, some things are easier than others.
-
-NOTE: these instructions will be changing in coming versions
-
-Steps to add a new store to DBoy:
+### Steps to add a new store to DBoy:
 First, create an object to represent the store:
  
 
@@ -58,7 +64,7 @@ Make sure your store name has english and german translations:
 If you run the game (remember to deselect "use ramulator"), there will be an additional store during the familiarization phase, and it will be in the world ready to have items delivered.  It won't necessarily be named what you called it, since store names are randomized for each participant.
 
 
-Steps to increase the number of packages delivered each day by 1:
+### Steps to increase the number of packages delivered each day by 1:
  
 
     In the "DeliveryExperiment" script, edit the constant variable DELIVERIES_PER_TRIAL.  Increase its value by 1.
@@ -67,7 +73,7 @@ Steps to increase the number of packages delivered each day by 1:
 
  
 
-Steps to reverse the order of cued and free recall:
+### Steps to reverse the order of cued and free recall:
 
     First, update your dboy to the latest version from GitHub if you haven't yet.
     In the "DeliveryExperiment" script, locate the "subcoroutine" called DoRecall().

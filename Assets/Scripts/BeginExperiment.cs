@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Luminosity.IO;
 
 public class BeginExperiment : MonoBehaviour
 {
@@ -12,16 +13,23 @@ public class BeginExperiment : MonoBehaviour
     public UnityEngine.GameObject languageMismatchButton;
     public UnityEngine.UI.InputField participantCodeInput;
     public UnityEngine.UI.Toggle useRamulatorToggle;
+    public UnityEngine.UI.Toggle useNiclsToggle;
     public UnityEngine.UI.Text beginButtonText;
     public UnityEngine.UI.InputField sessionInput;
 
+    // JPB: TODO: Make these configuration variables
+    private const bool NICLS_COURIER = true;
+
+    string experiment_name = NICLS_COURIER ? "NiclsCourier" : "StandardCourier";
+
     private const string scene_name = "MainGame";
+
+    public const string EXP_NAME_COURIER = "Courier";
+    public const string EXP_NAME_NICLS = "NiclsCourier";
 
     private void OnEnable() {
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
-
-        UnityEPL.SetExperimentName("DBOY1");
     }
     private void Update()
     {
@@ -50,7 +58,6 @@ public class BeginExperiment : MonoBehaviour
         if (IsValidParticipantName(participantCodeInput.text))
         {
             UnityEPL.ClearParticipants();
-            UnityEPL.AddParticipant(participantCodeInput.text);
             beginExperimentButton.SetActive(true);
             greyedOutButton.SetActive(false);
             int nextSessionNumber = NextSessionNumber();
@@ -82,32 +89,25 @@ public class BeginExperiment : MonoBehaviour
     private string GetLanguageFilePath()
     {
         string dataPath = UnityEPL.GetParticipantFolder();
+        System.IO.Directory.CreateDirectory(dataPath);
         string languageFilePath = System.IO.Path.Combine(dataPath, "language");
+        if (!System.IO.File.Exists(languageFilePath))
+            System.IO.File.Create(languageFilePath).Close();
         return languageFilePath;
     }
 
     private bool LanguageMismatch()
     {
-        if(!System.IO.Directory.Exists(UnityEPL.GetParticipantFolder()))
+        if (UnityEPL.GetParticipants()[0].Equals("unspecified_participant"))
             return false;
-
-        if(!System.IO.File.Exists(GetLanguageFilePath()))
+        if (System.IO.File.ReadAllText(GetLanguageFilePath()).Equals(""))
             return false;
-
-        if(System.IO.File.ReadAllText(GetLanguageFilePath()).Equals(""))
-            return false;
-
         return !LanguageSource.current_language.ToString().Equals(System.IO.File.ReadAllText(GetLanguageFilePath()));
     }
 
     private void LockLanguage()
     {
-        string languageFilePath = GetLanguageFilePath();
-
-        if (!System.IO.File.Exists(languageFilePath))
-            System.IO.File.Create(languageFilePath).Close();
-
-        System.IO.File.WriteAllText(languageFilePath, LanguageSource.current_language.ToString());
+        System.IO.File.WriteAllText(GetLanguageFilePath(), LanguageSource.current_language.ToString());
     }
 
     public void DoBeginExperiment()
@@ -120,35 +120,31 @@ public class BeginExperiment : MonoBehaviour
             throw new UnityException("You are trying to start the experiment with an invalid participant name!");
         }
 
-        if (System.IO.Directory.Exists(UnityEPL.GetDataPath())) {
-            loadingButton.SetActive(false);
-            greyedOutButton.SetActive(true);
-            beginExperimentButton.SetActive(false);
-
-            throw new UnityException("You are trying to start an already existing session!");
+        //UnityEPL.SetSessionNumber(NextSessionNumber());
+        UnityEPL.AddParticipant(participantCodeInput.text);
+        if (experiment_name == EXP_NAME_NICLS)
+        {
+            if (useNiclsToggle.isOn)
+                experiment_name += "ClosedLoop";
+            else
+                experiment_name += "ReadOnly";
         }
-
-        System.IO.Directory.CreateDirectory(UnityEPL.GetParticipantFolder());
-        System.IO.Directory.CreateDirectory(UnityEPL.GetDataPath());
+        UnityEPL.SetExperimentName(experiment_name);
 
         LockLanguage();
-        DeliveryExperiment.ConfigureExperiment( useRamulatorToggle.isOn, 
-                                                UnityEPL.GetSessionNumber(), 
-                                                UnityEPL.GetParticipants()[0]); 
-
-        Debug.Log(useRamulatorToggle.isOn);
+        // JPB: TODO: Use NextSessionNumber()
+        DeliveryExperiment.ConfigureExperiment(useRamulatorToggle.isOn, useNiclsToggle.isOn, UnityEPL.GetSessionNumber(), experiment_name);
+        Debug.Log("Ram On: " + useRamulatorToggle.isOn);
+        Debug.Log("Nicls On: " + useNiclsToggle.isOn);
         SceneManager.LoadScene(scene_name);
     }
 
     private int NextSessionNumber()
     {
         string dataPath = UnityEPL.GetParticipantFolder();
-        int mostRecentSessionNumber = -1;
-
-        if(!System.IO.Directory.Exists(dataPath))
-            return mostRecentSessionNumber + 1;
-
+		System.IO.Directory.CreateDirectory(dataPath);
         string[] sessionFolders = System.IO.Directory.GetDirectories(dataPath);
+        int mostRecentSessionNumber = -1;
         foreach (string folder in sessionFolders)
         {
             int thisSessionNumber = -1;

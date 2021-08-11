@@ -57,12 +57,12 @@ public class SoundRecorder : MonoBehaviour
         float[] saveData = new float[outputLength];
         if (startSample < recording.samples - outputLength)
         {
-            Debug.Log("No wraparound");
+            //Debug.Log("No wraparound");
             recording.GetData(saveData, startSample);
         }
         else
         {
-            Debug.Log("Yes wraparound");
+            //Debug.Log("Yes wraparound");
             float[] tailData = new float[recording.samples - startSample];
             recording.GetData(tailData, startSample);
             float[] headData = new float[outputLength - tailData.Length];

@@ -58,6 +58,8 @@ sysinfo.txt
 # Builds
 *.apk
 *.unitypackage
+*.zip
+*.zip.meta
 
 # Crashlytics generated file
 crashlytics-build.properties
@@ -71,3 +73,7 @@ crashlytics-build.properties
 
 # Textures which are too big for github
 Assets/Town Constructor 3/Textures
+Assets/Town Constructor 3
+
+# Other
+.DS_Store

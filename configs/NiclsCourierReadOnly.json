@@ -1,0 +1,22 @@
+{
+    "noSyncbox": true,
+    "lessTrials": false,
+    "lessDeliveries": false,
+    "skipIntros": false,
+    "skipTownLearning": false,
+    "skipNewEfrKeypressCheck": false,
+    "skipNewEfrKeypressPractice": true,
+
+    "efrEnabled": true,
+    "newEfrEnabled": true,
+    "niclsCourier": true,
+    "counterBalanceCorrectIncorrectButton": false,
+
+    "practiceDeliveriesPerTrial": 4,
+    "trialsPerSession": 5,
+    "trialsPerSessionSingleTownLearning": 5,
+    "trialsPerSessionDoubleTownLearning": 3,
+    "deliveriesPerTrial":16,
+    
+    "newEfrKeypressPractices":20
+}

@@ -40,12 +40,12 @@ public class FreiburgSyncbox : EventLoop {
             StopPulse();
             StartLoop();
 
-            Debug.Log("Successful Init");
+            Debug.Log("Successful FreiburgSyncbox Init");
 
             return true;
         }
 
-        Debug.Log("Failed Init");
+        Debug.Log("Failed FreiburgSyncbox Init");
         return false;
 	}
 
@@ -173,7 +173,7 @@ public class FreiburgSyncbox : EventLoop {
 
     private void LogPulse()
     {
-        scriptedEventReporter?.ReportScriptedEvent("Sync pulse begin", new System.Collections.Generic.Dictionary<string, object>());
+        scriptedEventReporter?.ReportScriptedEvent("syncPulse", new Dictionary<string, object>());
     }
 
 

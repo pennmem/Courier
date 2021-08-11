@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections;
 using System;
 using System.Runtime.InteropServices;
@@ -40,11 +40,11 @@ public class UPennSyncbox : EventLoop {
             StopPulse();
             StartLoop();
 
-            Debug.Log("Successful Init");
+            Debug.Log("Successful UpennSyncbox Init");
 
             return true;
         }
-        Debug.Log("Failed Init");
+        Debug.Log("Failed UPennSyncbox Init");
         return false;
     }
 

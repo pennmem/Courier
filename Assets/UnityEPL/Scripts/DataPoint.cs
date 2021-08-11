@@ -1,13 +1,15 @@
 ﻿using System.Collections;
 using System;
+using System.Collections.Generic;
 using UnityEngine;
+using Newtonsoft.Json;
 
 //these datapoints represent behavioral events
 //data about the event is currently stored in a dictionary
 public class DataPoint
 {
     private string type;
-    private System.Collections.Generic.Dictionary<string, object> dataDict;
+    private Dictionary<string, object> dataDict;
     private System.DateTime time;
 
     /// <summary>
@@ -22,10 +24,10 @@ public class DataPoint
     /// <param name="newType">New type.</param>
     /// <param name="newTime">New time.</param>
     /// <param name="newDataDict">New data dict.</param>
-    public DataPoint(string newType, System.DateTime newTime, System.Collections.Generic.Dictionary<string, object> newDataDict)
+    public DataPoint(string newType, System.DateTime newTime, Dictionary<string, object> newDataDict)
     {
         if (newDataDict == null)
-            newDataDict = new System.Collections.Generic.Dictionary<string, object>();
+            newDataDict = new Dictionary<string, object>();
 
         type = newType;
         dataDict = newDataDict;
@@ -49,13 +51,30 @@ public class DataPoint
             string valueJSONString = ValueToString(value);
             JSONString = JSONString + "\"" + key + "\":" + valueJSONString + ",";
         }
-        if (dataDict.Count > 0) JSONString = JSONString.Substring(0, JSONString.Length - 1);
+        if (dataDict.Count > 0) // Remove the last comma
+            JSONString = JSONString.Substring(0, JSONString.Length - 1);
         JSONString = JSONString + "},\"time\":" + unixTimestamp.ToString() + "}";
         return JSONString;
     }
 
     public string ValueToString(dynamic value) {
-        if(value.GetType().IsArray || value is IList)
+        if (value is Dictionary<string, object>) // JPB: TODO: Remove
+        {
+            var dataDict = value;
+            string JSONString = "{";
+            foreach (string key in dataDict.Keys)
+            {
+                dynamic dataVal = dataDict[key];
+
+                string valueJSONString = ValueToString(dataVal);
+                JSONString = JSONString + "\"" + key + "\":" + valueJSONString + ",";
+            }
+            if (dataDict.Count > 0) // Remove the last comma
+                JSONString = JSONString.Substring(0, JSONString.Length - 1);
+            JSONString = JSONString + "}";
+            return JSONString;
+        }
+        else if(value.GetType().IsArray || value is IList)
         { 
             string json = "[";
             foreach (object val in (IEnumerable)value) { 
@@ -81,8 +100,12 @@ public class DataPoint
                 return "\"" + valueString + "\"";
             }
         }
+        else if (value is DateTime)
+        {
+            return ConvertToMillisecondsSinceEpoch(value).ToString();
+        }
         else {
-            throw new Exception("Data logging type not supported");
+            throw new Exception("Data logging type not supported: " + value.GetType().ToString());
         }
     }
 

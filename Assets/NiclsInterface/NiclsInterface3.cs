@@ -16,13 +16,14 @@ using UnityEngine;
 
 public abstract class IHostPC : EventLoop {
     public abstract JObject WaitForMessage(string type, int timeout);
+    public abstract JObject WaitForMessages(string[] types, int timeout);
     public abstract void Connect();
     public abstract void HandleMessage(string message, DateTime time);
     public abstract void SendMessage(string type, Dictionary<string, object> data);
 }
 
-public class ElememListener {
-    ElememInterface elemem;
+public class NiclsListener {
+    NiclsInterfaceHelper niclsInterfaceHelper;
     Byte[] buffer; 
     const Int32 bufferSize = 2048;
 
@@ -30,8 +31,8 @@ public class ElememListener {
     private ConcurrentQueue<string> queue = null;
 
     string messageBuffer = "";
-    public ElememListener(ElememInterface _elemem) {
-        elemem = _elemem;
+    public NiclsListener(NiclsInterfaceHelper _niclsInterfaceHelper) {
+        niclsInterfaceHelper = _niclsInterfaceHelper;
         buffer = new Byte[bufferSize];
         callbackWaitHandle = new ManualResetEventSlim(true);
     }
@@ -57,7 +58,7 @@ public class ElememListener {
             throw new AccessViolationException("Already Listening");
         }
 
-        NetworkStream stream = elemem.GetReadStream();
+        NetworkStream stream = niclsInterfaceHelper.GetReadStream();
         callbackWaitHandle.Reset();
         stream.BeginRead(buffer, 0, bufferSize, Callback, 
                         new Tuple<NetworkStream, ManualResetEventSlim, ConcurrentQueue<string>>
@@ -102,13 +103,13 @@ public class ElememListener {
     }
 
     private void ReportMessage(string message) {
-        elemem.Do(new EventBase<string, DateTime>(elemem.HandleMessage, message, System.DateTime.UtcNow));
+        niclsInterfaceHelper.Do(new EventBase<string, DateTime>(niclsInterfaceHelper.HandleMessage, message, System.DateTime.UtcNow));
     }
 }
 
 // NOTE: the gotcha here is avoiding deadlocks when there's an error
 // message in the queue and some blocking wait in the EventLoop thread
-public class ElememInterface : IHostPC 
+public class NiclsInterfaceHelper : IHostPC 
 {
     //public InterfaceManager im;
 
@@ -116,7 +117,7 @@ public class ElememInterface : IHostPC
     int heartbeatTimeout = 8000; // TODO: configuration
 
     private TcpClient elemem;
-    private ElememListener listener;
+    private NiclsListener listener;
     private int heartbeatCount = 0;
 
     private ScriptedEventReporter scriptedEventReporter;
@@ -124,17 +125,17 @@ public class ElememInterface : IHostPC
     public readonly object classifierResultLock = new object();
     public volatile int classifierResult = 0;
 
-    public ElememInterface(ScriptedEventReporter _scriptedEventReporter) { //InterfaceManager _im) {
+    public NiclsInterfaceHelper(ScriptedEventReporter _scriptedEventReporter) { //InterfaceManager _im) {
         //im = _im;
         scriptedEventReporter = _scriptedEventReporter;
-        listener = new ElememListener(this);
+        listener = new NiclsListener(this);
         Start();
         StartLoop();
         Connect();
         //Do(new EventBase(Connect));
     }
 
-    ~ElememInterface() {
+    ~NiclsInterfaceHelper() {
         elemem.Close();
     }
 
@@ -158,12 +159,12 @@ public class ElememInterface : IHostPC
     }
 
     public override void Connect() {
-        elemem = new TcpClient(); 
+        elemem = new TcpClient();
 
         //try {
-            IAsyncResult result = elemem.BeginConnect(Config.niclServerIP, Config.niclServerPort, null, null);
-            result.AsyncWaitHandle.WaitOne(messageTimeout);
-            elemem.EndConnect(result);
+        IAsyncResult result = elemem.BeginConnect(Config.niclServerIP, Config.niclServerPort, null, null);
+        result.AsyncWaitHandle.WaitOne(messageTimeout);
+        elemem.EndConnect(result);
         //}
         //catch(SocketException) {    // TODO: set hostpc state on task side
         //    //im.Do(new EventBase<string>(im.SetHostPCStatus, "ERROR")); 
@@ -173,7 +174,7 @@ public class ElememInterface : IHostPC
         //im.Do(new EventBase<string>(im.SetHostPCStatus, "INITIALIZING")); 
 
         UnityEngine.Debug.Log("CONNECTING");
-        SendMessage("CONNECTED", new Dictionary<string, object>()); // Awake
+        SendMessage("CONNECTED"); // Awake
         WaitForMessage("CONNECTED_OK", messageTimeout);
 
         Dictionary<string, object> configDict = new Dictionary<string, object>();
@@ -229,7 +230,12 @@ public class ElememInterface : IHostPC
         //im.Do(new EventBase<string, Dictionary<string, object>>(im.ReportEvent, "latency check", dict));
     }
 
-    public override JObject WaitForMessage(string type, int timeout) {
+    public override JObject WaitForMessage(string type, int timeout)
+    {
+        return WaitForMessages(new[] { type }, timeout);
+    }
+
+    public override JObject WaitForMessages(string[] types, int timeout) {
         Stopwatch sw = new Stopwatch();
         sw.Start();
 
@@ -248,9 +254,11 @@ public class ElememInterface : IHostPC
             wait.Wait(waitDuration);
 
             string message;
-            while(queue.TryDequeue(out message)) {
+            while (queue.TryDequeue(out message))
+            {
                 json = JObject.Parse(message);
-                if(json.GetValue("type").Value<string>() == type) {
+                if (types.Contains(json["type"]?.Value<string>()))
+                {
                     listener.RemoveMessageQueue();
                     return json;
                 }
@@ -262,52 +270,19 @@ public class ElememInterface : IHostPC
         throw new TimeoutException("Timed out waiting for response");
     }
 
-    public IEnumerator WaitForMessage(string type, int timeout, Action<JObject> act)
-    {
-        Stopwatch sw = new Stopwatch();
-        sw.Start();
-
-        ManualResetEventSlim wait;
-        int waitDuration;
-        ConcurrentQueue<string> queue = new ConcurrentQueue<string>();
-        JObject json;
-
-        listener.RegisterMessageQueue(queue);
-        while (sw.ElapsedMilliseconds < timeout)
-        {
-            listener.Listen();
-            wait = listener.GetListenHandle();
-            waitDuration = timeout - (int)sw.ElapsedMilliseconds;
-            waitDuration = waitDuration > 0 ? waitDuration : 0;
-
-            yield return null;
-            wait.Wait(waitDuration);
-
-            string message;
-            while (queue.TryDequeue(out message))
-            {
-                json = JObject.Parse(message);
-                if (json.GetValue("type").Value<string>() == type)
-                {
-                    listener.RemoveMessageQueue();
-                    act(json);
-                }
-            }
-        }
-
-        listener.RemoveMessageQueue();
-        UnityEngine.Debug.Log("Wait for message timed out: " + sw.ElapsedMilliseconds);
-        throw new TimeoutException("Timed out waiting for response");
-    }
-
     public override void HandleMessage(string message, DateTime time) {
         JObject json = JObject.Parse(message);
         json.Add("task pc time", time);
 
-        string type = json.GetValue("type").Value<string>();
+        string type = json["type"]?.Value<string>();
         ReportMessage(json.ToString(), false);
 
-        if(type.Contains("ERROR")) {
+        if (type == null)
+        {
+            throw new Exception("Message is missing \"type\" field: " + json.ToString());
+        }
+
+        if (type.Contains("ERROR") == true) {
             throw new Exception("Error received from Host PC.");
         }
         if(type == "EXIT") {
@@ -320,7 +295,9 @@ public class ElememInterface : IHostPC
         // }
     }
 
-    public override void SendMessage(string type, Dictionary<string, object> data) {
+    public override void SendMessage(string type, Dictionary<string, object> data = null) {
+        if (data == null)
+            data = new Dictionary<string, object>();
         DataPoint point = new DataPoint(type, System.DateTime.UtcNow, data);
         string message = point.ToJSON();
 
@@ -340,16 +317,25 @@ public class ElememInterface : IHostPC
         data.Add("count", heartbeatCount);
         heartbeatCount++;
         SendMessage("HEARTBEAT", data);
-        WaitForMessage("HEARTBEAT_OK", heartbeatTimeout);
+        WaitForMessages(new[] { "HEARTBEAT_OK" }, heartbeatTimeout);
     }
 
     public void RepeatedlyUpdateClassifierResult()
     {
         while (true)
         {
-            var classifierInfo = WaitForMessage("CLASSIFIER", 20000);
-            lock (classifierResultLock)
-                classifierResult = classifierInfo["data"]["enable"].ToObject<int>();
+            var classifierInfo = WaitForMessages(new[] { "CLASSIFIER_RESULT", "EEG_EPOCH_END" }, 20000);
+            switch(classifierInfo["type"].Value<string>())
+            {
+                case "CLASSIFIER_RESULT":
+                    lock (classifierResultLock)
+                        classifierResult = classifierInfo["data"]["enable"].ToObject<int>();
+                    break;
+                case "EEG_EPOCH_END":
+                    // Just log the info
+                    break;
+            }
+            
         }
     }
 
@@ -375,7 +361,7 @@ public class NiclsInterface3 : MonoBehaviour
     //This will be used to log messages
     public ScriptedEventReporter scriptedEventReporter;
 
-    private ElememInterface niclsInterface = null;
+    private NiclsInterfaceHelper niclsInterfaceHelper = null;
 
     private bool disabledInterface = false;
 
@@ -385,7 +371,7 @@ public class NiclsInterface3 : MonoBehaviour
         if (disabledInterface)
             yield break;
 
-        niclsInterface = new ElememInterface(scriptedEventReporter);
+        niclsInterfaceHelper = new NiclsInterfaceHelper(scriptedEventReporter);
         UnityEngine.Debug.Log("Started Nicls Interface");
     }
 
@@ -393,24 +379,24 @@ public class NiclsInterface3 : MonoBehaviour
     {
         if (disabledInterface) return;
         var enableDict = new Dictionary<string, object> { { "enable", enable } };
-        niclsInterface.SendMessage("ENCODING", enableDict);
+        niclsInterfaceHelper.SendMessage("ENCODING", enableDict);
     }
 
     public void SendReadOnlyStateToNicls(int enable)
     {
         if (disabledInterface) return;
         var enableDict = new Dictionary<string, object> { { "enable", enable } };
-        niclsInterface.SendMessage("READ_ONLY_STATE", enableDict);
+        niclsInterfaceHelper.SendMessage("READ_ONLY_STATE", enableDict);
     }
 
-    public bool classifierReady()
+    public bool classifierInPosState()
     {
-        return niclsInterface.classifierResult == 1;
+        return niclsInterfaceHelper.classifierResult == 1;
     }
 
-    public bool classifierNotReady()
+    public bool classifierInNegState()
     {
-        return niclsInterface.classifierResult == 0;
+        return niclsInterfaceHelper.classifierResult == 0;
     }
 }
 #endif // UNITY_STANDALONE

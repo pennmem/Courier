@@ -26,6 +26,9 @@
 # Visual Studio cache directory
 .vs/
 
+# Visual Studio packages
+/[Pp]ackages/
+
 # Gradle cache directory
 .gradle/
 

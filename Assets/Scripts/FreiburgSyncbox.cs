@@ -174,7 +174,7 @@ public class FreiburgSyncbox : EventLoop {
 
     private void LogPulse()
     {
-        scriptedEventReporter?.ReportScriptedEvent("syncPulse", new Dictionary<string, object>());
+        scriptedEventReporter?.ReportScriptedEvent("syncPulse");
     }
 
 

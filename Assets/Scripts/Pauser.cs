@@ -20,14 +20,14 @@ public class Pauser : MonoBehaviour
             pauseScreen.SetActive(true);
             playerMovement.Freeze();
             paused = true;
-            scriptedEventReporter.ReportScriptedEvent("pause", new Dictionary<string, object>());
+            scriptedEventReporter.ReportScriptedEvent("pause");
         }
         else if (allowPausing && InputManager.GetKeyDown(KeyCode.P) && paused)
         {
             pauseScreen.SetActive(false);
             playerMovement.Unfreeze();
             paused = false;
-            scriptedEventReporter.ReportScriptedEvent("unpause", new Dictionary<string, object>());
+            scriptedEventReporter.ReportScriptedEvent("unpause");
         }
 	}
 

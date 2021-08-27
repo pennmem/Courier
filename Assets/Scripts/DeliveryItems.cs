@@ -87,18 +87,18 @@ public class DeliveryItems : MonoBehaviour
         allStores.Sort();
         System.IO.File.AppendAllLines(outputFilePath, allStores);
     }
-#endif // UNITY_STANDALONE
+#endif // !UNITY_WEBGL
 
     void Awake()
     {
         random = new System.Random(UnityEPL.GetParticipants()[0].GetHashCode());
-        #if UNITY_STANDALONE
+        #if !UNITY_WEBGL
             WriteRemainingItemsFiles();
             WriteAlphabetizedItemsFile();
             WriteStoreNamesFile();
         #else
             remainingItems = LoadItems();
-        #endif
+        #endif // !UNITY_WEBGL
 
         foreach (StoreAudio storeAudio in storeNamesToItems)
         {
@@ -157,13 +157,12 @@ public class DeliveryItems : MonoBehaviour
 
     public AudioClip PopItem(string storeName)
     {
-        #if UNITY_STANDALONE
-        
+        #if !UNITY_WEBGL
             // Get the item
-            int randomItemIndex = Random.Range(0, remainingItems.Length);
-            string randomItemName = remainingItems[randomItemIndex];
             string remainingItemsPath = RemainingItemsPath(storeName);
             string[] remainingItems = System.IO.File.ReadAllLines(remainingItemsPath);
+            int randomItemIndex = Random.Range(0, remainingItems.Length);
+            string randomItemName = remainingItems[randomItemIndex];
             
             StoreAudio storeAudio = System.Array.Find(storeNamesToItems,
                                                     store => store.storeName.Equals(storeName));
@@ -188,9 +187,7 @@ public class DeliveryItems : MonoBehaviour
             System.Array.Resize(ref remainingItems, remainingItems.Length - 1);
             System.IO.File.WriteAllLines(remainingItemsPath, remainingItems);
             Debug.Log("Items remaining: " + remainingItems.Length.ToString());
-        
         #else // Online
-
             int randomItemIndex = UnityEngine.Random.Range(0, remainingItems[storeName].Count);
             string randomItemName = remainingItems[storeName][randomItemIndex];
 
@@ -211,8 +208,7 @@ public class DeliveryItems : MonoBehaviour
                 throw new UnityException("Possible language mismatch. I couldn't find an item for: " + storeName);
 
             remainingItems[storeName].Remove(randomItemName);
-        
-        #endif
+        #endif // !UNITY_WEBGL
         
         //return the item
         return randomItem;
@@ -220,8 +216,7 @@ public class DeliveryItems : MonoBehaviour
 
     public static bool ItemsExhausted()
     {
-        #if UNITY_STANDALONE
-
+        #if !UNITY_WEBGL
             bool itemsExhausted = false;
             string remainingItemsDirectory = RemainingItemsPath("");
             if (!System.IO.Directory.Exists(remainingItemsDirectory))
@@ -235,7 +230,6 @@ public class DeliveryItems : MonoBehaviour
                     itemsExhausted = true;
             }
             return itemsExhausted;
-        
         #else // Online
 
             foreach(List<string> storeItems in remainingItems.Values)
@@ -246,7 +240,6 @@ public class DeliveryItems : MonoBehaviour
             }
 
             return false;
-        
-        #endif
+        #endif // !UNITY_WEBGL
     }
 }

@@ -73,7 +73,7 @@ public class UPennSyncbox : EventLoop {
             Debug.Log("Pew!");
             // Send a pulse
             if(scriptedInput != null)
-                scriptedInput.ReportScriptedEvent("syncPulse", new System.Collections.Generic.Dictionary<string, object>());
+                scriptedInput.ReportScriptedEvent("syncPulse");
 
             SyncPulse();
 

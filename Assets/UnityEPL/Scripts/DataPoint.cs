@@ -45,17 +45,11 @@ public class DataPoint
         double unixTimestamp = ConvertToMillisecondsSinceEpoch(time);
         string JSONString = "{\"type\":\"" + type + "\",\"data\":{";
         foreach (string key in dataDict.Keys)
-        {
-            object value = dataDict[key];
-
-            string valueJSONString = ValueToString(value);
-            JSONString = JSONString + "\"" + key + "\":" + valueJSONString + ",";
-        }
+            JSONString = JSONString + "\"" + key + "\":" + ValueToString(dataDict[key]) + ",";
         if (dataDict.Count > 0) // Remove the last comma
             JSONString = JSONString.Substring(0, JSONString.Length - 1);
         JSONString = JSONString + "},\"time\":" + unixTimestamp.ToString() + "}";
         return JSONString;
-
 
         // string JSONString = "{\"type\":\"" + type + "\",\"data\":";
         // // Debug.Log("iterating over keys");

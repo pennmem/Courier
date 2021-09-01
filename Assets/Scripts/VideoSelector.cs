@@ -13,6 +13,7 @@ public class VideoSelector : MonoBehaviour
     public UnityEngine.Video.VideoClip germanNewEfrIntro;
     public UnityEngine.Video.VideoClip niclsEnglishIntro;
     public UnityEngine.Video.VideoClip[] niclsMovie;
+    public UnityEngine.Video.VideoClip[] musicVideos;
 
     void OnEnable()
     {
@@ -29,10 +30,11 @@ public class VideoSelector : MonoBehaviour
         EfrIntro,
         NewEfrIntro,
         NiclsMainIntro,
-        NiclsMovie
+        NiclsMovie,
+        MusicVideos
     }
 
-    public void SetIntroductionVideo(VideoType videoType, int videoIndex = 0)
+    public void SetVideo(VideoType videoType, int videoIndex = 0)
     {
         #if !UNITY_WEBGL
         switch (videoType)
@@ -61,6 +63,9 @@ public class VideoSelector : MonoBehaviour
                 break;
             case VideoType.NiclsMovie:
                 videoPlayer.clip = niclsMovie[videoIndex];
+                break;
+            case VideoType.MusicVideos:
+                videoPlayer.clip = musicVideos[videoIndex];
                 break;
             default: break;
         }

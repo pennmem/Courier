@@ -51,8 +51,9 @@ public class Config
     public static int deliveriesPerTrial { get {
             if (lessDeliveries) return 3;
             else return (int)Config.GetSetting("deliveriesPerTrial"); } }
-    public static int practiceDeliveriesPerTrial { get { return (int)Config.GetSetting("practiceDeliveriesPerTrial"); } }
-
+    public static int deliveriesPerPracticeTrial { get {
+            if (lessDeliveries) return 3;
+            else return (int)Config.GetSetting("deliveriesPerPracticeTrial"); } }
     public static int newEfrKeypressPractices { get { return (int)Config.GetSetting("newEfrKeypressPractices"); } }
 
     private const string SYSTEM_CONFIG_NAME = "config.json";

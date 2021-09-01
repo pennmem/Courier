@@ -12,9 +12,9 @@
     "niclsCourier": true,
     "counterBalanceCorrectIncorrectButton": false,
 
-    "practiceDeliveriesPerTrial": 4,
     "trialsPerSession": 5,
     "trialsPerSessionSingleTownLearning": 5,
-    "trialsPerSessionDoubleTownLearning": 3,
+    "trialsPerSessionDoubleTownLearning": 2,
+    "deliveriesPerPracticeTrial": 16,
     "deliveriesPerTrial":16
 }

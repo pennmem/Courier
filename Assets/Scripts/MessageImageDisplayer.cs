@@ -16,6 +16,8 @@ public class MessageImageDisplayer : MonoBehaviour
     public GameObject[] recap_instruction_messages_en; // JPB: TODO: Make this work for german
     public GameObject[] recap_instruction_messages_new_en;
 
+    public GameObject[] music_video_prompts;
+
     public GameObject please_find_the_blah;
     public Text please_find_the_blah_text;
     public GameObject please_find_the_blah_reminder;
@@ -25,6 +27,7 @@ public class MessageImageDisplayer : MonoBehaviour
     public GameObject free_recall_display;
     public GameObject efr_display;
     public GameObject cued_recall_message;
+    public GameObject sliding_scale_display;
     public GameObject general_message_display;
     public GameObject general_big_message_display;
     public GameObject general_bigger_message_display;
@@ -206,6 +209,29 @@ public class MessageImageDisplayer : MonoBehaviour
         }
     }
 
+    public IEnumerator DisplaySlidingScaleMessage(GameObject message, string buttonName = "Continue")
+    {
+
+        Dictionary<string, object> messageData = new Dictionary<string, object>();
+        messageData.Add("message name", message.name);
+        // JPB: TODO: Change this so that it takes a logging name
+        scriptedEventReporter.ReportScriptedEvent("instruction message displayed", messageData);
+        message.SetActive(true);
+        while (!InputManager.GetButtonDown(buttonName) && !InputManager.GetButtonDown("Secret"))
+        {
+            yield return null;
+            if (InputManager.GetButtonDown("EfrLeft"))
+                message.transform.Find("sliding scale").GetComponent<Slider>().value -= 1;
+            else if (InputManager.GetButtonDown("EfrRight"))
+                message.transform.Find("sliding scale").GetComponent<Slider>().value += 1;
+        }
+        scriptedEventReporter.ReportScriptedEvent("instruction message cleared", messageData);
+        message.SetActive(false);
+
+        scriptedEventReporter.ReportScriptedEvent("sliding scale value",
+            new Dictionary<string, object>() { { "value", message.transform.Find("sliding scale").GetComponent<Slider>().value } });
+    }
+
     //display message for cued recall
     public void SetCuedRecallMessage(bool isActive)
     {
@@ -279,6 +305,25 @@ public class MessageImageDisplayer : MonoBehaviour
             general_big_message_display.transform.Find("main text").GetComponent<Text>().text = LanguageSource.GetLanguageString(mainText);
         if (continueText != null)
             general_big_message_display.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString(continueText);
+    }
+
+    public void SetSlidingScaleText(string titleText = "", string[] ratings = null, string continueText = "continue")
+    {
+        sliding_scale_display.transform.Find("sliding scale").GetComponent<Slider>().value = 2;
+
+        if (titleText != null)
+            sliding_scale_display.transform.Find("title text").GetComponent<Text>().text = LanguageSource.GetLanguageString(titleText);
+
+        int numRatings = sliding_scale_display.transform.Find("ratings").childCount;
+        if (ratings != null)
+            for (int i = 0; i < numRatings; ++i)
+                sliding_scale_display.transform.Find("ratings/rating " + i).GetComponent<Text>().text = LanguageSource.GetLanguageString(ratings[i]);
+        else // ratings == null
+            for (int i = 0; i < numRatings; ++i)
+                sliding_scale_display.transform.Find("ratings/rating " + i).GetComponent<Text>().text = LanguageSource.GetLanguageString("");
+
+        if (continueText != null)
+            sliding_scale_display.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString(continueText);
     }
 
     public void SetGeneralMessageText(string titleText = "", string mainText = "", string descriptiveText = "", string continueText = "continue")

@@ -329,10 +329,10 @@ public class NiclsInterfaceHelper : IHostPC
             {
                 case "CLASSIFIER_RESULT":
                     lock (classifierResultLock)
-                        classifierResult = classifierInfo["data"]["enable"].ToObject<int>();
+                        classifierResult = classifierInfo["data"]["result"].ToObject<int>();
                     break;
                 case "EEG_EPOCH_END":
-                    // Just log the info
+                    // Do nothing, just log the info
                     break;
             }
             
@@ -363,12 +363,12 @@ public class NiclsInterface3 : MonoBehaviour
 
     private NiclsInterfaceHelper niclsInterfaceHelper = null;
 
-    private bool disabledInterface = false;
+    private bool interfaceDisabled = false;
 
-    public IEnumerator BeginNewSession(int sessionNum, bool _disabledInterface = false)
+    public IEnumerator BeginNewSession(int sessionNum, bool disableInterface = false)
     {
-        disabledInterface = _disabledInterface;
-        if (disabledInterface)
+        interfaceDisabled = disableInterface;
+        if (interfaceDisabled)
             yield break;
 
         niclsInterfaceHelper = new NiclsInterfaceHelper(scriptedEventReporter);
@@ -377,14 +377,14 @@ public class NiclsInterface3 : MonoBehaviour
 
     public void SendEncodingToNicls(int enable)
     {
-        if (disabledInterface) return;
+        if (interfaceDisabled) return;
         var enableDict = new Dictionary<string, object> { { "enable", enable } };
         niclsInterfaceHelper.SendMessage("ENCODING", enableDict);
     }
 
     public void SendReadOnlyStateToNicls(int enable)
     {
-        if (disabledInterface) return;
+        if (interfaceDisabled) return;
         var enableDict = new Dictionary<string, object> { { "enable", enable } };
         niclsInterfaceHelper.SendMessage("READ_ONLY_STATE", enableDict);
     }

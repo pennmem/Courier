@@ -78,10 +78,11 @@ public class MessageImageDisplayer : MonoBehaviour
         messageData.Add("message name", message.name);
         scriptedEventReporter.ReportScriptedEvent("instruction message displayed", messageData);
         message.SetActive(true);
-        yield return null;
         float startTime = Time.time;
         while (Time.time < startTime + waitTime)
         {
+            yield return null;
+
             if (InputManager.GetButtonDown("Secret"))
                 break;
             else if (InputManager.GetButtonDown("Continue"))
@@ -96,7 +97,6 @@ public class MessageImageDisplayer : MonoBehaviour
                             new Dictionary<string, object> { { "response", kcode.ToString() } });
                 }
             }
-            yield return null;
         }
         scriptedEventReporter.ReportScriptedEvent("instruction message cleared", messageData);
         message.SetActive(false);
@@ -211,12 +211,12 @@ public class MessageImageDisplayer : MonoBehaviour
 
     public IEnumerator DisplaySlidingScaleMessage(GameObject message, string buttonName = "Continue")
     {
-
         Dictionary<string, object> messageData = new Dictionary<string, object>();
         messageData.Add("message name", message.name);
         // JPB: TODO: Change this so that it takes a logging name
         scriptedEventReporter.ReportScriptedEvent("instruction message displayed", messageData);
         message.SetActive(true);
+        yield return null;
         while (!InputManager.GetButtonDown(buttonName) && !InputManager.GetButtonDown("Secret"))
         {
             yield return null;

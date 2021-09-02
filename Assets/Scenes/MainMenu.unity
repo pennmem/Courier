@@ -4198,6 +4198,36 @@ MonoBehaviour:
         m_gamepadButton: 0
         m_gamepadAxis: 0
         m_gamepadIndex: 0
+      - m_positive: 121
+        m_negative: 0
+        m_deadZoneType: 0
+        m_deadZone: 0
+        m_gravity: 1
+        m_sensitivity: 1
+        m_scale: 1
+        m_snap: 0
+        m_invert: 0
+        m_type: 0
+        m_axis: 0
+        m_joystick: 0
+        m_gamepadButton: 0
+        m_gamepadAxis: 0
+        m_gamepadIndex: 0
+      - m_positive: 333
+        m_negative: 0
+        m_deadZoneType: 0
+        m_deadZone: 0
+        m_gravity: 1
+        m_sensitivity: 1
+        m_scale: 1
+        m_snap: 0
+        m_invert: 0
+        m_type: 0
+        m_axis: 0
+        m_joystick: 0
+        m_gamepadButton: 0
+        m_gamepadAxis: 0
+        m_gamepadIndex: 0
     - m_name: Secret
       m_description: 
       m_bindings:

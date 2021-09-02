@@ -19,7 +19,6 @@ public class VideoControl : MonoBehaviour
         //    else
         //        videoPlayer.Play();
         //}
-        
 
         #if !UNITY_WEBGL
             // Stop
@@ -39,9 +38,9 @@ public class VideoControl : MonoBehaviour
 
     public void StartVideo()
     {
-        Debug.Log("VideoControl");
+        Debug.Log("VideoControl start video");
         #if UNITY_WEBGL
-        videoPlayer.loopPointReached += (VideoPlayer vp) => gameObject.SetActive(false);
+            videoPlayer.loopPointReached += (VideoPlayer vp) => gameObject.SetActive(false);
         #endif
         gameObject.SetActive(true);
     }

@@ -424,34 +424,7 @@ public class DeliveryExperiment : CoroutineExperiment
             niclsClassifierTypes.Select(x => Enum.GetName(typeof(NiclsClassifierType), x))));
     }
 
-    private void TestScreen()
-    {
-        pauser.AllowPausing();
-        regularCamera.enabled = true;
-        blackScreenCamera.enabled = false;
-        starSystem.gameObject.SetActive(false);
-        memoryWordCanvas.SetActive(false);
-        playerMovement.Zero();
-    }
 
-    private void LogVersions(string expName)
-    {
-        Dictionary<string, object> versionsData = new Dictionary<string, object>();
-        versionsData.Add("UnityEPL version", Application.version);
-        versionsData.Add("Experiment version", expName + COURIER_VERSION);
-        versionsData.Add("Logfile version", "2.0.0");
-        scriptedEventReporter.ReportScriptedEvent("versions", versionsData);
-    }
-
-    private void BlackScreen()
-    {
-        pauser.ForbidPausing();
-        memoryWordCanvas.SetActive(true);
-        regularCamera.enabled = false;
-        blackScreenCamera.enabled = true;
-        starSystem.gameObject.SetActive(false);
-        playerMovement.Freeze();
-    }
 
     private IEnumerator DoFrameTest()
     {   
@@ -464,7 +437,7 @@ public class DeliveryExperiment : CoroutineExperiment
         messageImageDisplayer.SetGeneralBigMessageText(titleText: "frame test start title", mainText: "frame test start main");
         yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
 
-        TestScreen();
+        WorldScreen();
         pointer.SetActive(false);
         IS_FRAME_TESTING = true;
         messageImageDisplayer.fpsDisplay.SetActive(true);
@@ -622,6 +595,36 @@ public class DeliveryExperiment : CoroutineExperiment
         yield return DoFinalRecall(subSessionNum);
     }
 
+    private void LogVersions(string expName)
+    {
+        Dictionary<string, object> versionsData = new Dictionary<string, object>();
+        versionsData.Add("UnityEPL version", Application.version);
+        versionsData.Add("Experiment version", expName + COURIER_VERSION);
+        versionsData.Add("Logfile version", "2.0.0");
+        scriptedEventReporter.ReportScriptedEvent("versions", versionsData);
+    }
+
+    private void BlackScreen()
+    {
+        pauser.ForbidPausing();
+        memoryWordCanvas.SetActive(true);
+        regularCamera.enabled = false;
+        blackScreenCamera.enabled = true;
+        starSystem.gameObject.SetActive(false);
+        playerMovement.Freeze();
+    }
+
+    private void WorldScreen()
+    {
+        pauser.AllowPausing();
+        regularCamera.enabled = true;
+        blackScreenCamera.enabled = false;
+        if (!NICLS_COURIER)
+            starSystem.gameObject.SetActive(true);
+        memoryWordCanvas.SetActive(false);
+        playerMovement.Zero();
+    }
+
     private IEnumerator DoIntros()
     {   
         Debug.Log("DoIntros");
@@ -684,17 +687,6 @@ public class DeliveryExperiment : CoroutineExperiment
 
         yield return messageImageDisplayer.DisplayMessageTimed(messageImageDisplayer.general_bigger_message_display, time);
         scriptedEventReporter.ReportScriptedEvent("stop fixation");
-    }
-
-    private void WorldScreen()
-    {
-        pauser.AllowPausing();
-        regularCamera.enabled = true;
-        blackScreenCamera.enabled = false;
-        if (!NICLS_COURIER)
-            starSystem.gameObject.SetActive(true);
-        memoryWordCanvas.SetActive(false);
-        playerMovement.Zero();
     }
 
     protected IEnumerator DisplayMessageAndWait(string description, string message)
@@ -1463,9 +1455,10 @@ public class DeliveryExperiment : CoroutineExperiment
         yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
 
         // Play the music videos
-        
         foreach (int clipNum in Enumerable.Range(0, NUM_MUSIC_VIDEOS_PER_SESSION))
         {
+            BlackScreen();
+            yield return null;
             yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
                                  LanguageSource.GetLanguageString("music video ending instructions"),
                                  VideoSelector.VideoType.MusicVideos,

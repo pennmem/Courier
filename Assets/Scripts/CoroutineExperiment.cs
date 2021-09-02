@@ -130,7 +130,7 @@ public abstract class CoroutineExperiment : MonoBehaviour
             if (repeatPrompt != null)
             {
                 textDisplayer.DisplayText("repeat video prompt", repeatPrompt);
-                while (!InputManager.GetKeyDown(KeyCode.Y) && !InputManager.GetKeyDown(KeyCode.N))
+                while (!InputManager.GetButtonDown("Continue") && !InputManager.GetKeyDown(KeyCode.N))
                 {
                     yield return null;
                 }

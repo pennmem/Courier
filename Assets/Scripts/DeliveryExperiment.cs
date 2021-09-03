@@ -56,7 +56,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private int number_input;
     ///////////////////////////////////////////////////////////////////////////
     
-    private const string COURIER_VERSION = COURIER_ONLINE ? "v5.0.0online" : "v5.0.14";
+    private const string COURIER_VERSION = COURIER_ONLINE ? "v5.0.0online" : "v5.1.0";
 
     private const string RECALL_TEXT = "*******"; // JPB: TODO: Remove this and use display system
     // Constants moved to the Config File

@@ -155,7 +155,6 @@ public abstract class CoroutineExperiment : MonoBehaviour
         SetRamulatorState("WAITING", false, new Dictionary<string, object>());
     }
 
-
     // LC: This should later be refactored into FlexibleConfig.cs
     protected IEnumerator GetOnlineConfig()
     {
@@ -194,7 +193,6 @@ public abstract class CoroutineExperiment : MonoBehaviour
             Debug.Log(Config.onlineExperimentConfigText);
         }
     }
-
 
     protected void Quit()
     {

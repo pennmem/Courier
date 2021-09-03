@@ -13,8 +13,9 @@ public class MessageImageDisplayer : MonoBehaviour
     public GameObject[] store_images_presentation_messages;
 
     public GameObject[] nicls_final_recall_messages; // JPB: TODO: Add the german slide
-    public GameObject[] recap_instruction_messages_en; // JPB: TODO: Make this work for german
-    public GameObject[] recap_instruction_messages_new_en;
+    public GameObject[] recap_instruction_messages_efr_2btn_en; // JPB: TODO: Make this work for german
+    public GameObject[] recap_instruction_messages_efr_en;
+    public GameObject[] recap_instruction_messages_fr_en;
 
     public GameObject[] music_video_prompts;
 

@@ -109,7 +109,6 @@ public class PostHocViewReport : MonoBehaviour {
                 success = ReadLogLine(line, out pos, out rot);
                 UpdateBox( (string)line["data"]["reportID"], pos, rot);
             }
-                
         }
 
         SceneManager.sceneLoaded -= onSceneLoaded;

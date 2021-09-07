@@ -1,13 +1,351 @@
 ﻿using System;
+using System.Linq;
+using System.Diagnostics;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
-using System.Runtime.InteropServices;
-using System.Text;
+using System.Collections.Concurrent;
+using System.Threading;
 using UnityEngine;
-using NetMQ;
-using Newtonsoft.Json;
+using System.Net.Sockets;
 using Newtonsoft.Json.Linq;
+
+public abstract class IHostPC : EventLoop {
+    public abstract JObject WaitForMessage(string type, int timeout);
+    public abstract JObject WaitForMessages(string[] types, int timeout);
+    public abstract void Connect();
+    public abstract void HandleMessage(string message, DateTime time);
+    public abstract void SendMessage(string type, Dictionary<string, object> data);
+}
+
+public class NiclsListener {
+    NiclsInterfaceHelper niclsInterfaceHelper;
+    Byte[] buffer; 
+    const Int32 bufferSize = 2048;
+
+    private volatile ManualResetEventSlim callbackWaitHandle;
+    private ConcurrentQueue<string> queue = null;
+
+    string messageBuffer = "";
+    public NiclsListener(NiclsInterfaceHelper _niclsInterfaceHelper) {
+        niclsInterfaceHelper = _niclsInterfaceHelper;
+        buffer = new Byte[bufferSize];
+        callbackWaitHandle = new ManualResetEventSlim(true);
+    }
+
+    public bool IsListening() {
+        return !callbackWaitHandle.IsSet;
+    }
+
+    public ManualResetEventSlim GetListenHandle() {
+        return callbackWaitHandle;
+    }
+
+    public void RegisterMessageQueue(ConcurrentQueue<string> messages) {
+        queue = messages;
+    }
+
+    public void RemoveMessageQueue() {
+        queue = null;
+    }
+
+    public void Listen() {
+        if(IsListening()) {
+            throw new AccessViolationException("Already Listening");
+        }
+
+        NetworkStream stream = niclsInterfaceHelper.GetReadStream();
+        callbackWaitHandle.Reset();
+        stream.BeginRead(buffer, 0, bufferSize, Callback, 
+                        new Tuple<NetworkStream, ManualResetEventSlim, ConcurrentQueue<string>>
+                            (stream, callbackWaitHandle, queue));
+    } 
+
+    private void Callback(IAsyncResult ar) {
+        NetworkStream stream;
+        ConcurrentQueue<string> queue;
+        ManualResetEventSlim handle;
+        int bytesRead;
+
+        Tuple<NetworkStream, ManualResetEventSlim, ConcurrentQueue<string>> state = (Tuple<NetworkStream, ManualResetEventSlim, ConcurrentQueue<string>>)ar.AsyncState;
+        stream = state.Item1;
+        handle = state.Item2;
+        queue = state.Item3;
+
+        bytesRead = stream.EndRead(ar);
+
+        foreach(string msg in ParseBuffer(bytesRead)) {
+            queue?.Enqueue(msg); // queue may be deleted by this point, if wait has ended
+        }
+
+        handle.Set();
+    }
+    
+    private List<string> ParseBuffer(int bytesRead) {
+        messageBuffer += System.Text.Encoding.UTF8.GetString(buffer, 0, bytesRead);
+        List<string> received = new List<string>();
+
+        UnityEngine.Debug.Log("ParseBuffer\n" + messageBuffer.ToString());
+
+        while(messageBuffer.IndexOf("\n") != -1) {
+            string message = messageBuffer.Substring(0, messageBuffer.IndexOf("\n") + 1);
+            received.Add(message);
+            messageBuffer = messageBuffer.Substring(messageBuffer.IndexOf("\n") + 1);
+            
+            ReportMessage(message);
+        }
+
+        return received;
+    }
+
+    private void ReportMessage(string message) {
+        niclsInterfaceHelper.Do(new EventBase<string, DateTime>(niclsInterfaceHelper.HandleMessage, message, System.DateTime.UtcNow));
+    }
+}
+
+// NOTE: the gotcha here is avoiding deadlocks when there's an error
+// message in the queue and some blocking wait in the EventLoop thread
+public class NiclsInterfaceHelper : IHostPC 
+{
+    //public InterfaceManager im;
+
+    int messageTimeout = 3000;
+    int heartbeatTimeout = 8000; // TODO: configuration
+
+    private TcpClient niclServer;
+    private NiclsListener listener;
+    private int heartbeatCount = 0;
+
+    private ScriptedEventReporter scriptedEventReporter;
+
+    public readonly object classifierResultLock = new object();
+    public volatile int classifierResult = 0;
+
+    public NiclsInterfaceHelper(ScriptedEventReporter _scriptedEventReporter) { //InterfaceManager _im) {
+        //im = _im;
+        scriptedEventReporter = _scriptedEventReporter;
+        listener = new NiclsListener(this);
+        Start();
+        StartLoop();
+        Connect();
+        //Do(new EventBase(Connect));
+    }
+
+    ~NiclsInterfaceHelper() {
+        niclServer.Close();
+    }
+
+
+    public NetworkStream GetWriteStream() {
+        // TODO implement locking here
+        if(niclServer == null) {
+            throw new InvalidOperationException("Socket not initialized.");
+        }
+
+        return niclServer.GetStream();
+    }
+
+    public NetworkStream GetReadStream() {
+        // TODO implement locking here
+        if(niclServer == null) {
+            throw new InvalidOperationException("Socket not initialized.");
+        }
+
+        return niclServer.GetStream();
+    }
+
+    public override void Connect() {
+        niclServer = new TcpClient();
+
+        //try {
+        IAsyncResult result = niclServer.BeginConnect(Config.niclServerIP, Config.niclServerPort, null, null);
+        result.AsyncWaitHandle.WaitOne(messageTimeout);
+        niclServer.EndConnect(result);
+        //}
+        //catch(SocketException) {    // TODO: set hostpc state on task side
+        //    //im.Do(new EventBase<string>(im.SetHostPCStatus, "ERROR")); 
+        //    throw new OperationCanceledException("Failed to Connect");
+        //}
+
+        //im.Do(new EventBase<string>(im.SetHostPCStatus, "INITIALIZING")); 
+
+        UnityEngine.Debug.Log("CONNECTING");
+        SendMessage("CONNECTED"); // Awake
+        WaitForMessage("CONNECTED_OK", messageTimeout);
+
+        Dictionary<string, object> configDict = new Dictionary<string, object>();
+        //configDict.Add("stim_mode", (string)im.GetSetting("stimMode"));
+        //configDict.Add("experiment", (string)im.GetSetting("experimentName"));
+        //configDict.Add("subject", (string)im.GetSetting("participantCode"));
+        //configDict.Add("session", (int)im.GetSetting("session"));
+        SendMessage("CONFIGURE", configDict);
+        WaitForMessage("CONFIGURE_OK", messageTimeout);
+
+        // excepts if there's an issue with latency, else returns
+        //DoLatencyCheck();
+
+        // JPB: TODO: Put classifier stuff here
+        Do(new EventBase(RepeatedlyUpdateClassifierResult));
+        //DoRepeating(new RepeatingEvent(ClassifierResult, -1, 0, 1000));
+
+        // start heartbeats
+        //int interval = (int)im.GetSetting("heartbeatInterval");
+        //DoRepeating(new EventBase(Heartbeat), -1, 0, interval);
+
+        //SendMessage("READY", new Dictionary<string, object>());
+        //im.Do(new EventBase<string>(im.SetHostPCStatus, "READY")); 
+    }
+
+    private void DoLatencyCheck() {
+        // except if latency is unacceptable
+        Stopwatch sw = new Stopwatch();
+        float[] delay = new float[20];
+
+        for(int i=0; i < 20; i++) {
+            sw.Restart();
+            Heartbeat();
+            sw.Stop();
+
+            delay[i] = sw.ElapsedTicks * (1000f / Stopwatch.Frequency);
+            if(delay[i] > 20) {
+                break;
+            }
+
+            Thread.Sleep(50 - (int)delay[i]);
+        }
+        
+        float max = delay.Max();
+        float mean = delay.Sum() / delay.Length;
+        float acc = (1000L*1000L*1000L) / Stopwatch.Frequency;
+
+        Dictionary<string, object> dict = new Dictionary<string, object>();
+        dict.Add("max_latency", max);
+        dict.Add("mean_latency", mean);
+        dict.Add("accuracy", acc);
+
+        //im.Do(new EventBase<string, Dictionary<string, object>>(im.ReportEvent, "latency check", dict));
+    }
+
+    public override JObject WaitForMessage(string type, int timeout)
+    {
+        return WaitForMessages(new[] { type }, timeout);
+    }
+
+    public override JObject WaitForMessages(string[] types, int timeout) {
+        Stopwatch sw = new Stopwatch();
+        sw.Start();
+
+        ManualResetEventSlim wait;
+        int waitDuration;
+        ConcurrentQueue<string> queue = new ConcurrentQueue<string>();
+        JObject json;
+
+        listener.RegisterMessageQueue(queue);
+        while(sw.ElapsedMilliseconds < timeout) {
+            listener.Listen();
+            wait = listener.GetListenHandle();
+            waitDuration =  timeout - (int)sw.ElapsedMilliseconds;
+            waitDuration =  waitDuration > 0 ? waitDuration : 0;
+
+            wait.Wait(waitDuration);
+
+            string message;
+            while (queue.TryDequeue(out message))
+            {
+                json = JObject.Parse(message);
+                if (types.Contains(json["type"]?.Value<string>()))
+                {
+                    listener.RemoveMessageQueue();
+                    return json;
+                }
+            }
+        }
+        
+        listener.RemoveMessageQueue();
+        UnityEngine.Debug.Log("Wait for message timed out");
+        throw new TimeoutException("Timed out waiting for response");
+    }
+
+    public override void HandleMessage(string message, DateTime time) {
+        JObject json = JObject.Parse(message);
+        json.Add("task pc time", time);
+
+        string type = json["type"]?.Value<string>();
+        ReportMessage(json.ToString(), false);
+
+        if (type == null)
+        {
+            throw new Exception("Message is missing \"type\" field: " + json.ToString());
+        }
+
+        if (type.Contains("ERROR") == true) {
+            throw new Exception("Error received from Host PC.");
+        }
+        if(type == "EXIT") {
+            return;
+        }
+
+        // // start listener if not running
+        // if(!listener.IsListening()) {
+        //     listener.Listen();
+        // }
+    }
+
+    public override void SendMessage(string type, Dictionary<string, object> data = null) {
+        if (data == null)
+            data = new Dictionary<string, object>();
+        DataPoint point = new DataPoint(type, System.DateTime.UtcNow, data);
+        string message = point.ToJSON();
+
+        UnityEngine.Debug.Log("Sent Message");
+        UnityEngine.Debug.Log(message);
+
+        Byte[] bytes = System.Text.Encoding.UTF8.GetBytes(message+"\n");
+
+        NetworkStream stream = GetWriteStream();
+        stream.Write(bytes, 0, bytes.Length);
+        ReportMessage(message, true);
+    }
+
+    private void Heartbeat()
+    {
+        var data = new Dictionary<string, object>();
+        data.Add("count", heartbeatCount);
+        heartbeatCount++;
+        SendMessage("HEARTBEAT", data);
+        WaitForMessages(new[] { "HEARTBEAT_OK" }, heartbeatTimeout);
+    }
+
+    public void RepeatedlyUpdateClassifierResult()
+    {
+        while (true)
+        {
+            var classifierInfo = WaitForMessages(new[] { "CLASSIFIER_RESULT", "EEG_EPOCH_END" }, 20000);
+            switch(classifierInfo["type"].Value<string>())
+            {
+                case "CLASSIFIER_RESULT":
+                    lock (classifierResultLock)
+                        classifierResult = classifierInfo["data"]["result"].ToObject<int>();
+                    break;
+                case "EEG_EPOCH_END":
+                    // Do nothing, just log the info
+                    break;
+            }
+            
+        }
+    }
+
+    private void ReportMessage(string message, bool sent)
+    {
+        Dictionary<string, object> messageDataDict = new Dictionary<string, object>();
+        messageDataDict.Add("message", message);
+        messageDataDict.Add("sent", sent.ToString());
+
+        scriptedEventReporter.ReportScriptedEvent("network", messageDataDict);
+        //im.Do(new EventBase<string, Dictionary<string, object>, DateTime>(im.ReportEvent, "network", 
+        //                        messageDataDict, System.DateTime.UtcNow));
+
+    }
+}
 
 public class NiclsInterface : MonoBehaviour
 {
@@ -18,287 +356,41 @@ public class NiclsInterface : MonoBehaviour
     //This will be used to log messages
     public ScriptedEventReporter scriptedEventReporter;
 
-    //how long to wait for NICLS to connect
-    const int timeoutDelay = 150;
-    const int unreceivedHeartbeatsToQuit = 8;
+    private NiclsInterfaceHelper niclsInterfaceHelper = null;
 
-    private int unreceivedHeartbeats = 0;
+    private bool interfaceDisabled = false;
 
-    private NetMQ.Sockets.PairSocket zmqSocket;
-    private string address = "tcp://localhost:8889";
-
-    //private NiclsEventLoop niclsEventLoop;
-    private volatile int classifierResult = 0;
-
-    private bool disabled = false;
-
-    private void Awake()
+    public IEnumerator BeginNewSession(int sessionNum, bool disableInterface = false)
     {
-        address = "tcp://" + Config.niclServerIP + ":" + Config.niclServerPort;
-        Debug.Log("NiclServer address: " + address);
-    }
-
-
-    void OnApplicationQuit()
-    {
-        if (zmqSocket != null)
-        {
-            zmqSocket.Close();
-            NetMQConfig.Cleanup();
-        }
-    }
-
-    public bool classifierReady()
-    {
-        return classifierResult == 1;
-    }
-
-    private IEnumerator WaitForJson(string containingString, string errorMessage, int timeout = timeoutDelay)
-    {
-        niclsWarning.SetActive(true);
-        niclsWarningText.text = "Waiting on NICLS";
-
-        string receivedMessage = "";
-        float startTime = Time.time;
-
-        while (receivedMessage == null || !receivedMessage.Contains(containingString))
-        {
-            zmqSocket.TryReceiveFrameString(out receivedMessage);
-            if (receivedMessage != "" && receivedMessage != null)
-            {
-                string messageString = receivedMessage.ToString();
-                Debug.Log("received: " + messageString);
-                DataPointNicls dataPoint = DataPointNicls.FromJsonString(messageString);
-                ReportMessage(messageString, false);
-            }
-
-            //if we have exceeded the timeout time, show warning and stop trying to connect
-            if (Time.time >= startTime + timeout)
-            {
-                niclsWarningText.text = errorMessage;
-                Debug.LogWarning("Timed out waiting for NICLS");
-                yield break;
-            }
-            yield return null;
-        }
-        niclsWarning.SetActive(false);
-    }
-
-    //this coroutine connects to NICLS and communicates how NICLS expects it to
-    //in order to start the experiment session.  follow it up with BeginNewTrial and
-    //SetState calls
-    public IEnumerator BeginNewSession(int sessionNumber, bool disabled = false)
-    {
-        if (disabled) {
-            this.disabled = disabled;
+        interfaceDisabled = disableInterface;
+        if (interfaceDisabled)
             yield break;
-        }
 
-        //Connect to nicls///////////////////////////////////////////////////////////////////
-        zmqSocket = new NetMQ.Sockets.PairSocket();
-        Debug.Log("TEST: " + address);
-        zmqSocket.Connect(address);
-        //Debug.Log ("socket bound");
-
-        SendMessageToNicls("CONNECTED");
-        yield return WaitForMessage("CONNECTED", "NICLS not connected.");
-
-        //yield return WaitForJson("CONNECTED", "NICLS not connected");
-
-        //yield break;
-
-        //niclsEventLoop = new NiclsEventLoop();
-        //niclsEventLoop.Init();
-
-        //SendSessionEvent//////////////////////////////////////////////////////////////////////
-        //Dictionary<string, object> sessionData = new Dictionary<string, object>();
-        //sessionData.Add("name", UnityEPL.GetExperimentName());
-        //sessionData.Add("version", Application.version);
-        //sessionData.Add("subject", UnityEPL.GetParticipants()[0]);
-        //sessionData.Add("session_number", sessionNumber.ToString());
-        //DataPoint sessionDataPoint = new DataPoint("SESSION", DataReporter.RealWorldTime(), sessionData);
-        //SendMessageToNicls(sessionDataPoint.ToJSON());
-        //Debug.Log(sessionDataPoint.ToJSON());
-        //yield return null;
-
-        SendMessageToNicls("CONFIGURE");
-        yield return WaitForMessage("CONFIGURE", "NICLS not configured.");
-
-        // JPB: TODO: NextDeliverable: Change this to use EventLoop system
-        InvokeRepeating("ReceiveClassifierInfo", 0, 1);
-        yield return null;
-
-        //EventBase eventBase = new EventBase(WaitForMessage);
-        //RepeatingEvent repeatingEvent = new RepeatingEvent(eventBase, 3, 0, 1000);
-        //niclsEventLoop.DoRepeating(repeatingEvent);
-
-        yield break;
-
-        //Begin Heartbeats///////////////////////////////////////////////////////////////////////
-        InvokeRepeating("SendHeartbeat", 0, 1);
-
-
-        //SendReadyEvent////////////////////////////////////////////////////////////////////
-        DataPoint ready = new DataPoint("READY", DataReporter.RealWorldTime(), new Dictionary<string, object>());
-        SendMessageToNicls(ready.ToJSON());
-        yield return null;
-
-
-        yield return WaitForMessage("START", "Start signal not received");
-
-
-        InvokeRepeating("ReceiveHeartbeat", 0, 1);
-
+        niclsInterfaceHelper = new NiclsInterfaceHelper(scriptedEventReporter);
+        UnityEngine.Debug.Log("Started Nicls Interface");
     }
 
-    private IEnumerator WaitForMessage(string containingString, string errorMessage, int timeout = timeoutDelay)
+    public void SendEncoding(int enable)
     {
-        niclsWarning.SetActive(true);
-        niclsWarningText.text = "Waiting on NICLS";
-
-        string receivedMessage = "";
-        float startTime = Time.time;
-
-        while (receivedMessage == null || !receivedMessage.Contains(containingString))
-        {
-            zmqSocket.TryReceiveFrameString(out receivedMessage);
-            if (receivedMessage != "" && receivedMessage != null)
-            {
-                string messageString = receivedMessage.ToString();
-                Debug.Log("received: " + messageString);
-                ReportMessage(messageString, false);
-            }
-
-            //if we have exceeded the timeout time, show warning and stop trying to connect
-            if (Time.time >= startTime + timeout)
-            {
-                niclsWarningText.text = errorMessage;
-                Debug.LogWarning("Timed out waiting for NICLS");
-                yield break;
-            }
-            yield return null;
-        }
-        niclsWarning.SetActive(false);
-    }
-
-    //NICLS expects this before the beginning of a new list
-    public void BeginNewTrial(int trialNumber)
-    {
-        if (zmqSocket == null)
-            throw new Exception("Please begin a session before beginning trials");
-        System.Collections.Generic.Dictionary<string, object> sessionData = new Dictionary<string, object>();
-        sessionData.Add("trial", trialNumber.ToString());
-        DataPoint sessionDataPoint = new DataPoint("TRIAL", DataReporter.RealWorldTime(), sessionData);
-        SendMessageToNicls(sessionDataPoint.ToJSON());
-    }
-
-    //NICLS expects this when you display words to the subject.
-    //for words, stateName is "WORD"
-    public void SetState(string stateName, bool stateToggle, System.Collections.Generic.Dictionary<string, object> sessionData)
-    {
-        sessionData.Add("name", stateName);
-        sessionData.Add("value", stateToggle.ToString());
-        DataPoint sessionDataPoint = new DataPoint("STATE", DataReporter.RealWorldTime(), sessionData);
-        SendMessageToNicls(sessionDataPoint.ToJSON());
-    }
-
-    public void SendMathMessage(string problem, string response, int responseTimeMs, bool correct)
-    {
-        Dictionary<string, object> mathData = new Dictionary<string, object>();
-        mathData.Add("problem", problem);
-        mathData.Add("response", response);
-        mathData.Add("response_time_ms", responseTimeMs.ToString());
-        mathData.Add("correct", correct.ToString());
-        DataPoint mathDataPoint = new DataPoint("MATH", DataReporter.RealWorldTime(), mathData);
-        SendMessageToNicls(mathDataPoint.ToJSON());
-    }
-
-
-    private void SendHeartbeat()
-    {
-        DataPoint sessionDataPoint = new DataPoint("HEARTBEAT", DataReporter.RealWorldTime(), null);
-        SendMessageToNicls(sessionDataPoint.ToJSON());
-    }
-
-    private void ReceiveHeartbeat()
-    {
-        unreceivedHeartbeats = unreceivedHeartbeats + 1;
-        Debug.Log("Unreceived heartbeats: " + unreceivedHeartbeats.ToString());
-        if (unreceivedHeartbeats > unreceivedHeartbeatsToQuit)
-        {
-#if UNITY_EDITOR
-            UnityEditor.EditorApplication.isPlaying = false;
-#else
-            Application.Quit();
-#endif
-        }
-
-        string receivedMessage = "";
-        float startTime = Time.time;
-        zmqSocket.TryReceiveFrameString(out receivedMessage);
-        if (receivedMessage != "" && receivedMessage != null)
-        {
-            string messageString = receivedMessage.ToString();
-            Debug.Log("heartbeat received: " + messageString);
-            ReportMessage(messageString, false);
-            unreceivedHeartbeats = 0;
-        }
-    }
-
-    private void ReceiveClassifierInfo()
-    {
-        string receivedMessage = "";
-        float startTime = Time.time;
-        zmqSocket.TryReceiveFrameString(out receivedMessage);
-        if (receivedMessage != "" && receivedMessage != null)
-        {
-            string messageString = receivedMessage.ToString();
-            //Debug.Log("classifierInfo received: " + messageString);
-            classifierResult = Int32.Parse(messageString);
-            //Debug.Log(classifierResult);
-            // JPB: TODO: NextDeliverable: Use DataPoint for classifier info
-            //DataPoint dataPoint = DataPoint.FromJsonString(messageString);
-            //Dictionary<string, object> dictionary = dataPoint.getData();
-            //Debug.Log("classifierInfo data: " + dataPoint.getData()["label"]);
-            //foreach (KeyValuePair<string, object> kvp in dictionary)
-            //{
-            //    Console.WriteLine("Key = {0}, Value = {1}", kvp.Key, kvp.Value);
-            //}
-
-            ReportMessage(messageString, false);
-        }
-    }
-
-    public void SendEncodingToNicls(int enable)
-    {
+        if (interfaceDisabled) return;
         var enableDict = new Dictionary<string, object> { { "enable", enable } };
-        var dataPointNicls = new DataPointNicls("ENCODING", DataReporter.RealWorldTime(), enableDict);
-        SendMessageToNicls(dataPointNicls.ToJSON());
+        niclsInterfaceHelper.SendMessage("ENCODING", enableDict);
     }
 
-    public void SendReadOnlyStateToNicls(int enable)
+    public void SendReadOnlyState(int enable)
     {
+        if (interfaceDisabled) return;
         var enableDict = new Dictionary<string, object> { { "enable", enable } };
-        var dataPointNicls = new DataPointNicls("READ_ONLY_STATE", DataReporter.RealWorldTime(), enableDict);
-        SendMessageToNicls(dataPointNicls.ToJSON());
+        niclsInterfaceHelper.SendMessage("READ_ONLY_STATE", enableDict);
     }
 
-    private void SendMessageToNicls(string message)
+    public bool classifierInPosState()
     {
-        if (!disabled)
-        {
-            bool wouldNotHaveBlocked = zmqSocket.TrySendFrame(message, more: false);
-            Debug.Log("Tried to send a message: " + message + " \nWouldNotHaveBlocked: " + wouldNotHaveBlocked.ToString());
-            ReportMessage(message, true);
-        }
+        return niclsInterfaceHelper.classifierResult == 1;
     }
 
-    private void ReportMessage(string message, bool sent)
+    public bool classifierInNegState()
     {
-        Dictionary<string, object> messageDataDict = new Dictionary<string, object>();
-        messageDataDict.Add("message", message);
-        messageDataDict.Add("sent", sent.ToString());
-        scriptedEventReporter.ReportScriptedEvent("network", messageDataDict);
+        return niclsInterfaceHelper.classifierResult == 0;
     }
 }
-

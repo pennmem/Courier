@@ -114,8 +114,7 @@ public class DeliveryExperiment : CoroutineExperiment
         private static bool useRamulator;
         public RamulatorInterface ramulatorInterface;
         private static bool useNiclServer;
-        // public NiclsInterface niclsInterface;
-        public NiclsInterface3 niclsInterface;
+        public NiclsInterface niclsInterface;
     #endif // !UNITY_WEBGL
 
     public PlayerMovement playerMovement;
@@ -315,7 +314,7 @@ public class DeliveryExperiment : CoroutineExperiment
             {                                                                                                   //
                 yield return niclsInterface.BeginNewSession(sessionNumber);                                     //
                 SetupNiclsClassifier();                                                                         //
-                niclsInterface.SendReadOnlyStateToNicls(1);                                                     //
+                niclsInterface.SendReadOnlyState(1);                                                            //
             }                                                                                                   //
             else                                                                                                //
             {                                                                                                   //
@@ -671,12 +670,12 @@ public class DeliveryExperiment : CoroutineExperiment
                     : nextStore.PopItem();
 
                 //////////////////////////////////////////////////////////////////////////////////////////////////////////
-#if !UNITY_WEBGL                                                                                        // NICLS
+                #if !UNITY_WEBGL                                                                                        // NICLS
                     if (useNiclServer && !practice)                                                                     //
                     {                                                                                                   //
                         yield return new WaitForSeconds(WORD_PRESENTATION_DELAY);                                       //
                         if (trialNumber < NUM_READ_ONLY_TRIALS)                                                         //
-                            niclsInterface.SendEncodingToNicls(1);                                                      //
+                            niclsInterface.SendEncoding(1);                                                             //
                         else                                                                                            //
                             yield return WaitForClassifier(niclsClassifierTypes[continuousTrialNum]);                   //
                     }                                                                                                   //
@@ -686,7 +685,7 @@ public class DeliveryExperiment : CoroutineExperiment
                                                 WORD_PRESENTATION_DELAY + WORD_PRESENTATION_JITTER);                    //
                         yield return new WaitForSeconds(wordDelay);                                                     //
                     }                                                                                                   //
-#endif                                                                                                  //
+                #endif                                                                                                  //
                 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
                 string deliveredItemName = deliveredItem.name;
@@ -702,12 +701,12 @@ public class DeliveryExperiment : CoroutineExperiment
                                                                                              {"store position", nextStore.transform.position.ToString()}});
                 
                 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-#if !UNITY_WEBGL                                                                                                        // System.IO
-                string lstFilepath = practice                                                                                           //
-                            ? System.IO.Path.Combine(UnityEPL.GetDataPath(), "practice-" + continuousTrialNum.ToString() + ".lst")      //
-                            : System.IO.Path.Combine(UnityEPL.GetDataPath(), continuousTrialNum.ToString() + ".lst");                   //
-                AppendWordToLst(lstFilepath, deliveredItemName);                                                                        //
-#endif                                                                                                                  //
+                #if !UNITY_WEBGL                                                                                                        // System.IO
+                    string lstFilepath = practice                                                                                       //
+                                ? System.IO.Path.Combine(UnityEPL.GetDataPath(), "practice-" + continuousTrialNum.ToString() + ".lst")  //
+                                : System.IO.Path.Combine(UnityEPL.GetDataPath(), continuousTrialNum.ToString() + ".lst");               //
+                    AppendWordToLst(lstFilepath, deliveredItemName);                                                                    //
+                #endif                                                                                                                  //
                 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
                 this_trial_presented_stores.Add(nextStore);
@@ -834,25 +833,14 @@ public class DeliveryExperiment : CoroutineExperiment
             if (NICLS_COURIER && trialNumber == NUM_READ_ONLY_TRIALS)                                                       //
             {                                                                                                               //
                 Debug.Log("READ_ONLY_OFF");                                                                                 //
-                niclsInterface.SendReadOnlyStateToNicls(0);                                                                 //
-                niclsInterface.SendReadOnlyStateToNicls(0);                                                                 //
-                niclsInterface.SendReadOnlyStateToNicls(0);                                                                 //
-                niclsInterface.SendReadOnlyStateToNicls(0);                                                                 //
-                niclsInterface.SendReadOnlyStateToNicls(0);                                                                 //
+                niclsInterface.SendReadOnlyState(0);                                                                        //
+                niclsInterface.SendReadOnlyState(0);                                                                        //
+                niclsInterface.SendReadOnlyState(0);                                                                        //
+                niclsInterface.SendReadOnlyState(0);                                                                        //
+                niclsInterface.SendReadOnlyState(0);                                                                        //
             }                                                                                                               //
             #endif                                                                                                          //
-            ////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
-
-            //Turn off ReadOnlyState
-            if (NICLS_COURIER && trialNumber == NUM_READ_ONLY_TRIALS)
-            {
-                Debug.Log("READ_ONLY_OFF");
-                niclsInterface.SendReadOnlyStateToNicls(0);
-                niclsInterface.SendReadOnlyStateToNicls(0);
-                niclsInterface.SendReadOnlyStateToNicls(0);
-                niclsInterface.SendReadOnlyStateToNicls(0);
-                niclsInterface.SendReadOnlyStateToNicls(0);
-            }
+            //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
             // Next day message (and trial skip button)
             SetRamulatorState("WAITING", true, new Dictionary<string, object>());

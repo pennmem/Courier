@@ -24,28 +24,28 @@ public class WriteToPsiturkHandler : WriteToDiskHandler {
         }
         SaveData();
     }
-   public static byte[] Compress(byte[] data)
-    {
-        MemoryStream output = new MemoryStream();
-        using (GZipStream dstream = new GZipStream(output, System.IO.Compression.CompressionLevel.Optimal))
-        {
-            dstream.Write(data, 0, data.Length);
-        }
-        return output.ToArray();
-    }
+//    public static byte[] Compress(byte[] data)
+//     {
+//         MemoryStream output = new MemoryStream();
+//         using (GZipStream dstream = new GZipStream(output, System.IO.Compression.CompressionLevel.Optimal))
+//         {
+//             dstream.Write(data, 0, data.Length);
+//         }
+//         return output.ToArray();
+//     }
 
-    public void SaveAudio(string filename, float[] audio) {
-        Byte[] data = Compress(SavWav.ToWav(audio));
-        UnityWebRequest www = UnityWebRequest.Put("/audio/" + filename + ".gz", data);
+//     public void SaveAudio(string filename, float[] audio) {
+//         Byte[] data = Compress(SavWav.ToWav(audio));
+//         UnityWebRequest www = UnityWebRequest.Put("/audio/" + filename + ".gz", data);
 
-        StartCoroutine(_SaveAudioCoroutine(www));
-    }
+//         StartCoroutine(_SaveAudioCoroutine(www));
+//     }
 
-    private IEnumerator _SaveAudioCoroutine(UnityWebRequest www) {
-        yield return www.SendWebRequest();
+//     private IEnumerator _SaveAudioCoroutine(UnityWebRequest www) {
+//         yield return www.SendWebRequest();
 
-        if(www.isNetworkError || www.isHttpError) {
-            throw new Exception("Connection to the server lost");
-        }
-    }
+//         if(www.isNetworkError || www.isHttpError) {
+//             throw new Exception("Connection to the server lost");
+//         }
+//     }
 }

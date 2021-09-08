@@ -14,7 +14,7 @@ public class WriteToDiskHandler : DataHandler
     [SerializeField]
     private bool writeAutomatically = true;
 
-    private System.Collections.Generic.Queue<DataPoint> waitingPoints = new System.Collections.Generic.Queue<DataPoint>();
+    protected System.Collections.Generic.Queue<DataPoint> waitingPoints = new System.Collections.Generic.Queue<DataPoint>();
 
 
     public void SetWriteAutomatically(bool newAutomatically)

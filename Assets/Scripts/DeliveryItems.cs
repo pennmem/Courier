@@ -13,6 +13,7 @@ public class DeliveryItems : MonoBehaviour
     }
 
     private static List<string> unused_store_names = new List<string>();
+    private static Dictionary<string, List<string>> remainingItems = new Dictionary<string, List<string>>();
 
     private System.Random random;
 

@@ -5,6 +5,11 @@ using System.IO;
 using UnityEngine;
 using Luminosity.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
+
+using Accord.Math;
+using Accord.Statistics.Distributions.Multivariate;
+using Accord.Statistics.Distributions.Univariate;
 
 using static MessageImageDisplayer;
 
@@ -15,8 +20,21 @@ public struct Environment
     public StoreComponent[] stores;
 }
 
-public class DeliveryExperiment : CoroutineExperiment
+public enum StorePointType 
 {
+    SpacialPosition,
+    SerialPosition,
+    Random,
+}
+
+public class DeliveryExperiment : CoroutineExperiment
+{   
+
+    [DllImport("__Internal")]
+    #if UNITY_WEBGL
+        private static extern void EndTask();
+    #endif
+
     public delegate void StateChange(string stateName, bool on);
     public static StateChange OnStateChange;
 
@@ -28,7 +46,17 @@ public class DeliveryExperiment : CoroutineExperiment
     // JPB: TODO: Make these configuration variables
     private const bool NICLS_COURIER = true;
 
-    private const string COURIER_VERSION = "v5.0.13";
+    // LC: Courier Online variables
+    private const bool COURIER_ONLINE = false;
+    private const bool GRANT_VERSION = false;
+    private const float TEST_LENGTH = 20f;
+    private StorePointType storePointType = StorePointType.Random;
+    int free_index = 0;
+    int value_index = 0;
+    int number_input;
+
+
+    private const string COURIER_VERSION = COURIER_ONLINE ? "v4.1.2online" : "v5.0.13";
     private const string RECALL_TEXT = "*******"; // JPB: TODO: Remove this and use display system
     //private const int DELIVERIES_PER_TRIAL = LESS_DELIVERIES ? 3 : (NICLS_COURIER ? 16 : 13);
     //private const int PRACTICE_DELIVERIES_PER_TRIAL = 4;
@@ -67,9 +95,14 @@ public class DeliveryExperiment : CoroutineExperiment
     public Camera blackScreenCamera;
     public Familiarizer familiarizer;
     public MessageImageDisplayer messageImageDisplayer;
-    public RamulatorInterface ramulatorInterface;
-    //public NiclsInterface niclsInterface;
+
+    #if UNITY_STANDALONE
+        public RamulatorInterface ramulatorInterface;
+        //public NiclsInterface niclsInterface;
+        private Syncbox syncs;
+    #endif
     public NiclsInterface3 niclsInterface;
+
     public PlayerMovement playerMovement;
     public GameObject pointer;
     public ParticleSystem pointerParticleSystem;
@@ -85,6 +118,7 @@ public class DeliveryExperiment : CoroutineExperiment
     public GameObject memoryWordCanvas;
 
     public Environment[] environments;
+    public Environment[] testEnvironments;
 
     System.Random rng = new System.Random();
 
@@ -97,7 +131,20 @@ public class DeliveryExperiment : CoroutineExperiment
 
     List<NiclsClassifierType> niclsClassifierTypes = null;
 
-    private Syncbox syncs;
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    // LC: Frame testing variables
+    private static bool IS_FRAME_TESTING = false;
+    private static int fpsValue = 0;
+    private static float updateRateSeconds = 4.0f;
+    private static int frameCount = 0;
+    private float dt = 0.0f;
+    private float fps = 0.0f;
+    private List<int> fpsList = new List<int>();
+
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
 
     // These names are used in for what is sent to the log
     // If you change them, then you have to change the event processing (or the logging code)
@@ -121,7 +168,27 @@ public class DeliveryExperiment : CoroutineExperiment
     {
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
-        // Need to do this because MacOS thinks it knows better than you do
+        
+
+        // LC: Courier Online Frame testing
+        if (COURIER_ONLINE && IS_FRAME_TESTING) {
+            frameCount++;
+            dt += Time.unscaledDeltaTime;
+            if (dt > 1.0 / updateRateSeconds)
+            {
+                fps = frameCount / dt;
+                frameCount = 0;
+                dt -= 1.0f / updateRateSeconds;
+            }
+            fpsValue = (int)Math.Round(fps);
+            // fpsDisplayText.text = fpsValue.ToString();
+            fpsList.Add(fpsValue);
+
+            Dictionary<string, object> fpsValueDict = new Dictionary<string, object>();
+            fpsValueDict.Add("fps value", fpsValue);
+            scriptedEventReporter.ReportScriptedEvent("fps value", fpsValueDict);
+        }
+
     }
 
     void Start()
@@ -135,20 +202,27 @@ public class DeliveryExperiment : CoroutineExperiment
         Cursor.SetCursor(new Texture2D(0, 0), new Vector2(0, 0), CursorMode.ForceSoftware);
         QualitySettings.vSyncCount = 1;
 
-        // Start syncpulses
-        if (!Config.noSyncbox)
-        {
-            syncs = GameObject.Find("SyncBox").GetComponent<Syncbox>();
-            syncs.StartPulse();
-        }
+        #if UNITY_STANDALONE
+            // Start syncpulses
+            if (!Config.noSyncbox)
+            {
+                syncs = GameObject.Find("SyncBox").GetComponent<Syncbox>();
+                syncs.StartPulse();
+            }
 
-        // Randomize efr correct/incorrect button sides
-        if (Config.efrEnabled && Config.counterBalanceCorrectIncorrectButton)
-        {
-            // We want randomness for different people, but consistency between sessions
-            System.Random reliableRandom = new System.Random(UnityEPL.GetParticipants()[0].GetHashCode());
-            efrCorrectButtonSide = (EfrButton)reliableRandom.Next(0, 2);
-        }
+            // Randomize efr correct/incorrect button sides
+            if (Config.efrEnabled && Config.counterBalanceCorrectIncorrectButton)
+            {
+                // We want randomness for different people, but consistency between sessions
+                System.Random reliableRandom = new System.Random(UnityEPL.GetParticipants()[0].GetHashCode());
+                efrCorrectButtonSide = (EfrButton)reliableRandom.Next(0, 2);
+            }
+        #else
+            UnityEPL.AddParticipant(System.Guid.NewGuid().ToString());
+            UnityEPL.SetExperimentName("COURIER_ONLINE");
+            UnityEPL.SetSessionNumber(0);
+        #endif
+
 
         Dictionary<string, object> sceneData = new Dictionary<string, object>();
         sceneData.Add("sceneName", "MainGame");
@@ -167,41 +241,45 @@ public class DeliveryExperiment : CoroutineExperiment
         //write versions to logfile
         LogVersions(expName);
 
-        if (useRamulator)
-            yield return ramulatorInterface.BeginNewSession(sessionNumber);
+        #if UNITY_STANDALONE
+            if (useRamulator)
+                yield return ramulatorInterface.BeginNewSession(sessionNumber);
 
-        if (useNiclServer)
-        {
-            yield return niclsInterface.BeginNewSession(sessionNumber);
-            SetupNiclsClassifier();
-        }   
-        else
-        {
-            yield return niclsInterface.BeginNewSession(sessionNumber, true);
-        }
+            if (useNiclServer)
+            {
+                yield return niclsInterface.BeginNewSession(sessionNumber);
+                SetupNiclsClassifier();
+            }   
+            else
+            {
+                yield return niclsInterface.BeginNewSession(sessionNumber, true);
+            }
+            
+            yield return DoSubSession(0);
 
-        yield return DoSubSession(0);
+            if (NICLS_COURIER)
+            {
+                yield return DoBreak();
+                System.Random reliableRandom = new System.Random(UnityEPL.GetParticipants()[0].GetHashCode());
+                int[][] clipsIndices = new int[4][] { new int[8] { 0, 1, 2, 3, 2, 4, 0, 5 },
+                                                    new int[8] { 0, 1, 2, 3, 5, 0, 4, 2 },
+                                                    new int[8] { 0, 1, 2, 3, 3, 4, 1, 5 },
+                                                    new int[8] { 0, 1, 2, 3, 5, 1, 4, 3 }, };
+                int[] clipIndices = clipsIndices[reliableRandom.Next(4)];
+                yield return DoMovie(clipIndices);
+                yield return DoSubSession(1);
+            }
 
-        if (NICLS_COURIER)
-        {
-            yield return DoBreak();
-            System.Random reliableRandom = new System.Random(UnityEPL.GetParticipants()[0].GetHashCode());
-            int[][] clipsIndices = new int[4][] { new int[8] { 0, 1, 2, 3, 2, 4, 0, 5 },
-                                                  new int[8] { 0, 1, 2, 3, 5, 0, 4, 2 },
-                                                  new int[8] { 0, 1, 2, 3, 3, 4, 1, 5 },
-                                                  new int[8] { 0, 1, 2, 3, 5, 1, 4, 3 }, };
-            int[] clipIndices = clipsIndices[reliableRandom.Next(4)];
-            yield return DoMovie(clipIndices);
-            yield return DoSubSession(1);
-        }
+            string endMessage = NICLS_COURIER
+                ? LanguageSource.GetLanguageString("end message")
+                : LanguageSource.GetLanguageString("end message scored") + starSystem.CumulativeRating().ToString("+#.##;-#.##");
+            textDisplayer.DisplayText("end text", endMessage);
 
-        string endMessage = NICLS_COURIER
-            ? LanguageSource.GetLanguageString("end message")
-            : LanguageSource.GetLanguageString("end message scored") + starSystem.CumulativeRating().ToString("+#.##;-#.##");
-        textDisplayer.DisplayText("end text", endMessage);
-
-        while (true)
-            yield return null;
+            while (true)
+                yield return null;
+        #else
+            yield return DoOnlineSession();
+        #endif
     }
 
     private void SetupNiclsClassifier()
@@ -224,6 +302,154 @@ public class DeliveryExperiment : CoroutineExperiment
             Debug.Log(Enum.GetName(typeof(NiclsClassifierType), classType));
     }
 
+    private void TestScreen()
+    {
+        pauser.AllowPausing();
+        regularCamera.enabled = true;
+        blackScreenCamera.enabled = false;
+        starSystem.gameObject.SetActive(false);
+        memoryWordCanvas.SetActive(false);
+        playerMovement.Zero();
+    }
+
+
+    // LC: need to add gameobjects (messasge displayer)
+    private IEnumerator DoFrameTest()
+    {   
+        // frameRateTestPrompt.SetActive(true);
+        while (!Input.GetButton("x (continue)")) {
+            yield return null;
+        }
+        // frameRateTestPrompt.SetActive(false);
+
+        Environment testEnvironment = EnableTestEnvironment();
+        TestScreen();
+        pointer.SetActive(false);
+        IS_FRAME_TESTING = true;
+        // fpsDisplay.SetActive(true);
+        
+        yield return new WaitForSeconds(TEST_LENGTH);
+        
+        IS_FRAME_TESTING = false;
+
+        BlackScreen();
+        int averageFps = (int)Math.Round(fpsList.Average());
+        // fpsDisplayText.text = "";
+        
+        Dictionary<string, object> fpsData = new Dictionary<string, object>();
+        fpsData.Add("average FPS", averageFps);
+        fpsData.Add("OS information", SystemInfo.operatingSystem);
+        scriptedEventReporter.ReportScriptedEvent("FPS data", fpsData);
+
+        yield return new WaitForSeconds(1.5f);
+
+        // fpsDisplay.SetActive(false);
+        pointer.SetActive(true);
+        playerMovement.Reset();
+
+        // continueExperiment.SetActive(true);
+        // continueExperimentText.text = "Your average FPS was " + average_fps.ToString() + "\n\n" + 
+        //                               "If you experienced any significant lag, you will likely take longer than average to complete the task." +
+        //                               "However, we can only pay a fixed rate for task completion, regardless of time taken." + "\n" +
+        //                               "If your connection was strong and you wish to continue, press (X)." + "\n" +
+        //                               "Otherwise, close the window to exit the experiment.";
+        while (!Input.GetButton("x (continue)"))
+        {
+            yield return null;
+        }
+
+        yield return new WaitForSeconds(0.5f);
+        // continueExperimentText.text = "Thank you for your participation." + "\n" + 
+        //                               "Try to focus on the task and good luck!" + "\n\n" + 
+        //                               "Press (X) to continue.";
+        
+        while (!Input.GetButton("x (continue)"))
+        {
+            yield return null;
+        }
+
+        // continueExperiment.SetActive(false);
+    }
+
+    private IEnumerator DoOnlineSession()
+    {
+        BlackScreen();
+
+        yield return DoFrameTest();
+        yield return DoIntros();
+
+        Environment environment = EnableEnvironment();
+        Dictionary<string, object> storeMappings = new Dictionary<string, object>();
+        foreach (StoreComponent store in environment.stores)
+        {
+            storeMappings.Add(store.gameObject.name, store.GetStoreName());
+            storeMappings.Add(store.GetStoreName() + " position X", store.transform.position.x);
+            storeMappings.Add(store.GetStoreName() + " position Y", store.transform.position.y);
+            storeMappings.Add(store.GetStoreName() + " position Z", store.transform.position.z);
+        }
+        scriptedEventReporter.ReportScriptedEvent("store mappings", storeMappings);
+
+        int TRIAL_NUMBER = Config.trialsPerSession;
+
+        bool[] freeTaskFirst = new bool[TRIAL_NUMBER];
+        for (int i = 0; i < TRIAL_NUMBER/2; i++) {
+            freeTaskFirst[i] = true;
+        }
+        freeTaskFirst.Shuffle(new System.Random());
+
+        List<StorePointType> freeList = Enum.GetValues(typeof(StorePointType)).Cast<StorePointType>().ToList();
+        List<StorePointType> valueList = Enum.GetValues(typeof(StorePointType)).Cast<StorePointType>().ToList();
+
+        // create a condition list for each task
+        freeList.Shuffle(new System.Random(UnityEPL.GetParticipants()[0].GetHashCode()));
+        valueList.Shuffle(new System.Random());
+
+        int trial_number = 0;
+
+        for (trial_number = 0; trial_number < TRIAL_NUMBER; trial_number++)
+        {
+            Dictionary<string, object> trialData = new Dictionary<string, object>();
+            trialData.Add("trial number", trial_number);
+            scriptedEventReporter.ReportScriptedEvent("start delivery", trialData);
+
+            WorldScreen();
+            // if free recall comes up first, then use freeList to pick a condition. Vice versa
+            // list vs queue implementation?
+            if (freeTaskFirst[trial_number]) {
+                // yield return DoDelivery(environment, trial_number, freeList[free_index]);
+                free_index += 1;
+            }
+            else {
+                // yield return DoDelivery(environment, trial_number, valueList[value_index]);  
+                value_index += 1;              
+            }
+
+            scriptedEventReporter.ReportScriptedEvent("end delivery", trialData);
+
+            BlackScreen();
+            // yield return DoRecall(trial_number, freeTaskFirst[trial_number]);
+
+            textDisplayer.DisplayText("proceed to next day prompt", LanguageSource.GetLanguageString("next day"));
+            while (!Input.GetButton("x (continue)"))
+                yield return null;
+                
+            textDisplayer.ClearText();
+        }
+
+        yield return GRANT_VERSION ? PressAnyKey(LanguageSource.GetLanguageString("final no recall")) : 
+                                    PressAnyKey(LanguageSource.GetLanguageString("final recall"));
+        yield return messageImageDisplayer.DisplayLanguageMessage(messageImageDisplayer.final_recall_messages);
+        while (!Input.GetButton("x (continue)"))
+                yield return null;
+        
+        // if (!GRANT_VERSION) {   
+        //     yield return DoFinalRecall(environment);
+        // }
+        
+        textDisplayer.DisplayText("end text", LanguageSource.GetLanguageString("end message scored") + starSystem.CumulativeRating().ToString("+#.##;-#.##") );
+        yield return new WaitForSeconds(2);
+    }
+
     private IEnumerator DoSubSession(int subSessionNum)
     {
         BlackScreen();
@@ -243,30 +469,32 @@ public class DeliveryExperiment : CoroutineExperiment
         scriptedEventReporter.ReportScriptedEvent("store mappings", storeMappings);
 
         int trialsPerSession = Config.trialsPerSession;
-        if (NICLS_COURIER)
-        {
-            Debug.Log("Town Learning Phase");
-            niclsInterface.SendReadOnlyStateToNicls(1);
-
-            if (subSessionNum == 0
-                && sessionNumber < SINGLE_TOWN_LEARNING_SESSIONS + DOUBLE_TOWN_LEARNING_SESSIONS)
+        #if UNITY_STANDALONE
+            if (NICLS_COURIER)
             {
-                trialsPerSession = Config.trialsPerSessionSingleTownLearning;
-                messageImageDisplayer.SetGeneralMessageText("town learning title", "town learning main 1");
-                yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
-                WorldScreen();
-                yield return DoTownLearning(environment, 0, environment.stores.Length);
+                Debug.Log("Town Learning Phase");
+                niclsInterface.SendReadOnlyStateToNicls(1);
 
-                if (sessionNumber < DOUBLE_TOWN_LEARNING_SESSIONS && !useNiclServer)
+                if (subSessionNum == 0
+                    && sessionNumber < SINGLE_TOWN_LEARNING_SESSIONS + DOUBLE_TOWN_LEARNING_SESSIONS)
                 {
-                    trialsPerSession = Config.trialsPerSessionDoubleTownLearning;
-                    messageImageDisplayer.SetGeneralMessageText("town learning title", "town learning main 2");
+                    trialsPerSession = Config.trialsPerSessionSingleTownLearning;
+                    messageImageDisplayer.SetGeneralMessageText("town learning title", "town learning main 1");
                     yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
                     WorldScreen();
-                    yield return DoTownLearning(environment, 1, environment.stores.Length);
+                    yield return DoTownLearning(environment, 0, environment.stores.Length);
+
+                    if (sessionNumber < DOUBLE_TOWN_LEARNING_SESSIONS && !useNiclServer)
+                    {
+                        trialsPerSession = Config.trialsPerSessionDoubleTownLearning;
+                        messageImageDisplayer.SetGeneralMessageText("town learning title", "town learning main 2");
+                        yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
+                        WorldScreen();
+                        yield return DoTownLearning(environment, 1, environment.stores.Length);
+                    }
                 }
             }
-        }
+        #endif
 
         BlackScreen();
         yield return messageImageDisplayer.DisplayLanguageMessage(messageImageDisplayer.delivery_restart_messages);
@@ -346,40 +574,48 @@ public class DeliveryExperiment : CoroutineExperiment
 
         BlackScreen();
 
-        if (NICLS_COURIER && sessionNumber == 0 && !useNiclServer)
-        {
+        #if UNITY_STANDALONE
+            if (NICLS_COURIER && sessionNumber == 0 && !useNiclServer)
+            {
+                yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
+                                        LanguageSource.GetLanguageString("standard intro video"),
+                                        VideoSelector.VideoType.NiclsMainIntro);
+            }
+            else if (NICLS_COURIER) // sessionNumber >= 1 || useNiclServer
+            {
+                var messages = Config.newEfrEnabled
+                    ? messageImageDisplayer.recap_instruction_messages_new_en
+                    : messageImageDisplayer.recap_instruction_messages_en;
+
+                foreach (var message in messages)
+                    yield return messageImageDisplayer.DisplayMessage(message);
+            }
+            else
+            {
+                yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
+                                        LanguageSource.GetLanguageString("standard intro video"),
+                                        VideoSelector.VideoType.MainIntro);
+            }
+
+            if (!NICLS_COURIER)
+                yield return DoSubjectSessionQuitPrompt(sessionNumber,
+                                                        LanguageSource.GetLanguageString("running participant"));
+
+            yield return DoMicrophoneTest(LanguageSource.GetLanguageString("microphone test"),
+                                            LanguageSource.GetLanguageString("after the beep"),
+                                            LanguageSource.GetLanguageString("recording"),
+                                            LanguageSource.GetLanguageString("playing"),
+                                            LanguageSource.GetLanguageString("recording confirmation"));
+
+            if (!NICLS_COURIER)
+                yield return DoFamiliarization();
+        
+        #else
             yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
-                                    LanguageSource.GetLanguageString("standard intro video"),
-                                    VideoSelector.VideoType.NiclsMainIntro);
-        }
-        else if (NICLS_COURIER) // sessionNumber >= 1 || useNiclServer
-        {
-            var messages = Config.newEfrEnabled
-                ? messageImageDisplayer.recap_instruction_messages_new_en
-                : messageImageDisplayer.recap_instruction_messages_en;
-
-            foreach (var message in messages)
-                yield return messageImageDisplayer.DisplayMessage(message);
-        }
-        else
-        {
-            yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
-                                    LanguageSource.GetLanguageString("standard intro video"),
-                                    VideoSelector.VideoType.MainIntro);
-        }
-
-        if (!NICLS_COURIER)
-            yield return DoSubjectSessionQuitPrompt(sessionNumber,
-                                                    LanguageSource.GetLanguageString("running participant"));
-
-        yield return DoMicrophoneTest(LanguageSource.GetLanguageString("microphone test"),
-                                        LanguageSource.GetLanguageString("after the beep"),
-                                        LanguageSource.GetLanguageString("recording"),
-                                        LanguageSource.GetLanguageString("playing"),
-                                        LanguageSource.GetLanguageString("recording confirmation"));
-
-        if (!NICLS_COURIER)
-            yield return DoFamiliarization();
+                                 LanguageSource.GetLanguageString("standard intro video"),
+                                 VideoSelector.VideoType.MainIntro);
+        
+        #endif
     }
 
     private IEnumerator DoFixation(float time, bool practice = false)
@@ -885,9 +1121,11 @@ public class DeliveryExperiment : CoroutineExperiment
             }
             SetRamulatorState("WAITING", false, new Dictionary<string, object>());
 
-            // Set ramulator trial start
-            if (useRamulator)
-                ramulatorInterface.BeginNewTrial(continuousTrialNum);
+            #if UNITY_STANDALONE
+                // Set ramulator trial start
+                if (useRamulator)
+                    ramulatorInterface.BeginNewTrial(continuousTrialNum);
+            #endif
 
             // Do deliveries and recall
             yield return DoDeliveries(environment, trialNumber, continuousTrialNum, practice);
@@ -908,7 +1146,7 @@ public class DeliveryExperiment : CoroutineExperiment
     {
         pointer.SetActive(true);
         ColorPointer(new Color(0.5f, 0.5f, 1f));
-        pointer.transform.eulerAngles = new Vector3(0, rng.Next(360), 0);
+        pointer.transform.eulerAngles = new UnityEngine.Vector3(0, rng.Next(360), 0);
         scriptedEventReporter.ReportScriptedEvent("pointing begins", new Dictionary<string, object> { { "start direction", pointer.transform.eulerAngles.y }, { "store", nextStore.GetStoreName() } });
         pointerMessage.SetActive(true);
         pointerText.text = LanguageSource.GetLanguageString("next package prompt") + "<b>" +
@@ -921,7 +1159,7 @@ public class DeliveryExperiment : CoroutineExperiment
         {
             yield return null;
             if (!playerMovement.IsDoubleFrozen())
-                pointer.transform.eulerAngles = pointer.transform.eulerAngles + new Vector3(0, InputManager.GetAxis("Horizontal") * Time.deltaTime * pointerRotationSpeed, 0);
+                pointer.transform.eulerAngles = pointer.transform.eulerAngles + new UnityEngine.Vector3(0, InputManager.GetAxis("Horizontal") * Time.deltaTime * pointerRotationSpeed, 0);
         }
 
         float pointerError = PointerError(nextStore.gameObject);
@@ -999,7 +1237,7 @@ public class DeliveryExperiment : CoroutineExperiment
         
         do {
             yield return null;
-            Vector3 lookDirection = pointToStore.transform.position - pointer.transform.position;
+            UnityEngine.Vector3 lookDirection = pointToStore.transform.position - pointer.transform.position;
             pointer.transform.rotation = Quaternion.Slerp(pointer.transform.rotation,
                                                           Quaternion.LookRotation(lookDirection),
                                                           rotationSpeed);
@@ -1008,7 +1246,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
     private float PointerError(GameObject toStore)
     {
-        Vector3 lookDirection = toStore.transform.position - pointer.transform.position;
+        UnityEngine.Vector3 lookDirection = toStore.transform.position - pointer.transform.position;
         float correctYRotation = Quaternion.LookRotation(lookDirection).eulerAngles.y;
         float actualYRotation = pointer.transform.eulerAngles.y;
         float offByRads = Mathf.Abs(correctYRotation - actualYRotation) * Mathf.Deg2Rad;
@@ -1045,6 +1283,14 @@ public class DeliveryExperiment : CoroutineExperiment
         Environment environment = environments[reliableRandom.Next(environments.Length)];
         environment.parent.SetActive(true);
         return environment;
+    }
+
+    private Environment EnableTestEnvironment()
+    {
+        System.Random random = new System.Random();
+        Environment testEnvironment = testEnvironments[random.Next(testEnvironments.Length)];
+        testEnvironment.parent.SetActive(true);
+        return testEnvironment;
     }
 
     private IEnumerator DoFreeRecallDisplay(string title, float waitTime, bool practice = false, bool efrDisabled = false)
@@ -1241,10 +1487,13 @@ public class DeliveryExperiment : CoroutineExperiment
     //WAITING, INSTRUCT, COUNTDOWN, ENCODING, WORD, DISTRACT, RETRIEVAL
     protected override void SetRamulatorState(string stateName, bool state, Dictionary<string, object> extraData)
     {
-        if (OnStateChange != null)
-            OnStateChange(stateName, state);
-        if (useRamulator)
-            ramulatorInterface.SetState(stateName, state, extraData);
+        #if UNITY_STANDALONE
+            if (OnStateChange != null)
+                OnStateChange(stateName, state);
+        
+            if (useRamulator)
+                ramulatorInterface.SetState(stateName, state, extraData);
+        #endif
     }
 
     private IEnumerator SkippableWait(float waitTime)

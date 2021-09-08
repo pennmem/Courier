@@ -49,7 +49,7 @@ public class WriteToDiskHandler : DataHandler
             waitingPoints.Enqueue(dataPoint);
     }
 
-    public void DoWrite()
+    public virtual void DoWrite()
     {
         while (waitingPoints.Count > 0)
         {

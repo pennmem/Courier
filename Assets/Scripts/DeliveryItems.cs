@@ -129,7 +129,9 @@ public class DeliveryItems : MonoBehaviour
         #if UNITY_STANDALONE
             unused_store_names.RemoveAt(0);
         #else 
-            unused_store_names.Remove(storeName)
+            unused_store_names.Remove(storeName);
+        #endif
+        
         return storeName;
     }
 

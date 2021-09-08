@@ -1,0 +1,77 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Word Memory Recall Task - Error</title>
+        <link rel=stylesheet href="/static/css/bootstrap.min.css" type="text/css">
+        <link rel=stylesheet href="/static/css/style.css" type="text/css">
+    </head>
+    <body>
+        <div id="container-error">
+
+            <div id="error">
+                <h1>Alert:</h1>
+                <hr>
+
+                <div class="alert alert-danger">
+                {% if errornum == 1008 %}
+
+                        <p>Our records indicate that you have previously attempted to complete this HIT or another HIT from the same experiment.</p>
+                        <p>Unfortunately, because this is a psychology experiment which relies on participants being unfamiliar with the task, you cannot return to the experiment a second time.</p>
+                        <p>Please return the HIT so that someone else may participate in the experiment.</p>
+
+                {% elif errornum == 1009 %}
+
+                        <p>Our records indicate that you have previously attempted to complete this HIT or another HIT from the same experiment.</p>
+                        <p>Unfortunately, because this is a psychology experiment which relies on participants being unfamiliar with the task, you cannot return to the experiment a second time.</p>
+                        <p>Alternatively, you may see this error if something goes wrong when you finish the experiment. If you are seeing this error after completing the experiment,
+                          please submit instead to our other HIT named "Compensation HIT for Kahana Lab Experiments", where we will provide compensation based on the work you did for this HIT.</p>
+
+                {% elif errornum == 1010 %}
+
+                        <p>Our records indicate that you have already completed this HIT or another HIT from the same experiment.</p>
+                        <p>Because this is a psychology experiment which relies on participants being unfamiliar with the task, you cannot return to the experiment a second time.</p>
+                        <p>Alternatively, you may see this error if something goes wrong when you finish the experiment. If you are seeing this error after completing the experiment,
+                          please submit instead to our other HIT named "Compensation HIT for Kahana Lab Experiments", where we will provide compensation based on the work you did for this HIT.</p>
+
+                {% elif errornum == 1014 %}
+
+                        <p>We're sorry! You appear to be using an unsupported browser or device.</p>
+                        <p>This HIT is not compatible with <strong>Internet Explorer</strong> and
+                          <strong>Safari</strong>, and has not been made available for completion on
+                          <strong>tablets</strong> and <strong>mobile devices</strong>. We invite
+                          you to revisit this HIT from another device or browser, and we apologize
+                          for any inconvenience!</p>
+
+                {% elif errornum == 1015 %}
+
+                        <p>It appears that the server hosting our experiment cannot be reached right now.</p>
+                        <p>This may be due to an interruption in internet service, or a result of a problem with our server.</p>
+                        <p>If you encounter this message, please try refreshing the page, as the problem may have already been resolved.
+                          If the problem persists, please contact us through MTurk or at the address below, as this may indicate an
+                          issue with our server that we are not yet aware of.</p>
+
+                {% else %}
+
+                        <p>Sorry, there was an unexpected error in our processing of your HIT!<p>
+
+                {% endif %}
+                        <p>
+                            If you feel you have reached this page in error or have additional questions, please email
+                            <a href="mailto:{{contact_address}}">{{contact_address}}</a>
+                            and include the following information:
+                        </p>
+                        <p>
+                            Error: #{{ errornum }}<br>
+                            {% if hitId %} HITID: #{{ hitId }}<br> {% endif %}
+                            {% if assignId %}AssignmentId: #{{ assignId }}<br> {% endif %}
+                            {% if workerId %} WorkerId: #{{ workerId }}<br> {% endif %}
+                        </p>
+
+                </div>
+
+                <hr>
+                <h3>Our apologies for any inconvenience!</h3>
+            </div>
+        </div>
+    </body>
+</html>

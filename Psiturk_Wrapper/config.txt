@@ -1,0 +1,40 @@
+[HIT Configuration]
+title = Demo
+description = test config
+amt_keywords = Perception, Psychology
+lifetime = 24
+us_only = true
+approve_requirement = 95
+number_hits_approved = 0
+require_master_workers = false
+contact_email_on_error = youremail@gmail.com
+psiturk_keywords = stroop
+organization_name = Test University
+browser_exclude_rule = MSIE, mobile, tablet
+allow_repeats = false
+" require_quals = QUALIFICATIONIDSTRING,ANOTHERQUALIFICATION
+" block_quals = YETANOTHERQUALIFICATION
+
+[Database Parameters]
+database_url = mysql://ckeane1:test_pass@localhost:3306/test_db
+table_name = courier 
+
+[Server Parameters]
+host = localhost
+port = 22371
+cutoff_time = 30
+logfile = server.log
+loglevel = 2
+debug = true
+certfile = server.crt
+keyfile = server.key
+
+[Task Parameters]
+experiment_code_version = 1.0
+num_conds = 1
+num_counters = 1
+
+[Shell Parameters]
+launch_in_sandbox_mode = true
+use_psiturk_ad_server = false
+ad_location = false

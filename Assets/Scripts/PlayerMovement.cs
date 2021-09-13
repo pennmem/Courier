@@ -7,44 +7,89 @@ public class PlayerMovement : MonoBehaviour
 {
     // JPB: TODO: Make these configuration variables
     private const bool NICLS_COURIER = true;
+    private const bool SHOW_FPS = true;
 
-    protected float forwardSpeed = NICLS_COURIER ? 16f : 8f;
-    protected float backwardSpeed = NICLS_COURIER ? 10f : 4f;
-    protected float turnSpeed = NICLS_COURIER ? 80f : 45f;
-    protected float turnThreshhold = 0.5f;
-
-	public GameObject rotateMe;
-	protected float maxRotation = 30f;
+    protected float maxTurnSpeed = NICLS_COURIER ? 100f : 45f;
+    protected float maxForwardForce = 160f;
+    protected float maxBackwardForce = 160f;
+    protected float forceReductionFactorForRotation = 0.2f;
 
     private int freeze_level = 0;
-    private Transform xform;
+
     private Vector3 originalPosition;
     private Quaternion originalRotation;
 
-    void Start() {
-        xform = gameObject.transform;
+    private Rigidbody playerBody;
+    public GameObject playerPerspective;
+
+    public GameObject handlebars;
+    protected float maxHandlebarRotationX = 30f;
+    protected float maxHandlebarRotationY = 15f;
+
+    private float deltaTime;
+    private float fixedDeltaTime;
+
+    void Start()
+    {
         originalPosition = gameObject.transform.position;
         originalRotation = gameObject.transform.rotation;
+
+        playerBody = GetComponent<Rigidbody>();
+        // The drag of 8.3330 creates a max speed of 16 with a max force of 160
+        // The drag of 14.2857 creates a max speed of 8 with a max force of 160
+        playerBody.drag = NICLS_COURIER ? 8.333f : 14.2857f;
     }
 
-    void Update ()
+    void Update()
     {
-        float turnAmount = InputManager.GetAxis("Horizontal");
-        if (Mathf.Abs(turnAmount) < turnThreshhold)
-            turnAmount = 0;
-        turnAmount = turnAmount * turnSpeed * Time.deltaTime;
+        deltaTime += (Time.unscaledDeltaTime - deltaTime) * 0.1f;
+    }
+
+    void FixedUpdate ()
+    {
+        fixedDeltaTime = Time.fixedDeltaTime;
         if (!IsFrozen())
         {
-            xform.Rotate(new Vector3(0, turnAmount, 0));
+            float horizontalInput = InputManager.GetAxisRaw("Horizontal");
+            float verticalInput = InputManager.GetAxisRaw("Vertical");
 
-            //move forward or more slowly backward
-            if (InputManager.GetAxis("Vertical") > 0)
-                xform.position = Vector3.Lerp(xform.position, xform.position + InputManager.GetAxis("Vertical") * xform.forward, forwardSpeed * Time.deltaTime);
-            else
-                xform.position = Vector3.Lerp(xform.position, xform.position + InputManager.GetAxis("Vertical") * xform.forward, backwardSpeed * Time.deltaTime);
-            
-            //rotate the handlebars smoothly, limit to maxRotation
-            rotateMe.transform.localRotation = Quaternion.Euler(rotateMe.transform.rotation.eulerAngles.x, InputManager.GetAxis("Horizontal") * maxRotation, rotateMe.transform.rotation.eulerAngles.z);
+            // Rotate the player
+            // transform.Rotate(0, threshedHorizontalInput * turnSpeed * Time.deltaTime, 0);
+            Quaternion deltaRotation = Quaternion.Euler(Vector3.up * horizontalInput * maxTurnSpeed * Time.fixedDeltaTime);
+            playerBody.MoveRotation(playerBody.rotation * deltaRotation);
+
+            // Move the player
+            if (verticalInput > 0.05)
+                playerBody.AddRelativeForce(Vector3.forward * maxForwardForce * (verticalInput - Mathf.Abs(horizontalInput) * forceReductionFactorForRotation));
+            else if (verticalInput < -0.05)
+                playerBody.AddRelativeForce(Vector3.forward * maxBackwardForce * (verticalInput + Mathf.Abs(horizontalInput) * forceReductionFactorForRotation));
+            //playerBody.velocity = Vector3.ClampMagnitude(playerBody.velocity, forwardSpeed);
+
+            // Rotate the bike handlebars
+            handlebars.transform.localRotation = Quaternion.Euler(horizontalInput * maxHandlebarRotationX, horizontalInput * maxHandlebarRotationY, 0);
+
+            // Rotate the player's perspective
+            //playerPerspective.transform.localRotation = Quaternion.Euler(0, 0, -horizontalInput * 5f);
+        }
+    }
+
+    // This FPS monitor is from http://wiki.unity3d.com/index.php?title=FramesPerSecond
+    void OnGUI()
+    {
+        if (SHOW_FPS)
+        {
+            int w = Screen.width, h = Screen.height;
+            GUIStyle style = new GUIStyle();
+
+            Rect rect = new Rect(0, 0, w, h * 2 / 100);
+            style.alignment = TextAnchor.UpperLeft;
+            style.fontSize = h * 4 / 100;
+            style.normal.textColor = new Color(0.5f, 0.0f, 0.0f, 1.0f);
+            float msec = deltaTime * 1000.0f;
+            float fps = 1.0f / deltaTime;
+            float fixedFps = 1.0f / fixedDeltaTime;
+            string text = string.Format("{0:0.0} ms ({1:0.} fps) ({1:0.} fixed fps)", msec, fps, fixedFps);
+            GUI.Label(rect, text, style);
         }
     }
 

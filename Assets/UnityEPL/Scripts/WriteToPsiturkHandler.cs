@@ -14,9 +14,10 @@ public class WriteToPsiturkHandler : WriteToDiskHandler {
     [DllImport("__Internal")]
     private static extern void AddData(string data);
 
-    public override void DoWrite() {
+    public override IEnumerator DoWrite() {
         while (waitingPoints.Count > 0)
         {
+            yield return null;
             DataPoint dataPoint = waitingPoints.Dequeue();
 
             string json = dataPoint.ToJSON();

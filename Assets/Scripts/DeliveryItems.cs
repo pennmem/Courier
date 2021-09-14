@@ -15,7 +15,7 @@ public class DeliveryItems : MonoBehaviour
     private static List<string> unused_store_names = new List<string>();
     private static Dictionary<string, List<string>> remainingItems = new Dictionary<string, List<string>>();
 
-    private System.Random random;
+    private System.Random reliableRandom;
 
     public StoreAudio[] storeNamesToItems;
     public StoreAudio[] practiceStoreNamesToItems;
@@ -91,7 +91,7 @@ public class DeliveryItems : MonoBehaviour
 
     void Awake()
     {
-        random = new System.Random(UnityEPL.GetParticipants()[0].GetHashCode());
+        reliableRandom = new System.Random(UnityEPL.GetParticipants()[0].GetHashCode());
         #if !UNITY_WEBGL
             WriteRemainingItemsFiles();
             WriteAlphabetizedItemsFile();
@@ -124,11 +124,16 @@ public class DeliveryItems : MonoBehaviour
         {
             throw new UnityException("I ran out of store names!");
         }
-        unused_store_names.Shuffle(random);
+        unused_store_names.Shuffle(reliableRandom);
         string storeName = unused_store_names[0];
         unused_store_names.RemoveAt(0);
         
         return storeName;
+    }
+
+    public bool StoresSetup()
+    {
+        return unused_store_names.Count == 0;
     }
 
     // This assumes that the item is ONLY in the practice list and NOT in the main list!

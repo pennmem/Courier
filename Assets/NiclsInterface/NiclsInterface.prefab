@@ -37,7 +37,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 4703211920303676}
-  - component: {fileID: 114996999034505892}
+  - component: {fileID: 114412830428357968}
   - component: {fileID: 114816247070176084}
   m_Layer: 0
   m_Name: NiclsInterface
@@ -131,6 +131,20 @@ MonoBehaviour:
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
+--- !u!114 &114412830428357968
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1199902433362700}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4c6fa20bebb049c9860e9eeff1f36a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  niclsWarningText: {fileID: 114638349625479306}
+  niclsWarning: {fileID: 1068402335984922}
+  scriptedEventReporter: {fileID: 114816247070176084}
 --- !u!114 &114638349625479306
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -175,7 +189,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f180c8d2d8e804d2ca402600895da790, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  reportingID: NiclsInterface51a36c66-85be-4afc-a62a-fbb3c38cd251
+  reportingID: NiclsInterface
   reportTo: {fileID: 0}
 --- !u!114 &114897356581503550
 MonoBehaviour:
@@ -204,20 +218,6 @@ MonoBehaviour:
   m_FillAmount: 1
   m_FillClockwise: 1
   m_FillOrigin: 0
---- !u!114 &114996999034505892
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1199902433362700}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f4c6fa20bebb049c9860e9eeff1f36a1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  niclsWarningText: {fileID: 114638349625479306}
-  niclsWarning: {fileID: 1068402335984922}
-  scriptedEventReporter: {fileID: 114816247070176084}
 --- !u!222 &222221231015738566
 CanvasRenderer:
   m_ObjectHideFlags: 1

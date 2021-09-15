@@ -12,7 +12,7 @@ public class WriteToDiskHandler : DataHandler
 
     [HideInInspector]
     [SerializeField]
-    private bool writeAutomatically = true;
+    protected bool writeAutomatically = true;
 
     protected System.Collections.Generic.Queue<DataPoint> waitingPoints = new System.Collections.Generic.Queue<DataPoint>();
 

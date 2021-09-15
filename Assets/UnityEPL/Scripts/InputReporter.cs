@@ -29,19 +29,21 @@ public class InputReporter : DataReporter
 
     void CollectMouseEvents()
     {
-        if (IsMacOS())
-        {
-            int eventCount = UnityEPL.CountMouseEvents();
-            if (eventCount >= 1)
+        #if UNITY_STANDALONE
+            if (IsMacOS())
             {
-                int mouseButton = UnityEPL.PopMouseButton();
-                double timestamp = UnityEPL.PopMouseTimestamp();
-                bool downState;
-                mouseDownStates.TryGetValue(mouseButton, out downState);
-                mouseDownStates[mouseButton] = !downState;
-                ReportMouse(mouseButton, mouseDownStates[mouseButton], OSXTimestampToTimestamp(timestamp));
+                int eventCount = UnityEPL.CountMouseEvents();
+                if (eventCount >= 1)
+                {
+                    int mouseButton = UnityEPL.PopMouseButton();
+                    double timestamp = UnityEPL.PopMouseTimestamp();
+                    bool downState;
+                    mouseDownStates.TryGetValue(mouseButton, out downState);
+                    mouseDownStates[mouseButton] = !downState;
+                    ReportMouse(mouseButton, mouseDownStates[mouseButton], OSXTimestampToTimestamp(timestamp));
+                }
             }
-        }
+        #endif
     }
 
     private void ReportMouse(int mouseButton, bool pressed, System.DateTime timestamp)
@@ -52,7 +54,7 @@ public class InputReporter : DataReporter
         eventQueue.Enqueue(new DataPoint("mouse press/release", timestamp, dataDict));
     }
 
-    void CollectKeyEvents()
+    void CollectKeyEvents() // do we really need to separate out MacOS?
     {
         if (IsMacOS())
         {

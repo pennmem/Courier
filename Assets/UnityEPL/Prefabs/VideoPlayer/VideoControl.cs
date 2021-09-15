@@ -18,11 +18,16 @@ public class VideoControl : MonoBehaviour
             else
                 videoPlayer.Play();
         }
-        if (Input.GetKeyDown(deactivateKey))
-        {
-            videoPlayer.Stop();
-            gameObject.SetActive(false);
-        }
+
+        // LC: allowing this for online version is dangerous...
+        #if UNITY_STANDALONE
+            if (Input.GetKeyDown(deactivateKey))
+            {
+                videoPlayer.Stop();
+                gameObject.SetActive(false);
+            }
+        #endif
+
         if (videoPlayer.time >= videoPlayer.clip.length)
         {
             gameObject.SetActive(false);

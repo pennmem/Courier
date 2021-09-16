@@ -7,12 +7,12 @@ public class PlayerMovement : MonoBehaviour
 {
     // JPB: TODO: Make these configuration variables
     private const bool NICLS_COURIER = true;
-    private const bool SHOW_FPS = true;
+    private const bool SHOW_FPS = false;
 
-    protected float maxTurnSpeed = NICLS_COURIER ? 100f : 45f;
-    protected float maxForwardForce = 160f;
-    protected float maxBackwardForce = 160f;
-    protected float forceReductionFactorForRotation = 0.2f;
+    protected float maxTurnSpeed = NICLS_COURIER ? 50f : 45f;
+    protected float maxForwardSpeed = 10f;
+    protected float maxBackwardSpeed = 4f;
+
 
     protected float joystickDeadZone = 0.02f;
 
@@ -28,8 +28,6 @@ public class PlayerMovement : MonoBehaviour
     protected float maxHandlebarRotationX = 20f;
     protected float maxHandlebarRotationY = 15f;
 
-    public float vel = 0f;
-
     private float deltaTime;
     private float fixedDeltaTime;
 
@@ -44,6 +42,9 @@ public class PlayerMovement : MonoBehaviour
         playerBody.drag = NICLS_COURIER ? 8.333f : 14.2857f;
     }
 
+    float horizontalInput;
+    float verticalInput;
+
     void Update()
     {
         deltaTime += (Time.unscaledDeltaTime - deltaTime) * 0.1f;
@@ -52,55 +53,28 @@ public class PlayerMovement : MonoBehaviour
     void FixedUpdate ()
     {
         fixedDeltaTime = Time.fixedDeltaTime;
+        horizontalInput = InputManager.GetAxis("Horizontal");
+        verticalInput = InputManager.GetAxisRaw("Vertical");
         if (!IsFrozen())
         {
-            float horizontalInput = InputManager.GetAxis("Horizontal");
-            float horizontalMouseInput = InputManager.GetAxis("Horizontal Mouse");
-            float verticalInput = InputManager.GetAxisRaw("Vertical");
-
-            // Rotate the player with mouse
-            if (Mathf.Abs(horizontalMouseInput) > joystickDeadZone)
-            {
-                Quaternion deltaRotation = Quaternion.Euler(Vector3.up * horizontalMouseInput * 10f * Time.fixedDeltaTime);
-                playerBody.MoveRotation(playerBody.rotation * deltaRotation);
-            }
-
             // Rotate the player
             if (Mathf.Abs(horizontalInput) > joystickDeadZone)
             {
                 Quaternion deltaRotation = Quaternion.Euler(Vector3.up * horizontalInput * maxTurnSpeed * Time.fixedDeltaTime);
                 playerBody.MoveRotation(playerBody.rotation * deltaRotation);
             }
+            else
+            {
+                playerBody.rotation = playerBody.rotation;
+            }
 
             // Move the player
             if (verticalInput > joystickDeadZone)
-                playerBody.velocity = Vector3.ClampMagnitude(playerBody.transform.forward * verticalInput * 16, 16f);
+                playerBody.velocity = Vector3.ClampMagnitude(playerBody.transform.forward * verticalInput * maxForwardSpeed, maxForwardSpeed);
             else if (verticalInput < -joystickDeadZone)
-                playerBody.velocity = Vector3.ClampMagnitude(playerBody.transform.forward * verticalInput * 8, 8f);
+                playerBody.velocity = Vector3.ClampMagnitude(playerBody.transform.forward * verticalInput * maxBackwardSpeed, maxBackwardSpeed);
             else
                 playerBody.velocity = new Vector3(0, 0, 0);
-
-
-            //// Rotate the player
-            //if (Mathf.Abs(horizontalInput) > joystickDeadZone)
-            //{
-            //    Quaternion deltaRotation = Quaternion.Euler(Vector3.up * horizontalInput * maxTurnSpeed * Time.fixedDeltaTime);
-            //    playerBody.MoveRotation(playerBody.rotation * deltaRotation);
-            //}
-
-            //// Move the player
-            //if (verticalInput > joystickDeadZone)
-            //    playerBody.AddRelativeForce(Vector3.forward * maxForwardForce * (verticalInput - Mathf.Abs(horizontalInput) * forceReductionFactorForRotation));
-            //else if (verticalInput < -joystickDeadZone)
-            //    playerBody.AddRelativeForce(Vector3.forward * maxBackwardForce * (verticalInput + Mathf.Abs(horizontalInput) * forceReductionFactorForRotation));
-
-            //if (verticalInput > joystickDeadZone)
-            //    playerBody.velocity = Vector3.ClampMagnitude(playerBody.transform.forward * verticalInput * 16, 16f);
-            //else if (verticalInput < -joystickDeadZone)
-            //    playerBody.velocity = Vector3.ClampMagnitude(playerBody.transform.forward * verticalInput * 8, 8f);
-            //elses
-            //    playerBody.velocity = new Vector3(0, 0, 0);
-            vel = playerBody.velocity.magnitude;
 
             // Rotate the bike handlebars
             //handlebars.transform.localRotation = Quaternion.Euler(horizontalInput * maxHandlebarRotationX, horizontalInput * maxHandlebarRotationY, 0);
@@ -110,6 +84,9 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    float lastTime = 0;
+
+    // TODO: JPB: Move to CroutineExperiment.cs
     // This FPS monitor is from http://wiki.unity3d.com/index.php?title=FramesPerSecond
     void OnGUI()
     {
@@ -125,7 +102,9 @@ public class PlayerMovement : MonoBehaviour
             float msec = deltaTime * 1000.0f;
             float fps = 1.0f / deltaTime;
             float fixedFps = 1.0f / fixedDeltaTime;
-            string text = string.Format("{0:0.0} ms ({1:0.} fps) ({1:0.} fixed fps)", msec, fps, fixedFps);
+            float guiFps = Time.time - lastTime;
+            lastTime = Time.time;
+            string text = string.Format("{0:0.0} ms ({1:0.} fps) ({1:0.} gui fps)", msec, fps, guiFps);
             GUI.Label(rect, text, style);
         }
     }

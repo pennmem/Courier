@@ -98,8 +98,8 @@ public class DeliveryExperiment : CoroutineExperiment
     private const int NICLS_READ_ONLY_SESSIONS = 6;
     private const int NICLS_CLOSED_LOOP_SESSIONS = 4;
 
-    private const int NUM_MUSIC_VIDEOS = 6;
-    private const int NUM_MUSIC_VIDEOS_PER_SESSION = 3;
+    private const int NUM_MUSIC_VIDEOS = 4;
+    private const int NUM_MUSIC_VIDEOS_PER_SESSION = 2;
     private readonly int[] MUSIC_VIDEO_RECALL_SESSIONS = { 6, 7 }; // Can't make const arrays in c#
     private const int MUSIC_VIDEO_PROMPT_TIME = 5;
     private const int MUSIC_VIDEO_RECALL_TIME = 175;
@@ -285,9 +285,6 @@ public class DeliveryExperiment : CoroutineExperiment
 
     private IEnumerator ExperimentCoroutine()
     {
-        if (sessionNumber == -1)
-            throw new UnityException("Please call ConfigureExperiment before beginning the experiment.");
-
         Debug.Log(UnityEPL.GetDataPath());
 
         foreach (string name in UnityEPL.GetParticipants())
@@ -1327,8 +1324,8 @@ public class DeliveryExperiment : CoroutineExperiment
         // Play the music videos
         foreach (int clipNum in Enumerable.Range(0, NUM_MUSIC_VIDEOS_PER_SESSION))
         {
-            BlackScreen();
             yield return null;
+            BlackScreen();
             yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
                                  LanguageSource.GetLanguageString("music video ending instructions"),
                                  VideoSelector.VideoType.MusicVideos,

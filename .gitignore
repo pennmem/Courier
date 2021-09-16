@@ -78,6 +78,12 @@ crashlytics-build.properties
 Assets/Town Constructor 3/Textures
 Assets/Town Constructor 3
 
+# Streaming Assets
+Assets/StreamingAssets/CourierOnline.json
+
 # Other
 .DS_Store
-Assets/StreamingAssets/CourierOnline.json
+tags
+tags.meta
+TAGS
+TAGS.meta

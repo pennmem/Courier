@@ -16,18 +16,18 @@ RenderSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 8
   m_Fog: 0
-  m_FogColor: {r: 0.44117647, g: 0.3036332, b: 0.25302768, a: 1}
-  m_FogMode: 2
-  m_FogDensity: 0.015
+  m_FogColor: {r: 0.8627451, g: 0.8627451, b: 0.8627451, a: 1}
+  m_FogMode: 1
+  m_FogDensity: 0.03
   m_LinearFogStart: 1
-  m_LinearFogEnd: 500
-  m_AmbientSkyColor: {r: 1, g: 1, b: 1, a: 1}
+  m_LinearFogEnd: 70
+  m_AmbientSkyColor: {r: 0.4627451, g: 0.47058824, b: 0.2901961, a: 1}
   m_AmbientEquatorColor: {r: 0.6764706, g: 0.6764706, b: 0.6764706, a: 1}
   m_AmbientGroundColor: {r: 0.6764706, g: 0.6764706, b: 0.6764706, a: 1}
   m_AmbientIntensity: 1.29
   m_AmbientMode: 3
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
-  m_SkyboxMaterial: {fileID: 2100000, guid: a2126534b3a11b34e977105bd9e3cc03, type: 2}
+  m_SkyboxMaterial: {fileID: 2100000, guid: 186cd6f9b9b4a443aa5657d689442bee, type: 2}
   m_HaloStrength: 0.864
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -27369,8 +27369,8 @@ MonoBehaviour:
         m_negative: 97
         m_deadZoneType: 0
         m_deadZone: 0
-        m_gravity: 3
-        m_sensitivity: 3
+        m_gravity: 100
+        m_sensitivity: 100
         m_scale: 1
         m_snap: 1
         m_invert: 0
@@ -27384,8 +27384,8 @@ MonoBehaviour:
         m_negative: 276
         m_deadZoneType: 0
         m_deadZone: 0
-        m_gravity: 3
-        m_sensitivity: 3
+        m_gravity: 100
+        m_sensitivity: 100
         m_scale: 1
         m_snap: 1
         m_invert: 0
@@ -27398,7 +27398,7 @@ MonoBehaviour:
       - m_positive: 0
         m_negative: 0
         m_deadZoneType: 0
-        m_deadZone: 0.02
+        m_deadZone: 0.2
         m_gravity: 1
         m_sensitivity: 3
         m_scale: 1
@@ -27413,31 +27413,13 @@ MonoBehaviour:
       - m_positive: 0
         m_negative: 0
         m_deadZoneType: 0
-        m_deadZone: 0.02
+        m_deadZone: 0.2
         m_gravity: 1
         m_sensitivity: 3
         m_scale: 1
         m_snap: 0
         m_invert: 0
         m_type: 6
-        m_axis: 0
-        m_joystick: 0
-        m_gamepadButton: 0
-        m_gamepadAxis: 0
-        m_gamepadIndex: 0
-    - m_name: Horizontal Mouse
-      m_description: 
-      m_bindings:
-      - m_positive: 0
-        m_negative: 0
-        m_deadZoneType: 0
-        m_deadZone: 0
-        m_gravity: 1
-        m_sensitivity: 1
-        m_scale: 1
-        m_snap: 0
-        m_invert: 0
-        m_type: 1
         m_axis: 0
         m_joystick: 0
         m_gamepadButton: 0
@@ -27476,21 +27458,6 @@ MonoBehaviour:
         m_gamepadButton: 0
         m_gamepadAxis: 0
         m_gamepadIndex: 0
-      - m_positive: 323
-        m_negative: 324
-        m_deadZoneType: 0
-        m_deadZone: 0
-        m_gravity: 3
-        m_sensitivity: 3
-        m_scale: 1
-        m_snap: 1
-        m_invert: 0
-        m_type: 2
-        m_axis: 0
-        m_joystick: 0
-        m_gamepadButton: 0
-        m_gamepadAxis: 0
-        m_gamepadIndex: 0
       - m_positive: 335
         m_negative: 334
         m_deadZoneType: 0
@@ -27505,21 +27472,6 @@ MonoBehaviour:
         m_joystick: 0
         m_gamepadButton: 0
         m_gamepadAxis: 7
-        m_gamepadIndex: 0
-      - m_positive: 0
-        m_negative: 0
-        m_deadZoneType: 0
-        m_deadZone: 0.02
-        m_gravity: 1
-        m_sensitivity: 3
-        m_scale: 1
-        m_snap: 0
-        m_invert: 1
-        m_type: 6
-        m_axis: 1
-        m_joystick: 0
-        m_gamepadButton: 0
-        m_gamepadAxis: 0
         m_gamepadIndex: 0
     - m_name: LookHorizontal
       m_description: 
@@ -460317,12 +460269,12 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   musicVideos:
-  - {fileID: 32900000, guid: 3a711a043a4d648e288603f4910d4d90, type: 3}
-  - {fileID: 32900000, guid: 8c3f7dc90c89542399903860a4239a8f, type: 3}
-  - {fileID: 32900000, guid: 2fa9635a51d694bbe8d0942e23b4ac90, type: 3}
-  - {fileID: 32900000, guid: 642a4b74572ef44db89cc7e1834f81ea, type: 3}
-  - {fileID: 32900000, guid: 4b01d129769a544569e2f5452f0fd198, type: 3}
-  - {fileID: 32900000, guid: 6c163858e514840ba87b73f8bd90f2f2, type: 3}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
 --- !u!328 &1556425424 stripped
 VideoPlayer:
   m_PrefabParentObject: {fileID: 328937643129792720, guid: 941b5dccbc0da4585a324a844ffff8a8,
@@ -461158,7 +461110,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerPerspective: {fileID: 1461641849}
   handlebars: {fileID: 1957622058}
-  vel: 0
 --- !u!114 &1558448420
 MonoBehaviour:
   m_ObjectHideFlags: 0

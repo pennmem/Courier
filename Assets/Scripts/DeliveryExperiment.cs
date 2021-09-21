@@ -56,7 +56,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private int number_input;
     ///////////////////////////////////////////////////////////////////////////
     
-    private const string COURIER_VERSION = COURIER_ONLINE ? "v5.0.0online" : "v5.1.0";
+    private const string COURIER_VERSION = COURIER_ONLINE ? "v5.0.0online" : "v5.1.1";
 
     private const string RECALL_TEXT = "*******"; // JPB: TODO: Remove this and use display system
     // Constants moved to the Config File
@@ -67,8 +67,8 @@ public class DeliveryExperiment : CoroutineExperiment
     //private const int TRIALS_PER_SESSION_DOUBLE_TOWN_LEARNING = LESS_TRIALS ? 1 : 3;
     private const int EFR_PRACTICE_TRIAL_NUM = 1;
     private const int NUM_READ_ONLY_TRIALS = 1;
-    private const int SINGLE_TOWN_LEARNING_SESSIONS = 0;
-    private const int DOUBLE_TOWN_LEARNING_SESSIONS = 1;
+    private const int SINGLE_TOWN_LEARNING_SESSIONS = 1;
+    private const int DOUBLE_TOWN_LEARNING_SESSIONS = 0;
     private const int POINTING_INDICATOR_DELAY = NICLS_COURIER ? 12 : 40;
     private const int EFR_KEYPRESS_PRACTICES = 10;
     private const float MIN_FAMILIARIZATION_ISI = 0.4f;
@@ -1302,7 +1302,9 @@ public class DeliveryExperiment : CoroutineExperiment
         var reliableRandom = new System.Random(UnityEPL.GetParticipants()[0].GetHashCode());
         foreach (int i in Enumerable.Range(0, (continuousSessionNumber / 2) + 1))
         {
-            var twoSessions = Enumerable.Range(0, NUM_MUSIC_VIDEOS).ToList().Shuffle(reliableRandom).ToList();
+            // TODO: JPB: Temp fix for NICLS Round 2 video reduction (6 -> 4 vids)
+            //var twoSessions = Enumerable.Range(0, NUM_MUSIC_VIDEOS).ToList().Shuffle(reliableRandom).ToList();
+            var twoSessions = new List<int>(){0,1,3,4}.Shuffle(reliableRandom).ToList();
             videoOrder.Add(twoSessions.GetRange(0, NUM_MUSIC_VIDEOS_PER_SESSION).ToList());
             videoOrder.Add(twoSessions.GetRange(NUM_MUSIC_VIDEOS_PER_SESSION, NUM_MUSIC_VIDEOS_PER_SESSION).ToList());
         }

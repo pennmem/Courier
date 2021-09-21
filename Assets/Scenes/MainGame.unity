@@ -460269,12 +460269,12 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   musicVideos:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: 32900000, guid: 3a711a043a4d648e288603f4910d4d90, type: 3}
+  - {fileID: 32900000, guid: 8c3f7dc90c89542399903860a4239a8f, type: 3}
+  - {fileID: 32900000, guid: 2fa9635a51d694bbe8d0942e23b4ac90, type: 3}
+  - {fileID: 32900000, guid: 642a4b74572ef44db89cc7e1834f81ea, type: 3}
+  - {fileID: 32900000, guid: 4b01d129769a544569e2f5452f0fd198, type: 3}
+  - {fileID: 32900000, guid: 6c163858e514840ba87b73f8bd90f2f2, type: 3}
 --- !u!328 &1556425424 stripped
 VideoPlayer:
   m_PrefabParentObject: {fileID: 328937643129792720, guid: 941b5dccbc0da4585a324a844ffff8a8,

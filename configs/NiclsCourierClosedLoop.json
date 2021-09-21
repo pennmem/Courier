@@ -13,7 +13,7 @@
     "counterBalanceCorrectIncorrectButton": false,
 
     "trialsPerSession": 5,
-    "trialsPerSessionSingleTownLearning": 5,
+    "trialsPerSessionSingleTownLearning": 2,
     "trialsPerSessionDoubleTownLearning": 2,
     "deliveriesPerPracticeTrial": 16,
     "deliveriesPerTrial":16

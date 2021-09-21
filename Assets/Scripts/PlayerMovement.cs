@@ -9,7 +9,7 @@ public class PlayerMovement : MonoBehaviour
     private const bool NICLS_COURIER = true;
     private const bool SHOW_FPS = false;
 
-    protected float maxTurnSpeed = NICLS_COURIER ? 50f : 45f;
+    protected float maxTurnSpeed = NICLS_COURIER ? 55f : 45f;
     protected float maxForwardSpeed = 10f;
     protected float maxBackwardSpeed = 4f;
 
@@ -27,6 +27,7 @@ public class PlayerMovement : MonoBehaviour
     public GameObject handlebars;
     protected float maxHandlebarRotationX = 20f;
     protected float maxHandlebarRotationY = 15f;
+
 
     private float deltaTime;
     private float fixedDeltaTime;
@@ -50,6 +51,8 @@ public class PlayerMovement : MonoBehaviour
         deltaTime += (Time.unscaledDeltaTime - deltaTime) * 0.1f;
     }
 
+    float lastRotation = 0f;
+
     void FixedUpdate ()
     {
         fixedDeltaTime = Time.fixedDeltaTime;
@@ -62,15 +65,13 @@ public class PlayerMovement : MonoBehaviour
             {
                 Quaternion deltaRotation = Quaternion.Euler(Vector3.up * horizontalInput * maxTurnSpeed * Time.fixedDeltaTime);
                 playerBody.MoveRotation(playerBody.rotation * deltaRotation);
-            }
-            else
-            {
-                playerBody.rotation = playerBody.rotation;
+                //playerBody.AddRelativeTorque();
             }
 
             // Move the player
             if (verticalInput > joystickDeadZone)
                 playerBody.velocity = Vector3.ClampMagnitude(playerBody.transform.forward * verticalInput * maxForwardSpeed, maxForwardSpeed);
+                //playerBody.velocity = Vector3.ClampMagnitude(playerBody.transform.forward * (verticalInput - Mathf.Abs(horizontalInput) * 0.2f) * maxForwardSpeed, maxForwardSpeed);
             else if (verticalInput < -joystickDeadZone)
                 playerBody.velocity = Vector3.ClampMagnitude(playerBody.transform.forward * verticalInput * maxBackwardSpeed, maxBackwardSpeed);
             else

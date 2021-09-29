@@ -39,8 +39,6 @@ public class DeliveryExperiment : CoroutineExperiment
     public static StateChange OnStateChange;
 
     private static int sessionNumber = -1;
-    private static bool useRamulator;
-    private static bool useNiclServer;
     private static string expName;
 
     // JPB: TODO: Make these configuration variables
@@ -51,9 +49,9 @@ public class DeliveryExperiment : CoroutineExperiment
     private const bool COURIER_ONLINE = false;
     private const bool GRANT_VERSION = false;
     private const float TEST_LENGTH = 20f;
-    private StorePointType storePointType = StorePointType.Random;
-    private int free_index = 0;
-    private int value_index = 0;
+    // private StorePointType storePointType = StorePointType.Random;
+    // private int free_index = 0;
+    // private int value_index = 0;
     private int number_input;
     ///////////////////////////////////////////////////////////////////////////
     
@@ -99,6 +97,8 @@ public class DeliveryExperiment : CoroutineExperiment
     public MessageImageDisplayer messageImageDisplayer;
 
     #if UNITY_STANDALONE
+        private static bool useRamulator;
+        private static bool useNiclServer;
         public RamulatorInterface ramulatorInterface;
         private Syncbox syncs;
         //public NiclsInterface niclsInterface;
@@ -157,11 +157,13 @@ public class DeliveryExperiment : CoroutineExperiment
         Neg,
         Sham
     }
-
+    
     public static void ConfigureExperiment(bool newUseRamulator, bool newUseNiclServer, int newSessionNumber, string newExpName)
-    {
-        useRamulator = newUseRamulator;
-        useNiclServer = newUseNiclServer;
+    {   
+        #if UNITY_STANDALONE
+            useRamulator = newUseRamulator;
+            useNiclServer = newUseNiclServer;
+        #endif
         sessionNumber = newSessionNumber;
         expName = newExpName;
         Config.experimentConfigName = expName;
@@ -503,12 +505,11 @@ public class DeliveryExperiment : CoroutineExperiment
 
         int trialsPerSession = Config.trialsPerSession;
 
+        #if UNITY_STANDALONE
         if (NICLS_COURIER)
         {
             Debug.Log("Town Learning Phase");
-            #if UNITY_STANDALONE
-                niclsInterface.SendReadOnlyStateToNicls(1);
-            #endif
+            niclsInterface.SendReadOnlyStateToNicls(1);
 
             if (subSessionNum == 0
                 && sessionNumber < SINGLE_TOWN_LEARNING_SESSIONS + DOUBLE_TOWN_LEARNING_SESSIONS)
@@ -529,10 +530,12 @@ public class DeliveryExperiment : CoroutineExperiment
                 }
             }
         }
+        #endif
 
         BlackScreen();
         yield return messageImageDisplayer.DisplayLanguageMessage(messageImageDisplayer.delivery_restart_messages);
 
+        #if UNITY_STANDALONE
         if (sessionNumber == 0 && subSessionNum == 0 && !useNiclServer && !COURIER_ONLINE) // JPB: TODO: Nick fix
         {
             Debug.Log("Practice trials");
@@ -544,6 +547,7 @@ public class DeliveryExperiment : CoroutineExperiment
                                                         mainText: "new efr check understanding main");
             yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
         }
+        #endif
 
         if (sessionNumber == 0)
         {
@@ -563,6 +567,8 @@ public class DeliveryExperiment : CoroutineExperiment
 
         yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
         int priorTrialsPerSession = 0;
+        
+        #if UNITY_STANDALONE
         if (NICLS_COURIER && subSessionNum > 0) // JPB: TODO: Nick fix
         {
             if (sessionNumber < DOUBLE_TOWN_LEARNING_SESSIONS && !useNiclServer)
@@ -570,6 +576,7 @@ public class DeliveryExperiment : CoroutineExperiment
             else if (sessionNumber < SINGLE_TOWN_LEARNING_SESSIONS)
                 priorTrialsPerSession = Config.trialsPerSessionSingleTownLearning;
         }
+        #endif
         yield return DoTrials(environment, trialsPerSession, subSessionNum,
                               trialNumOffset: subSessionNum * priorTrialsPerSession); // JPB: TODO: Fix this to work for more than two sub-sessions
 
@@ -739,7 +746,8 @@ public class DeliveryExperiment : CoroutineExperiment
         yield return SkippableWait(RECALL_TEXT_DISPLAY_LENGTH);
         textDisplayer.ClearText();
         foreach (StoreComponent cueStore in this_trial_presented_stores)
-        {
+        {   
+            #if UNITY_STANDALONE
             if (useNiclServer && (trialNumber >= NUM_READ_ONLY_TRIALS))
             {
                 yield return new WaitForSeconds(WORD_PRESENTATION_DELAY);
@@ -751,6 +759,7 @@ public class DeliveryExperiment : CoroutineExperiment
                                                WORD_PRESENTATION_DELAY + WORD_PRESENTATION_JITTER);
                 yield return new WaitForSeconds(wordDelay);
             }
+            #endif
 
             cueStore.familiarization_object.SetActive(true);
             messageImageDisplayer.SetCuedRecallMessage(true);
@@ -1081,11 +1090,13 @@ public class DeliveryExperiment : CoroutineExperiment
             if (NICLS_COURIER && !practice && trialNumber == NUM_READ_ONLY_TRIALS)
             {
                 Debug.Log("READ_ONLY_OFF");
-                niclsInterface.SendReadOnlyStateToNicls(0);
-                niclsInterface.SendReadOnlyStateToNicls(0);
-                niclsInterface.SendReadOnlyStateToNicls(0);
-                niclsInterface.SendReadOnlyStateToNicls(0);
-                niclsInterface.SendReadOnlyStateToNicls(0);
+                #if UNITY_STANDALONE
+                    niclsInterface.SendReadOnlyStateToNicls(0);
+                    niclsInterface.SendReadOnlyStateToNicls(0);
+                    niclsInterface.SendReadOnlyStateToNicls(0);
+                    niclsInterface.SendReadOnlyStateToNicls(0);
+                    niclsInterface.SendReadOnlyStateToNicls(0);
+                #endif
             }
 
             // EFR instructions
@@ -1525,6 +1536,7 @@ public class DeliveryExperiment : CoroutineExperiment
         }
     }
 
+    #if UNITY_STANDALONE
     private IEnumerator WaitForClassifier(NiclsClassifierType niclsClassifierType)
     {
         scriptedEventReporter.ReportScriptedEvent("start classifier wait", new Dictionary<string, object>());
@@ -1552,6 +1564,7 @@ public class DeliveryExperiment : CoroutineExperiment
         }
         Debug.Log("CLASSIFIER SAID TO GO ---------------------------------------------------------");
     }
+    #endif
 
     public string GetStoreNameFromGameObjectName(string gameObjectName)
     {

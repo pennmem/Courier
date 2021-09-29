@@ -274,9 +274,9 @@ public class MessageImageDisplayer : MonoBehaviour
 
     public void SetFPSDisplayText(string fpsValue = "", string mainText = "", string continueText = "continue")
     {
-        if (fpsValue != NULL)
+        if (fpsValue != null)
             general_message_display.transform.Find("title text").GetComponent<Text>().text = LanguageSource.GetLanguageString("frame test end title") + fpsValue;
-        if (mainText != NULL)
+        if (mainText != null)
             general_big_message_display.transform.Find("main text").GetComponent<Text>().text = LanguageSource.GetLanguageString(mainText);
         if (continueText != null)
             general_message_display.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString(continueText);

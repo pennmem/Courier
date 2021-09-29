@@ -51,6 +51,16 @@ public static class LanguageSource
         { "new efr first day description", new string [] {"Don’t forget to continue pressing the (B) button to reject words when recalling items at the end of each delivery day.",
                                                   GERMAN_TRANSLATION_NEEDED}},
 
+        { "frame test start title", new string [] { "Frame Rate Testing ", GERMAN_TRANSLATION_NEEDED} },
+        { "frame test start main", new string [] { "First, we will check if your connection is fast enough to complete this task. \nAs a test, please briefly navigate around this town using the arrow keys.", 
+                                                   GERMAN_TRANSLATION_NEEDED } },
+        { "frame test end title", new string [] { "Your average FPS was ", GERMAN_TRANSLATION_NEEDED} },
+        { "frame test end main", new string [] { "If you experienced any significant lag, you will likely take longer than average to complete the task. However, we can only pay a fixed rate for task completion, regardless of time taken." + "\n" +
+                                                 "If your connection was strong and you wish to continue, press (X)." + "\n" +
+                                                 "Otherwise, close the window to exit the experiment.", GERMAN_TRANSLATION_NEEDED} },
+        { "frame test continue text", new string [] {"Thank you for your participation. \n\nTry to focus on the task and good luck!", GERMAN_TRANSLATION_NEEDED} },
+
+
         { "town learning title", new string [] { "Town Learning Phase", GERMAN_TRANSLATION_NEEDED } },
         { "town learning main 1", new string [] { "Please locate all of the stores one by one.", GERMAN_TRANSLATION_NEEDED } },
         { "town learning main 2", new string [] { "Let's do it again!\nPlease locate all of the stores one by one.", GERMAN_TRANSLATION_NEEDED } },

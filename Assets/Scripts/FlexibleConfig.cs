@@ -12,7 +12,7 @@ using UnityEngine.Networking;
 
 public class Config
 {   
-    public static string experimentConfigName = null;
+    public static string experimentConfigName = "EXPERIMENT_CONFIG_NAME_NOT_SET";
     public static string onlineSystemConfigText = null;
     public static string onlineExperimentConfigText = null;
 
@@ -24,6 +24,7 @@ public class Config
     public static bool noSyncbox { get { return (bool)Config.GetSetting("noSyncbox"); } }
     public static bool lessTrials { get { return (bool)Config.GetSetting("lessTrials"); } }
     public static bool lessDeliveries { get { return (bool)Config.GetSetting("lessDeliveries"); } }
+    public static bool showFps { get { return (bool)Config.GetSetting("showFps"); } }
 
     // Game Section Skips
     public static bool skipFPS { get { return (bool)Config.GetSetting("skipFPS"); } }
@@ -60,6 +61,19 @@ public class Config
 
     private static object systemConfig = null;
     private static object experimentConfig = null;
+
+
+    public static T Get<T>(Func<T> getProp, T defaultValue)
+    {
+        try
+        {
+            return getProp.Invoke();
+        }
+        catch (MissingFieldException)
+        {
+            return defaultValue;
+        }
+    }
 
     private static object GetSetting(string setting)
     {

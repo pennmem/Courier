@@ -51,10 +51,11 @@ public class WriteToDiskHandler : DataHandler
 
     public virtual IEnumerator DoWrite()
     {
+        yield return null;
         Debug.Log(waitingPoints.Count);
         while (waitingPoints.Count > 0)
         {
-            yield return null;
+            //yield return null;
             string directory = UnityEPL.GetDataPath();
             System.IO.Directory.CreateDirectory(directory);
             string filePath = System.IO.Path.Combine(directory, "unnamed_file");

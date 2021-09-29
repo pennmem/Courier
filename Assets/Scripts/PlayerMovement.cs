@@ -9,7 +9,7 @@ public class PlayerMovement : MonoBehaviour
     private const bool NICLS_COURIER = true;
     private const bool SHOW_FPS = false;
 
-    protected float maxTurnSpeed = NICLS_COURIER ? 55f : 45f;
+    protected float maxTurnSpeed = NICLS_COURIER ? 50f : 45f;
     protected float maxForwardSpeed = 10f;
     protected float maxBackwardSpeed = 4f;
 
@@ -43,12 +43,35 @@ public class PlayerMovement : MonoBehaviour
         playerBody.drag = NICLS_COURIER ? 8.333f : 14.2857f;
     }
 
-    float horizontalInput;
-    float verticalInput;
+    public float horizontalInput;
+    public float verticalInput;
+
+    public Vector3 dampedHorizInput;
+    public Vector3 horizVel = Vector3.zero;
+
+    const float ROT_DAMPING_TIME = 0.05f;
 
     void Update()
     {
         deltaTime += (Time.unscaledDeltaTime - deltaTime) * 0.1f;
+
+        // Rotate the player
+        // This is only in Update because we want it locked to frame rate.
+        // Because MoveRotation is used, the rotation doesn't occur until the next FixedUpdate
+        if (!IsFrozen())
+        {
+            horizontalInput = InputManager.GetAxis("Horizontal");
+
+            dampedHorizInput = Vector3.SmoothDamp(dampedHorizInput, Vector3.up * horizontalInput, ref horizVel, ROT_DAMPING_TIME);
+            Quaternion deltaRotation = Quaternion.Euler(dampedHorizInput * maxTurnSpeed * Time.smoothDeltaTime);
+            playerBody.MoveRotation(playerBody.rotation * deltaRotation);
+
+            // Rotate the bike handlebars
+            //handlebars.transform.localRotation = Quaternion.Euler(horizontalInput * maxHandlebarRotationX, dampedHorizInput * maxHandlebarRotationY, 0);
+
+            // Rotate the player's perspective
+            //playerPerspective.transform.localRotation = Quaternion.Euler(0, 0, -dampedHorizInput * 5f);
+        }
     }
 
     float lastRotation = 0f;
@@ -56,32 +79,20 @@ public class PlayerMovement : MonoBehaviour
     void FixedUpdate ()
     {
         fixedDeltaTime = Time.fixedDeltaTime;
-        horizontalInput = InputManager.GetAxis("Horizontal");
-        verticalInput = InputManager.GetAxisRaw("Vertical");
+        
         if (!IsFrozen())
         {
-            // Rotate the player
-            if (Mathf.Abs(horizontalInput) > joystickDeadZone)
-            {
-                Quaternion deltaRotation = Quaternion.Euler(Vector3.up * horizontalInput * maxTurnSpeed * Time.fixedDeltaTime);
-                playerBody.MoveRotation(playerBody.rotation * deltaRotation);
-                //playerBody.AddRelativeTorque();
-            }
+            verticalInput = InputManager.GetAxisRaw("Vertical");
 
             // Move the player
             if (verticalInput > joystickDeadZone)
-                playerBody.velocity = Vector3.ClampMagnitude(playerBody.transform.forward * verticalInput * maxForwardSpeed, maxForwardSpeed);
-                //playerBody.velocity = Vector3.ClampMagnitude(playerBody.transform.forward * (verticalInput - Mathf.Abs(horizontalInput) * 0.2f) * maxForwardSpeed, maxForwardSpeed);
+                //playerBody.velocity = Vector3.ClampMagnitude(playerBody.transform.forward * verticalInput * maxForwardSpeed, maxForwardSpeed);
+                playerBody.velocity = Vector3.ClampMagnitude(playerBody.transform.forward * (verticalInput - Mathf.Abs(dampedHorizInput.y) * 0.2f) * maxForwardSpeed, maxForwardSpeed);
             else if (verticalInput < -joystickDeadZone)
-                playerBody.velocity = Vector3.ClampMagnitude(playerBody.transform.forward * verticalInput * maxBackwardSpeed, maxBackwardSpeed);
+                //playerBody.velocity = Vector3.ClampMagnitude(playerBody.transform.forward * verticalInput * maxBackwardSpeed, maxBackwardSpeed);
+                playerBody.velocity = Vector3.ClampMagnitude(playerBody.transform.forward * (verticalInput - Mathf.Abs(dampedHorizInput.y) * 0.2f) * maxBackwardSpeed, maxBackwardSpeed);
             else
                 playerBody.velocity = new Vector3(0, 0, 0);
-
-            // Rotate the bike handlebars
-            //handlebars.transform.localRotation = Quaternion.Euler(horizontalInput * maxHandlebarRotationX, horizontalInput * maxHandlebarRotationY, 0);
-
-            // Rotate the player's perspective
-            //playerPerspective.transform.localRotation = Quaternion.Euler(0, 0, -horizontalInput * 5f);
         }
     }
 

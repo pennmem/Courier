@@ -118,6 +118,10 @@ public static class LanguageSource
         { "new efr message", new string [] { "Press the (B) key to reject a recalled item", GERMAN_TRANSLATION_NEEDED } },
 
         { "cued recall message", new string [] {"Press the (X) key after recalling the item to move to the next store", GERMAN_TRANSLATION_NEEDED}},
+        { "online cued recall message", new string [] {"Press the Enter key after recalling the item to move to the next store", GERMAN_TRANSLATION_NEEDED}},
+
+        { "final store recall text", new string [] {"Start typing store name one at a time...\nPress Enter to type next store name...", GERMAN_TRANSLATION_NEEDED}},
+        { "final object recall text", new string [] {"Start typing item one at a time...\nPress Enter to type next item...", GERMAN_TRANSLATION_NEEDED}},
 
         { "play movie", new string[] {"Press any key to play movie.", "Starten Sie das Video mit beliebiger Taste."} },
         { "recording confirmation", new string[] {"Did you hear the recording? \n(Y = Continue / N = Try Again / C = Cancel).",

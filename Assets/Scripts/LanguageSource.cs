@@ -58,7 +58,7 @@ public static class LanguageSource
         { "frame test end main", new string [] { "If you experienced any significant lag, you will likely take longer than average to complete the task. However, we can only pay a fixed rate for task completion, regardless of time taken." + "\n" +
                                                  "If your connection was strong and you wish to continue, press (X)." + "\n" +
                                                  "Otherwise, close the window to exit the experiment.", GERMAN_TRANSLATION_NEEDED} },
-        { "frame test continue text", new string [] {"Thank you for your participation. \n\nTry to focus on the task and good luck!", GERMAN_TRANSLATION_NEEDED} },
+        { "frame test continue main", new string [] {"Thank you for your participation. \n\nTry to focus on the task and good luck!", GERMAN_TRANSLATION_NEEDED} },
 
 
         { "town learning title", new string [] { "Town Learning Phase", GERMAN_TRANSLATION_NEEDED } },

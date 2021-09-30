@@ -363,7 +363,7 @@ public class DeliveryExperiment : CoroutineExperiment
         messageImageDisplayer.SetGeneralBigMessageText(titleText: "frame test start title", mainText: "frame test start main");
         yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
 
-        Environment testEnvironment = EnableTestEnvironment();
+        Environment testEnvironment = EnableEnvironment();
         TestScreen();
         pointer.SetActive(false);
         IS_FRAME_TESTING = true;
@@ -716,7 +716,6 @@ public class DeliveryExperiment : CoroutineExperiment
         SetRamulatorState("RETRIEVAL", false, new Dictionary<string, object>());
     }
 
-
     private IEnumerator DoFreeRecall(int trialNumber, int continuousTrialNum, bool practice = false)
     {
         scriptedEventReporter.ReportScriptedEvent("start free recall", new Dictionary<string, object>());
@@ -754,7 +753,7 @@ public class DeliveryExperiment : CoroutineExperiment
         #else
             // recordingData.Add("trial number", trialNumber);
             // scriptedEventReporter.ReportScriptedEvent("object recall typing start", recordingData);
-            yield return ReportTypedResponses(continuousTrialNum, "free recall", FREE_RECALL_LENGTH, freeInputField, freeResponse);
+            yield return ReportTypedResponses(trialNumber, "free recall", FREE_RECALL_LENGTH, freeInputField, freeResponse);
             // scriptedEventReporter.ReportScriptedEvent("object recall typing end", recordingData);
         #endif
 
@@ -838,7 +837,7 @@ public class DeliveryExperiment : CoroutineExperiment
                 soundRecorder.StopRecording();                                                                              //
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             #else   
-                yield return ReportTypedResponses(continuousTrialNum, "cued recall", CUED_RECALL_TIME_PER_STORE, cuedInputField, cuedResponse, cueStore.GetStoreName());
+                yield return ReportTypedResponses(trialNumber, "cued recall", CUED_RECALL_TIME_PER_STORE, cuedInputField, cuedResponse, cueStore.GetStoreName());
             #endif
             
             if (!COURIER_ONLINE)
@@ -925,7 +924,6 @@ public class DeliveryExperiment : CoroutineExperiment
             SetRamulatorState("RETRIEVAL", false, new Dictionary<string, object>());
             scriptedEventReporter.ReportScriptedEvent("stop final recall", new Dictionary<string, object>());
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        
         #else
             highBeep.Play();
             scriptedEventReporter.ReportScriptedEvent("Sound played", new Dictionary<string, object>() { { "sound name", "high beep" }, { "sound duration", highBeep.clip.length.ToString() } });
@@ -1188,11 +1186,11 @@ public class DeliveryExperiment : CoroutineExperiment
             if (NICLS_COURIER && !practice && trialNumber == NUM_READ_ONLY_TRIALS)          //
             {                                                                               //
                 Debug.Log("READ_ONLY_OFF");                                                 //
-                    niclsInterface.SendReadOnlyStateToNicls(0);                             //
-                    niclsInterface.SendReadOnlyStateToNicls(0);                             //
-                    niclsInterface.SendReadOnlyStateToNicls(0);                             //
-                    niclsInterface.SendReadOnlyStateToNicls(0);                             //
-                    niclsInterface.SendReadOnlyStateToNicls(0);                             //
+                niclsInterface.SendReadOnlyStateToNicls(0);                                 //
+                niclsInterface.SendReadOnlyStateToNicls(0);                                 //
+                niclsInterface.SendReadOnlyStateToNicls(0);                                 //
+                niclsInterface.SendReadOnlyStateToNicls(0);                                 //
+                niclsInterface.SendReadOnlyStateToNicls(0);                                 //
             }                                                                               //
             #endif                                                                          //
             //////////////////////////////////////////////////////////////////////////////////

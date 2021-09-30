@@ -75,10 +75,15 @@ public class Config
         if (systemConfig == null)
         {
             // Setup config file
+            #if UNITY_STANDALONE
             string configPath = System.IO.Path.Combine(
                 Directory.GetParent(Directory.GetParent(UnityEPL.GetParticipantFolder()).FullName).FullName,
                 "configs");
             string text = File.ReadAllText(Path.Combine(configPath, SYSTEM_CONFIG_NAME));
+            #else
+            string text = System.IO.path.Combine(Application.streamingAssetsPath, SYSTEM_CONFIG_NAME);
+            #endif
+
             systemConfig = FlexibleConfig.LoadFromText(text);
         }
 
@@ -90,10 +95,15 @@ public class Config
         if(experimentConfig == null)
         {
             // Setup config file
+            #if UNITY_STANDALONE
             string configPath = System.IO.Path.Combine(
                 Directory.GetParent(Directory.GetParent(UnityEPL.GetParticipantFolder()).FullName).FullName,
                 "configs");
             string text = File.ReadAllText(Path.Combine(configPath, experimentConfigName + ".json"));
+            #else
+            string text = File.ReadAllText(Path.Combine(Application.streamingAssetsPath, experimentConfigName + ".json"));
+            #endif
+            
             experimentConfig = FlexibleConfig.LoadFromText(text);
         }
 

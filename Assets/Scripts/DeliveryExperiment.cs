@@ -145,8 +145,6 @@ public class DeliveryExperiment : CoroutineExperiment
     public UnityEngine.UI.InputField cuedResponse;
 
 
-    ///////////////////////////////////////////////////////////////////////////////////////////////
-
     // LC: Frame testing variables
     private static bool IS_FRAME_TESTING = false;
     private static int fpsValue = 0;
@@ -157,7 +155,54 @@ public class DeliveryExperiment : CoroutineExperiment
     private List<int> fpsList = new List<int>();
 
 
-    ///////////////////////////////////////////////////////////////////////////////////////////////
+    
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
+    // config variables                                                                                         // NICLS config
+    #if UNITY_STANDALONE                                                                                        //
+    private const bool noSyncbox = Config.noSyncbox;                                                            //
+    private const bool lessTrials = Config.lessTrials;                                                          //
+    private const bool lessDeliveries = Config.lessDeliveries;                                                  //
+    private const bool skipIntros = Config.skipIntros;                                                          //
+    private const bool skipTownLearning = Config.skipTownLearning;                                              //
+    private const bool skipNewEfrKeypressCheck = Config.skipNewEfrKeypressCheck;                                //
+    private const bool skipNewEfrKeypressPractice = Config.skipNewEfrKeypressPractice;                          //
+                                                                                                                //
+    private const bool efrEnabled = Config.efrEnabled;                                                          //
+    private const bool newEfrEnabled = Config.newEfrEnabled;                                                    //
+    private const bool niclsCourier = Config.niclsCourier;                                                      //
+    private const bool counterBalanceCorrectIncorrectButton = Config.counterBalanceCorrectIncorrectButton;      //
+                                                                                                                //
+    private const int practiceDeliveriesPerTrial = Config.practiceDeliveriesPerTrial;                           //
+    private const int trialsPerSession = Config.trialsPerSession;                                               //
+    private const int trialsPerSessionSingleTownLearning = Config.trialsPerSessionSingleTownLearning;           //
+    private const int trialsPerSessionDoubleTownLearning = Config.trialsPerSessionDoubleTownLearning;           //
+    private const int deliveriesPerTrial = Config.deliveriesPerTrial;                                           //
+                                                                                                                //
+    private const bool newEfrKeypressPractices = Config.newEfrKeypressPractices;                                //
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    #else
+    private const bool noSyncbox = false;
+    private const bool lessTrials = false;
+    private const bool lessDeliveries = false;
+    private const bool skipIntros = true;
+    private const bool skipTownLearning = false;
+    private const bool skipNewEfrKeypressCheck = false;
+    private const bool skipNewEfrKeypressPractice = false;
+
+    private const bool efrEnabled = false;
+    private const bool newEfrEnabled = false;
+    private const bool niclsCourier = false;
+    private const bool counterBalanceCorrectIncorrectButton = false;
+
+    private const int practiceDeliveriesPerTrial = 0;
+    private const int trialsPerSession = 1;
+    private const int trialsPerSessionSingleTownLearning = 0;
+    private const int trialsPerSessionDoubleTownLearning = 0;
+    private const int deliveriesPerTrial = 2;
+
+    private const int newEfrKeypressPractices = 0;
+    #endif
+
 
     // These names are used in for what is sent to the log
     // If you change them, then you have to change the event processing (or the logging code)
@@ -173,10 +218,10 @@ public class DeliveryExperiment : CoroutineExperiment
         #if UNITY_STANDALONE
             useRamulator = newUseRamulator;
             useNiclServer = newUseNiclServer;
+            Config.experimentConfigName = expName;
         #endif
         sessionNumber = newSessionNumber;
         expName = newExpName;
-        Config.experimentConfigName = expName;
     }
 
     void Update()
@@ -196,7 +241,7 @@ public class DeliveryExperiment : CoroutineExperiment
                 dt -= 1.0f / updateRateSeconds;
             }
             fpsValue = (int)Math.Round(fps);
-            messageImageDisplayer.fps_display_text.text = fpsValue.ToString();
+            messageImageDisplayer.SetFPSDisplay(fpsValue.ToString());
             fpsList.Add(fpsValue);
 
             Dictionary<string, object> fpsValueDict = new Dictionary<string, object>();
@@ -520,7 +565,7 @@ public class DeliveryExperiment : CoroutineExperiment
         }
         scriptedEventReporter.ReportScriptedEvent("store mappings", storeMappings);
 
-        int trialsPerSession = Config.trialsPerSession;
+        // int trialsPerSession = Config.trialsPerSession;                                                           
 
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         #if UNITY_STANDALONE                                                                                           // NICLS 
@@ -576,24 +621,27 @@ public class DeliveryExperiment : CoroutineExperiment
         }
 
         Debug.Log("Real trials");
-        if (Config.efrEnabled)
-            if (Config.newEfrEnabled)
-                messageImageDisplayer.SetGeneralMessageText(mainText: "first day main", descriptiveText: "new efr first day description");
-            else
-                messageImageDisplayer.SetGeneralMessageText(mainText: "first day main", descriptiveText: "efr first day description");
-        else
-            messageImageDisplayer.SetGeneralMessageText(mainText: "first day main");
-
-        yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
-        int priorTrialsPerSession = 0;
-                                                                                              
-        if (NICLS_COURIER && subSessionNum > 0) // JPB: TODO: Nick fix                                                 
-        {                                                                                                              
-            if (sessionNumber < DOUBLE_TOWN_LEARNING_SESSIONS && !useNiclServer)                                       
-                priorTrialsPerSession = Config.trialsPerSessionDoubleTownLearning;                                     
-            else if (sessionNumber < SINGLE_TOWN_LEARNING_SESSIONS)                                                    
-                priorTrialsPerSession = Config.trialsPerSessionSingleTownLearning;                                     
-        }                                                                                                              
+        int priorTrialsPerSession = 0;                                                                                  
+        if (efrEnabled)                                                                                          
+            if (newEfrEnabled)                                                                                   
+                messageImageDisplayer.SetGeneralMessageText(mainText: "first day main",                                 
+                                                            descriptiveText: "new efr first day description");          
+            else                                                                                                        
+                messageImageDisplayer.SetGeneralMessageText(mainText: "first day main",                                 
+                                                            descriptiveText: "efr first day description");              
+        else                                                                                                            
+            messageImageDisplayer.SetGeneralMessageText(mainText: "first day main");                                    
+                                                                                                                        
+        yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);               
+                                                                                                                        
+                                                                                                                        
+        if (NICLS_COURIER && subSessionNum > 0) // JPB: TODO: Nick fix                                                  
+        {                                                                                                               
+            if (sessionNumber < DOUBLE_TOWN_LEARNING_SESSIONS && !useNiclServer)                                        
+                priorTrialsPerSession = trialsPerSessionDoubleTownLearning;                                      
+            else if (sessionNumber < SINGLE_TOWN_LEARNING_SESSIONS)                                                     
+                priorTrialsPerSession = trialsPerSessionSingleTownLearning;                                      
+        }                                                                                                               
         
 
         yield return DoTrials(environment, trialsPerSession, subSessionNum,
@@ -609,9 +657,9 @@ public class DeliveryExperiment : CoroutineExperiment
     }
 
     private IEnumerator DoIntros()
-    {
-        if (Config.skipIntros)
-            yield break;
+    {   
+        if (skipIntros)                                                                                          
+            yield break;                                                                                                
 
         BlackScreen();
 
@@ -629,15 +677,16 @@ public class DeliveryExperiment : CoroutineExperiment
                                         LanguageSource.GetLanguageString("standard intro video"),
                                         VideoSelector.VideoType.NiclsMainIntro);
             }
-            else if (NICLS_COURIER) // sessionNumber >= 1 || useNiclServer
-            {
-                var messages = Config.newEfrEnabled
-                    ? messageImageDisplayer.recap_instruction_messages_new_en
-                    : messageImageDisplayer.recap_instruction_messages_en;
-
-                foreach (var message in messages)
-                    yield return messageImageDisplayer.DisplayMessage(message);
-            }
+            
+            else if (NICLS_COURIER) // sessionNumber >= 1 || useNiclServer                                              
+            {                                                                                                           
+                var messages = newEfrEnabled                                                                     
+                    ? messageImageDisplayer.recap_instruction_messages_new_en                                           
+                    : messageImageDisplayer.recap_instruction_messages_en;                                              
+                                                                                                                        
+                foreach (var message in messages)                                                                       
+                    yield return messageImageDisplayer.DisplayMessage(message);                                         
+            }                                                                                                           
             else
             {
                 yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
@@ -840,8 +889,8 @@ public class DeliveryExperiment : CoroutineExperiment
                 yield return ReportTypedResponses(trialNumber, "cued recall", CUED_RECALL_TIME_PER_STORE, cuedInputField, cuedResponse, cueStore.GetStoreName());
             #endif
             
-            if (!COURIER_ONLINE)
-                cueStore.familiarization_object.SetActive(false);
+            
+            cueStore.familiarization_object.SetActive(false);
             lowBeep.Play();
             scriptedEventReporter.ReportScriptedEvent("sound played", new Dictionary<string, object>() { { "sound name", "low beep" }, { "sound duration", highBeep.clip.length.ToString() } });
             textDisplayer.DisplayText("display recall text", RECALL_TEXT);
@@ -962,8 +1011,8 @@ public class DeliveryExperiment : CoroutineExperiment
 
     private IEnumerator DoTownLearning(Environment environment, int trialNumber, int numDeliveries)
     {
-        if (Config.skipTownLearning || InputManager.GetButton("Secret"))
-            yield break;
+        if (skipTownLearning || InputManager.GetButton("Secret"))                                                
+            yield break;                                                                                                
 
         scriptedEventReporter.ReportScriptedEvent("start town learning", new Dictionary<string, object>());
         messageImageDisplayer.please_find_the_blah_reminder.SetActive(true);
@@ -1030,7 +1079,7 @@ public class DeliveryExperiment : CoroutineExperiment
         this_trial_presented_stores = new List<StoreComponent>();
         List<StoreComponent> unvisitedStores = new List<StoreComponent>(environment.stores);
 
-        int deliveries = practice ? Config.practiceDeliveriesPerTrial : Config.deliveriesPerTrial;
+        int deliveries = practice ? practiceDeliveriesPerTrial : deliveriesPerTrial;                  
         int craft_shop_delivery_num = rng.Next(deliveries - 1);
 
         for (int i = 0; i < deliveries; i++)
@@ -1180,42 +1229,42 @@ public class DeliveryExperiment : CoroutineExperiment
             //        yield return DoBreak();
             //}
 
-            //////////////////////////////////////////////////////////////////////////////////
-            #if UNITY_STANDALONE                                                            // NICLS
-            //Turn off ReadOnlyState                                                        //
-            if (NICLS_COURIER && !practice && trialNumber == NUM_READ_ONLY_TRIALS)          //
-            {                                                                               //
-                Debug.Log("READ_ONLY_OFF");                                                 //
-                niclsInterface.SendReadOnlyStateToNicls(0);                                 //
-                niclsInterface.SendReadOnlyStateToNicls(0);                                 //
-                niclsInterface.SendReadOnlyStateToNicls(0);                                 //
-                niclsInterface.SendReadOnlyStateToNicls(0);                                 //
-                niclsInterface.SendReadOnlyStateToNicls(0);                                 //
-            }                                                                               //
-            #endif                                                                          //
-            //////////////////////////////////////////////////////////////////////////////////
+            //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            #if UNITY_STANDALONE                                                                                            // NICLS
+            //Turn off ReadOnlyState                                                                                        //
+            if (NICLS_COURIER && !practice && trialNumber == NUM_READ_ONLY_TRIALS)                                          //
+            {                                                                                                               //
+                Debug.Log("READ_ONLY_OFF");                                                                                 //
+                niclsInterface.SendReadOnlyStateToNicls(0);                                                                 //
+                niclsInterface.SendReadOnlyStateToNicls(0);                                                                 //
+                niclsInterface.SendReadOnlyStateToNicls(0);                                                                 //
+                niclsInterface.SendReadOnlyStateToNicls(0);                                                                 //
+                niclsInterface.SendReadOnlyStateToNicls(0);                                                                 //
+            }                                                                                                               //
+            #endif                                                                                                          //
+            //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-            // EFR instructions
-            if (Config.efrEnabled && practice
-                && trialNumber == EFR_PRACTICE_TRIAL_NUM && subSessionNum == 0) // JPB: TODO: Nick fix
-            {
-                if (Config.newEfrEnabled)
-                {
-                    messageImageDisplayer.SetGeneralBigMessageText(titleText: "new efr instructions title", mainText: "new efr instructions main");
-                    yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
-                    yield return DoNewEfrKeypressCheck();
-                    yield return DoNewEfrKeypressPractice();
-                }
-                else
-                {
-                    yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
-                             LanguageSource.GetLanguageString("efr intro video"),
-                             VideoSelector.VideoType.EfrIntro);
-                    yield return DoEfrKeypressCheck();
-                    yield return DoEfrKeypressPractice();
-                } 
-            }
+            // EFR instructions                                                                                             
+            if (efrEnabled && practice                                                                               
+                && trialNumber == EFR_PRACTICE_TRIAL_NUM && subSessionNum == 0)                                             
+            {                                                                                                               
+                if (newEfrEnabled)                                                                                   
+                {                                                                                                           
+                    messageImageDisplayer.SetGeneralBigMessageText(titleText: "new efr instructions title",                 
+                                                                    mainText: "new efr instructions main");                 
+                    yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);   
+                    yield return DoNewEfrKeypressCheck();                                                                   
+                    yield return DoNewEfrKeypressPractice();                                                                
+                }                                                                                                           
+                else                                                                                                        
+                {                                                                                                           
+                    yield return DoVideo(LanguageSource.GetLanguageString("play movie"),                                    
+                             LanguageSource.GetLanguageString("efr intro video"),                                           
+                             VideoSelector.VideoType.EfrIntro);                                                             
+                    yield return DoEfrKeypressCheck();                                                                      
+                    yield return DoEfrKeypressPractice();                                                                   
+                }                                                                                                           
+            }                                                                                                               
 
             // Next day message
             SetRamulatorState("WAITING", true, new Dictionary<string, object>());
@@ -1428,7 +1477,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private IEnumerator DoFreeRecallDisplay(string title, float waitTime, bool practice = false, bool efrDisabled = false)
     {
         BlackScreen();
-        if (Config.efrEnabled && !efrDisabled)
+        if (efrEnabled && !efrDisabled)
         {
             yield return DoEfrDisplay(title, waitTime, practice);
         }
@@ -1595,9 +1644,9 @@ public class DeliveryExperiment : CoroutineExperiment
 
     private IEnumerator DoNewEfrKeypressPractice()
     {
-        if (Config.skipNewEfrKeypressPractice)
-            yield break;
-
+        if (skipNewEfrKeypressPractice)                                                                          
+            yield break;                                                                                                
+        
         scriptedEventReporter.ReportScriptedEvent("start efr keypress practice", new Dictionary<string, object>());
         BlackScreen();
 
@@ -1609,7 +1658,7 @@ public class DeliveryExperiment : CoroutineExperiment
         // Ask for reject button press
         messageImageDisplayer.SetGeneralBiggerMessageText(titleText: "new efr message",
                                                           continueText: "");
-        for (int i = 0; i < Config.newEfrKeypressPractices; i++)
+        for (int i = 0; i < newEfrKeypressPractices; i++)
             yield return messageImageDisplayer.DisplayMessage(
                 messageImageDisplayer.general_bigger_message_display, "EfrReject");
 

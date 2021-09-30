@@ -220,6 +220,11 @@ public class MessageImageDisplayer : MonoBehaviour
         please_find_the_blah_reminder_text.text = prompt_string;
     }
 
+    public void SetFPSDisplay(string fpsValue)
+    {
+        fps_display_text.text = fpsValue;
+    }
+
     public void SetDeliverItemText(string name)
     {
         string prompt_string = name;

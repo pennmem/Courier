@@ -76,10 +76,10 @@ public class DeliveryExperiment : CoroutineExperiment
     private const float FAMILIARIZATION_PRESENTATION_LENGTH = 1.5f;
     private const float RECALL_MESSAGE_DISPLAY_LENGTH = 6f;
     private const float RECALL_TEXT_DISPLAY_LENGTH = 1f;
-    private const float FREE_RECALL_LENGTH = 90f;
+    private const float FREE_RECALL_LENGTH = 10f;//90f;
     private const float PRACTICE_FREE_RECALL_LENGTH = 25f;
-    private const float STORE_FINAL_RECALL_LENGTH = 90f;
-    private const float FINAL_RECALL_LENGTH = NICLS_COURIER ? 120f : COURIER_ONLINE ? 240f : 180f;
+    private const float STORE_FINAL_RECALL_LENGTH = 10f;
+    private const float FINAL_RECALL_LENGTH = NICLS_COURIER ? 120f : COURIER_ONLINE ? 10f : 180f;
     private const float TIME_BETWEEN_DIFFERENT_RECALL_PHASES = 2f;
     private const float CUED_RECALL_TIME_PER_STORE = 10f;
     private const float MIN_CUED_RECALL_TIME_PER_STORE = 2f;
@@ -146,8 +146,6 @@ public class DeliveryExperiment : CoroutineExperiment
 
 
     // LC: Frame testing variables
-    // public GameObject fpsDisplay;
-    // public UnityEngine.UI.Text fpsDisplayText;
     private static bool IS_FRAME_TESTING = false;
     private static int fpsValue = 0;
     private static float updateRateSeconds = 4.0f;
@@ -353,7 +351,6 @@ public class DeliveryExperiment : CoroutineExperiment
         starSystem.gameObject.SetActive(false);
         playerMovement.Freeze();
     }
-
 
     private IEnumerator DoFrameTest()
     {   
@@ -722,6 +719,12 @@ public class DeliveryExperiment : CoroutineExperiment
 
     private IEnumerator DoFreeRecall(int trialNumber, int continuousTrialNum, bool practice = false)
     {
+        if (COURIER_ONLINE)
+        {
+            messageImageDisplayer.SetGeneralBigMessageText("free recall title", "free recall main");
+            yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
+        }
+        
         scriptedEventReporter.ReportScriptedEvent("start free recall", new Dictionary<string, object>());
         BlackScreen();
         textDisplayer.ClearText();
@@ -929,6 +932,10 @@ public class DeliveryExperiment : CoroutineExperiment
             scriptedEventReporter.ReportScriptedEvent("stop final recall", new Dictionary<string, object>());
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         #else
+
+            messageImageDisplayer.SetGeneralBigMessageText("final store recall title", "final store recall main");
+            yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
+
             highBeep.Play();
             scriptedEventReporter.ReportScriptedEvent("Sound played", new Dictionary<string, object>() { { "sound name", "high beep" }, { "sound duration", highBeep.clip.length.ToString() } });
 
@@ -942,6 +949,9 @@ public class DeliveryExperiment : CoroutineExperiment
             scriptedEventReporter.ReportScriptedEvent("final store recall stop", new Dictionary<string, object>());
 
             yield return SkippableWait(TIME_BETWEEN_DIFFERENT_RECALL_PHASES);
+
+            messageImageDisplayer.SetGeneralBigMessageText("final object recall title", "final object recall main");
+            yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
 
             highBeep.Play();
             scriptedEventReporter.ReportScriptedEvent("Sound played", new Dictionary<string, object>() { { "sound name", "high beep" }, { "sound duration", highBeep.clip.length.ToString() } });
@@ -1261,7 +1271,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
             // Do deliveries and recall
             yield return DoDeliveries(environment, trialNumber, continuousTrialNum, practice);
-            if (!(practice && trialNumber < EFR_PRACTICE_TRIAL_NUM))
+            if (!(practice && trialNumber < EFR_PRACTICE_TRIAL_NUM) && !COURIER_ONLINE)
                 yield return DoFixation(PAUSE_BEFORE_RETRIEVAL, practice);
             yield return DoRecall(trialNumber, continuousTrialNum, practice);
         }
@@ -1281,7 +1291,14 @@ public class DeliveryExperiment : CoroutineExperiment
         pointer.transform.eulerAngles = new UnityEngine.Vector3(0, rng.Next(360), 0);
         scriptedEventReporter.ReportScriptedEvent("pointing begins", new Dictionary<string, object> { { "start direction", pointer.transform.eulerAngles.y }, { "store", nextStore.GetStoreName() } });
         pointerMessage.SetActive(true);
-        pointerText.text = LanguageSource.GetLanguageString("next package prompt") + "<b>" +
+        pointerText.text = COURIER_ONLINE ? 
+                           LanguageSource.GetLanguageString("next package prompt") + "<b>" +
+                           LanguageSource.GetLanguageString(nextStore.GetStoreName()) + "</b>" + ". " +
+                           LanguageSource.GetLanguageString("please point") +
+                           LanguageSource.GetLanguageString(nextStore.GetStoreName()) + "." + "\n\n" +
+                           LanguageSource.GetLanguageString("keyboard")
+                           :
+                           LanguageSource.GetLanguageString("next package prompt") + "<b>" +
                            LanguageSource.GetLanguageString(nextStore.GetStoreName()) + "</b>" + ". " +
                            LanguageSource.GetLanguageString("please point") +
                            LanguageSource.GetLanguageString(nextStore.GetStoreName()) + "." + "\n\n" +

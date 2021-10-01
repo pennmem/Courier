@@ -277663,7 +277663,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &935498791
 RectTransform:
   m_ObjectHideFlags: 0
@@ -281410,7 +281410,7 @@ MonoBehaviour:
     stores: []
   freeInputField: {fileID: 1499485882}
   freeResponse: {fileID: 1499485884}
-  placeHolder: {fileID: 0}
+  placeHolder: {fileID: 1542789899}
   cuedInputField: {fileID: 2128841236}
   cuedResponse: {fileID: 2128841238}
 --- !u!114 &949297812
@@ -613661,7 +613661,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 1199902433362700, guid: 5eb10f8d3feb149fab21fe7302cfc2a7, type: 2}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 114996999034505892, guid: 5eb10f8d3feb149fab21fe7302cfc2a7, type: 2}

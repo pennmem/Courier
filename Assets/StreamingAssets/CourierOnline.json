@@ -2,11 +2,11 @@
     "noSyncbox": true,
     "lessTrials": false,
     "lessDeliveries": false,
-    "skipFPS":false,
-    "skipIntros": false,
-    "skipTownLearning": false,
-    "skipNewEfrKeypressCheck": false,
-    "skipNewEfrKeypressPractice": false,
+    "skipFPS": true,
+    "skipIntros": true,
+    "skipTownLearning": true,
+    "skipNewEfrKeypressCheck": true,
+    "skipNewEfrKeypressPractice": true,
 
     "efrEnabled": false,
     "newEfrEnabled": false,
@@ -14,10 +14,10 @@
     "counterBalanceCorrectIncorrectButton": false,
 
     "practiceDeliveriesPerTrial": 0,
-    "trialsPerSession": 5,
+    "trialsPerSession": 1,
     "trialsPerSessionSingleTownLearning": 0,
     "trialsPerSessionDoubleTownLearning": 0,
-    "deliveriesPerTrial":13,
+    "deliveriesPerTrial":2,
     
     "newEfrKeypressPractices":0
 }

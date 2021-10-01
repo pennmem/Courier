@@ -26,6 +26,7 @@ public static class LanguageSource
         { "continue", new string[] {"Press (X) to continue.", "Drücken Sie (X) um fortzufahren."} },
         { "please point", new string[] {"Please point to the ", "Bitte richten Sie den Pfeil aus auf "} },
         { "joystick", new string[] {"Use the joystick to adjust the arrow, then press (X) to continue.", "Nutzen Sie den Joystick um den Pfeil zu rotieren und (X) um zu bestätigen."} },
+        { "keyboard", new string[] {"Use Arrow keys to adjust the arrow, then press (X) to continue", GERMAN_TRANSLATION_NEEDED} },
         { "wrong by", new string[] {"Not quite. The arrow will now show the exact direction. That was off by degrees: ", "Nicht ganz! Der Pfeil zeigt Ihnen nur die richtige Richtung. Abweichung in Grad zur korrekten Antwort: "} },
         { "correct to within", new string[] {"Good! That was correct to within degrees: ", "Fast perfekt! Abweichung in Grad zur korrekten Antwort: "} },
         { "all objects recall", new string[] {"Please recall all the objects that you delivered.", "Bitte erinnern Sie alle Gegenstände, die Sie zugestellt haben."} },
@@ -117,11 +118,20 @@ public static class LanguageSource
         { "speak now", new string [] { "(Please speak now)", GERMAN_TRANSLATION_NEEDED} },
         { "new efr message", new string [] { "Press the (B) key to reject a recalled item", GERMAN_TRANSLATION_NEEDED } },
 
+        { "free recall title", new string [] { "Free Recall", GERMAN_TRANSLATION_NEEDED} },
+        { "free recall main", new string [] { "Try to recall all the items that you delivered to the stores in this delivery day.\n\nType one item and press Enter to submit your response and type your next response", 
+                                              GERMAN_TRANSLATION_NEEDED}}, 
+
         { "cued recall message", new string [] {"Press the (X) key after recalling the item to move to the next store", GERMAN_TRANSLATION_NEEDED}},
         { "online cued recall message", new string [] {"Press the Enter key after recalling the item to move to the next store", GERMAN_TRANSLATION_NEEDED}},
 
-        { "final store recall text", new string [] {"Start typing store name one at a time...\nPress Enter to type next store name...", GERMAN_TRANSLATION_NEEDED}},
-        { "final object recall text", new string [] {"Start typing item one at a time...\nPress Enter to type next item...", GERMAN_TRANSLATION_NEEDED}},
+        { "final store recall title", new string [] {"Final Store Recall", GERMAN_TRANSLATION_NEEDED} },
+        { "final store recall main", new string [] {"Try to recall stores that you delivered to.\n\nNote that you need to recall the store names", GERMAN_TRANSLATION_NEEDED} },
+        { "final store recall text", new string [] {"Start typing store name one at a time...", GERMAN_TRANSLATION_NEEDED}},
+        
+        { "final object recall title", new string [] {"Final Object Recall", GERMAN_TRANSLATION_NEEDED} },
+        { "final object recall main", new string [] {"Try to recall all the items that you delivered so far.", GERMAN_TRANSLATION_NEEDED} },
+        { "final object recall text", new string [] {"Start typing item one at a time...", GERMAN_TRANSLATION_NEEDED}},
 
         { "play movie", new string[] {"Press any key to play movie.", "Starten Sie das Video mit beliebiger Taste."} },
         { "recording confirmation", new string[] {"Did you hear the recording? \n(Y = Continue / N = Try Again / C = Cancel).",

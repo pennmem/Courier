@@ -29,9 +29,8 @@ public class MessageImageDisplayer : MonoBehaviour
     public GameObject general_big_message_display;
     public GameObject general_bigger_message_display;
     public ScriptedEventReporter scriptedEventReporter;
-
-    public GameObject fps_dislay;
-    public Text fps_display_text;
+    public GameObject fpsDisplay;
+    public Text fpsDisplayText;
 
     private const float BUTTON_MSG_DISPLAY_WAIT = 0.3f;
     private const int REQUIRED_VALID_BUTTON_PRESSES = 1;
@@ -218,11 +217,6 @@ public class MessageImageDisplayer : MonoBehaviour
     {
         string prompt_string = LanguageSource.GetLanguageString("please find prompt") + "<b>" + LanguageSource.GetLanguageString(store_name) + "</b>";
         please_find_the_blah_reminder_text.text = prompt_string;
-    }
-
-    public void SetFPSDisplay(string fpsValue)
-    {
-        fps_display_text.text = fpsValue;
     }
 
     public void SetDeliverItemText(string name)

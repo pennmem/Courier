@@ -58,7 +58,7 @@ public class DeliveryExperiment : CoroutineExperiment
     ///////////////////////////////////////////////////////////////////////////
     
 
-    private const string COURIER_VERSION = COURIER_ONLINE ? "v4.1.2online" : "v5.0.13";
+    private const string COURIER_VERSION = COURIER_ONLINE ? "v5.0.0online" : "v5.0.13";
     private const string RECALL_TEXT = "*******"; // JPB: TODO: Remove this and use display system
     //private const int DELIVERIES_PER_TRIAL = LESS_DELIVERIES ? 3 : (NICLS_COURIER ? 16 : 13);
     //private const int PRACTICE_DELIVERIES_PER_TRIAL = 4;
@@ -146,6 +146,8 @@ public class DeliveryExperiment : CoroutineExperiment
 
 
     // LC: Frame testing variables
+    // public GameObject fpsDisplay;
+    // public UnityEngine.UI.Text fpsDisplayText;
     private static bool IS_FRAME_TESTING = false;
     private static int fpsValue = 0;
     private static float updateRateSeconds = 4.0f;
@@ -191,7 +193,7 @@ public class DeliveryExperiment : CoroutineExperiment
                 dt -= 1.0f / updateRateSeconds;
             }
             fpsValue = (int)Math.Round(fps);
-            messageImageDisplayer.SetFPSDisplay(fpsValue.ToString());
+            messageImageDisplayer.fpsDisplayText.text = fpsValue.ToString();
             fpsList.Add(fpsValue);
 
             Dictionary<string, object> fpsValueDict = new Dictionary<string, object>();
@@ -365,7 +367,7 @@ public class DeliveryExperiment : CoroutineExperiment
         TestScreen();
         pointer.SetActive(false);
         IS_FRAME_TESTING = true;
-        messageImageDisplayer.fps_dislay.SetActive(true);
+        messageImageDisplayer.fpsDisplay.SetActive(true);
         
         yield return new WaitForSeconds(TEST_LENGTH);
         
@@ -373,7 +375,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
         BlackScreen();
         int averageFps = (int)Math.Round(fpsList.Average());
-        messageImageDisplayer.fps_display_text.text = "";
+        messageImageDisplayer.fpsDisplayText.text = "";
         
         Dictionary<string, object> fpsData = new Dictionary<string, object>();
         fpsData.Add("average FPS", averageFps);
@@ -382,7 +384,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
         yield return new WaitForSeconds(1.5f);
 
-        messageImageDisplayer.fps_dislay.SetActive(false);
+        messageImageDisplayer.fpsDisplay.SetActive(false);
         pointer.SetActive(true);
         playerMovement.Reset();
 

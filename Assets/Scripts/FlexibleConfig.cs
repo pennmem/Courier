@@ -102,6 +102,7 @@ public class Config
                 "configs");
             string text = File.ReadAllText(Path.Combine(configPath, experimentConfigName + ".json"));
             #else
+            experimentConfigName = "CourierOnline";
             string text = File.ReadAllText(Path.Combine(Application.streamingAssetsPath, experimentConfigName + ".json"));
             #endif
             

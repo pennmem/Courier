@@ -154,56 +154,6 @@ public class DeliveryExperiment : CoroutineExperiment
     private float fps = 0.0f;
     private List<int> fpsList = new List<int>();
 
-
-    
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
-    // config variables                                                                                         // NICLS config
-    #if UNITY_STANDALONE                                                                                        //
-    private const bool noSyncbox = Config.noSyncbox;                                                            //
-    private const bool lessTrials = Config.lessTrials;                                                          //
-    private const bool lessDeliveries = Config.lessDeliveries;                                                  //
-    private const bool skipIntros = Config.skipIntros;                                                          //
-    private const bool skipTownLearning = Config.skipTownLearning;                                              //
-    private const bool skipNewEfrKeypressCheck = Config.skipNewEfrKeypressCheck;                                //
-    private const bool skipNewEfrKeypressPractice = Config.skipNewEfrKeypressPractice;                          //
-                                                                                                                //
-    private const bool efrEnabled = Config.efrEnabled;                                                          //
-    private const bool newEfrEnabled = Config.newEfrEnabled;                                                    //
-    private const bool niclsCourier = Config.niclsCourier;                                                      //
-    private const bool counterBalanceCorrectIncorrectButton = Config.counterBalanceCorrectIncorrectButton;      //
-                                                                                                                //
-    private const int practiceDeliveriesPerTrial = Config.practiceDeliveriesPerTrial;                           //
-    private const int trialsPerSession = Config.trialsPerSession;                                               //
-    private const int trialsPerSessionSingleTownLearning = Config.trialsPerSessionSingleTownLearning;           //
-    private const int trialsPerSessionDoubleTownLearning = Config.trialsPerSessionDoubleTownLearning;           //
-    private const int deliveriesPerTrial = Config.deliveriesPerTrial;                                           //
-                                                                                                                //
-    private const bool newEfrKeypressPractices = Config.newEfrKeypressPractices;                                //
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    #else
-    private const bool noSyncbox = false;
-    private const bool lessTrials = false;
-    private const bool lessDeliveries = false;
-    private const bool skipIntros = true;
-    private const bool skipTownLearning = false;
-    private const bool skipNewEfrKeypressCheck = false;
-    private const bool skipNewEfrKeypressPractice = false;
-
-    private const bool efrEnabled = false;
-    private const bool newEfrEnabled = false;
-    private const bool niclsCourier = false;
-    private const bool counterBalanceCorrectIncorrectButton = false;
-
-    private const int practiceDeliveriesPerTrial = 0;
-    private const int trialsPerSession = 1;
-    private const int trialsPerSessionSingleTownLearning = 0;
-    private const int trialsPerSessionDoubleTownLearning = 0;
-    private const int deliveriesPerTrial = 2;
-
-    private const int newEfrKeypressPractices = 0;
-    #endif
-
-
     // These names are used in for what is sent to the log
     // If you change them, then you have to change the event processing (or the logging code)
     private enum NiclsClassifierType
@@ -218,8 +168,8 @@ public class DeliveryExperiment : CoroutineExperiment
         #if UNITY_STANDALONE
             useRamulator = newUseRamulator;
             useNiclServer = newUseNiclServer;
-            Config.experimentConfigName = expName;
         #endif
+        Config.experimentConfigName = expName;
         sessionNumber = newSessionNumber;
         expName = newExpName;
     }
@@ -405,6 +355,9 @@ public class DeliveryExperiment : CoroutineExperiment
 
     private IEnumerator DoFrameTest()
     {   
+        if (Config.skipFPS)
+            yield break;
+
         messageImageDisplayer.SetGeneralBigMessageText(titleText: "frame test start title", mainText: "frame test start main");
         yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
 
@@ -565,7 +518,7 @@ public class DeliveryExperiment : CoroutineExperiment
         }
         scriptedEventReporter.ReportScriptedEvent("store mappings", storeMappings);
 
-        // int trialsPerSession = Config.trialsPerSession;                                                           
+        int trialsPerSession = Config.trialsPerSession;                                                           
 
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         #if UNITY_STANDALONE                                                                                           // NICLS 
@@ -621,9 +574,8 @@ public class DeliveryExperiment : CoroutineExperiment
         }
 
         Debug.Log("Real trials");
-        int priorTrialsPerSession = 0;                                                                                  
-        if (efrEnabled)                                                                                          
-            if (newEfrEnabled)                                                                                   
+        if (Config.efrEnabled)                                                                                          
+            if (Config.newEfrEnabled)                                                                                   
                 messageImageDisplayer.SetGeneralMessageText(mainText: "first day main",                                 
                                                             descriptiveText: "new efr first day description");          
             else                                                                                                        
@@ -634,13 +586,14 @@ public class DeliveryExperiment : CoroutineExperiment
                                                                                                                         
         yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);               
                                                                                                                         
+        int priorTrialsPerSession = 0;                                                                                  
                                                                                                                         
         if (NICLS_COURIER && subSessionNum > 0) // JPB: TODO: Nick fix                                                  
         {                                                                                                               
             if (sessionNumber < DOUBLE_TOWN_LEARNING_SESSIONS && !useNiclServer)                                        
-                priorTrialsPerSession = trialsPerSessionDoubleTownLearning;                                      
+                priorTrialsPerSession = Config.trialsPerSessionDoubleTownLearning;                                      
             else if (sessionNumber < SINGLE_TOWN_LEARNING_SESSIONS)                                                     
-                priorTrialsPerSession = trialsPerSessionSingleTownLearning;                                      
+                priorTrialsPerSession = Config.trialsPerSessionSingleTownLearning;                                      
         }                                                                                                               
         
 
@@ -658,7 +611,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
     private IEnumerator DoIntros()
     {   
-        if (skipIntros)                                                                                          
+        if (Config.skipIntros)                                                                                          
             yield break;                                                                                                
 
         BlackScreen();
@@ -680,7 +633,7 @@ public class DeliveryExperiment : CoroutineExperiment
             
             else if (NICLS_COURIER) // sessionNumber >= 1 || useNiclServer                                              
             {                                                                                                           
-                var messages = newEfrEnabled                                                                     
+                var messages = Config.newEfrEnabled                                                                     
                     ? messageImageDisplayer.recap_instruction_messages_new_en                                           
                     : messageImageDisplayer.recap_instruction_messages_en;                                              
                                                                                                                         
@@ -1011,7 +964,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
     private IEnumerator DoTownLearning(Environment environment, int trialNumber, int numDeliveries)
     {
-        if (skipTownLearning || InputManager.GetButton("Secret"))                                                
+        if (Config.skipTownLearning || InputManager.GetButton("Secret"))                                                
             yield break;                                                                                                
 
         scriptedEventReporter.ReportScriptedEvent("start town learning", new Dictionary<string, object>());
@@ -1079,7 +1032,7 @@ public class DeliveryExperiment : CoroutineExperiment
         this_trial_presented_stores = new List<StoreComponent>();
         List<StoreComponent> unvisitedStores = new List<StoreComponent>(environment.stores);
 
-        int deliveries = practice ? practiceDeliveriesPerTrial : deliveriesPerTrial;                  
+        int deliveries = practice ? Config.practiceDeliveriesPerTrial : Config.deliveriesPerTrial;                  
         int craft_shop_delivery_num = rng.Next(deliveries - 1);
 
         for (int i = 0; i < deliveries; i++)
@@ -1245,10 +1198,10 @@ public class DeliveryExperiment : CoroutineExperiment
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
             // EFR instructions                                                                                             
-            if (efrEnabled && practice                                                                               
+            if (Config.efrEnabled && practice                                                                               
                 && trialNumber == EFR_PRACTICE_TRIAL_NUM && subSessionNum == 0)                                             
             {                                                                                                               
-                if (newEfrEnabled)                                                                                   
+                if (Config.newEfrEnabled)                                                                                   
                 {                                                                                                           
                     messageImageDisplayer.SetGeneralBigMessageText(titleText: "new efr instructions title",                 
                                                                     mainText: "new efr instructions main");                 
@@ -1466,18 +1419,10 @@ public class DeliveryExperiment : CoroutineExperiment
         return environment;
     }
 
-    private Environment EnableTestEnvironment()
-    {
-        System.Random random = new System.Random();
-        Environment testEnvironment = testEnvironments[random.Next(testEnvironments.Length)];
-        testEnvironment.parent.SetActive(true);
-        return testEnvironment;
-    }
-
     private IEnumerator DoFreeRecallDisplay(string title, float waitTime, bool practice = false, bool efrDisabled = false)
     {
         BlackScreen();
-        if (efrEnabled && !efrDisabled)
+        if (Config.efrEnabled && !efrDisabled)
         {
             yield return DoEfrDisplay(title, waitTime, practice);
         }
@@ -1644,7 +1589,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
     private IEnumerator DoNewEfrKeypressPractice()
     {
-        if (skipNewEfrKeypressPractice)                                                                          
+        if (Config.skipNewEfrKeypressPractice)                                                                          
             yield break;                                                                                                
         
         scriptedEventReporter.ReportScriptedEvent("start efr keypress practice", new Dictionary<string, object>());
@@ -1658,7 +1603,7 @@ public class DeliveryExperiment : CoroutineExperiment
         // Ask for reject button press
         messageImageDisplayer.SetGeneralBiggerMessageText(titleText: "new efr message",
                                                           continueText: "");
-        for (int i = 0; i < newEfrKeypressPractices; i++)
+        for (int i = 0; i < Config.newEfrKeypressPractices; i++)
             yield return messageImageDisplayer.DisplayMessage(
                 messageImageDisplayer.general_bigger_message_display, "EfrReject");
 

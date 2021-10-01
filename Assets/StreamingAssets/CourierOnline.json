@@ -2,6 +2,7 @@
     "noSyncbox": true,
     "lessTrials": false,
     "lessDeliveries": false,
+    "skipFPS":false,
     "skipIntros": false,
     "skipTownLearning": false,
     "skipNewEfrKeypressCheck": false,

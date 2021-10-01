@@ -22,6 +22,7 @@ public class Config
     public static bool lessDeliveries { get { return Config.GetSetting("lessDeliveries"); } }
 
     // Game Section Skips
+    public static bool skipFPS { get { return Config.GetSetting("skipFPS"); } }
     public static bool skipIntros { get { return Config.GetSetting("skipIntros"); } }
     public static bool skipTownLearning { get { return Config.GetSetting("skipTownLearning"); } }
     public static bool skipNewEfrKeypressCheck { get { return Config.GetSetting("skipNewEfrKeypressCheck"); } }
@@ -81,7 +82,7 @@ public class Config
                 "configs");
             string text = File.ReadAllText(Path.Combine(configPath, SYSTEM_CONFIG_NAME));
             #else
-            string text = System.IO.path.Combine(Application.streamingAssetsPath, SYSTEM_CONFIG_NAME);
+            string text = File.ReadAllText(Path.Combine(Application.streamingAssetsPath, SYSTEM_CONFIG_NAME));
             #endif
 
             systemConfig = FlexibleConfig.LoadFromText(text);

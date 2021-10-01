@@ -2,8 +2,8 @@
     "noSyncbox": true,
     "lessTrials": false,
     "lessDeliveries": false,
-    "skipFPS": true,
-    "skipIntros": true,
+    "skipFPS": false,
+    "skipIntros": false,
     "skipTownLearning": true,
     "skipNewEfrKeypressCheck": true,
     "skipNewEfrKeypressPractice": true,
@@ -14,10 +14,10 @@
     "counterBalanceCorrectIncorrectButton": false,
 
     "practiceDeliveriesPerTrial": 0,
-    "trialsPerSession": 1,
+    "trialsPerSession": 5,
     "trialsPerSessionSingleTownLearning": 0,
     "trialsPerSessionDoubleTownLearning": 0,
-    "deliveriesPerTrial":2,
+    "deliveriesPerTrial":13,
     
     "newEfrKeypressPractices":0
 }

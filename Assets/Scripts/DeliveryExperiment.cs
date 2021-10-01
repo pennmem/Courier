@@ -76,10 +76,10 @@ public class DeliveryExperiment : CoroutineExperiment
     private const float FAMILIARIZATION_PRESENTATION_LENGTH = 1.5f;
     private const float RECALL_MESSAGE_DISPLAY_LENGTH = 6f;
     private const float RECALL_TEXT_DISPLAY_LENGTH = 1f;
-    private const float FREE_RECALL_LENGTH = 10f;//90f;
+    private const float FREE_RECALL_LENGTH = 90f;
     private const float PRACTICE_FREE_RECALL_LENGTH = 25f;
-    private const float STORE_FINAL_RECALL_LENGTH = 10f;
-    private const float FINAL_RECALL_LENGTH = NICLS_COURIER ? 120f : COURIER_ONLINE ? 10f : 180f;
+    private const float STORE_FINAL_RECALL_LENGTH = 90f;
+    private const float FINAL_RECALL_LENGTH = NICLS_COURIER ? 120f : COURIER_ONLINE ? 240f : 180f;
     private const float TIME_BETWEEN_DIFFERENT_RECALL_PHASES = 2f;
     private const float CUED_RECALL_TIME_PER_STORE = 10f;
     private const float MIN_CUED_RECALL_TIME_PER_STORE = 2f;

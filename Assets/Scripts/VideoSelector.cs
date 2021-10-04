@@ -36,6 +36,7 @@ public class VideoSelector : MonoBehaviour
     {
         switch (videoType)
         {
+            #if UNITY_STANDALONE
             // JPB: TODO: Refactor this to make movies an array of language options
             case VideoType.MainIntro:
                 if (LanguageSource.current_language == LanguageSource.LANGUAGE.GERMAN)
@@ -63,5 +64,36 @@ public class VideoSelector : MonoBehaviour
                 break;
             default: break;
         }
+        #else
+        switch (videoType)
+        {
+            case VideoType.MainIntro:
+                if (LanguageSource.current_language == LanguageSource.LANGUAGE.GERMAN)
+                    videoPlayer.url = System.IO.Path.Combine(Application.streamingAssetsPath,
+                                                             "germanCourierIntro.mov");
+                else
+                    videoPlayer.url = System.IO.Path.Combine(Application.streamingAssetsPath,
+                                                             "englishCourierIntro.mov");
+                break;
+            case VideoType.EfrIntro:
+                videoPlayer.url = System.IO.Path.Combine(Application.streamingAssetsPath,
+                                                             "englishCourierEfrIntro.mov");
+                break;
+            case VideoType.NewEfrIntro:
+                videoPlayer.url = System.IO.Path.Combine(Application.streamingAssetsPath,
+                                                             "englishCourierEfrIntro.mov");
+                break;
+            case VideoType.NiclsMainIntro:
+                videoPlayer.url = System.IO.Path.Combine(Application.streamingAssetsPath,
+                                                "englishCourierIntroShort_NoPoint_NoRecap.mov");
+                break;
+            case VideoType.NiclsMovie:
+
+                break;
+            default: break;
+
+        }
+        #endif
+
     }
 }

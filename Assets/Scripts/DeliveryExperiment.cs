@@ -210,11 +210,11 @@ public class DeliveryExperiment : CoroutineExperiment
 
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
-        Application.targetFrameRate = 300;
         Cursor.SetCursor(new Texture2D(0, 0), new Vector2(0, 0), CursorMode.ForceSoftware);
         QualitySettings.vSyncCount = 1;
 
         //////////////////////////////////////////////////////////////////////////////////////////////////////////
+        Application.targetFrameRate = 300;
         #if UNITY_STANDALONE                                                                                    // Syncbox 
             // Start syncpulses                                                                                 //
             if (!Config.noSyncbox)                                                                              //

@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿#if UNITY_STANDALONE
+using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
@@ -183,3 +184,4 @@ public class FreiburgSyncbox : EventLoop {
         StopLoop();
     }
 }
+#endif

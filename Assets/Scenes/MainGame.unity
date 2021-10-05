@@ -281360,7 +281360,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 27f1eafd105a7444bbfd6db2535fc92b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  soundRecorder: {fileID: 1776115985}
   textDisplayer: {fileID: 411285200}
   videoPlayer: {fileID: 1556425419}
   videoSelector: {fileID: 1556425423}
@@ -423454,7 +423453,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9202fb8d983054d0e8f8e6168c28ac22, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  scriptedInput: {fileID: 949297812}
 --- !u!1 &1442839648
 GameObject:
   m_ObjectHideFlags: 0
@@ -458731,7 +458729,7 @@ Prefab:
     - target: {fileID: 328937643129792720, guid: 941b5dccbc0da4585a324a844ffff8a8,
         type: 2}
       propertyPath: m_PlayOnAwake
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 328937643129792720, guid: 941b5dccbc0da4585a324a844ffff8a8,
         type: 2}
@@ -526337,12 +526335,6 @@ Prefab:
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 45ba32d8a228147e0a8fa7274e1f854c, type: 2}
   m_IsPrefabParent: 0
---- !u!114 &1776115985 stripped
-MonoBehaviour:
-  m_PrefabParentObject: {fileID: 114833583114952270, guid: 45ba32d8a228147e0a8fa7274e1f854c,
-    type: 2}
-  m_PrefabInternal: {fileID: 1776115984}
-  m_Script: {fileID: 11500000, guid: 34942a3aeb56d41ce820605ff9127a45, type: 3}
 --- !u!1 &1776199984
 GameObject:
   m_ObjectHideFlags: 0
@@ -613683,26 +613675,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e42f83d36f1264485aa381adb0e847a2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  niclsWarningText: {fileID: 2081545584}
-  niclsWarning: {fileID: 2081545586}
-  scriptedEventReporter: {fileID: 2081545585}
---- !u!114 &2081545584 stripped
-MonoBehaviour:
-  m_PrefabParentObject: {fileID: 114638349625479306, guid: 5eb10f8d3feb149fab21fe7302cfc2a7,
-    type: 2}
-  m_PrefabInternal: {fileID: 2081545581}
-  m_Script: {fileID: 708705254, guid: f70555f144d8491a825f0804e09c671c, type: 3}
---- !u!114 &2081545585 stripped
-MonoBehaviour:
-  m_PrefabParentObject: {fileID: 114816247070176084, guid: 5eb10f8d3feb149fab21fe7302cfc2a7,
-    type: 2}
-  m_PrefabInternal: {fileID: 2081545581}
-  m_Script: {fileID: 11500000, guid: f180c8d2d8e804d2ca402600895da790, type: 3}
---- !u!1 &2081545586 stripped
-GameObject:
-  m_PrefabParentObject: {fileID: 1068402335984922, guid: 5eb10f8d3feb149fab21fe7302cfc2a7,
-    type: 2}
-  m_PrefabInternal: {fileID: 2081545581}
 --- !u!1 &2081552064
 GameObject:
   m_ObjectHideFlags: 0

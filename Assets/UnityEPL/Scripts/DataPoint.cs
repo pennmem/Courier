@@ -43,28 +43,33 @@ public class DataPoint
     public string ToJSON()
     {
         double unixTimestamp = ConvertToMillisecondsSinceEpoch(time);
-        string JSONString = "{\"type\":\"" + type + "\",\"data\":{";
-        foreach (string key in dataDict.Keys)
-        {
-            dynamic value = dataDict[key];
+        // string JSONString = "{\"type\":\"" + type + "\",\"data\":{";
+        // foreach (string key in dataDict.Keys)
+        // {
+        //     dynamic value = dataDict[key];
 
-            string valueJSONString = ValueToString(value);
-            JSONString = JSONString + "\"" + key + "\":" + valueJSONString + ",";
-        }
-        if (dataDict.Count > 0) // Remove the last comma
-            JSONString = JSONString.Substring(0, JSONString.Length - 1);
-        JSONString = JSONString + "},\"time\":" + unixTimestamp.ToString() + "}";
+        //     string valueJSONString = ValueToString(value);
+        //     JSONString = JSONString + "\"" + key + "\":" + valueJSONString + ",";
+        // }
+        // if (dataDict.Count > 0) // Remove the last comma
+        //     JSONString = JSONString.Substring(0, JSONString.Length - 1);
+        // JSONString = JSONString + "},\"time\":" + unixTimestamp.ToString() + "}";
+        // return JSONString;
+        string JSONString = "{\"type\":\"" + type + "\",\"data\":";
+        Debug.Log("iterating over keys");
+        JSONString = JSONString + JsonConvert.SerializeObject(dataDict) + 
+                     ",\"time\":" + unixTimestamp.ToString() + "}";
         return JSONString;
     }
 
-    public string ValueToString(dynamic value) {
+    public string ValueToString(object value) { // dynamic
         if (value is Dictionary<string, object>) // JPB: TODO: Remove
         {
-            var dataDict = value;
+            var dataDict = value;  // cast to dictionary
             string JSONString = "{";
-            foreach (string key in dataDict.Keys)
+            foreach (string key in dataDict.Keys)    
             {
-                dynamic dataVal = dataDict[key];
+                object dataVal = dataDict[key]; // dynamic
 
                 string valueJSONString = ValueToString(dataVal);
                 JSONString = JSONString + "\"" + key + "\":" + valueJSONString + ",";
@@ -102,7 +107,7 @@ public class DataPoint
         }
         else if (value is DateTime)
         {
-            return ConvertToMillisecondsSinceEpoch(value).ToString();
+            return ConvertToMillisecondsSinceEpoch(value).ToString(); ////// cast value to DateTime
         }
         else {
             throw new Exception("Data logging type not supported: " + value.GetType().ToString());

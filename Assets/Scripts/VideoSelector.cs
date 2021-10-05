@@ -34,9 +34,9 @@ public class VideoSelector : MonoBehaviour
 
     public void SetIntroductionVideo(VideoType videoType, int videoIndex = 0)
     {
+        #if UNITY_STANDALONE
         switch (videoType)
         {
-            #if UNITY_STANDALONE
             // JPB: TODO: Refactor this to make movies an array of language options
             case VideoType.MainIntro:
                 if (LanguageSource.current_language == LanguageSource.LANGUAGE.GERMAN)

@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Video;
 
 public class VideoControl : MonoBehaviour
 {
@@ -26,17 +27,20 @@ public class VideoControl : MonoBehaviour
                 videoPlayer.Stop();
                 gameObject.SetActive(false);
             }
-        #endif
 
-        if (videoPlayer.time >= videoPlayer.clip.length)
+        if (videoPlayer.time >= videoPlayer.clip.length) // videoPlayer.clip.length
         {
             gameObject.SetActive(false);
         }
+        #endif
     }
 
     public void StartVideo()
     {
         Debug.Log("VideoControl");
+        #if UNITY_WEBGL
+        videoPlayer.loopPointReached += (VideoPlayer vp) => gameObject.SetActive(false);
+        #endif
         gameObject.SetActive(true);
     }
 

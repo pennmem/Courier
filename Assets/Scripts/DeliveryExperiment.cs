@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-#if UNITY_STANDALONE
-    using System.IO;
-#endif
+using System.IO;
 using UnityEngine;
 using Luminosity.IO;
 using System.Linq;
@@ -212,9 +210,10 @@ public class DeliveryExperiment : CoroutineExperiment
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.SetCursor(new Texture2D(0, 0), new Vector2(0, 0), CursorMode.ForceSoftware);
         QualitySettings.vSyncCount = 1;
-
-        //////////////////////////////////////////////////////////////////////////////////////////////////////////
+        #if UNITY_STANDALONE
         Application.targetFrameRate = 300;
+        #endif
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////
         #if UNITY_STANDALONE                                                                                    // Syncbox 
             // Start syncpulses                                                                                 //
             if (!Config.noSyncbox)                                                                              //

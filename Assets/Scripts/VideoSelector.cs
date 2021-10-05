@@ -73,15 +73,15 @@ public class VideoSelector : MonoBehaviour
                                                              "germanCourierIntro.mov");
                 else
                     videoPlayer.url = System.IO.Path.Combine(Application.streamingAssetsPath,
-                                                             "englishCourierIntro.mov");
+                                                             "instruction_video.mp4");
                 break;
             case VideoType.EfrIntro:
                 videoPlayer.url = System.IO.Path.Combine(Application.streamingAssetsPath,
-                                                             "englishCourierEfrIntro.mov");
+                                                             "englishCourierEfrIntro.mp4");
                 break;
             case VideoType.NewEfrIntro:
                 videoPlayer.url = System.IO.Path.Combine(Application.streamingAssetsPath,
-                                                             "englishCourierEfrIntro.mov");
+                                                             "englishCourierEfrIntro.mp4");
                 break;
             case VideoType.NiclsMainIntro:
                 videoPlayer.url = System.IO.Path.Combine(Application.streamingAssetsPath,

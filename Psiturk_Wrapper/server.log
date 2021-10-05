@@ -27189,3 +27189,59 @@ sqlalchemy.exc.OperationalError: (pymysql.err.OperationalError) (2003, "Can't co
 2021-08-26 12:18:07,521 Scheduler started
 2021-08-26 12:18:07,542 Scheduler started
 2021-08-26 12:18:07,625 Scheduler started
+2021-10-05 00:23:16,828 Scheduler started
+2021-10-05 00:23:16,841 Scheduler started
+2021-10-05 00:23:16,845 Scheduler started
+2021-10-05 00:23:16,850 Scheduler started
+2021-10-05 00:23:16,854 Scheduler started
+2021-10-05 00:23:16,857 Scheduler started
+2021-10-05 00:23:16,874 Scheduler started
+2021-10-05 00:23:16,874 Scheduler started
+2021-10-05 00:23:16,905 Scheduler started
+2021-10-05 00:23:16,913 Scheduler started
+2021-10-05 00:23:16,963 Scheduler started
+2021-10-05 00:23:16,994 Scheduler started
+2021-10-05 00:23:17,061 Scheduler started
+2021-10-05 00:23:17,063 Scheduler started
+2021-10-05 00:23:17,073 Scheduler started
+2021-10-05 00:23:17,083 Scheduler started
+2021-10-05 00:23:17,119 Scheduler started
+2021-10-05 00:25:09,472 Scheduler started
+2021-10-05 00:25:09,500 Scheduler started
+2021-10-05 00:25:09,576 Scheduler started
+2021-10-05 00:25:09,619 Scheduler started
+2021-10-05 00:25:09,734 Scheduler started
+2021-10-05 00:25:09,750 Scheduler started
+2021-10-05 00:25:09,777 Scheduler started
+2021-10-05 00:25:09,797 Scheduler started
+2021-10-05 00:25:09,801 Scheduler started
+2021-10-05 00:25:09,813 Scheduler started
+2021-10-05 00:25:09,818 Scheduler started
+2021-10-05 00:25:09,829 Scheduler started
+2021-10-05 00:25:09,833 Scheduler started
+2021-10-05 00:25:09,833 Scheduler started
+2021-10-05 00:25:09,836 Scheduler started
+2021-10-05 00:25:09,849 Scheduler started
+2021-10-05 00:25:09,860 Scheduler started
+[2021-10-05 00:25:41 -0400] [505] [ERROR] Connection in use: ('localhost', 22371)
+[2021-10-05 00:25:41 -0400] [505] [ERROR] Retrying in 1 second.
+[2021-10-05 00:25:42 -0400] [505] [ERROR] Connection in use: ('localhost', 22371)
+[2021-10-05 00:25:42 -0400] [505] [ERROR] Retrying in 1 second.
+[2021-10-05 00:25:43 -0400] [505] [ERROR] Connection in use: ('localhost', 22371)
+[2021-10-05 00:25:43 -0400] [505] [ERROR] Retrying in 1 second.
+[2021-10-05 00:25:44 -0400] [505] [ERROR] Connection in use: ('localhost', 22371)
+[2021-10-05 00:25:44 -0400] [505] [ERROR] Retrying in 1 second.
+[2021-10-05 00:25:45 -0400] [505] [ERROR] Connection in use: ('localhost', 22371)
+[2021-10-05 00:25:45 -0400] [505] [ERROR] Retrying in 1 second.
+[2021-10-05 00:25:46 -0400] [505] [ERROR] Can't connect to ('localhost', 22371)
+[2021-10-05 00:35:15 -0400] [556] [ERROR] Connection in use: ('localhost', 22371)
+[2021-10-05 00:35:15 -0400] [556] [ERROR] Retrying in 1 second.
+[2021-10-05 00:35:16 -0400] [556] [ERROR] Connection in use: ('localhost', 22371)
+[2021-10-05 00:35:16 -0400] [556] [ERROR] Retrying in 1 second.
+[2021-10-05 00:35:17 -0400] [556] [ERROR] Connection in use: ('localhost', 22371)
+[2021-10-05 00:35:17 -0400] [556] [ERROR] Retrying in 1 second.
+[2021-10-05 00:35:18 -0400] [556] [ERROR] Connection in use: ('localhost', 22371)
+[2021-10-05 00:35:18 -0400] [556] [ERROR] Retrying in 1 second.
+[2021-10-05 00:35:19 -0400] [556] [ERROR] Connection in use: ('localhost', 22371)
+[2021-10-05 00:35:19 -0400] [556] [ERROR] Retrying in 1 second.
+[2021-10-05 00:35:20 -0400] [556] [ERROR] Can't connect to ('localhost', 22371)

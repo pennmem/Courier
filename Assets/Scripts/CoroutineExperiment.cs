@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using Luminosity.IO;
 
+using System;
+using System.IO;
+using UnityEngine.Networking;
+
 public abstract class CoroutineExperiment : MonoBehaviour
 {
     private const int MICROPHONE_TEST_LENGTH = 5;
@@ -147,6 +151,41 @@ public abstract class CoroutineExperiment : MonoBehaviour
 
         textDisplayer.ClearText();
         SetRamulatorState("WAITING", false, new Dictionary<string, object>());
+    }
+
+    protected IEnumerator GetOnlineConfig()
+    {
+        Debug.Log("setting web request");
+        string systemConfigPath = Path.Combine(Application.streamingAssetsPath, "config.json");
+        UnityWebRequest systemWWW = UnityWebRequest.Get(systemConfigPath);
+        yield return systemWWW.SendWebRequest();
+
+        // if (systemWWW.result != UnityWebRequest.Result.Success) for later Unity versions
+        if (systemWWW.isNetworkError || systemWWW.isHttpError)
+        {
+            Debug.Log(systemWWW.error);
+        }
+        else
+        {
+            Config.onlineSystemConfigText = systemWWW.downloadHandler.text;
+            Debug.Log("Online System Config fetched!!");
+            Debug.Log(Config.onlineSystemConfigText);
+        }
+        
+        string experimentConfigPath = Path.Combine(Application.streamingAssetsPath, "CourierOnline.json");
+        UnityWebRequest experimentWWW = UnityWebRequest.Get(experimentConfigPath);
+        yield return experimentWWW.SendWebRequest();
+
+        // if (experimentWWW.result != UnityWebRequest.Result.Success) for later Unity versions
+        if (experimentWWW.isNetworkError || experimentWWW.isHttpError)
+        {
+            Debug.Log(experimentWWW.error);
+        }
+        else
+        {
+            Config.onlineExperimentConfigText = experimentWWW.downloadHandler.text;
+            Debug.Log("Online Experiment Config fetched!!");
+        }
     }
 
 

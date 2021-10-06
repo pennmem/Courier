@@ -204,7 +204,11 @@ public class DeliveryExperiment : CoroutineExperiment
         if (UnityEPL.viewCheck)
             return;
         
-        ConfigureExperiment(false, false, 0, "CourierOnline");
+        if (COURIER_ONLINE)
+        {
+            // StartCoroutine(GetOnlineConfig());
+            ConfigureExperiment(false, false, 0, "CourierOnline");
+        }
 
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
@@ -253,7 +257,9 @@ public class DeliveryExperiment : CoroutineExperiment
 
         //write versions to logfile
         LogVersions(expName);
-        
+        if (COURIER_ONLINE)
+            yield return GetOnlineConfig();
+            
         //////////////////////////////////////////////////////////////////////////////////////////////////////////
         #if UNITY_STANDALONE                                                                                    // NICLS
             if (useRamulator)                                                                                   //

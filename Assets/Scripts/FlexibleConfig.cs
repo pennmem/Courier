@@ -5,12 +5,16 @@ using Newtonsoft.Json.Converters;
 using System;
 using System.IO;
 using System.Dynamic;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 
 public class Config
-{
+{   
     public static string experimentConfigName = null;
+    public static string onlineSystemConfigText = null;
+    public static string onlineExperimentConfigText = null;
 
     // System Settings
     public static string niclServerIP { get { return (string)Config.GetSetting("niclServerIP"); } }
@@ -54,12 +58,11 @@ public class Config
     private const string SYSTEM_CONFIG_NAME = "config.json";
 
     private static object systemConfig = null;
-    private static object experimentConfig = null;
+    public static object experimentConfig = null;
 
     private static object GetSetting(string setting)
     {
         dynamic value;
-
         var experimentConfig = (IDictionary<string, object>)GetExperimentConfig();
         if (experimentConfig.TryGetValue(setting, out value))
             return value;
@@ -81,11 +84,17 @@ public class Config
                 Directory.GetParent(Directory.GetParent(UnityEPL.GetParticipantFolder()).FullName).FullName,
                 "configs");
             string text = File.ReadAllText(Path.Combine(configPath, SYSTEM_CONFIG_NAME));
-            #else
-            string text = File.ReadAllText(Path.Combine(Application.streamingAssetsPath, SYSTEM_CONFIG_NAME));
-            #endif
-
             systemConfig = FlexibleConfig.LoadFromText(text);
+            #else
+            if (onlineSystemConfigText == null)
+            {
+                Debug.Log("Missing config from web");
+            }
+            else
+            {
+                systemConfig = FlexibleConfig.LoadFromText(onlineSystemConfigText);
+            }
+            #endif
         }
 
         return systemConfig;
@@ -101,12 +110,17 @@ public class Config
                 Directory.GetParent(Directory.GetParent(UnityEPL.GetParticipantFolder()).FullName).FullName,
                 "configs");
             string text = File.ReadAllText(Path.Combine(configPath, experimentConfigName + ".json"));
-            #else
-            experimentConfigName = "CourierOnline";
-            string text = File.ReadAllText(Path.Combine(Application.streamingAssetsPath, experimentConfigName + ".json"));
-            #endif
-            
             experimentConfig = FlexibleConfig.LoadFromText(text);
+            #else
+            if (onlineExperimentConfigText == null)
+            {
+                Debug.Log("Missing config from web");
+            }
+            else
+            {
+                experimentConfig = FlexibleConfig.LoadFromText(onlineExperimentConfigText);
+            }
+            #endif
         }
 
         return experimentConfig;

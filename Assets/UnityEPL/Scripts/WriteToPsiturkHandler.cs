@@ -20,6 +20,7 @@ public class WriteToPsiturkHandler : WriteToDiskHandler {
             DataPoint dataPoint = waitingPoints.Dequeue();
 
             string json = dataPoint.ToJSON();
+            // Debug.Log(json);
             AddData(json);
         }
         SaveData();

@@ -169,7 +169,6 @@ public abstract class CoroutineExperiment : MonoBehaviour
         {
             Config.onlineSystemConfigText = systemWWW.downloadHandler.text;
             Debug.Log("Online System Config fetched!!");
-            Debug.Log(Config.onlineSystemConfigText);
         }
         
         string experimentConfigPath = Path.Combine(Application.streamingAssetsPath, "CourierOnline.json");

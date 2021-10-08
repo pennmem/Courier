@@ -178,7 +178,9 @@ public class NiclsInterfaceHelper : IHostPC
         //configDict.Add("subject", (string)im.GetSetting("participantCode"));
         //configDict.Add("session", (int)im.GetSetting("session"));
         SendMessage("CONFIGURE", configDict);
-        WaitForMessage("CONFIGURE_OK", messageTimeout);
+        var niclsConfig = WaitForMessage("CONFIGURE_OK", messageTimeout);
+        var niclServerConfigPath = System.IO.Path.Combine(UnityEPL.GetDataPath(), "niclServer_config.json");
+        System.IO.File.AppendAllLines(niclServerConfigPath, niclsConfig.ToString());
 
         // excepts if there's an issue with latency, else returns
         //DoLatencyCheck();

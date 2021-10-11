@@ -62,7 +62,7 @@ public class Config
 
     private static object GetSetting(string setting)
     {
-        dynamic value;
+        object value;
         var experimentConfig = (IDictionary<string, object>)GetExperimentConfig();
         if (experimentConfig.TryGetValue(setting, out value))
             return value;

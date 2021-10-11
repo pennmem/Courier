@@ -454244,7 +454244,7 @@ MonoBehaviour:
     m_LineSpacing: 1
   m_Text: 'Start typing one item at a time...
 
-    Press Enter to type the next item...'
+'
 --- !u!222 &1542789900
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -476475,9 +476475,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 'Start typing one item at a time...
-
-    Press Enter to move on to next store...'
+  m_Text: Start typing one item at a time...
 --- !u!222 &1604039071
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -625858,7 +625856,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &2128841237
 RectTransform:
   m_ObjectHideFlags: 0
@@ -625866,7 +625864,7 @@ RectTransform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 2128841236}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 15.1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1604039069}
@@ -625876,7 +625874,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -1, y: -137}
+  m_AnchoredPosition: {x: -11.6, y: -177.9}
   m_SizeDelta: {x: 600, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2128841238

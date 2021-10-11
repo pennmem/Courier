@@ -65,26 +65,28 @@ public class VideoSelector : MonoBehaviour
             default: break;
         }
         #else
+        string oldPath = "http://psiturk.sas.upenn.edu:22371/static/js/Unity/build/StreamingAssets";
         switch (videoType)
         {
             case VideoType.MainIntro:
                 if (LanguageSource.current_language == LanguageSource.LANGUAGE.GERMAN)
-                    videoPlayer.url = System.IO.Path.Combine(Application.streamingAssetsPath,
+                    videoPlayer.url = System.IO.Path.Combine(oldPath,
                                                              "germanCourierIntro.mov");
                 else
-                    videoPlayer.url = System.IO.Path.Combine(Application.streamingAssetsPath,
+                    videoPlayer.url = System.IO.Path.Combine(oldPath,
                                                              "instruction_video.mp4");
+                    Debug.Log(videoPlayer.url);
                 break;
             case VideoType.EfrIntro:
-                videoPlayer.url = System.IO.Path.Combine(Application.streamingAssetsPath,
+                videoPlayer.url = System.IO.Path.Combine(oldPath,
                                                              "englishCourierEfrIntro.mp4");
                 break;
             case VideoType.NewEfrIntro:
-                videoPlayer.url = System.IO.Path.Combine(Application.streamingAssetsPath,
+                videoPlayer.url = System.IO.Path.Combine(oldPath,
                                                              "englishCourierEfrIntro.mp4");
                 break;
             case VideoType.NiclsMainIntro:
-                videoPlayer.url = System.IO.Path.Combine(Application.streamingAssetsPath,
+                videoPlayer.url = System.IO.Path.Combine(oldPath,
                                                 "englishCourierIntroShort_NoPoint_NoRecap.mov");
                 break;
             case VideoType.NiclsMovie:

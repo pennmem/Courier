@@ -206,8 +206,7 @@ public class DeliveryExperiment : CoroutineExperiment
         
         if (COURIER_ONLINE)
         {
-            // StartCoroutine(GetOnlineConfig());
-            ConfigureExperiment(false, false, 0, "CourierOnline");
+            ConfigureExperiment(false, false, 0, "CourierOnline"); 
         }
 
         Cursor.visible = false;
@@ -243,6 +242,9 @@ public class DeliveryExperiment : CoroutineExperiment
 
         Dictionary<string, object> sceneData = new Dictionary<string, object>();
         sceneData.Add("sceneName", "MainGame");
+        // Dictionary<string, object> small = new Dictionary<string, object>();
+        // small.Add("time", DataReporter.RealWorldTime());
+        // sceneData.Add("data", small);
         scriptedEventReporter.ReportScriptedEvent("loadScene", sceneData);
 
         StartCoroutine(ExperimentCoroutine());
@@ -253,7 +255,7 @@ public class DeliveryExperiment : CoroutineExperiment
         if (sessionNumber == -1)
             throw new UnityException("Please call ConfigureExperiment before beginning the experiment.");
 
-        Debug.Log(UnityEPL.GetDataPath());
+        // Debug.Log(UnityEPL.GetDataPath());
 
         //write versions to logfile
         LogVersions(expName);
@@ -624,7 +626,7 @@ public class DeliveryExperiment : CoroutineExperiment
         {
             yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
                                         LanguageSource.GetLanguageString("standard intro video"),
-                                        VideoSelector.VideoType.NiclsMainIntro);
+                                        VideoSelector.VideoType.MainIntro);
         }
         else 
         {

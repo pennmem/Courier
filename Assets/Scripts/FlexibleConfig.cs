@@ -62,7 +62,6 @@ public class Config
 
     private static object GetSetting(string setting)
     {
-        Debug.Log("GetSetting in FlexibleConfig");
         object value;
         var experimentConfig = (IDictionary<string, object>)GetExperimentConfig();
         if (experimentConfig.TryGetValue(setting, out value))
@@ -77,7 +76,6 @@ public class Config
 
     private static object GetSystemConfig()
     {
-        Debug.Log("GetSystemConfig in FlexibleConfig");
         if (systemConfig == null)
         {
             // Setup config file
@@ -98,13 +96,11 @@ public class Config
             }
             #endif
         }
-        Debug.Log("GetSystemConfig successful");
         return systemConfig;
     }
 
     private static object GetExperimentConfig()
     {
-        Debug.Log("GetExperimentConfig in FlexibleConfig");
         if(experimentConfig == null)
         {
             // Setup config file
@@ -125,8 +121,6 @@ public class Config
             }
             #endif
         }
-
-        Debug.Log("GetExperimentConfig successful");
         return experimentConfig;
     }
 }
@@ -134,7 +128,6 @@ public class Config
 public class FlexibleConfig {
 
     public static object LoadFromText(string json) {
-        Debug.Log("LoadFromText");
         JObject cfg = JObject.Parse(json);
         return CastToStatic(cfg);
     }
@@ -153,8 +146,6 @@ public class FlexibleConfig {
         // casts a JObject consisting of simple types (int, bool, string,
         // float, and single dimensional arrays) to a C# expando object, obviating
         // the need for casts to work in C# native types
-
-        Debug.Log("CastToStatic");
 
         object settings = new ExpandoObject();  // dynamic
 
@@ -208,7 +199,6 @@ public class FlexibleConfig {
                 }
             }
         }
-        Debug.Log("CastToStatic successful");
         return settings;
     }
 

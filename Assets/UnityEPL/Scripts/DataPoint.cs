@@ -9,7 +9,7 @@ using Newtonsoft.Json;
 public class DataPoint
 {
     private string type;
-    private Dictionary<string, object> dataDict;
+    private System.Collections.Generic.Dictionary<string, object> dataDict;
     private System.DateTime time;
 
     /// <summary>
@@ -24,10 +24,10 @@ public class DataPoint
     /// <param name="newType">New type.</param>
     /// <param name="newTime">New time.</param>
     /// <param name="newDataDict">New data dict.</param>
-    public DataPoint(string newType, System.DateTime newTime, Dictionary<string, object> newDataDict)
+    public DataPoint(string newType, System.DateTime newTime, System.Collections.Generic.Dictionary<string, object> newDataDict)
     {
         if (newDataDict == null)
-            newDataDict = new Dictionary<string, object>();
+            newDataDict = new System.Collections.Generic.Dictionary<string, object>();
 
         type = newType;
         dataDict = newDataDict;
@@ -57,62 +57,62 @@ public class DataPoint
         // return JSONString;
         string JSONString = "{\"type\":\"" + type + "\",\"data\":";
         Debug.Log("iterating over keys");
-        JSONString = JSONString + JsonConvert.SerializeObject(dataDict) + 
-                     ",\"time\":" + unixTimestamp.ToString() + "}";
+        JSONString = JSONString + JsonConvert.SerializeObject(dataDict) + ",\"time\":" + unixTimestamp.ToString() + "}";
         return JSONString;
     }
 
-    public string ValueToString(object value) { // dynamic
-        if (value is Dictionary<string, object>) // JPB: TODO: Remove
-        {
-            var dataDict = value;  // cast to dictionary
-            string JSONString = "{";
-            foreach (string key in dataDict.Keys)    
-            {
-                object dataVal = dataDict[key]; // dynamic
+    // public string ValueToString(object value) { // dynamic
+    //     if (value is Dictionary<string, object>) // JPB: TODO: Remove
+    //     {
+    //         var dataDict = value;  // cast to dictionary
+    //         string JSONString = "{";
+    //         foreach (string key in dataDict.Keys)    
+    //         {
+    //             object dataVal = dataDict[key]; // dynamic
 
-                string valueJSONString = ValueToString(dataVal);
-                JSONString = JSONString + "\"" + key + "\":" + valueJSONString + ",";
-            }
-            if (dataDict.Count > 0) // Remove the last comma
-                JSONString = JSONString.Substring(0, JSONString.Length - 1);
-            JSONString = JSONString + "}";
-            return JSONString;
-        }
-        else if(value.GetType().IsArray || value is IList)
-        { 
-            string json = "[";
-            foreach (object val in (IEnumerable)value) { 
-                json = json + ValueToString(val);
-            }
-            return json + "]";
-        }
-        else if (IsNumeric(value)) 
-        {
-            return value.ToString();
-        }
-        else if (value is bool) //bools
-        {
-            return value.ToString().ToLower();
-        }
-        else if (value is string) 
-        {
-            string valueString = (string)value.ToString().Replace("\n", " "); // clean newlines for writing to jsonl
-            if(valueString.Length > 2 && valueString[0] == '{' && valueString[valueString.Length - 1] == '}') {
-                return valueString; // treat as embedded JSON
-            }
-            else {
-                return "\"" + valueString + "\"";
-            }
-        }
-        else if (value is DateTime)
-        {
-            return ConvertToMillisecondsSinceEpoch(value).ToString(); ////// cast value to DateTime
-        }
-        else {
-            throw new Exception("Data logging type not supported: " + value.GetType().ToString());
-        }
-    }
+    //             string valueJSONString = ValueToString(dataVal);
+    //             JSONString = JSONString + "\"" + key + "\":" + valueJSONString + ",";
+    //         }
+    //         if (dataDict.Count > 0) // Remove the last comma
+    //             JSONString = JSONString.Substring(0, JSONString.Length - 1);
+    //         JSONString = JSONString + "}";
+    //         return JSONString;
+    //     }
+    //     else 
+    //     if(value.GetType().IsArray || value is IList)
+    //     { 
+    //         string json = "[";
+    //         foreach (object val in (IEnumerable)value) { 
+    //             json = json + ValueToString(val);
+    //         }
+    //         return json + "]";
+    //     }
+    //     else if (IsNumeric(value)) 
+    //     {
+    //         return value.ToString();
+    //     }
+    //     else if (value is bool) //bools
+    //     {
+    //         return value.ToString().ToLower();
+    //     }
+    //     else if (value is string) 
+    //     {
+    //         string valueString = (string)value.ToString().Replace("\n", " "); // clean newlines for writing to jsonl
+    //         if(valueString.Length > 2 && valueString[0] == '{' && valueString[valueString.Length - 1] == '}') {
+    //             return valueString; // treat as embedded JSON
+    //         }
+    //         else {
+    //             return "\"" + valueString + "\"";
+    //         }
+    //     }
+    //     else if (value is DateTime)
+    //     {
+    //         return ConvertToMillisecondsSinceEpoch(value).ToString(); ////// cast value to DateTime
+    //     }
+    //     else {
+    //         throw new Exception("Data logging type not supported: " + value.GetType().ToString());
+    //     }
+    // }
 
     public static double ConvertToMillisecondsSinceEpoch(System.DateTime convertMe)
     {

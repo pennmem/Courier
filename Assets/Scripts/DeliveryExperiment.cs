@@ -303,8 +303,10 @@ public class DeliveryExperiment : CoroutineExperiment
 
         if (COURIER_ONLINE) 
         {
-            // have to disable this to stop Unity from capturing all the keyboard inputs
+            #if !UNITY_EDITOR && UNITY_WEBGL  // LC: remove after upgrade
             WebGLInput.captureAllKeyboardInput = false;
+            #endif
+            yield return new WaitForSeconds(5.0f);
             EndTask();
         }
         else {

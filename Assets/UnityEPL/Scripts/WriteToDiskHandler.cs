@@ -64,7 +64,6 @@ public class WriteToDiskHandler : DataHandler
             {
                 case FORMAT.JSON_LINES:
                     writeMe = dataPoint.ToJSON();
-                    // Debug.Log(writeMe);
                     filePath = System.IO.Path.Combine(directory, extensionlessFileName + ".jsonl");
                     break;
             }

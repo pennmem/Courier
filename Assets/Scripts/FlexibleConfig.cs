@@ -58,10 +58,11 @@ public class Config
     private const string SYSTEM_CONFIG_NAME = "config.json";
 
     private static object systemConfig = null;
-    public static object experimentConfig = null;
+    private static object experimentConfig = null;
 
     private static object GetSetting(string setting)
     {
+        Debug.Log("GetSetting in FlexibleConfig");
         object value;
         var experimentConfig = (IDictionary<string, object>)GetExperimentConfig();
         if (experimentConfig.TryGetValue(setting, out value))
@@ -76,6 +77,7 @@ public class Config
 
     private static object GetSystemConfig()
     {
+        Debug.Log("GetSystemConfig in FlexibleConfig");
         if (systemConfig == null)
         {
             // Setup config file
@@ -96,12 +98,13 @@ public class Config
             }
             #endif
         }
-
+        Debug.Log("GetSystemConfig successful");
         return systemConfig;
     }
 
     private static object GetExperimentConfig()
     {
+        Debug.Log("GetExperimentConfig in FlexibleConfig");
         if(experimentConfig == null)
         {
             // Setup config file
@@ -123,6 +126,7 @@ public class Config
             #endif
         }
 
+        Debug.Log("GetExperimentConfig successful");
         return experimentConfig;
     }
 }
@@ -130,6 +134,7 @@ public class Config
 public class FlexibleConfig {
 
     public static object LoadFromText(string json) {
+        Debug.Log("LoadFromText");
         JObject cfg = JObject.Parse(json);
         return CastToStatic(cfg);
     }
@@ -149,7 +154,9 @@ public class FlexibleConfig {
         // float, and single dimensional arrays) to a C# expando object, obviating
         // the need for casts to work in C# native types
 
-        dynamic settings = new ExpandoObject();
+        Debug.Log("CastToStatic");
+
+        object settings = new ExpandoObject();  // dynamic
 
         foreach(JProperty prop in cfg.Properties()) {
             // convert from JObject types to .NET internal types
@@ -173,35 +180,35 @@ public class FlexibleConfig {
 
                 Type cType = JTypeConversion((int)jType);
                 if(cType  == typeof(string)) {
-                    ((IDictionary<string, dynamic>)settings).Add(prop.Name, prop.Value.ToObject<string[]>());
+                    ((IDictionary<string, object>)settings).Add(prop.Name, prop.Value.ToObject<string[]>());
                 } 
                 else if(cType == typeof(int)) {
-                    ((IDictionary<string, dynamic>)settings).Add(prop.Name, prop.Value.ToObject<int[]>());
+                    ((IDictionary<string, object>)settings).Add(prop.Name, prop.Value.ToObject<int[]>());
                 }
                 else if(cType == typeof(float)) {
-                    ((IDictionary<string, dynamic>)settings).Add(prop.Name, prop.Value.ToObject<float[]>());
+                    ((IDictionary<string, object>)settings).Add(prop.Name, prop.Value.ToObject<float[]>());
                 }
                 else if(cType == typeof(bool)) {
-                    ((IDictionary<string, dynamic>)settings).Add(prop.Name, prop.Value.ToObject<bool[]>());
+                    ((IDictionary<string, object>)settings).Add(prop.Name, prop.Value.ToObject<bool[]>());
                 }
             }
             else {
                 Type cType = JTypeConversion((int)prop.Value.Type);
                 if(cType == typeof(string)) {
-                    ((IDictionary<string, dynamic>)settings).Add(prop.Name, prop.Value.ToObject<string>());
+                    ((IDictionary<string, object>)settings).Add(prop.Name, prop.Value.ToObject<string>());
                 }
                 else if(cType == typeof(int)) {
-                    ((IDictionary<string, dynamic>)settings).Add(prop.Name, prop.Value.ToObject<int>());
+                    ((IDictionary<string, object>)settings).Add(prop.Name, prop.Value.ToObject<int>());
                 }
                 else if(cType == typeof(float)) {
-                    ((IDictionary<string, dynamic>)settings).Add(prop.Name, prop.Value.ToObject<float>());
+                    ((IDictionary<string, object>)settings).Add(prop.Name, prop.Value.ToObject<float>());
                 }
                 else if(cType == typeof(bool)) {
-                    ((IDictionary<string, dynamic>)settings).Add(prop.Name, prop.Value.ToObject<bool>());
+                    ((IDictionary<string, object>)settings).Add(prop.Name, prop.Value.ToObject<bool>());
                 }
             }
         }
-
+        Debug.Log("CastToStatic successful");
         return settings;
     }
 

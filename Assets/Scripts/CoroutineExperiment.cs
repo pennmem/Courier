@@ -157,7 +157,6 @@ public abstract class CoroutineExperiment : MonoBehaviour
     {
         Debug.Log("setting web request");
         // string systemConfigPath = System.IO.Path.Combine(Application.streamingAssetsPath, "config.json");
-        Debug.Log(Application.streamingAssetsPath);
         string systemConfigPath = "http://psiturk.sas.upenn.edu:22371/static/js/Unity/build/StreamingAssets/config.json";
         UnityWebRequest systemWWW = UnityWebRequest.Get(systemConfigPath);
         yield return systemWWW.SendWebRequest();

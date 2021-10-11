@@ -279,6 +279,7 @@ public class DeliveryExperiment : CoroutineExperiment
         #endif                                                                                                  //
         //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+        Debug.Log("DoSubSession");
         yield return DoSubSession(0);
 
         if (NICLS_COURIER)
@@ -302,6 +303,8 @@ public class DeliveryExperiment : CoroutineExperiment
 
         if (COURIER_ONLINE) 
         {
+            // have to disable this to stop Unity from capturing all the keyboard inputs
+            WebGLInput.captureAllKeyboardInput = false;
             EndTask();
         }
         else {
@@ -361,8 +364,11 @@ public class DeliveryExperiment : CoroutineExperiment
 
     private IEnumerator DoFrameTest()
     {   
+        Debug.Log("Frame Testing");
         if (Config.skipFPS)
             yield break;
+        
+        Debug.Log("config works");
 
         messageImageDisplayer.SetGeneralBigMessageText(titleText: "frame test start title", mainText: "frame test start main");
         yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
@@ -617,6 +623,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
     private IEnumerator DoIntros()
     {   
+        Debug.Log("DoIntros");
         if (Config.skipIntros)                                                                                          
             yield break;                                                                                                
 
@@ -742,10 +749,10 @@ public class DeliveryExperiment : CoroutineExperiment
         yield return SkippableWait(RECALL_TEXT_DISPLAY_LENGTH);
         textDisplayer.ClearText();
 
-        Dictionary<string, object> recordingData = new Dictionary<string, object>();
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         #if UNITY_STANDALONE                                                                                              // System.IO
+            Dictionary<string, object> recordingData = new Dictionary<string, object>();
             recordingData.Add("trial number", continuousTrialNum);                                                        //
             scriptedEventReporter.ReportScriptedEvent("object recall recording start", recordingData);                    //
             string output_directory = UnityEPL.GetDataPath();                                                             //

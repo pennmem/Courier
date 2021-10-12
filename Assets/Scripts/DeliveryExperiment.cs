@@ -69,7 +69,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private const int NUM_READ_ONLY_TRIALS = 1;
     private const int SINGLE_TOWN_LEARNING_SESSIONS = 1;
     private const int DOUBLE_TOWN_LEARNING_SESSIONS = 0;
-    private const int POINTING_INDICATOR_DELAY = NICLS_COURIER ? 12 : 40;
+    private const int POINTING_INDICATOR_DELAY = NICLS_COURIER ? 12 : 48;
     private const int EFR_KEYPRESS_PRACTICES = 10;
     private const float MIN_FAMILIARIZATION_ISI = 0.4f;
     private const float MAX_FAMILIARIZATION_ISI = 0.6f;
@@ -184,6 +184,18 @@ public class DeliveryExperiment : CoroutineExperiment
         Config.experimentConfigName = expName;
     }
 
+    void UncaughtExceptionHandler(object sender, UnhandledExceptionEventArgs args)
+    {
+        Exception e = (Exception)args.ExceptionObject;
+        Debug.Log("UncaughtException: " + e.Message);
+        Debug.Log("UncaughtException: " + e);
+
+        Dictionary<string, object> exceptionData = new Dictionary<string, object>()
+            { { "name", e.Message },
+              { "traceback", e.ToString() } };
+        scriptedEventReporter.ReportScriptedEvent("unhandled program exception", exceptionData);
+    }
+
     void Update()
     {
         Cursor.visible = false;
@@ -221,6 +233,9 @@ public class DeliveryExperiment : CoroutineExperiment
 
         if (sessionNumber == -1)
             throw new UnityException("Please call ConfigureExperiment before beginning the experiment.");
+
+        AppDomain currentDomain = AppDomain.CurrentDomain;
+        currentDomain.UnhandledException += new UnhandledExceptionEventHandler(UncaughtExceptionHandler);
 
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;

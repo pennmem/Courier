@@ -28,15 +28,14 @@ public class PlayerMovement : MonoBehaviour
     protected const float maxHandlebarRotationX = 20f;
     protected const float maxHandlebarRotationY = 15f;
 
+    private bool smoothMovement = false;
     void Start()
     {
         originalPosition = gameObject.transform.position;
         originalRotation = gameObject.transform.rotation;
 
         playerBody = GetComponent<Rigidbody>();
-        // The drag of 8.3330 creates a max speed of 16 with a max force of 160
-        // The drag of 14.2857 creates a max speed of 8 with a max force of 160
-        playerBody.drag = NICLS_COURIER ? 8.333f : 14.2857f;
+        smoothMovement = Config.Get(() => Config.smoothMovement, false);
     }
 
     public float horizontalInput;
@@ -47,32 +46,67 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
-        // This is only in Update because we want it locked to frame rate.
-        // Because MoveRotation is used, the rotation doesn't occur until the next FixedUpdate
-        // Also, adjusting the velocity doesn't change any position until the next FixedUpdate
-        if (!IsFrozen())
+        if (smoothMovement)
+        {
+            // This is only in Update because we want it locked to frame rate.
+            // Because MoveRotation is used, the rotation doesn't occur until the next FixedUpdate
+            // Also, adjusting the velocity doesn't change any position until the next FixedUpdate
+            if (!IsFrozen())
+            {
+                horizontalInput = InputManager.GetAxis("Horizontal");
+                verticalInput = InputManager.GetAxisRaw("Vertical");
+
+                // Rotate the bike handlebars
+                //handlebars.transform.localRotation = Quaternion.Euler(horizontalInput * maxHandlebarRotationX, dampedHorizInput * maxHandlebarRotationY, 0);
+
+                // Rotate the player's perspective
+                //playerPerspective.transform.localRotation = Quaternion.Euler(0, 0, -dampedHorizInput * 5f);
+
+                // Rotate the player
+                dampedHorizInput = Vector3.SmoothDamp(dampedHorizInput, Vector3.up * horizontalInput, ref horizVel, rotDampingTime);
+                Quaternion deltaRotation = Quaternion.Euler(dampedHorizInput * maxTurnSpeed * Time.smoothDeltaTime);
+                playerBody.MoveRotation(playerBody.rotation * deltaRotation);
+
+                // Move the player
+                if (verticalInput > joystickDeadZone)
+                    playerBody.velocity = Vector3.ClampMagnitude(playerBody.transform.forward * (verticalInput - Mathf.Abs(dampedHorizInput.y) * 0.2f) * maxForwardSpeed, maxForwardSpeed);
+                else if (verticalInput < -joystickDeadZone)
+                    playerBody.velocity = Vector3.ClampMagnitude(playerBody.transform.forward * (verticalInput - Mathf.Abs(dampedHorizInput.y) * 0.2f) * maxBackwardSpeed, maxBackwardSpeed);
+                else
+                    playerBody.velocity = new Vector3(0, 0, 0);
+            }
+        }
+    }
+
+    void FixedUpdate()
+    {
+        if (!smoothMovement)
         {
             horizontalInput = InputManager.GetAxis("Horizontal");
             verticalInput = InputManager.GetAxisRaw("Vertical");
+            if (!IsFrozen())
+            {
+                // Rotate the bike handlebars
+                //handlebars.transform.localRotation = Quaternion.Euler(horizontalInput * maxHandlebarRotationX, horizontalInput * maxHandlebarRotationY, 0);
 
-            // Rotate the bike handlebars
-            //handlebars.transform.localRotation = Quaternion.Euler(horizontalInput * maxHandlebarRotationX, dampedHorizInput * maxHandlebarRotationY, 0);
+                // Rotate the player's perspective
+                //playerPerspective.transform.localRotation = Quaternion.Euler(0, 0, -horizontalInput * 5f);
 
-            // Rotate the player's perspective
-            //playerPerspective.transform.localRotation = Quaternion.Euler(0, 0, -dampedHorizInput * 5f);
+                // Rotate the player
+                if (Mathf.Abs(horizontalInput) > joystickDeadZone)
+                {
+                    Quaternion deltaRotation = Quaternion.Euler(Vector3.up * horizontalInput * maxTurnSpeed * Time.fixedDeltaTime);
+                    playerBody.MoveRotation(playerBody.rotation * deltaRotation);
+                }
 
-            // Rotate the player
-            dampedHorizInput = Vector3.SmoothDamp(dampedHorizInput, Vector3.up * horizontalInput, ref horizVel, rotDampingTime);
-            Quaternion deltaRotation = Quaternion.Euler(dampedHorizInput * maxTurnSpeed * Time.smoothDeltaTime);
-            playerBody.MoveRotation(playerBody.rotation * deltaRotation);
-
-            // Move the player
-            if (verticalInput > joystickDeadZone)
-                playerBody.velocity = Vector3.ClampMagnitude(playerBody.transform.forward * (verticalInput - Mathf.Abs(dampedHorizInput.y) * 0.2f) * maxForwardSpeed, maxForwardSpeed);
-            else if (verticalInput < -joystickDeadZone)
-                playerBody.velocity = Vector3.ClampMagnitude(playerBody.transform.forward * (verticalInput - Mathf.Abs(dampedHorizInput.y) * 0.2f) * maxBackwardSpeed, maxBackwardSpeed);
-            else
-                playerBody.velocity = new Vector3(0, 0, 0);
+                // Move the player
+                if (verticalInput > joystickDeadZone)
+                    playerBody.velocity = Vector3.ClampMagnitude(playerBody.transform.forward * verticalInput * maxForwardSpeed, maxForwardSpeed);
+                else if (verticalInput < -joystickDeadZone)
+                    playerBody.velocity = Vector3.ClampMagnitude(playerBody.transform.forward * verticalInput * maxBackwardSpeed, maxBackwardSpeed);
+                else
+                    playerBody.velocity = new Vector3(0, 0, 0);
+            }
         }
     }
 

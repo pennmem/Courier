@@ -38,6 +38,7 @@ public class Config
     public static bool newEfrEnabled { get { return (bool)Config.GetSetting("newEfrEnabled"); } }
     public static bool niclsCourier { get { return (bool)Config.GetSetting("niclsCourier"); } }
     public static bool counterBalanceCorrectIncorrectButton { get { return (bool)Config.GetSetting("counterBalanceCorrectIncorrectButton"); } }
+    public static bool smoothMovement { get { return (bool)Config.GetSetting("smoothMovement"); } }
 
     // Constants
     public static int trialsPerSession { get {

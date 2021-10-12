@@ -40,6 +40,11 @@ public class NiclsListener {
         return callbackWaitHandle;
     }
 
+    public void StopListening() {
+        if (IsListening())
+            callbackWaitHandle.Set();
+    }
+
     public void RegisterMessageQueue(ConcurrentQueue<string> messages) {
         queue = messages;
     }
@@ -85,20 +90,15 @@ public class NiclsListener {
         List<string> received = new List<string>();
 
         UnityEngine.Debug.Log("ParseBuffer\n" + messageBuffer.ToString());
-
-        while(messageBuffer.IndexOf("\n") != -1) {
+        while (messageBuffer.IndexOf("\n") != -1) {
             string message = messageBuffer.Substring(0, messageBuffer.IndexOf("\n") + 1);
             received.Add(message);
             messageBuffer = messageBuffer.Substring(messageBuffer.IndexOf("\n") + 1);
             
-            ReportMessage(message);
+            niclsInterfaceHelper.HandleMessage(message, System.DateTime.UtcNow);
         }
 
         return received;
-    }
-
-    private void ReportMessage(string message) {
-        niclsInterfaceHelper.Do(new EventBase<string, DateTime>(niclsInterfaceHelper.HandleMessage, message, System.DateTime.UtcNow));
     }
 }
 
@@ -240,11 +240,11 @@ public class NiclsInterfaceHelper : IHostPC
         JObject json;
 
         listener.RegisterMessageQueue(queue);
-        while(sw.ElapsedMilliseconds < timeout) {
+        while (sw.ElapsedMilliseconds < timeout) {
             listener.Listen();
             wait = listener.GetListenHandle();
-            waitDuration =  timeout - (int)sw.ElapsedMilliseconds;
-            waitDuration =  waitDuration > 0 ? waitDuration : 0;
+            waitDuration = timeout - (int)sw.ElapsedMilliseconds;
+            waitDuration = waitDuration > 0 ? waitDuration : 0;
 
             wait.Wait(waitDuration);
 
@@ -259,7 +259,9 @@ public class NiclsInterfaceHelper : IHostPC
                 }
             }
         }
-        
+
+        sw.Stop();
+        listener.StopListening();
         listener.RemoveMessageQueue();
         UnityEngine.Debug.Log("Wait for message timed out");
         throw new TimeoutException("Timed out waiting for response");
@@ -312,7 +314,7 @@ public class NiclsInterfaceHelper : IHostPC
         data.Add("count", heartbeatCount);
         heartbeatCount++;
         SendMessage("HEARTBEAT", data);
-        WaitForMessages(new[] { "HEARTBEAT_OK" }, heartbeatTimeout);
+        WaitForMessage("HEARTBEAT_OK", heartbeatTimeout);
     }
 
     public void RepeatedlyUpdateClassifierResult()
@@ -320,7 +322,7 @@ public class NiclsInterfaceHelper : IHostPC
         while (true)
         {
             var classifierInfo = WaitForMessages(new[] { "CLASSIFIER_RESULT", "EEG_EPOCH_END" }, 20000);
-            switch(classifierInfo["type"].Value<string>())
+            switch (classifierInfo["type"].Value<string>())
             {
                 case "CLASSIFIER_RESULT":
                     lock (classifierResultLock)
@@ -330,7 +332,6 @@ public class NiclsInterfaceHelper : IHostPC
                     // Do nothing, just log the info
                     break;
             }
-            
         }
     }
 

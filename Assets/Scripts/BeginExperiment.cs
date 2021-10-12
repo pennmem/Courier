@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.SceneManagement;
 using Luminosity.IO;
 
@@ -31,9 +29,9 @@ public class BeginExperiment : MonoBehaviour
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
     }
+
     private void Update()
     {
-        
         if (DeliveryItems.ItemsExhausted())
         {
             beginExperimentButton.SetActive(false);

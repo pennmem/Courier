@@ -274,7 +274,7 @@ public class NiclsInterfaceHelper : IHostPC
         json.Add("task pc time", time);
 
         string type = json["type"]?.Value<string>();
-        ReportMessage(json.ToString(), false);
+        ReportMessage(json.ToString(Newtonsoft.Json.Formatting.None), false);
 
         if (type == null)
         {

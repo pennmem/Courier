@@ -180,7 +180,7 @@ public class NiclsInterfaceHelper : IHostPC
         SendMessage("CONFIGURE", configDict);
         var niclsConfig = WaitForMessage("CONFIGURE_OK", messageTimeout);
         var niclServerConfigPath = System.IO.Path.Combine(UnityEPL.GetDataPath(), "niclServer_config.json");
-        System.IO.File.AppendAllLines(niclServerConfigPath, niclsConfig.ToString());
+        System.IO.File.AppendAllText(niclServerConfigPath, niclsConfig.ToString());
 
         // excepts if there's an issue with latency, else returns
         //DoLatencyCheck();

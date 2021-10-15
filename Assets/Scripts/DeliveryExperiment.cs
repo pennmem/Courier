@@ -242,9 +242,30 @@ public class DeliveryExperiment : CoroutineExperiment
 
         Dictionary<string, object> sceneData = new Dictionary<string, object>();
         sceneData.Add("sceneName", "MainGame");
-        // Dictionary<string, object> small = new Dictionary<string, object>();
-        // small.Add("time", DataReporter.RealWorldTime());
-        // sceneData.Add("data", small);
+
+
+        // var enableDict = new Dictionary<string, object> { {"enable", 1} };
+        // DataPoint point = new DataPoint("ENCODING", System.DateTime.UtcNow, enableDict);
+        // string message = point.ToJSON();
+
+        // bool sent = true;
+
+        // sceneData.Add("message", message);
+        // sceneData.Add("sent", sent.ToString());
+
+
+        // var videoOrder = new List<List<int>>();
+        // var reliableRandom = new System.Random(UnityEPL.GetParticipants()[0].GetHashCode());
+        // var twoSessions = new List<int>(){0,1,3,4}.ToList();
+
+        // string result = "List contents: ";
+        // foreach (var item in twoSessions)
+        // {
+        //     result += item.ToString() + ", ";
+        // }
+        // Debug.Log(result);
+        
+        // sceneData.Add("list", twoSessions);
         scriptedEventReporter.ReportScriptedEvent("loadScene", sceneData);
 
         StartCoroutine(ExperimentCoroutine());
@@ -793,10 +814,19 @@ public class DeliveryExperiment : CoroutineExperiment
         BlackScreen();
         this_trial_presented_stores.Shuffle(rng);
         Debug.Log(this_trial_presented_stores);
+        
+        if (COURIER_ONLINE)
+        {
+            messageImageDisplayer.SetGeneralBigMessageText("cued recall title", "online cued recall main");
+            yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
+        }
+        else
+        {
+            textDisplayer.DisplayText("display day cued recall prompt", LanguageSource.GetLanguageString("store cue recall"));
+            yield return SkippableWait(RECALL_MESSAGE_DISPLAY_LENGTH);
+            textDisplayer.ClearText();
+        }
 
-        textDisplayer.DisplayText("display day cued recall prompt", LanguageSource.GetLanguageString("store cue recall"));
-        yield return SkippableWait(RECALL_MESSAGE_DISPLAY_LENGTH);
-        textDisplayer.ClearText();
         highBeep.Play();
         scriptedEventReporter.ReportScriptedEvent("sound played", new Dictionary<string, object>() { { "sound name", "high beep" }, { "sound duration", highBeep.clip.length.ToString() } });
         textDisplayer.DisplayText("display recall text", RECALL_TEXT);

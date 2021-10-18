@@ -104,7 +104,7 @@ public class DeliveryExperiment : CoroutineExperiment
         private Syncbox syncs;
         //public NiclsInterface niclsInterface;
         public NiclsInterface3 niclsInterface;
-    #endif
+    #endif // UNITY_STANDALONE
     
 
     public PlayerMovement playerMovement;
@@ -166,7 +166,7 @@ public class DeliveryExperiment : CoroutineExperiment
         #if UNITY_STANDALONE
             useRamulator = newUseRamulator;
             useNiclServer = newUseNiclServer;
-        #endif
+        #endif // UNITY_STANDALONE
         Config.experimentConfigName = expName;
         sessionNumber = newSessionNumber;
         expName = newExpName;
@@ -212,12 +212,11 @@ public class DeliveryExperiment : CoroutineExperiment
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.SetCursor(new Texture2D(0, 0), new Vector2(0, 0), CursorMode.ForceSoftware);
-        QualitySettings.vSyncCount = 1;
-        #if UNITY_STANDALONE
-        Application.targetFrameRate = 300;
-        #endif
+        
         //////////////////////////////////////////////////////////////////////////////////////////////////////////
         #if UNITY_STANDALONE                                                                                    // Syncbox 
+            QualitySettings.vSyncCount = 1;
+            Application.targetFrameRate = 300;
             // Start syncpulses                                                                                 //
             if (!Config.noSyncbox)                                                                              //
             {                                                                                                   //
@@ -233,11 +232,11 @@ public class DeliveryExperiment : CoroutineExperiment
                 efrCorrectButtonSide = (EfrButton)reliableRandom.Next(0, 2);                                    //
             }                                                                                                   //
         //////////////////////////////////////////////////////////////////////////////////////////////////////////
-        #else
+        #else // UNITY_WEBGL
             UnityEPL.AddParticipant(System.Guid.NewGuid().ToString());
             UnityEPL.SetExperimentName("COURIER_ONLINE");
             UnityEPL.SetSessionNumber(0);
-        #endif
+        #endif 
 
 
         Dictionary<string, object> sceneData = new Dictionary<string, object>();
@@ -297,7 +296,7 @@ public class DeliveryExperiment : CoroutineExperiment
             {                                                                                                   //
                 yield return niclsInterface.BeginNewSession(sessionNumber, true);                               //
             }                                                                                                   //
-        #endif                                                                                                  //
+        #endif // UNITY_STANDALONE                                                                              //
         //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         Debug.Log("DoSubSession");
@@ -581,7 +580,7 @@ public class DeliveryExperiment : CoroutineExperiment
                 }                                                                                                      //
             }                                                                                                          //
         }                                                                                                              //
-        #endif                                                                                                         //
+        #endif // UNITY_STANDALONE                                                                                     //
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         BlackScreen();
@@ -694,7 +693,7 @@ public class DeliveryExperiment : CoroutineExperiment
                                             LanguageSource.GetLanguageString("recording"),                             //
                                             LanguageSource.GetLanguageString("playing"),                               //
                                             LanguageSource.GetLanguageString("recording confirmation"));               //
-            #endif                                                                                                     //
+            #endif // UNITY_STANDALONE                                                                                 //
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
             if (!NICLS_COURIER)

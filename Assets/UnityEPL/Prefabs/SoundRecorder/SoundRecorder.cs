@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-#if UNITY_STANDALONE
 public class SoundRecorder : MonoBehaviour
 {
     public GameObject pleaseSpeakNow;
@@ -85,4 +84,3 @@ public class SoundRecorder : MonoBehaviour
             StopRecording();
 	}
 }
-#endif

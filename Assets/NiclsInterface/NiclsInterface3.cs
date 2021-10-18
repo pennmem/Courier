@@ -413,4 +413,4 @@ public class NiclsInterface3 : MonoBehaviour
         return niclsInterface.classifierResult == 0;
     }
 }
-#endif
+#endif // UNITY_STANDALONE

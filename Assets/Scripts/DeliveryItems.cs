@@ -87,7 +87,7 @@ public class DeliveryItems : MonoBehaviour
         allStores.Sort();
         System.IO.File.AppendAllLines(outputFilePath, allStores);
     }
-#endif
+#endif // UNITY_STANDALONE
 
     void Awake()
     {
@@ -126,11 +126,7 @@ public class DeliveryItems : MonoBehaviour
         }
         unused_store_names.Shuffle(random);
         string storeName = unused_store_names[0];
-        #if UNITY_STANDALONE
-            unused_store_names.RemoveAt(0);
-        #else 
-            unused_store_names.Remove(storeName);
-        #endif
+        unused_store_names.RemoveAt(0);
         
         return storeName;
     }

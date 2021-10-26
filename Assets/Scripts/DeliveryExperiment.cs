@@ -279,8 +279,8 @@ public class DeliveryExperiment : CoroutineExperiment
 
         //write versions to logfile
         LogVersions(expName);
-        if (COURIER_ONLINE)
-            yield return GetOnlineConfig();
+        // if (COURIER_ONLINE)
+        //     yield return GetOnlineConfig();
             
         //////////////////////////////////////////////////////////////////////////////////////////////////////////
         #if UNITY_STANDALONE                                                                                    // NICLS

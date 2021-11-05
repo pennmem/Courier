@@ -149,6 +149,8 @@ public abstract class CoroutineExperiment : MonoBehaviour
         SetRamulatorState("WAITING", false, new Dictionary<string, object>());
     }
 
+
+    // LC: This should later be refactored into FlexibleConfig.cs
     protected IEnumerator GetOnlineConfig()
     {
         Debug.Log("setting web request");

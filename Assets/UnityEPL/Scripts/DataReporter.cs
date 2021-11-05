@@ -155,6 +155,6 @@ public abstract class DataReporter : MonoBehaviour
 
     private void GenerateDefaultName()
     {
-        reportingID = this.name + System.Guid.NewGuid();
+        reportingID = this.name + System.Guid.NewGuid().ToString();
     }
 }

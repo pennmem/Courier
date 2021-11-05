@@ -1,0 +1,96 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Word Memory Recall Task</title>
+        <link rel=stylesheet href="/static/css/bootstrap.min.css" type="text/css">
+        <link rel=stylesheet href="/static/css/style.css" type="text/css">
+        <script type="text/javascript">
+            function onexit() {
+              self.close();
+            }
+        </script>
+    </head>
+    <body>
+        <div id="container-consent" style="position: unset">
+            <div id="consent">
+                <h1>Welcome!</h1>
+                <hr>
+                    <p>
+                        You have been invited to take part in a research study being 
+                        by the Computational Memory Lab at the University of Pennsylvania. 
+                        In this study, you will navigate around a virtual town experiencing events both visually and auditorily. 
+                        You later be asked to make responses based on these events, such as recalling them. 
+                        Full instructions will be provided before the study.
+                    </p>
+                    <p>
+                        The experiment will last approximately 60-70 minutes, not
+                        counting breaks. The only minor risk of the study is fatigue
+                        from completing the task. There will be opportunities to
+                        rest between trials, in case you need to take a break at any
+                        point. You will be given up to four hours to
+                        complete the study before the HIT expires. You must
+                        participate throughout all trials of the experiment (i.e.
+                        navigating and making recalls when prompted) for
+                        us to mark the HIT as complete. We will mark HITs as
+                        complete within two business days.
+                    </p>
+                    <p>
+                        Your participation is completely voluntary, and you may stop
+                        the experiment at any time. If you have any questions about
+                        your rights as a research participant, or about this study
+                    in general, please contact the principal investigator:
+                    </p>
+                    <br>
+                    <center>
+                        <p>
+                            <b>Michael Kahana, Ph.D.</b><br>
+                            University of Pennsylvania<br>
+                            Department of Psychology<br>
+                            425 S. University Ave.<br>
+                            Levin Building, Room 263<br>
+                            Philadelphia, PA 19104<br>
+                            <a href="mailto:kahanalab@gmail.com">kahanalab@gmail.com</a>
+                        </p>
+                    </center>
+                    <br>
+                    <p>
+                        If you email us, please add the keyword "MTurk" in the
+                        subject line.
+                    </p>
+                    <p>
+                        By clicking the 'Continue' button below and beginning the
+                        study, you are indicating that you have read and understand
+                        the text above, and that you consent to participate in the
+                        study and have your response data used for research
+                        purposes.
+                    </p>
+                    <p>
+                        Please note that the study may take several seconds to
+                        initialize, and may not appear immediately upon pressing
+                        'Continue'.
+                    </p>
+                    <button type="button" class="btn btn-default btn-sm" onClick="window.print();">
+                    <span class="glyphicon glyphicon-print"></span> Print a copy of this
+                    </button>
+
+                <hr>
+                <br>
+
+                <center>
+                    <button type="button" class="btn btn-primary btn-lg" onClick="window.location='/exp?hitId={{ hitid }}&assignmentId={{ assignmentid }}&workerId={{ workerid }}'">
+                        <span class="glyphicon glyphicon-ok"></span> Continue
+                    </button>
+                    
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+                    <button type="button" class="btn btn-danger btn-lg" onClick="onexit()">
+                        <span class="glyphicon glyphicon-ban-circle"></span> Exit
+                    </button>
+                </center>
+
+            </div>
+        </div>
+    </body>
+</html>

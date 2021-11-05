@@ -1,0 +1,38 @@
+[HIT Configuration]
+title = Courier Online
+description = Try to remember as many words as you can! Please note that ad blockers must be paused/disabled for the HIT to appear.
+amt_keywords = memory, psychology, experiment, recall, remember, free recall, cued recall
+lifetime = 4
+us_only = true
+approve_requirement = 95
+contact_email_on_error = kahanalab@gmail.com
+ad_group = CML
+psiturk_keywords = memory, psychology, experiment, recall, remember, free recall, cued recall
+organization_name = University of Pennsylvania
+browser_exclude_rule = MSIE, Safari/6, mobile, tablet, bot
+allow_repeats = false
+
+[Database Parameters]
+# database_url = mysql://ckeane1:test_pass@localhost:3306/test_db
+database_url = mysql://maint:strangle.explode.sprout.underfeed.yo-yo@127.0.0.1:3306/psiturk
+table_name = CourierOnline
+
+[Server Parameters]
+host = 0.0.0.0
+port = 22371
+cutoff_time = 150
+logfile = server_log.txt
+loglevel = 2
+debug = true
+login_username = none
+login_pw = none
+threads = auto
+
+[Task Parameters]
+experiment_code_version = 1.0
+num_conds = 1
+num_counters = 1
+
+[Shell Parameters]
+launch_in_sandbox_mode = true
+use_psiturk_ad_server = false

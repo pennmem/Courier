@@ -12,9 +12,9 @@ public class WriteToDiskHandler : DataHandler
 
     [HideInInspector]
     [SerializeField]
-    private bool writeAutomatically = true;
+    protected bool writeAutomatically = true;
 
-    private System.Collections.Generic.Queue<DataPoint> waitingPoints = new System.Collections.Generic.Queue<DataPoint>();
+    protected System.Collections.Generic.Queue<DataPoint> waitingPoints = new System.Collections.Generic.Queue<DataPoint>();
 
 
     public void SetWriteAutomatically(bool newAutomatically)
@@ -49,7 +49,7 @@ public class WriteToDiskHandler : DataHandler
             waitingPoints.Enqueue(dataPoint);
     }
 
-    public void DoWrite()
+    public virtual void DoWrite()
     {
         while (waitingPoints.Count > 0)
         {

@@ -29,6 +29,8 @@ public class MessageImageDisplayer : MonoBehaviour
     public GameObject general_big_message_display;
     public GameObject general_bigger_message_display;
     public ScriptedEventReporter scriptedEventReporter;
+    public GameObject fpsDisplay;
+    public Text fpsDisplayText;
 
     private const float BUTTON_MSG_DISPLAY_WAIT = 0.3f;
     private const int REQUIRED_VALID_BUTTON_PRESSES = 1;
@@ -267,6 +269,16 @@ public class MessageImageDisplayer : MonoBehaviour
         Text rightText = efr_display.transform.Find("right button text").GetComponent<Text>();
         rightText.GetComponent<RectTransform>().anchorMin -= new Vector2(0f, rightButtonSize / 100);
         rightText.GetComponent<RectTransform>().anchorMax += new Vector2(0f, rightButtonSize / 100);
+    }
+
+    public void SetFPSDisplayText(string fpsValue = "", string mainText = "", string continueText = "continue")
+    {
+        if (fpsValue != null)
+            general_big_message_display.transform.Find("title text").GetComponent<Text>().text = LanguageSource.GetLanguageString("frame test end title") + fpsValue;
+        if (mainText != null)
+            general_big_message_display.transform.Find("main text").GetComponent<Text>().text = LanguageSource.GetLanguageString(mainText);
+        if (continueText != null)
+            general_big_message_display.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString(continueText);
     }
 
     public void SetGeneralMessageText(string titleText = "", string mainText = "", string descriptiveText = "", string continueText = "continue")

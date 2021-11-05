@@ -1,0 +1,3 @@
+[submodule "static/jsPsych"]
+	path = static/jsPsych
+	url = git@github-kahana-sysadmin:kahana-sysadmin/jsPsych.git

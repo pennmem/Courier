@@ -46,7 +46,7 @@ public class DataPoint
         string JSONString = "{\"type\":\"" + type + "\",\"data\":{";
         foreach (string key in dataDict.Keys)
         {
-            dynamic value = dataDict[key];
+            object value = dataDict[key];
 
             string valueJSONString = ValueToString(value);
             JSONString = JSONString + "\"" + key + "\":" + valueJSONString + ",";
@@ -55,16 +55,23 @@ public class DataPoint
             JSONString = JSONString.Substring(0, JSONString.Length - 1);
         JSONString = JSONString + "},\"time\":" + unixTimestamp.ToString() + "}";
         return JSONString;
+
+
+        // string JSONString = "{\"type\":\"" + type + "\",\"data\":";
+        // // Debug.Log("iterating over keys");
+        // JSONString = JSONString + JsonConvert.SerializeObject(dataDict) + ",\"time\":" + unixTimestamp.ToString() + "}";
+        // Debug.Log(JSONString);
+        // return JSONString;
     }
 
-    public string ValueToString(dynamic value) {
+    public string ValueToString(object value) { // dynamic
         if (value is Dictionary<string, object>) // JPB: TODO: Remove
         {
-            var dataDict = value;
+            var dataDict = (Dictionary<string, object>)value;  // cast to dictionary
             string JSONString = "{";
-            foreach (string key in dataDict.Keys)
+            foreach (string key in dataDict.Keys)    
             {
-                dynamic dataVal = dataDict[key];
+                object dataVal = dataDict[key]; // dynamic
 
                 string valueJSONString = ValueToString(dataVal);
                 JSONString = JSONString + "\"" + key + "\":" + valueJSONString + ",";
@@ -78,8 +85,9 @@ public class DataPoint
         { 
             string json = "[";
             foreach (object val in (IEnumerable)value) { 
-                json = json + ValueToString(val);
+                json = json + ValueToString(val) + ",";  // LC: added in comma in between the values
             }
+            json = json.Substring(0, json.Length - 1);   // LC: and remove the last comma
             return json + "]";
         }
         else if (IsNumeric(value)) 
@@ -102,7 +110,7 @@ public class DataPoint
         }
         else if (value is DateTime)
         {
-            return ConvertToMillisecondsSinceEpoch(value).ToString();
+            return ConvertToMillisecondsSinceEpoch((DateTime)value).ToString(); ////// cast value to DateTime
         }
         else {
             throw new Exception("Data logging type not supported: " + value.GetType().ToString());

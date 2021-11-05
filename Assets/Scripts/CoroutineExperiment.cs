@@ -3,11 +3,16 @@ using System.Collections.Generic;
 using UnityEngine;
 using Luminosity.IO;
 
+using System;
+using System.IO;
+using UnityEngine.Networking;
+
 public abstract class CoroutineExperiment : MonoBehaviour
 {
     private const int MICROPHONE_TEST_LENGTH = 5;
 
     public SoundRecorder soundRecorder;
+    
     public TextDisplayer textDisplayer;
     public VideoControl videoPlayer;
     public VideoSelector videoSelector;
@@ -142,6 +147,46 @@ public abstract class CoroutineExperiment : MonoBehaviour
 
         textDisplayer.ClearText();
         SetRamulatorState("WAITING", false, new Dictionary<string, object>());
+    }
+
+
+    // LC: This should later be refactored into FlexibleConfig.cs
+    protected IEnumerator GetOnlineConfig()
+    {
+        Debug.Log("setting web request");
+        // string systemConfigPath = System.IO.Path.Combine(Application.streamingAssetsPath, "config.json");
+        string systemConfigPath = "http://psiturk.sas.upenn.edu:22371/static/js/Unity/build/StreamingAssets/config.json";
+        UnityWebRequest systemWWW = UnityWebRequest.Get(systemConfigPath);
+        yield return systemWWW.SendWebRequest();
+
+        // if (systemWWW.result != UnityWebRequest.Result.Success) for later Unity versions
+        if (systemWWW.isNetworkError || systemWWW.isHttpError)
+        {
+            Debug.Log("Network error " + systemWWW.error);
+        }
+        else
+        {
+            Config.onlineSystemConfigText = systemWWW.downloadHandler.text;
+            Debug.Log("Online System Config fetched!!");
+            Debug.Log(Config.onlineSystemConfigText);
+        }
+        
+        // string experimentConfigPath = System.IO.Path.Combine(Application.streamingAssetsPath, "CourierOnline.json");
+        string experimentConfigPath = "http://psiturk.sas.upenn.edu:22371/static/js/Unity/build/StreamingAssets/CourierOnline.json";
+        UnityWebRequest experimentWWW = UnityWebRequest.Get(experimentConfigPath);
+        yield return experimentWWW.SendWebRequest();
+
+        // if (experimentWWW.result != UnityWebRequest.Result.Success) for later Unity versions
+        if (experimentWWW.isNetworkError || experimentWWW.isHttpError)
+        {
+            Debug.Log("Network error " + experimentWWW.error);
+        }
+        else
+        {
+            Config.onlineExperimentConfigText = experimentWWW.downloadHandler.text;
+            Debug.Log("Online Experiment Config fetched!!");
+            Debug.Log(Config.onlineExperimentConfigText);
+        }
     }
 
 

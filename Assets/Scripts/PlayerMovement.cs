@@ -18,9 +18,13 @@ public class PlayerMovement : MonoBehaviour
 
     private int freeze_level = 0;
     private Transform xform;
+    private Vector3 originalPosition;
+    private Quaternion originalRotation;
 
     void Start() {
         xform = gameObject.transform;
+        originalPosition = gameObject.transform.position;
+        originalRotation = gameObject.transform.rotation;
     }
 
     void Update ()
@@ -68,5 +72,11 @@ public class PlayerMovement : MonoBehaviour
     public void Zero()
     {
         freeze_level = 0;
+    }
+
+    public void Reset()
+    {
+        gameObject.transform.position = originalPosition;
+        gameObject.transform.rotation = originalRotation;
     }
 }

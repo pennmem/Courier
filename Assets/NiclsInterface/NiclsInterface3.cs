@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if !UNITY_WEBGL
+using System;
 using System.Linq;
 using System.Diagnostics;
 using System.Collections;
@@ -412,3 +413,4 @@ public class NiclsInterface3 : MonoBehaviour
         return niclsInterface.classifierResult == 0;
     }
 }
+#endif // UNITY_STANDALONE

@@ -34,7 +34,7 @@ public class VideoSelector : MonoBehaviour
 
     public void SetIntroductionVideo(VideoType videoType, int videoIndex = 0)
     {
-        #if UNITY_STANDALONE
+        #if !UNITY_WEBGL
         switch (videoType)
         {
             // JPB: TODO: Refactor this to make movies an array of language options

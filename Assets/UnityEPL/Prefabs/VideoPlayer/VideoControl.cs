@@ -21,7 +21,7 @@ public class VideoControl : MonoBehaviour
         }
 
         // LC: allowing this for online version is dangerous...
-        #if UNITY_STANDALONE
+        #if !UNITY_WEBGL
             if (Input.GetKeyDown(deactivateKey))
             {
                 videoPlayer.Stop();
@@ -32,7 +32,7 @@ public class VideoControl : MonoBehaviour
             {
                 gameObject.SetActive(false);
             }
-        #endif // UNITY_STANDALONE
+        #endif
     }
 
     public void StartVideo()

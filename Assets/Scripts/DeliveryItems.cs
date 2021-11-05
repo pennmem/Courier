@@ -20,7 +20,7 @@ public class DeliveryItems : MonoBehaviour
     public StoreAudio[] storeNamesToItems;
     public StoreAudio[] practiceStoreNamesToItems;
 
-#if UNITY_STANDALONE
+#if !UNITY_WEBGL
     private static string RemainingItemsPath(string storeName)
     {
         return System.IO.Path.Combine(UnityEPL.GetDataPath(), "remaining_items", storeName);

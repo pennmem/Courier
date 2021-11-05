@@ -79,7 +79,7 @@ public class Config
         if (systemConfig == null)
         {
             // Setup config file
-            #if UNITY_STANDALONE
+            #if !UNITY_WEBGL
             string configPath = System.IO.Path.Combine(
                 Directory.GetParent(Directory.GetParent(UnityEPL.GetParticipantFolder()).FullName).FullName,
                 "configs");
@@ -104,7 +104,7 @@ public class Config
         if(experimentConfig == null)
         {
             // Setup config file
-            #if UNITY_STANDALONE
+            #if !UNITY_WEBGL
             string configPath = System.IO.Path.Combine(
                 Directory.GetParent(Directory.GetParent(UnityEPL.GetParticipantFolder()).FullName).FullName,
                 "configs");

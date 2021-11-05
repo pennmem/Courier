@@ -1,4 +1,4 @@
-﻿#if UNITY_STANDALONE
+﻿#if !UNITY_WEBGL
 using System;
 using System.Linq;
 using System.Diagnostics;

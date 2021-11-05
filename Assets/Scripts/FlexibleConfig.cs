@@ -88,23 +88,7 @@ public class Config
             #else
             if (onlineSystemConfigText == null)
             {
-                // Debug.Log("Missing config from web");
-
-                string systemConfigPath = "http://psiturk.sas.upenn.edu:22371/static/js/Unity/build/StreamingAssets/config.json";
-                UnityWebRequest systemWWW = UnityWebRequest.Get(systemConfigPath);
-                return systemWWW.SendWebRequest();
-
-                // if (systemWWW.result != UnityWebRequest.Result.Success) for later Unity versions
-                if (systemWWW.isNetworkError || systemWWW.isHttpError)
-                {
-                    Debug.Log("Network error " + systemWWW.error);
-                }
-                else
-                {
-                    Config.onlineSystemConfigText = systemWWW.downloadHandler.text;
-                    Debug.Log("Online System Config fetched!!");
-                    Debug.Log(Config.onlineSystemConfigText);
-                }
+                Debug.Log("Missing config from web");
             }
             else
             {
@@ -126,26 +110,10 @@ public class Config
                 "configs");
             string text = File.ReadAllText(Path.Combine(configPath, experimentConfigName + ".json"));
             experimentConfig = FlexibleConfig.LoadFromText(text);
-            #else // UNITY_WEBGL
+            #else
             if (onlineExperimentConfigText == null)
             {
-                // Debug.Log("Missing config from web");
-                
-                string experimentConfigPath = "http://psiturk.sas.upenn.edu:22371/static/js/Unity/build/StreamingAssets/CourierOnline.json";
-                UnityWebRequest experimentWWW = UnityWebRequest.Get(experimentConfigPath);
-                return experimentWWW.SendWebRequest();
-
-                // if (experimentWWW.result != UnityWebRequest.Result.Success) for later Unity versions
-                if (experimentWWW.isNetworkError || experimentWWW.isHttpError)
-                {
-                    Debug.Log("Network error " + experimentWWW.error);
-                }
-                else
-                {
-                    Config.onlineExperimentConfigText = experimentWWW.downloadHandler.text;
-                    Debug.Log("Online Experiment Config fetched!!");
-                    Debug.Log(Config.onlineExperimentConfigText);
-                }
+                Debug.Log("Missing config from web");
             }
             else
             {

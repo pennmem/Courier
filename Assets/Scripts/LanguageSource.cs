@@ -112,6 +112,9 @@ public static class LanguageSource
         { "navigation note title", new string[] { "Quick Note!", GERMAN_TRANSLATION_NEEDED } },
         { "navigation note main", new string[] { "Please navigate from store to store as quickly and efficiently as you can.", GERMAN_TRANSLATION_NEEDED } },
 
+        { "classifier delay note title", new string[] { "Quick Note!", GERMAN_TRANSLATION_NEEDED } },
+        { "classifier delay note main", new string[] { "For the remaining sessions, you may notice a slight lag once you arrive at each store. Please note that this is purposeful and not an error in the experiment.", GERMAN_TRANSLATION_NEEDED } },
+
         { "fixation item", new string [] {"+", "+"} },
         { "fixation practice message", new string [] {"Please look at the plus sign", GERMAN_TRANSLATION_NEEDED} },
 

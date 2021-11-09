@@ -56,7 +56,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private int number_input;
     ///////////////////////////////////////////////////////////////////////////
     
-    private const string COURIER_VERSION = COURIER_ONLINE ? "v5.0.0online" : "v5.1.2";
+    private const string COURIER_VERSION = COURIER_ONLINE ? "v5.0.0online" : "v5.1.3";
 
     private const string RECALL_TEXT = "*******"; // JPB: TODO: Remove this and use display system
     // Constants moved to the Config File
@@ -95,12 +95,12 @@ public class DeliveryExperiment : CoroutineExperiment
     private const float EFR_KEYPRESS_PRACTICE_JITTER = 0.25f;
 
     // Keep as hardcoded values
-    private const int NICLS_READ_ONLY_SESSIONS = 6;
+    private const int NICLS_READ_ONLY_SESSIONS = 8;
     private const int NICLS_CLOSED_LOOP_SESSIONS = 4;
 
-    private const int NUM_MUSIC_VIDEOS = 4;
+    private const int NUM_MUSIC_VIDEOS = 6;
     private const int NUM_MUSIC_VIDEOS_PER_SESSION = 2;
-    private readonly int[] MUSIC_VIDEO_RECALL_SESSIONS = { 6, 7 }; // Can't make const arrays in c#
+    private readonly int[] MUSIC_VIDEO_RECALL_SESSIONS = { 9, 10, 11 }; // Can't make const arrays in c#
     private const int MUSIC_VIDEO_PROMPT_TIME = 5;
     private const int MUSIC_VIDEO_RECALL_TIME = 175;
 
@@ -370,9 +370,9 @@ public class DeliveryExperiment : CoroutineExperiment
             yield return DoPracticeTrials(2);
 
         // Player Reminders/Tips/Notes
-        messageImageDisplayer.SetGeneralMessageText(titleText: "navigation note title",
-                                                    mainText: "navigation note main");
-        yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
+        messageImageDisplayer.SetGeneralBigMessageText(titleText: "navigation note title",
+                                                       mainText: "navigation note main");
+        yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
 
         // First Real Trials
         int trialsThisSession = 0;
@@ -385,6 +385,9 @@ public class DeliveryExperiment : CoroutineExperiment
             var videoOrder = GenMusicVideoOrder();
             yield return DoBreak();
             yield return DoMusicVideos(videoOrder);
+            messageImageDisplayer.SetGeneralBigMessageText(titleText: "classifier delay note title",
+                                                           mainText: "classifier delay note main");
+            yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
             yield return DoSubSession(1, trialsThisSession, Config.trialsPerSession);
             trialsThisSession += Config.trialsPerSession;
             if (MUSIC_VIDEO_RECALL_SESSIONS.Contains(continuousSessionNumber))
@@ -1317,9 +1320,7 @@ public class DeliveryExperiment : CoroutineExperiment
         var reliableRandom = new System.Random(UnityEPL.GetParticipants()[0].GetHashCode());
         foreach (int i in Enumerable.Range(0, (continuousSessionNumber / 2) + 1))
         {
-            // TODO: JPB: Temp fix for NICLS Round 2 video reduction (6 -> 4 vids)
-            //var twoSessions = Enumerable.Range(0, NUM_MUSIC_VIDEOS).ToList().Shuffle(reliableRandom).ToList();
-            var twoSessions = new List<int>(){0,1,3,4}.Shuffle(reliableRandom).ToList();
+            var twoSessions = Enumerable.Range(0, NUM_MUSIC_VIDEOS).ToList().Shuffle(reliableRandom).ToList();
             videoOrder.Add(twoSessions.GetRange(0, NUM_MUSIC_VIDEOS_PER_SESSION).ToList());
             videoOrder.Add(twoSessions.GetRange(NUM_MUSIC_VIDEOS_PER_SESSION, NUM_MUSIC_VIDEOS_PER_SESSION).ToList());
         }

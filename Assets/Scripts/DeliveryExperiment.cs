@@ -66,7 +66,7 @@ public class DeliveryExperiment : CoroutineExperiment
     //private const int TRIALS_PER_SESSION_SINGLE_TOWN_LEARNING = LESS_TRIALS ? 2 : 5;
     //private const int TRIALS_PER_SESSION_DOUBLE_TOWN_LEARNING = LESS_TRIALS ? 1 : 3;
     private const int EFR_PRACTICE_TRIAL_NUM = 1;
-    private const int NUM_READ_ONLY_TRIALS = 1;
+    private const int NUM_CLASSIFIER_NORMALIZATION_TRIALS = 1;
     private const int SINGLE_TOWN_LEARNING_SESSIONS = 1;
     private const int DOUBLE_TOWN_LEARNING_SESSIONS = 0;
     private const int POINTING_INDICATOR_DELAY = NICLS_COURIER ? 12 : 48;
@@ -374,12 +374,12 @@ public class DeliveryExperiment : CoroutineExperiment
                                                        mainText: "navigation note main");
         yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
 
-        // First Real Trials
+        // 1st Real Trials
         int trialsThisSession = 0;
         yield return DoSubSession(0, trialsThisSession, trialsForFirstSubSession);
         trialsThisSession += trialsForFirstSubSession;
 
-        // Break / Music Videos / Second Real Trials
+        // Break / MV Playing / Delay Note / 2nd Real Trials / MV Recall
         if (NICLS_COURIER)
         {
             var videoOrder = GenMusicVideoOrder();
@@ -692,7 +692,7 @@ public class DeliveryExperiment : CoroutineExperiment
                     if (useNiclServer && !practice)                                                                     //
                     {                                                                                                   //
                         yield return new WaitForSeconds(WORD_PRESENTATION_DELAY);                                       //
-                        if (trialNumber < NUM_READ_ONLY_TRIALS)                                                         //
+                        if (trialNumber < NUM_CLASSIFIER_NORMALIZATION_TRIALS)                                          //
                             niclsInterface.SendEncoding(1);                                                             //
                         else                                                                                            //
                             yield return WaitForClassifier(niclsClassifierTypes[continuousTrialNum]);                   //
@@ -848,13 +848,9 @@ public class DeliveryExperiment : CoroutineExperiment
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             #if !UNITY_WEBGL                                                                                                // NICLS
             //Turn off ReadOnlyState                                                                                        //
-            if (NICLS_COURIER && trialNumber == NUM_READ_ONLY_TRIALS)                                                       //
+            if (NICLS_COURIER && trialNumber == NUM_CLASSIFIER_NORMALIZATION_TRIALS)                                        //
             {                                                                                                               //
                 Debug.Log("READ_ONLY_OFF");                                                                                 //
-                niclsInterface.SendReadOnlyState(0);                                                                        //
-                niclsInterface.SendReadOnlyState(0);                                                                        //
-                niclsInterface.SendReadOnlyState(0);                                                                        //
-                niclsInterface.SendReadOnlyState(0);                                                                        //
                 niclsInterface.SendReadOnlyState(0);                                                                        //
             }                                                                                                               //
             #endif                                                                                                          //
@@ -1133,7 +1129,7 @@ public class DeliveryExperiment : CoroutineExperiment
         {   
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             #if !UNITY_WEBGL                                                                                                // NICLS
-            if (useNiclServer && (trialNumber >= NUM_READ_ONLY_TRIALS))                                                     //
+            if (useNiclServer && (trialNumber >= NUM_CLASSIFIER_NORMALIZATION_TRIALS))                                      //
             {                                                                                                               //
                 yield return new WaitForSeconds(WORD_PRESENTATION_DELAY);                                                   //
                 yield return WaitForClassifier(niclsClassifierTypes[continuousTrialNum]);                                   //
@@ -1146,7 +1142,6 @@ public class DeliveryExperiment : CoroutineExperiment
             }                                                                                                               //
             #endif                                                                                                          //
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
             cueStore.familiarization_object.SetActive(true);
             if (!COURIER_ONLINE)

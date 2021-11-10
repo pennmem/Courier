@@ -170,6 +170,10 @@ public static class LanguageSource
                                                     GERMAN_TRANSLATION_NEEDED } },
         { "music video ending instructions", new string[] {"\nPress (Y) to continue to the questions.", GERMAN_TRANSLATION_NEEDED } },
 
+        { "music video question 0 title", new string[] { "On a scale of very unfamiliar to very familiar, please rate your familiarity with this video.", GERMAN_TRANSLATION_NEEDED } },
+        { "music video question 0 rating 0", new string[] { "no", GERMAN_TRANSLATION_NEEDED } },
+        { "music video question 0 rating 1", new string[] { "yes", GERMAN_TRANSLATION_NEEDED } },
+
         { "please find prompt", new string[] {"please find the ", "Bitte finden Sie "} },
         { "bakery", new string[] {"bakery", "die Bäckerei"} },
         { "barber shop", new string[] {"barber shop", "den Friseur"} },

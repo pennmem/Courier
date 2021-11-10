@@ -379,7 +379,7 @@ public class DeliveryExperiment : CoroutineExperiment
         yield return DoSubSession(0, trialsThisSession, trialsForFirstSubSession);
         trialsThisSession += trialsForFirstSubSession;
 
-        // Break / MV Playing / Delay Note / 2nd Real Trials / MV Recall
+        // Break / MV Playing / Delay Note / 2nd Real Trials / MV Recall / MV questions
         if (NICLS_COURIER)
         {
             var videoOrder = GenMusicVideoOrder();
@@ -392,6 +392,14 @@ public class DeliveryExperiment : CoroutineExperiment
             trialsThisSession += Config.trialsPerSession;
             if (MUSIC_VIDEO_RECALL_SESSIONS.Contains(continuousSessionNumber))
                 yield return DoMusicVideoRecall(videoOrder);
+
+            if (continuousSessionNumber == NICLS_READ_ONLY_SESSIONS + NICLS_CLOSED_LOOP_SESSIONS - 1)
+            {
+                var ratings = new string[] { "music video question 0 rating 0", "music video question 0 rating 1" };
+                messageImageDisplayer.SetSlidingScale2Text(titleText: "music video question 0 title",
+                                                           ratings: ratings);
+                StartCoroutine(messageImageDisplayer.DisplaySlidingScale2Message(messageImageDisplayer.sliding_scale_2_display));
+            }
         }
 
         // Ending Message

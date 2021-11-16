@@ -343,6 +343,14 @@ public class DeliveryExperiment : CoroutineExperiment
         if (sessionNumber == 0 && !useNiclServer)
             yield return DoPracticeTrials(2);
 
+        // Delay note
+        if (useNiclServer)
+        {
+            messageImageDisplayer.SetGeneralBigMessageText(titleText: "classifier delay note title",
+                                                           mainText: "classifier delay note main");
+            yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
+        }
+
         // Player Reminders/Tips/Notes
         messageImageDisplayer.SetGeneralBigMessageText(titleText: "navigation note title",
                                                        mainText: "navigation note main");
@@ -353,15 +361,12 @@ public class DeliveryExperiment : CoroutineExperiment
         yield return DoSubSession(0, trialsThisSession, trialsForFirstSubSession);
         trialsThisSession += trialsForFirstSubSession;
 
-        // Break / MV Playing / Delay Note / 2nd Real Trials / MV Recall / MV questions
+        // Break / MV Playing / 2nd Real Trials / MV Recall / MV questions
         if (NICLS_COURIER)
         {
             var videoOrder = GenMusicVideoOrder();
             yield return DoBreak();
             yield return DoMusicVideos(videoOrder);
-            messageImageDisplayer.SetGeneralBigMessageText(titleText: "classifier delay note title",
-                                                           mainText: "classifier delay note main");
-            yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
             yield return DoSubSession(1, trialsThisSession, Config.trialsPerSession);
             trialsThisSession += Config.trialsPerSession;
             if (MUSIC_VIDEO_RECALL_SESSIONS.Contains(continuousSessionNumber))
@@ -1274,11 +1279,12 @@ public class DeliveryExperiment : CoroutineExperiment
         // We create the whole list each time to make sure that the rng is consistent but unique per session group
         var videoOrder = new List<List<int>>();
         var reliableRandom = new System.Random(UnityEPL.GetParticipants()[0].GetHashCode());
-        foreach (int i in Enumerable.Range(0, (continuousSessionNumber / 2) + 1))
+        int numSessionsPerVideoList = NUM_MUSIC_VIDEOS / NUM_MUSIC_VIDEOS_PER_SESSION;
+        foreach (int i in Enumerable.Range(0, (continuousSessionNumber / numSessionsPerVideoList) + 1))
         {
-            var twoSessions = Enumerable.Range(0, NUM_MUSIC_VIDEOS).ToList().Shuffle(reliableRandom).ToList();
-            videoOrder.Add(twoSessions.GetRange(0, NUM_MUSIC_VIDEOS_PER_SESSION).ToList());
-            videoOrder.Add(twoSessions.GetRange(NUM_MUSIC_VIDEOS_PER_SESSION, NUM_MUSIC_VIDEOS_PER_SESSION).ToList());
+            var shuffledVideos = Enumerable.Range(0, NUM_MUSIC_VIDEOS).ToList().Shuffle(reliableRandom).ToList();
+            foreach (int j in Enumerable.Range(0, numSessionsPerVideoList))
+                videoOrder.Add(shuffledVideos.GetRange(j * NUM_MUSIC_VIDEOS_PER_SESSION, NUM_MUSIC_VIDEOS_PER_SESSION).ToList());
         }
         Debug.Log(string.Join("\n", videoOrder.Select(x => string.Join(", ", x))));
 

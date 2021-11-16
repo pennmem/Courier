@@ -1,45 +1,46 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Video;
+using Luminosity.IO;
 
 public class VideoControl : MonoBehaviour
 {
-    public UnityEngine.KeyCode pauseToggleKey = UnityEngine.KeyCode.Space;
-    public UnityEngine.KeyCode deactivateKey = UnityEngine.KeyCode.Escape;
     public UnityEngine.Video.VideoPlayer videoPlayer;
     public bool deactivateWhenFinished = true;
 
     void Update()
     {
-        if (Input.GetKeyDown(pauseToggleKey))
-        {
-            if (videoPlayer.isPlaying)
-                videoPlayer.Pause();
-            else
-                videoPlayer.Play();
-        }
+        // TODO: JPB: (Hokua) Fix the video pause
+        // Pause
+        //if (Input.GetKeyDown(KeyCode.Space)) 
+        //{
+        //    if (videoPlayer.isPlaying)
+        //        videoPlayer.Pause();
+        //    else
+        //        videoPlayer.Play();
+        //}
 
-        // LC: allowing this for online version is dangerous...
-        #if !UNITY_WEBGL
-            if (Input.GetKeyDown(deactivateKey))
+        #if !UNITY_WEBGL // WebGL No Secret Key
+            // Stop
+            if (InputManager.GetButtonDown("Secret"))
             {
                 videoPlayer.Stop();
                 gameObject.SetActive(false);
             }
-
-            if (videoPlayer.time >= videoPlayer.clip.length) // videoPlayer.clip.length
-            {
-                gameObject.SetActive(false);
-            }
         #endif
+
+        // Video finished
+        if (videoPlayer.time >= videoPlayer.clip.length)
+        {
+            gameObject.SetActive(false);
+        }
     }
 
     public void StartVideo()
     {
-        Debug.Log("VideoControl");
+        Debug.Log("VideoControl start video");
         #if UNITY_WEBGL
-        videoPlayer.loopPointReached += (VideoPlayer vp) => gameObject.SetActive(false);
+            videoPlayer.loopPointReached += (VideoPlayer vp) => gameObject.SetActive(false);
         #endif
         gameObject.SetActive(true);
     }

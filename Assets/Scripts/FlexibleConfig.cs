@@ -12,7 +12,7 @@ using UnityEngine.Networking;
 
 public class Config
 {   
-    public static string experimentConfigName = null;
+    public static string experimentConfigName = "EXPERIMENT_CONFIG_NAME_NOT_SET";
     public static string onlineSystemConfigText = null;
     public static string onlineExperimentConfigText = null;
 
@@ -24,6 +24,7 @@ public class Config
     public static bool noSyncbox { get { return (bool)Config.GetSetting("noSyncbox"); } }
     public static bool lessTrials { get { return (bool)Config.GetSetting("lessTrials"); } }
     public static bool lessDeliveries { get { return (bool)Config.GetSetting("lessDeliveries"); } }
+    public static bool showFps { get { return (bool)Config.GetSetting("showFps"); } }
 
     // Game Section Skips
     public static bool skipFPS { get { return (bool)Config.GetSetting("skipFPS"); } }
@@ -37,6 +38,7 @@ public class Config
     public static bool newEfrEnabled { get { return (bool)Config.GetSetting("newEfrEnabled"); } }
     public static bool niclsCourier { get { return (bool)Config.GetSetting("niclsCourier"); } }
     public static bool counterBalanceCorrectIncorrectButton { get { return (bool)Config.GetSetting("counterBalanceCorrectIncorrectButton"); } }
+    public static bool smoothMovement { get { return (bool)Config.GetSetting("smoothMovement"); } }
 
     // Constants
     public static int trialsPerSession { get {
@@ -51,8 +53,9 @@ public class Config
     public static int deliveriesPerTrial { get {
             if (lessDeliveries) return 3;
             else return (int)Config.GetSetting("deliveriesPerTrial"); } }
-    public static int practiceDeliveriesPerTrial { get { return (int)Config.GetSetting("practiceDeliveriesPerTrial"); } }
-
+    public static int deliveriesPerPracticeTrial { get {
+            if (lessDeliveries) return 3;
+            else return (int)Config.GetSetting("deliveriesPerPracticeTrial"); } }
     public static int newEfrKeypressPractices { get { return (int)Config.GetSetting("newEfrKeypressPractices"); } }
 
     private const string SYSTEM_CONFIG_NAME = "config.json";
@@ -60,6 +63,21 @@ public class Config
     private static object systemConfig = null;
     private static object experimentConfig = null;
 
+
+    public static T Get<T>(Func<T> getProp, T defaultValue)
+    {
+        try
+        {
+            return getProp.Invoke();
+        }
+        catch (MissingFieldException)
+        {
+            return defaultValue;
+        }
+    }
+
+    // TODO: JPB: (Hokua) Should this function be templated? What are the pros and cons?
+    //            Note: It could also be a "dynamic" type, but WebGL doesn't support it (so we can't use dynamic)
     private static object GetSetting(string setting)
     {
         object value;
@@ -79,21 +97,17 @@ public class Config
         if (systemConfig == null)
         {
             // Setup config file
-            #if !UNITY_WEBGL
-            string configPath = System.IO.Path.Combine(
-                Directory.GetParent(Directory.GetParent(UnityEPL.GetParticipantFolder()).FullName).FullName,
-                "configs");
-            string text = File.ReadAllText(Path.Combine(configPath, SYSTEM_CONFIG_NAME));
-            systemConfig = FlexibleConfig.LoadFromText(text);
+            #if !UNITY_WEBGL // System.IO
+                string configPath = System.IO.Path.Combine(
+                    Directory.GetParent(Directory.GetParent(UnityEPL.GetParticipantFolder()).FullName).FullName,
+                    "configs");
+                string text = File.ReadAllText(Path.Combine(configPath, SYSTEM_CONFIG_NAME));
+                systemConfig = FlexibleConfig.LoadFromText(text);
             #else
-            if (onlineSystemConfigText == null)
-            {
-                Debug.Log("Missing config from web");
-            }
-            else
-            {
-                systemConfig = FlexibleConfig.LoadFromText(onlineSystemConfigText);
-            }
+                if (onlineSystemConfigText == null)
+                    Debug.Log("Missing config from web");
+                else
+                    systemConfig = FlexibleConfig.LoadFromText(onlineSystemConfigText);
             #endif
         }
         return systemConfig;
@@ -104,21 +118,17 @@ public class Config
         if(experimentConfig == null)
         {
             // Setup config file
-            #if !UNITY_WEBGL
-            string configPath = System.IO.Path.Combine(
-                Directory.GetParent(Directory.GetParent(UnityEPL.GetParticipantFolder()).FullName).FullName,
-                "configs");
-            string text = File.ReadAllText(Path.Combine(configPath, experimentConfigName + ".json"));
-            experimentConfig = FlexibleConfig.LoadFromText(text);
+            #if !UNITY_WEBGL // System.IO
+                string configPath = System.IO.Path.Combine(
+                    Directory.GetParent(Directory.GetParent(UnityEPL.GetParticipantFolder()).FullName).FullName,
+                    "configs");
+                string text = File.ReadAllText(Path.Combine(configPath, experimentConfigName + ".json"));
+                experimentConfig = FlexibleConfig.LoadFromText(text);
             #else
-            if (onlineExperimentConfigText == null)
-            {
-                Debug.Log("Missing config from web");
-            }
-            else
-            {
-                experimentConfig = FlexibleConfig.LoadFromText(onlineExperimentConfigText);
-            }
+                if (onlineExperimentConfigText == null)
+                    Debug.Log("Missing config from web");
+                else
+                    experimentConfig = FlexibleConfig.LoadFromText(onlineExperimentConfigText);
             #endif
         }
         return experimentConfig;

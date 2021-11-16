@@ -12,9 +12,12 @@ public class MessageImageDisplayer : MonoBehaviour
     public GameObject[] delivery_restart_messages;
     public GameObject[] store_images_presentation_messages;
 
-    public GameObject[] nicls_final_recall_messages; // JPB: TODO: Add the german slide
-    public GameObject[] recap_instruction_messages_en; // JPB: TODO: Make this work for german
-    public GameObject[] recap_instruction_messages_new_en;
+    public GameObject[] nicls_final_recall_messages; // TODO: JPB: Add the german slide
+    public GameObject[] recap_instruction_messages_efr_2btn_en; // TODO: JPB: Make this work for german
+    public GameObject[] recap_instruction_messages_efr_en;
+    public GameObject[] recap_instruction_messages_fr_en;
+
+    public GameObject[] music_video_prompts;
 
     public GameObject please_find_the_blah;
     public Text please_find_the_blah_text;
@@ -25,6 +28,8 @@ public class MessageImageDisplayer : MonoBehaviour
     public GameObject free_recall_display;
     public GameObject efr_display;
     public GameObject cued_recall_message;
+    public GameObject sliding_scale_display;
+    public GameObject sliding_scale_2_display;
     public GameObject general_message_display;
     public GameObject general_big_message_display;
     public GameObject general_bigger_message_display;
@@ -55,7 +60,7 @@ public class MessageImageDisplayer : MonoBehaviour
     {
         Dictionary<string, object> messageData = new Dictionary<string, object>();
         messageData.Add("message name", message.name);
-        // JPB: TODO: Change this so that it takes a logging name
+        // TODO: JPB: (Hokua) Change this so that it takes a logging name (the message titleText or all text)
         scriptedEventReporter.ReportScriptedEvent("instruction message displayed", messageData);
         message.SetActive(true);
         yield return null;
@@ -73,12 +78,14 @@ public class MessageImageDisplayer : MonoBehaviour
     {
         Dictionary<string, object> messageData = new Dictionary<string, object>();
         messageData.Add("message name", message.name);
+        // TODO: JPB: (Hokua) Change this so that it takes a logging name (the message titleText or all text)
         scriptedEventReporter.ReportScriptedEvent("instruction message displayed", messageData);
         message.SetActive(true);
-        yield return null;
         float startTime = Time.time;
         while (Time.time < startTime + waitTime)
         {
+            yield return null;
+
             if (InputManager.GetButtonDown("Secret"))
                 break;
             else if (InputManager.GetButtonDown("Continue"))
@@ -93,7 +100,6 @@ public class MessageImageDisplayer : MonoBehaviour
                             new Dictionary<string, object> { { "response", kcode.ToString() } });
                 }
             }
-            yield return null;
         }
         scriptedEventReporter.ReportScriptedEvent("instruction message cleared", messageData);
         message.SetActive(false);
@@ -101,11 +107,12 @@ public class MessageImageDisplayer : MonoBehaviour
 
     public IEnumerator DisplayMessageKeypressBold(GameObject display, EfrButton boldButton)
     {
-        display.SetActive(true);
+        display.SetActive(true); // TODO: JPB: (Hokua) Should this line be present for all Display functions?
 
         // Report instruction displayed
         var messageData = new Dictionary<string, object>();
         messageData.Add("message name", display.name);
+        // TODO: JPB: (Hokua) Change this so that it takes a logging name (the message titleText or all text)
         scriptedEventReporter.ReportScriptedEvent("instruction message displayed", messageData);
 
         while (true)
@@ -145,6 +152,7 @@ public class MessageImageDisplayer : MonoBehaviour
         // Report instruction displayed
         var messageData = new Dictionary<string, object>();
         messageData.Add("message name", display.name);
+        // TODO: JPB: (Hokua) Change this so that it takes a logging name (the message titleText or all text)
         scriptedEventReporter.ReportScriptedEvent("instruction message displayed", messageData);
 
         int numValidButtonPresses = 0;
@@ -206,7 +214,58 @@ public class MessageImageDisplayer : MonoBehaviour
         }
     }
 
-    //display message for cued recall
+    public IEnumerator DisplaySlidingScaleMessage(GameObject message, string buttonName = "Continue")
+    {
+        Dictionary<string, object> messageData = new Dictionary<string, object>();
+        messageData.Add("message name", message.name);
+        // TODO: JPB: (Hokua) Change this so that it takes a logging name (the message titleText or all text)
+        scriptedEventReporter.ReportScriptedEvent("instruction message displayed", messageData);
+        message.SetActive(true);
+        yield return null;
+        while (!InputManager.GetButtonDown(buttonName) && !InputManager.GetButtonDown("Secret"))
+        {
+            yield return null;
+            if (InputManager.GetButtonDown("EfrLeft"))
+                message.transform.Find("sliding scale").GetComponent<Slider>().value -= 1;
+            else if (InputManager.GetButtonDown("EfrRight"))
+                message.transform.Find("sliding scale").GetComponent<Slider>().value += 1;
+        }
+        scriptedEventReporter.ReportScriptedEvent("instruction message cleared", messageData);
+        message.SetActive(false);
+
+        scriptedEventReporter.ReportScriptedEvent("sliding scale value",
+            new Dictionary<string, object>() { { "value", message.transform.Find("sliding scale").GetComponent<Slider>().value } });
+    }
+
+    // TODO: JPB: (Hokue) Combine with the above function (or change name)
+    public IEnumerator DisplaySlidingScale2Message(GameObject message, string buttonName = "Continue")
+    {
+        Dictionary<string, object> messageData = new Dictionary<string, object>();
+        messageData.Add("message name", message.name);
+        // TODO: JPB: (Hokua) Change this so that it takes a logging name (the message titleText or all text)
+        scriptedEventReporter.ReportScriptedEvent("instruction message displayed", messageData);
+        message.SetActive(true);
+        yield return null;
+        var slider = message.transform.Find("sliding scale").GetComponent<Slider>();
+        // TODO: JPB: (Hokue) Change this so that function takes a list of illegal values (or a bool to make the middle illegal)
+        while ( (!InputManager.GetButtonDown(buttonName) && !InputManager.GetButtonDown("Secret"))
+                || slider.value ==  1)
+        {
+            yield return null;
+            if (InputManager.GetButtonDown("EfrLeft"))
+                message.transform.Find("sliding scale").GetComponent<Slider>().value -= 1;
+            else if (InputManager.GetButtonDown("EfrRight"))
+                message.transform.Find("sliding scale").GetComponent<Slider>().value += 1;
+        }
+        Debug.Log(slider.value);
+        scriptedEventReporter.ReportScriptedEvent("instruction message cleared", messageData);
+        message.SetActive(false);
+
+        scriptedEventReporter.ReportScriptedEvent("sliding scale value",
+            new Dictionary<string, object>() { { "value", message.transform.Find("sliding scale").GetComponent<Slider>().value } });
+    }
+
+    // Display message for cued recall
     public void SetCuedRecallMessage(bool isActive)
     {
         cued_recall_message.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString("cued recall message");
@@ -271,6 +330,7 @@ public class MessageImageDisplayer : MonoBehaviour
         rightText.GetComponent<RectTransform>().anchorMax += new Vector2(0f, rightButtonSize / 100);
     }
 
+    // TODO: JPB: (Hokua) See if this can be combined with FpsDisplayer.cs in some way
     public void SetFPSDisplayText(string fpsValue = "", string mainText = "", string continueText = "continue")
     {
         if (fpsValue != null)
@@ -279,6 +339,44 @@ public class MessageImageDisplayer : MonoBehaviour
             general_big_message_display.transform.Find("main text").GetComponent<Text>().text = LanguageSource.GetLanguageString(mainText);
         if (continueText != null)
             general_big_message_display.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString(continueText);
+    }
+
+    public void SetSlidingScaleText(string titleText = "", string[] ratings = null, string continueText = "continue")
+    {
+        sliding_scale_display.transform.Find("sliding scale").GetComponent<Slider>().value = 2;
+
+        if (titleText != null)
+            sliding_scale_display.transform.Find("title text").GetComponent<Text>().text = LanguageSource.GetLanguageString(titleText);
+
+        int numRatings = sliding_scale_display.transform.Find("ratings").childCount;
+        if (ratings != null)
+            for (int i = 0; i < numRatings; ++i)
+                sliding_scale_display.transform.Find("ratings/rating " + i).GetComponent<Text>().text = LanguageSource.GetLanguageString(ratings[i]);
+        else // ratings == null
+            for (int i = 0; i < numRatings; ++i)
+                sliding_scale_display.transform.Find("ratings/rating " + i).GetComponent<Text>().text = LanguageSource.GetLanguageString("");
+
+        if (continueText != null)
+            sliding_scale_display.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString(continueText);
+    }
+
+    public void SetSlidingScale2Text(string titleText = "", string[] ratings = null, string continueText = "continue")
+    {
+        sliding_scale_2_display.transform.Find("sliding scale").GetComponent<Slider>().value = 1;
+
+        if (titleText != null)
+            sliding_scale_display.transform.Find("title text").GetComponent<Text>().text = LanguageSource.GetLanguageString(titleText);
+
+        int numRatings = sliding_scale_2_display.transform.Find("ratings").childCount;
+        if (ratings != null)
+            for (int i = 0; i < numRatings; ++i)
+                sliding_scale_2_display.transform.Find("ratings/rating " + i).GetComponent<Text>().text = LanguageSource.GetLanguageString(ratings[i]);
+        else // ratings == null
+            for (int i = 0; i < numRatings; ++i)
+                sliding_scale_2_display.transform.Find("ratings/rating " + i).GetComponent<Text>().text = LanguageSource.GetLanguageString("");
+
+        if (continueText != null)
+            sliding_scale_2_display.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString(continueText);
     }
 
     public void SetGeneralMessageText(string titleText = "", string mainText = "", string descriptiveText = "", string continueText = "continue")

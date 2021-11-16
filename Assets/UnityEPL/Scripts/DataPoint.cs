@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using Newtonsoft.Json;
 
@@ -45,17 +46,11 @@ public class DataPoint
         double unixTimestamp = ConvertToMillisecondsSinceEpoch(time);
         string JSONString = "{\"type\":\"" + type + "\",\"data\":{";
         foreach (string key in dataDict.Keys)
-        {
-            object value = dataDict[key];
-
-            string valueJSONString = ValueToString(value);
-            JSONString = JSONString + "\"" + key + "\":" + valueJSONString + ",";
-        }
+            JSONString = JSONString + "\"" + key + "\":" + ValueToString(dataDict[key]) + ",";
         if (dataDict.Count > 0) // Remove the last comma
             JSONString = JSONString.Substring(0, JSONString.Length - 1);
         JSONString = JSONString + "},\"time\":" + unixTimestamp.ToString() + "}";
         return JSONString;
-
 
         // string JSONString = "{\"type\":\"" + type + "\",\"data\":";
         // // Debug.Log("iterating over keys");
@@ -64,37 +59,39 @@ public class DataPoint
         // return JSONString;
     }
 
-    public string ValueToString(object value) { // dynamic
-        if (value is Dictionary<string, object>) // JPB: TODO: Remove
+    public string ValueToString(object value) {
+        if (value is Dictionary<string, object>) // TODO: JPB: Remove
         {
             var dataDict = (Dictionary<string, object>)value;  // cast to dictionary
-            string JSONString = "{";
+            string jsonString = "{";
             foreach (string key in dataDict.Keys)    
             {
-                object dataVal = dataDict[key]; // dynamic
+                object dataVal = dataDict[key];
 
                 string valueJSONString = ValueToString(dataVal);
-                JSONString = JSONString + "\"" + key + "\":" + valueJSONString + ",";
+                jsonString = jsonString + "\"" + key + "\":" + valueJSONString + ",";
             }
             if (dataDict.Count > 0) // Remove the last comma
-                JSONString = JSONString.Substring(0, JSONString.Length - 1);
-            JSONString = JSONString + "}";
-            return JSONString;
+                jsonString = jsonString.Substring(0, jsonString.Length - 1);
+            jsonString = jsonString + "}";
+            return jsonString;
         }
         else if(value.GetType().IsArray || value is IList)
         { 
-            string json = "[";
-            foreach (object val in (IEnumerable)value) { 
-                json = json + ValueToString(val) + ",";  // LC: added in comma in between the values
+            string jsonString = "[";
+            var dataList = (IEnumerable<object>)value;
+            foreach (object val in dataList) {
+                jsonString = jsonString + ValueToString(val) + ",";
             }
-            json = json.Substring(0, json.Length - 1);   // LC: and remove the last comma
-            return json + "]";
+            if (dataList != null && dataList.Any()) // Remove the last comma
+                jsonString = jsonString.Substring(0, jsonString.Length - 1); // Remove last comma
+            return jsonString + "]";
         }
         else if (IsNumeric(value)) 
         {
             return value.ToString();
         }
-        else if (value is bool) //bools
+        else if (value is bool)
         {
             return value.ToString().ToLower();
         }

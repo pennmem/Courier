@@ -5,46 +5,108 @@ using Luminosity.IO;
 
 public class PlayerMovement : MonoBehaviour
 {
-    // JPB: TODO: Make these configuration variables
+    // TODO: JPB: Make these configuration variables
     private const bool NICLS_COURIER = true;
 
-    protected float forwardSpeed = NICLS_COURIER ? 16f : 8f;
-    protected float backwardSpeed = NICLS_COURIER ? 10f : 4f;
-    protected float turnSpeed = NICLS_COURIER ? 80f : 45f;
-    protected float turnThreshhold = 0.5f;
+    protected float maxTurnSpeed = NICLS_COURIER ? 50f : 45f;
+    protected const float maxForwardSpeed = 10f;
+    protected const float maxBackwardSpeed = 4f;
 
-	public GameObject rotateMe;
-	protected float maxRotation = 30f;
+    protected const float rotDampingTime = 0.05f;
+
+    protected const float joystickDeadZone = 0.02f;
 
     private int freeze_level = 0;
-    private Transform xform;
+
     private Vector3 originalPosition;
     private Quaternion originalRotation;
 
-    void Start() {
-        xform = gameObject.transform;
+    private Rigidbody playerBody;
+    public GameObject playerPerspective;
+
+    public GameObject handlebars;
+    protected const float maxHandlebarRotationX = 20f;
+    protected const float maxHandlebarRotationY = 15f;
+
+    private bool smoothMovement = false;
+    void Start()
+    {
         originalPosition = gameObject.transform.position;
         originalRotation = gameObject.transform.rotation;
+
+        playerBody = GetComponent<Rigidbody>();
+        smoothMovement = Config.Get(() => Config.smoothMovement, false);
     }
 
-    void Update ()
-    {
-        float turnAmount = InputManager.GetAxis("Horizontal");
-        if (Mathf.Abs(turnAmount) < turnThreshhold)
-            turnAmount = 0;
-        turnAmount = turnAmount * turnSpeed * Time.deltaTime;
-        if (!IsFrozen())
-        {
-            xform.Rotate(new Vector3(0, turnAmount, 0));
+    public float horizontalInput;
+    public float verticalInput;
 
-            //move forward or more slowly backward
-            if (InputManager.GetAxis("Vertical") > 0)
-                xform.position = Vector3.Lerp(xform.position, xform.position + InputManager.GetAxis("Vertical") * xform.forward, forwardSpeed * Time.deltaTime);
-            else
-                xform.position = Vector3.Lerp(xform.position, xform.position + InputManager.GetAxis("Vertical") * xform.forward, backwardSpeed * Time.deltaTime);
-            
-            //rotate the handlebars smoothly, limit to maxRotation
-            rotateMe.transform.localRotation = Quaternion.Euler(rotateMe.transform.rotation.eulerAngles.x, InputManager.GetAxis("Horizontal") * maxRotation, rotateMe.transform.rotation.eulerAngles.z);
+    public Vector3 dampedHorizInput;
+    public Vector3 horizVel = Vector3.zero;
+
+    void Update()
+    {
+        if (smoothMovement)
+        {
+            // This is only in Update because we want it locked to frame rate.
+            // Because MoveRotation is used, the rotation doesn't occur until the next FixedUpdate
+            // Also, adjusting the velocity doesn't change any position until the next FixedUpdate
+            if (!IsFrozen())
+            {
+                horizontalInput = InputManager.GetAxis("Horizontal");
+                verticalInput = InputManager.GetAxisRaw("Vertical");
+
+                // Rotate the bike handlebars
+                //handlebars.transform.localRotation = Quaternion.Euler(horizontalInput * maxHandlebarRotationX, dampedHorizInput * maxHandlebarRotationY, 0);
+
+                // Rotate the player's perspective
+                //playerPerspective.transform.localRotation = Quaternion.Euler(0, 0, -dampedHorizInput * 5f);
+
+                // Rotate the player
+                dampedHorizInput = Vector3.SmoothDamp(dampedHorizInput, Vector3.up * horizontalInput, ref horizVel, rotDampingTime);
+                Quaternion deltaRotation = Quaternion.Euler(dampedHorizInput * maxTurnSpeed * Time.smoothDeltaTime);
+                playerBody.MoveRotation(playerBody.rotation * deltaRotation);
+
+                // Move the player
+                if (verticalInput > joystickDeadZone)
+                    playerBody.velocity = Vector3.ClampMagnitude(playerBody.transform.forward * (verticalInput - Mathf.Abs(dampedHorizInput.y) * 0.2f) * maxForwardSpeed, maxForwardSpeed);
+                else if (verticalInput < -joystickDeadZone)
+                    playerBody.velocity = Vector3.ClampMagnitude(playerBody.transform.forward * (verticalInput - Mathf.Abs(dampedHorizInput.y) * 0.2f) * maxBackwardSpeed, maxBackwardSpeed);
+                else
+                    playerBody.velocity = new Vector3(0, 0, 0);
+            }
+        }
+    }
+
+    void FixedUpdate()
+    {
+        if (!smoothMovement)
+        {
+            horizontalInput = InputManager.GetAxis("Horizontal");
+            verticalInput = InputManager.GetAxisRaw("Vertical");
+            if (!IsFrozen())
+            {
+                // Rotate the bike handlebars
+                //handlebars.transform.localRotation = Quaternion.Euler(horizontalInput * maxHandlebarRotationX, horizontalInput * maxHandlebarRotationY, 0);
+
+                // Rotate the player's perspective
+                //playerPerspective.transform.localRotation = Quaternion.Euler(0, 0, -horizontalInput * 5f);
+
+                // Rotate the player
+                if (Mathf.Abs(horizontalInput) > joystickDeadZone)
+                {
+                    Quaternion deltaRotation = Quaternion.Euler(Vector3.up * horizontalInput * maxTurnSpeed * Time.fixedDeltaTime);
+                    playerBody.MoveRotation(playerBody.rotation * deltaRotation);
+                }
+
+                // Move the player
+                if (verticalInput > joystickDeadZone)
+                    playerBody.velocity = Vector3.ClampMagnitude(playerBody.transform.forward * verticalInput * maxForwardSpeed, maxForwardSpeed);
+                else if (verticalInput < -joystickDeadZone)
+                    playerBody.velocity = Vector3.ClampMagnitude(playerBody.transform.forward * verticalInput * maxBackwardSpeed, maxBackwardSpeed);
+                else
+                    playerBody.velocity = new Vector3(0, 0, 0);
+            }
         }
     }
 
@@ -53,7 +115,7 @@ public class PlayerMovement : MonoBehaviour
         return freeze_level > 0;
     }
 
-    // JPB: TODO: Fix this whole system
+    // TODO: JPB: Fix this whole system
     public bool IsDoubleFrozen()
     {
         return freeze_level > 1;

@@ -9,7 +9,7 @@ public static class LanguageSource
 
     private const string GERMAN_TRANSLATION_NEEDED = "GERMAN TRANSLATION NEEDED";
 
-    // JPB: TODO: Needs German translations
+    // TODO: JPB: Needs German translations
     private static Dictionary<string, string[]> language_string_dict = new Dictionary<string, string[]>()
     {
         {"", new string[] {"", ""}},
@@ -63,7 +63,7 @@ public static class LanguageSource
 
 
         { "town learning title", new string [] { "Town Learning Phase", GERMAN_TRANSLATION_NEEDED } },
-        { "town learning main 1", new string [] { "Please locate all of the stores one by one.", GERMAN_TRANSLATION_NEEDED } },
+        { "town learning main 1", new string [] { "Now let's learn the layout of the town!\nPlease locate all of the stores one by one.", GERMAN_TRANSLATION_NEEDED } },
         { "town learning main 2", new string [] { "Let's do it again!\nPlease locate all of the stores one by one.", GERMAN_TRANSLATION_NEEDED } },
 
         { "efr left button correct message", new string [] {" Press the <i>left button</i> \nfor correct recall",
@@ -99,7 +99,8 @@ public static class LanguageSource
                                                               "When the <b>left button</b> text becomes bolded - press the\nleft button",
                                                               GERMAN_TRANSLATION_NEEDED}},
         { "new efr instructions title", new string[] { "Externalized Free Recall (EFR) Instructions" } },
-        { "new efr instructions main", new string[] { "In this section of the study, we would like you to vocalize words that come to your mind.\n\nPlease continue to recall as many words as possible from the just-presented list. In addition, every time a specific, salient word comes to mind, say it aloud, even if you have already recalled it or if it was not presented on the most recent delivery day.\n\nOnly say other words if they come to mind as you are trying to recall items on the most recently presented list. This is not a free-association task.\n\nIf the word you have just said aloud was NOT presented on the most recent list, or if you have already recalled it in this recall period, press the B key after recalling that word, but before recalling the next word.", GERMAN_TRANSLATION_NEEDED} },
+        { "new efr instructions main", new string[] { "In this section of the study, we would like you to vocalize words that come to your mind during the free recall sections (the long sections directly following deliveries, NOT the recalls with store cues).\n\nPlease continue to recall as many words as possible from the just-presented list. In addition, every time a specific, salient word comes to mind, say it aloud, even if you have already recalled it or if it was not presented on the most recent delivery day.\n\nOnly say other words if they come to mind as you are trying to recall items on the most recently presented list. This is not a free-association task.\n\nIf the word you have just said aloud was NOT presented on the most recent list, or if you have already recalled it in this recall period, press the B key after recalling that word, but before recalling the next word.",
+                                                      GERMAN_TRANSLATION_NEEDED} },
 
         { "new efr keypress practice main", new string [] { "Let's practice pressing the reject key.", GERMAN_TRANSLATION_NEEDED } },
         { "new efr keypress practice description", new string [] { "Press the (B) key 20 times and wait about 3 seconds between each keypress.\n\nThe screen will automatically continue when you are done.",
@@ -110,6 +111,9 @@ public static class LanguageSource
 
         { "navigation note title", new string[] { "Quick Note!", GERMAN_TRANSLATION_NEEDED } },
         { "navigation note main", new string[] { "Please navigate from store to store as quickly and efficiently as you can.", GERMAN_TRANSLATION_NEEDED } },
+
+        { "classifier delay note title", new string[] { "Quick Note!", GERMAN_TRANSLATION_NEEDED } },
+        { "classifier delay note main", new string[] { "For the remaining sessions, you may notice a slight lag once you arrive at each store. Please note that this is purposeful and not an error in the experiment.", GERMAN_TRANSLATION_NEEDED } },
 
         { "fixation item", new string [] {"+", "+"} },
         { "fixation practice message", new string [] {"Please look at the plus sign", GERMAN_TRANSLATION_NEEDED} },
@@ -145,6 +149,30 @@ public static class LanguageSource
         { "begin session", new string[] {"Begin session", "Beginne Session"} },
         { "break", new string[] {"It's time for a short break.\nPlease wait for the researcher\nto come check on you before continuing the experiment.\n\nResearcher: Press space to resume the experiment.",
                                  GERMAN_TRANSLATION_NEEDED} },
+
+        { "music video instructions title", new string[] { "Music Video Instructions", GERMAN_TRANSLATION_NEEDED } },
+        { "music video instructions main", new string[] { "You will now be asked to watch a series of music videos. After each individual video, you will rate how familiar you are with the just presented video and how engaged you were during the presentation of the video. Use the Left Trigger and Right Trigger (big buttons on the back of the controller) to move the rating sliders. \n\nWe encourage you to engage with these videos as you would if you were watching them for leisure. \n\nOver the course of the study, the videos will repeat. Please do your best to avoid listening to the presented songs or watching the videos outside of the study. \n\nPlease let the experimenter know if you have any questions; then continue to the first video.",
+                                                          GERMAN_TRANSLATION_NEEDED } },
+        { "music video familiarity title", new string[] { "On a scale of very unfamiliar to very familiar, please rate your familiarity with this video.", GERMAN_TRANSLATION_NEEDED } },
+        { "music video familiarity rating 0", new string[] { "very unfamiliar", GERMAN_TRANSLATION_NEEDED } },
+        { "music video familiarity rating 1", new string[] { "somewhat unfamiliar", GERMAN_TRANSLATION_NEEDED } },
+        { "music video familiarity rating 2", new string[] { "neutral", GERMAN_TRANSLATION_NEEDED } },
+        { "music video familiarity rating 3", new string[] { "somewhat familiar", GERMAN_TRANSLATION_NEEDED } },
+        { "music video familiarity rating 4", new string[] { "very familiar", GERMAN_TRANSLATION_NEEDED } },
+        { "music video engagement title", new string[] { "On a scale of very disengaged to very engaged, please rate how engaged you were during the presentation of this video.", GERMAN_TRANSLATION_NEEDED } },
+        { "music video engagement rating 0", new string[] { "very disengaged", GERMAN_TRANSLATION_NEEDED } },
+        { "music video engagement rating 1", new string[] { "somewhat disengaged", GERMAN_TRANSLATION_NEEDED } },
+        { "music video engagement rating 2", new string[] { "neutral", GERMAN_TRANSLATION_NEEDED } },
+        { "music video engagement rating 3", new string[] { "somewhat engaged", GERMAN_TRANSLATION_NEEDED } },
+        { "music video engagement rating 4", new string[] { "very engaged", GERMAN_TRANSLATION_NEEDED } },
+        { "music video recall instructions title", new string[] { "Music Video Recall Instructions", GERMAN_TRANSLATION_NEEDED } },
+        { "music video recall instructions main", new string[] { "Over the next ~10 minutes, you will be prompted to recall as much as you can from each music video that you have been shown during this session (3 minutes per video). \n\nOne at a time, the title of the song and a screencap from the video will appear on screen for 5 seconds. \n\nOnce these disappear from the screen, you can begin recalling as much as you remember from the music video. During this period, only recall information from the song/music video that was prompted. Be as descriptive as possible. \n\nPlease be aware that there is no right or wrong way to do this, and we encourage you to say whatever comes to mind when thinking back to these videos. \n\nPlease let the experimenter know if you have any questions; then continue to the first video recall.",
+                                                    GERMAN_TRANSLATION_NEEDED } },
+        { "music video ending instructions", new string[] {"\nPress (Y) to continue to the questions.", GERMAN_TRANSLATION_NEEDED } },
+
+        { "music video question 0 title", new string[] { "Do you have a musical background?", GERMAN_TRANSLATION_NEEDED } },
+        { "music video question 0 rating 0", new string[] { "no", GERMAN_TRANSLATION_NEEDED } },
+        { "music video question 0 rating 1", new string[] { "yes", GERMAN_TRANSLATION_NEEDED } },
 
         { "please find prompt", new string[] {"please find the ", "Bitte finden Sie "} },
         { "bakery", new string[] {"bakery", "die Bäckerei"} },

@@ -15,12 +15,12 @@ public class DeliveryItems : MonoBehaviour
     private static List<string> unused_store_names = new List<string>();
     private static Dictionary<string, List<string>> remainingItems = new Dictionary<string, List<string>>();
 
-    private System.Random random;
+    private System.Random reliableRandom;
 
     public StoreAudio[] storeNamesToItems;
     public StoreAudio[] practiceStoreNamesToItems;
 
-#if !UNITY_WEBGL
+#if !UNITY_WEBGL // System.IO
     private static string RemainingItemsPath(string storeName)
     {
         return System.IO.Path.Combine(UnityEPL.GetDataPath(), "remaining_items", storeName);
@@ -87,18 +87,18 @@ public class DeliveryItems : MonoBehaviour
         allStores.Sort();
         System.IO.File.AppendAllLines(outputFilePath, allStores);
     }
-#endif // UNITY_STANDALONE
+#endif // !UNITY_WEBGL
 
     void Awake()
     {
-        random = new System.Random(UnityEPL.GetParticipants()[0].GetHashCode());
-        #if UNITY_STANDALONE
+        reliableRandom = new System.Random(UnityEPL.GetParticipants()[0].GetHashCode());
+        #if !UNITY_WEBGL // System.IO
             WriteRemainingItemsFiles();
             WriteAlphabetizedItemsFile();
             WriteStoreNamesFile();
         #else
             remainingItems = LoadItems();
-        #endif
+        #endif // !UNITY_WEBGL
 
         foreach (StoreAudio storeAudio in storeNamesToItems)
         {
@@ -124,11 +124,16 @@ public class DeliveryItems : MonoBehaviour
         {
             throw new UnityException("I ran out of store names!");
         }
-        unused_store_names.Shuffle(random);
+        unused_store_names.Shuffle(reliableRandom);
         string storeName = unused_store_names[0];
         unused_store_names.RemoveAt(0);
         
         return storeName;
+    }
+
+    public bool StoresSetup()
+    {
+        return unused_store_names.Count == 0;
     }
 
     // This assumes that the item is ONLY in the practice list and NOT in the main list!
@@ -157,13 +162,12 @@ public class DeliveryItems : MonoBehaviour
 
     public AudioClip PopItem(string storeName)
     {
-        #if UNITY_STANDALONE
-        
+        #if !UNITY_WEBGL // System.IO
             // Get the item
-            int randomItemIndex = Random.Range(0, remainingItems.Length);
-            string randomItemName = remainingItems[randomItemIndex];
             string remainingItemsPath = RemainingItemsPath(storeName);
             string[] remainingItems = System.IO.File.ReadAllLines(remainingItemsPath);
+            int randomItemIndex = Random.Range(0, remainingItems.Length);
+            string randomItemName = remainingItems[randomItemIndex];
             
             StoreAudio storeAudio = System.Array.Find(storeNamesToItems,
                                                     store => store.storeName.Equals(storeName));
@@ -188,9 +192,7 @@ public class DeliveryItems : MonoBehaviour
             System.Array.Resize(ref remainingItems, remainingItems.Length - 1);
             System.IO.File.WriteAllLines(remainingItemsPath, remainingItems);
             Debug.Log("Items remaining: " + remainingItems.Length.ToString());
-        
-        #else // Online
-
+        #else
             int randomItemIndex = UnityEngine.Random.Range(0, remainingItems[storeName].Count);
             string randomItemName = remainingItems[storeName][randomItemIndex];
 
@@ -211,8 +213,7 @@ public class DeliveryItems : MonoBehaviour
                 throw new UnityException("Possible language mismatch. I couldn't find an item for: " + storeName);
 
             remainingItems[storeName].Remove(randomItemName);
-        
-        #endif
+        #endif // !UNITY_WEBGL
         
         //return the item
         return randomItem;
@@ -220,8 +221,7 @@ public class DeliveryItems : MonoBehaviour
 
     public static bool ItemsExhausted()
     {
-        #if UNITY_STANDALONE
-
+        #if !UNITY_WEBGL // System.IO
             bool itemsExhausted = false;
             string remainingItemsDirectory = RemainingItemsPath("");
             if (!System.IO.Directory.Exists(remainingItemsDirectory))
@@ -235,8 +235,7 @@ public class DeliveryItems : MonoBehaviour
                     itemsExhausted = true;
             }
             return itemsExhausted;
-        
-        #else // Online
+        #else
 
             foreach(List<string> storeItems in remainingItems.Values)
             {
@@ -246,7 +245,6 @@ public class DeliveryItems : MonoBehaviour
             }
 
             return false;
-        
-        #endif
+        #endif // !UNITY_WEBGL
     }
 }

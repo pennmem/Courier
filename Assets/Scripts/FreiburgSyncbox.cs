@@ -1,4 +1,4 @@
-﻿#if !UNITY_WEBGL
+﻿#if !UNITY_WEBGL // Syncbox
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -174,7 +174,7 @@ public class FreiburgSyncbox : EventLoop {
 
     private void LogPulse()
     {
-        scriptedEventReporter?.ReportScriptedEvent("syncPulse", new Dictionary<string, object>());
+        scriptedEventReporter?.ReportScriptedEvent("syncPulse");
     }
 
 
@@ -184,4 +184,4 @@ public class FreiburgSyncbox : EventLoop {
         StopLoop();
     }
 }
-#endif
+#endif // !UNITY_WEBGL

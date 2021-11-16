@@ -1,4 +1,4 @@
-﻿#if !UNITY_WEBGL
+﻿#if !UNITY_WEBGL // Syncbox
 using UnityEngine;
 using System.Collections;
 using System;
@@ -12,7 +12,6 @@ public class UPennSyncbox : EventLoop {
 
 	[DllImport ("ASimplePlugin")]
 	private static extern IntPtr CloseUSB();
-
 
 	[DllImport ("ASimplePlugin")]
 	private static extern float SyncPulse();
@@ -73,7 +72,7 @@ public class UPennSyncbox : EventLoop {
             Debug.Log("Pew!");
             // Send a pulse
             if(scriptedInput != null)
-                scriptedInput.ReportScriptedEvent("syncPulse", new System.Collections.Generic.Dictionary<string, object>());
+                scriptedInput.ReportScriptedEvent("syncPulse");
 
             SyncPulse();
 
@@ -94,4 +93,4 @@ public class UPennSyncbox : EventLoop {
         StopLoop();
     }
 }
-#endif
+#endif // !UNITY_WEBGL

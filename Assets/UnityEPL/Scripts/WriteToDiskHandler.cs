@@ -40,7 +40,7 @@ public class WriteToDiskHandler : DataHandler
         base.Update();
 
         if (Time.frameCount % framesPerWrite == 0)
-            DoWrite();
+            StartCoroutine(DoWrite());
     }
 
     protected override void HandleDataPoints(DataPoint[] dataPoints)
@@ -49,10 +49,13 @@ public class WriteToDiskHandler : DataHandler
             waitingPoints.Enqueue(dataPoint);
     }
 
-    public virtual void DoWrite()
+    public virtual IEnumerator DoWrite()
     {
+        yield return null;
+        Debug.Log(waitingPoints.Count);
         while (waitingPoints.Count > 0)
         {
+            //yield return null;
             string directory = UnityEPL.GetDataPath();
             System.IO.Directory.CreateDirectory(directory);
             string filePath = System.IO.Path.Combine(directory, "unnamed_file");
@@ -69,5 +72,6 @@ public class WriteToDiskHandler : DataHandler
             }
             System.IO.File.AppendAllText(filePath, writeMe + System.Environment.NewLine);
         }
+        Debug.Log("Done");
     }
 }

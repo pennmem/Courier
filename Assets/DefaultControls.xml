@@ -46,14 +46,14 @@
         <Positive>None</Positive>
         <Negative>None</Negative>
         <DeadZoneType>CutOff</DeadZoneType>
-        <DeadZone>0.01</DeadZone>
+        <DeadZone>0.2</DeadZone>
         <Gravity>1</Gravity>
         <Sensitivity>3</Sensitivity>
         <Scale>1</Scale>
         <Snap>false</Snap>
         <Invert>false</Invert>
         <Type>AnalogAxis</Type>
-        <Axis>0</Axis>
+        <Axis>2</Axis>
         <Joystick>0</Joystick>
         <GamepadButton>LeftStick</GamepadButton>
         <GamepadAxis>LeftThumbstickX</GamepadAxis>
@@ -63,14 +63,14 @@
         <Positive>None</Positive>
         <Negative>None</Negative>
         <DeadZoneType>CutOff</DeadZoneType>
-        <DeadZone>0.01</DeadZone>
+        <DeadZone>0.2</DeadZone>
         <Gravity>1</Gravity>
         <Sensitivity>3</Sensitivity>
         <Scale>1</Scale>
         <Snap>false</Snap>
         <Invert>false</Invert>
         <Type>AnalogAxis</Type>
-        <Axis>2</Axis>
+        <Axis>0</Axis>
         <Joystick>0</Joystick>
         <GamepadButton>LeftStick</GamepadButton>
         <GamepadAxis>LeftThumbstickX</GamepadAxis>
@@ -114,37 +114,20 @@
         <GamepadIndex>GamepadOne</GamepadIndex>
       </Binding>
       <Binding>
-        <Positive>None</Positive>
-        <Negative>None</Negative>
+        <Positive>JoystickButton5</Positive>
+        <Negative>JoystickButton4</Negative>
         <DeadZoneType>CutOff</DeadZoneType>
-        <DeadZone>0.01</DeadZone>
-        <Gravity>1</Gravity>
-        <Sensitivity>3</Sensitivity>
+        <DeadZone>0.02</DeadZone>
+        <Gravity>3</Gravity>
+        <Sensitivity>1</Sensitivity>
         <Scale>1</Scale>
-        <Snap>false</Snap>
-        <Invert>true</Invert>
-        <Type>AnalogAxis</Type>
-        <Axis>1</Axis>
+        <Snap>true</Snap>
+        <Invert>false</Invert>
+        <Type>DigitalAxis</Type>
+        <Axis>0</Axis>
         <Joystick>0</Joystick>
         <GamepadButton>LeftStick</GamepadButton>
-        <GamepadAxis>LeftThumbstickX</GamepadAxis>
-        <GamepadIndex>GamepadOne</GamepadIndex>
-      </Binding>
-      <Binding>
-        <Positive>None</Positive>
-        <Negative>None</Negative>
-        <DeadZoneType>CutOff</DeadZoneType>
-        <DeadZone>0.01</DeadZone>
-        <Gravity>1</Gravity>
-        <Sensitivity>3</Sensitivity>
-        <Scale>1</Scale>
-        <Snap>false</Snap>
-        <Invert>true</Invert>
-        <Type>AnalogAxis</Type>
-        <Axis>3</Axis>
-        <Joystick>0</Joystick>
-        <GamepadButton>LeftStick</GamepadButton>
-        <GamepadAxis>LeftThumbstickX</GamepadAxis>
+        <GamepadAxis>RightTrigger</GamepadAxis>
         <GamepadIndex>GamepadOne</GamepadIndex>
       </Binding>
     </Action>
@@ -505,6 +488,40 @@
       </Binding>
       <Binding>
         <Positive>JoystickButton0</Positive>
+        <Negative>None</Negative>
+        <DeadZoneType>CutOff</DeadZoneType>
+        <DeadZone>0</DeadZone>
+        <Gravity>1</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Scale>1</Scale>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>Button</Type>
+        <Axis>0</Axis>
+        <Joystick>0</Joystick>
+        <GamepadButton>LeftStick</GamepadButton>
+        <GamepadAxis>LeftThumbstickX</GamepadAxis>
+        <GamepadIndex>GamepadOne</GamepadIndex>
+      </Binding>
+      <Binding>
+        <Positive>Y</Positive>
+        <Negative>None</Negative>
+        <DeadZoneType>CutOff</DeadZoneType>
+        <DeadZone>0</DeadZone>
+        <Gravity>1</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Scale>1</Scale>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>Button</Type>
+        <Axis>0</Axis>
+        <Joystick>0</Joystick>
+        <GamepadButton>LeftStick</GamepadButton>
+        <GamepadAxis>LeftThumbstickX</GamepadAxis>
+        <GamepadIndex>GamepadOne</GamepadIndex>
+      </Binding>
+      <Binding>
+        <Positive>JoystickButton3</Positive>
         <Negative>None</Negative>
         <DeadZoneType>CutOff</DeadZoneType>
         <DeadZone>0</DeadZone>

@@ -39,7 +39,7 @@ public class TextDisplayer : MonoBehaviour
         for (int i = 0; i < textElements.Length; i++)
             textElements[i].color = originalColors[i];
         if (wordEventReporter != null)
-            wordEventReporter.ReportScriptedEvent("restore original text color", new Dictionary<string, object>());
+            wordEventReporter.ReportScriptedEvent("restore original text color");
     }
 
     /// <summary>
@@ -73,7 +73,7 @@ public class TextDisplayer : MonoBehaviour
             textElement.text = "";
         }
         if (wordEventReporter != null)
-            wordEventReporter.ReportScriptedEvent("text display cleared", new Dictionary<string, object>());
+            wordEventReporter.ReportScriptedEvent("text display cleared");
     }
 
     /// <summary>

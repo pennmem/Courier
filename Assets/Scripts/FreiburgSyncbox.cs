@@ -1,4 +1,4 @@
-﻿#if !UNITY_WEBGL
+﻿#if !UNITY_WEBGL // Syncbox
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -184,4 +184,4 @@ public class FreiburgSyncbox : EventLoop {
         StopLoop();
     }
 }
-#endif
+#endif // !UNITY_WEBGL

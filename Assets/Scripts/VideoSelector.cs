@@ -39,7 +39,7 @@ public class VideoSelector : MonoBehaviour
         videoPlayer.targetTexture.Release();
         videoPlayer.targetTexture.Create();
 
-        #if !UNITY_WEBGL
+        #if !UNITY_WEBGL // WebGL VideoPlayer
             switch (videoType)
             {
                 // JPB: TODO: Refactor this to make movies an array of language options

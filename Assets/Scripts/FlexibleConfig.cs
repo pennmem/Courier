@@ -95,21 +95,17 @@ public class Config
         if (systemConfig == null)
         {
             // Setup config file
-            #if !UNITY_WEBGL
-            string configPath = System.IO.Path.Combine(
-                Directory.GetParent(Directory.GetParent(UnityEPL.GetParticipantFolder()).FullName).FullName,
-                "configs");
-            string text = File.ReadAllText(Path.Combine(configPath, SYSTEM_CONFIG_NAME));
-            systemConfig = FlexibleConfig.LoadFromText(text);
+            #if !UNITY_WEBGL // System.IO
+                string configPath = System.IO.Path.Combine(
+                    Directory.GetParent(Directory.GetParent(UnityEPL.GetParticipantFolder()).FullName).FullName,
+                    "configs");
+                string text = File.ReadAllText(Path.Combine(configPath, SYSTEM_CONFIG_NAME));
+                systemConfig = FlexibleConfig.LoadFromText(text);
             #else
-            if (onlineSystemConfigText == null)
-            {
-                Debug.Log("Missing config from web");
-            }
-            else
-            {
-                systemConfig = FlexibleConfig.LoadFromText(onlineSystemConfigText);
-            }
+                if (onlineSystemConfigText == null)
+                    Debug.Log("Missing config from web");
+                else
+                    systemConfig = FlexibleConfig.LoadFromText(onlineSystemConfigText);
             #endif
         }
         return systemConfig;
@@ -120,21 +116,17 @@ public class Config
         if(experimentConfig == null)
         {
             // Setup config file
-            #if !UNITY_WEBGL
-            string configPath = System.IO.Path.Combine(
-                Directory.GetParent(Directory.GetParent(UnityEPL.GetParticipantFolder()).FullName).FullName,
-                "configs");
-            string text = File.ReadAllText(Path.Combine(configPath, experimentConfigName + ".json"));
-            experimentConfig = FlexibleConfig.LoadFromText(text);
+            #if !UNITY_WEBGL // System.IO
+                string configPath = System.IO.Path.Combine(
+                    Directory.GetParent(Directory.GetParent(UnityEPL.GetParticipantFolder()).FullName).FullName,
+                    "configs");
+                string text = File.ReadAllText(Path.Combine(configPath, experimentConfigName + ".json"));
+                experimentConfig = FlexibleConfig.LoadFromText(text);
             #else
-            if (onlineExperimentConfigText == null)
-            {
-                Debug.Log("Missing config from web");
-            }
-            else
-            {
-                experimentConfig = FlexibleConfig.LoadFromText(onlineExperimentConfigText);
-            }
+                if (onlineExperimentConfigText == null)
+                    Debug.Log("Missing config from web");
+                else
+                    experimentConfig = FlexibleConfig.LoadFromText(onlineExperimentConfigText);
             #endif
         }
         return experimentConfig;

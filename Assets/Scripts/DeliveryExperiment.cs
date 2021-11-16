@@ -42,19 +42,12 @@ public class DeliveryExperiment : CoroutineExperiment
     private static string expName;
 
     // JPB: TODO: Make these configuration variables
+
+    // Experiment type
     private const bool HOSPITAL_COURIER = false;
     private const bool NICLS_COURIER = true;
-
-    ///////////////////////////////////////////////////////////////////////////
-    // LC: Courier Online variables
     private const bool COURIER_ONLINE = true;
     private const bool GRANT_VERSION = false;
-    private const float TEST_LENGTH = 20f;
-    // private StorePointType storePointType = StorePointType.Random;
-    // private int free_index = 0;
-    // private int value_index = 0;
-    private int number_input;
-    ///////////////////////////////////////////////////////////////////////////
     
     private const string COURIER_VERSION = COURIER_ONLINE ? "v5.0.0online" : "v5.1.3";
 
@@ -71,6 +64,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private const int DOUBLE_TOWN_LEARNING_SESSIONS = 0;
     private const int POINTING_INDICATOR_DELAY = NICLS_COURIER ? 12 : 48;
     private const int EFR_KEYPRESS_PRACTICES = 10;
+    private const float FRAME_TEST_LENGTH = 20f;
     private const float MIN_FAMILIARIZATION_ISI = 0.4f;
     private const float MAX_FAMILIARIZATION_ISI = 0.6f;
     private const float FAMILIARIZATION_PRESENTATION_LENGTH = 1.5f;
@@ -109,7 +103,7 @@ public class DeliveryExperiment : CoroutineExperiment
     public Familiarizer familiarizer;
     public MessageImageDisplayer messageImageDisplayer;
 
-    #if !UNITY_WEBGL
+    #if !UNITY_WEBGL // Syncbox, Ramulator, and NICLS
         private Syncbox syncs;
         private static bool useRamulator;
         public RamulatorInterface ramulatorInterface;
@@ -145,6 +139,7 @@ public class DeliveryExperiment : CoroutineExperiment
     List<NiclsClassifierType> niclsClassifierTypes = null;
 
 
+    // Typed Response fields
     public GameObject freeInputField;
     public UnityEngine.UI.InputField freeResponse;
     public UnityEngine.UI.Text placeHolder;
@@ -152,7 +147,7 @@ public class DeliveryExperiment : CoroutineExperiment
     public UnityEngine.UI.InputField cuedResponse;
 
 
-    // LC: Frame testing variables
+    // Frame testing variables
     private static bool IS_FRAME_TESTING = false;
     private static int fpsValue = 0;
     private static float updateRateSeconds = 4.0f;
@@ -160,6 +155,11 @@ public class DeliveryExperiment : CoroutineExperiment
     private float dt = 0.0f;
     private float fps = 0.0f;
     private List<int> fpsList = new List<int>();
+
+    // Temporal/Distance store points
+    // private StorePointType storePointType = StorePointType.Random;
+    // private int free_index = 0;
+    // private int value_index = 0;
 
     // These names are used in for what is sent to the log
     // If you change them, then you have to change the event processing (or the logging code)
@@ -172,7 +172,7 @@ public class DeliveryExperiment : CoroutineExperiment
     
     public static void ConfigureExperiment(bool newUseRamulator, bool newUseNiclServer, int newSessionNumber, string newExpName)
     {   
-        #if !UNITY_WEBGL
+        #if !UNITY_WEBGL // Ramulator and NICLS
             useRamulator = newUseRamulator;
             useNiclServer = newUseNiclServer;
         #endif // !UNITY_WEBGL
@@ -202,7 +202,7 @@ public class DeliveryExperiment : CoroutineExperiment
         Cursor.lockState = CursorLockMode.Locked;
         
 
-        // LC: Courier Online Frame testing
+        // Courier Online Frame testing
         if (COURIER_ONLINE && IS_FRAME_TESTING) {
             frameCount++;
             dt += Time.unscaledDeltaTime;
@@ -241,58 +241,32 @@ public class DeliveryExperiment : CoroutineExperiment
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.SetCursor(new Texture2D(0, 0), new Vector2(0, 0), CursorMode.ForceSoftware);
         
-        //////////////////////////////////////////////////////////////////////////////////////////////////////////
-        #if !UNITY_WEBGL                                                                                        // Syncbox 
+        #if !UNITY_WEBGL // Syncbox
             QualitySettings.vSyncCount = 1;
             Application.targetFrameRate = 300;
-            // Start syncpulses                                                                                 //
-            if (!Config.noSyncbox)                                                                              //
-            {                                                                                                   //
-                syncs = GameObject.Find("SyncBox").GetComponent<Syncbox>();                                     //
-                syncs.StartPulse();                                                                             //
-            }                                                                                                   //
-                                                                                                                //
-            // Randomize efr correct/incorrect button sides                                                     //
-            if (Config.efrEnabled && Config.counterBalanceCorrectIncorrectButton)                               //
-            {                                                                                                   //
-                // We want randomness for different people, but consistency between sessions                    //
-                System.Random reliableRandom = new System.Random(UnityEPL.GetParticipants()[0].GetHashCode());  //
-                efrCorrectButtonSide = (EfrButton)reliableRandom.Next(0, 2);                                    //
-            }                                                                                                   //
-        //////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // Start syncpulses
+            if (!Config.noSyncbox)
+            {
+                syncs = GameObject.Find("SyncBox").GetComponent<Syncbox>();
+                syncs.StartPulse();
+            }
+
+            // Randomize efr correct/incorrect button sides
+            if (Config.efrEnabled && Config.counterBalanceCorrectIncorrectButton)
+            {
+                // We want randomness for different people, but consistency between sessions
+                System.Random reliableRandom = new System.Random(UnityEPL.GetParticipants()[0].GetHashCode());
+                efrCorrectButtonSide = (EfrButton)reliableRandom.Next(0, 2);
+            }
         #else // UNITY_WEBGL
             UnityEPL.AddParticipant(System.Guid.NewGuid().ToString());
             UnityEPL.SetExperimentName("COURIER_ONLINE");
             UnityEPL.SetSessionNumber(0);
-        #endif 
+        #endif
 
 
         Dictionary<string, object> sceneData = new Dictionary<string, object>();
         sceneData.Add("sceneName", "MainGame");
-
-
-        // var enableDict = new Dictionary<string, object> { {"enable", 1} };
-        // DataPoint point = new DataPoint("ENCODING", System.DateTime.UtcNow, enableDict);
-        // string message = point.ToJSON();
-
-        // bool sent = true;
-
-        // sceneData.Add("message", message);
-        // sceneData.Add("sent", sent.ToString());
-
-
-        // var videoOrder = new List<List<int>>();
-        // var reliableRandom = new System.Random(UnityEPL.GetParticipants()[0].GetHashCode());
-        // var twoSessions = new List<int>(){0,1,3,4}.ToList();
-
-        // string result = "List contents: ";
-        // foreach (var item in twoSessions)
-        // {
-        //     result += item.ToString() + ", ";
-        // }
-        // Debug.Log(result);
-        
-        // sceneData.Add("list", twoSessions);
         scriptedEventReporter.ReportScriptedEvent("loadScene", sceneData);
 
         StartCoroutine(ExperimentCoroutine());
@@ -317,26 +291,24 @@ public class DeliveryExperiment : CoroutineExperiment
         // Frame Rate Test
         if (COURIER_ONLINE)
             yield return DoFrameTest();
-        
-        //////////////////////////////////////////////////////////////////////////////////////////////////////////
-        #if !UNITY_WEBGL                                                                                        // NICLS
-            // Setup Ramulator                                                                                  //
-            if (useRamulator)                                                                                   //
-                yield return ramulatorInterface.BeginNewSession(sessionNumber);                                 //
-                                                                                                                //
-            // Setup NiclServer                                                                                 //
-            if (useNiclServer)                                                                                  //
-            {                                                                                                   //
-                yield return niclsInterface.BeginNewSession(sessionNumber);                                     //
-                SetupNiclsClassifier();                                                                         //
-                niclsInterface.SendReadOnlyState(1);                                                            //
-            }                                                                                                   //
-            else                                                                                                //
-            {                                                                                                   //
-                yield return niclsInterface.BeginNewSession(sessionNumber, true);                               //
-            }                                                                                                   //
-        #endif // !UNITY_WEBGL                                                                                  //
-        //////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        #if !UNITY_WEBGL // NICLS
+            // Setup Ramulator
+            if (useRamulator)
+                yield return ramulatorInterface.BeginNewSession(sessionNumber);
+
+            // Setup NiclServer
+            if (useNiclServer)
+            {
+                yield return niclsInterface.BeginNewSession(sessionNumber);
+                SetupNiclsClassifier();
+                niclsInterface.SendReadOnlyState(1);
+            }
+            else
+            {
+                yield return niclsInterface.BeginNewSession(sessionNumber, true);
+            }
+        #endif // !UNITY_WEBGL
 
         // Intros
         yield return DoIntros();
@@ -408,7 +380,7 @@ public class DeliveryExperiment : CoroutineExperiment
             : LanguageSource.GetLanguageString("end message scored") + starSystem.CumulativeRating().ToString("+#.##;-#.##");
         textDisplayer.DisplayText("end text", endMessage);
 
-        #if !UNITY_WEBGL
+        #if !UNITY_WEBGL // WebGL DLL
             // JPB: TODO: Wait for button press to quit
             while (true)
                 yield return null;
@@ -461,7 +433,7 @@ public class DeliveryExperiment : CoroutineExperiment
         IS_FRAME_TESTING = true;
         messageImageDisplayer.fpsDisplay.SetActive(true);
 
-        yield return new WaitForSeconds(TEST_LENGTH);
+        yield return new WaitForSeconds(FRAME_TEST_LENGTH);
 
         IS_FRAME_TESTING = false;
 
@@ -518,15 +490,13 @@ public class DeliveryExperiment : CoroutineExperiment
         if (HOSPITAL_COURIER && !COURIER_ONLINE)
             yield return DoSubjectSessionQuitPrompt(sessionNumber, LanguageSource.GetLanguageString("running participant"));
 
-        /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        #if !UNITY_WEBGL                                                                                           // Microphone
-        yield return DoMicrophoneTest(LanguageSource.GetLanguageString("microphone test"),                         //
-                                      LanguageSource.GetLanguageString("after the beep"),                          //
-                                      LanguageSource.GetLanguageString("recording"),                               //
-                                      LanguageSource.GetLanguageString("playing"),                                 //
-                                      LanguageSource.GetLanguageString("recording confirmation"));                 //
-        #endif // !UNITY_WEBGL                                                                                     //
-        /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        #if !UNITY_WEBGL // Microphone
+        yield return DoMicrophoneTest(LanguageSource.GetLanguageString("microphone test"),
+                                      LanguageSource.GetLanguageString("after the beep"),
+                                      LanguageSource.GetLanguageString("recording"),
+                                      LanguageSource.GetLanguageString("playing"),
+                                      LanguageSource.GetLanguageString("recording confirmation"));
+        #endif // !UNITY_WEBGL
 
         if (HOSPITAL_COURIER && !COURIER_ONLINE)
             yield return DoFamiliarization();
@@ -695,24 +665,22 @@ public class DeliveryExperiment : CoroutineExperiment
                     ? nextStore.PopPracticeItem(LanguageSource.GetLanguageString("confetti"))
                     : nextStore.PopItem();
 
-                //////////////////////////////////////////////////////////////////////////////////////////////////////////
-                #if !UNITY_WEBGL                                                                                        // NICLS
-                    if (useNiclServer && !practice)                                                                     //
-                    {                                                                                                   //
-                        yield return new WaitForSeconds(WORD_PRESENTATION_DELAY);                                       //
-                        if (trialNumber < NUM_CLASSIFIER_NORMALIZATION_TRIALS)                                          //
-                            niclsInterface.SendEncoding(1);                                                             //
-                        else                                                                                            //
-                            yield return WaitForClassifier(niclsClassifierTypes[continuousTrialNum]);                   //
-                    }                                                                                                   //
-                    else                                                                                                //
-                    {                                                                                                   //
-                        float wordDelay = UnityEngine.Random.Range(WORD_PRESENTATION_DELAY - WORD_PRESENTATION_JITTER,  //
-                                                WORD_PRESENTATION_DELAY + WORD_PRESENTATION_JITTER);                    //
-                        yield return new WaitForSeconds(wordDelay);                                                     //
-                    }                                                                                                   //
-                #endif                                                                                                  //
-                //////////////////////////////////////////////////////////////////////////////////////////////////////////
+                #if !UNITY_WEBGL // NICLS
+                    if (useNiclServer && !practice)
+                    {
+                        yield return new WaitForSeconds(WORD_PRESENTATION_DELAY);
+                        if (trialNumber < NUM_CLASSIFIER_NORMALIZATION_TRIALS)
+                            niclsInterface.SendEncoding(1);
+                        else
+                            yield return WaitForClassifier(niclsClassifierTypes[continuousTrialNum]);
+                    }
+                    else
+                    {
+                        float wordDelay = UnityEngine.Random.Range(WORD_PRESENTATION_DELAY - WORD_PRESENTATION_JITTER,
+                                                WORD_PRESENTATION_DELAY + WORD_PRESENTATION_JITTER);
+                        yield return new WaitForSeconds(wordDelay);
+                    }
+                #endif
 
                 string deliveredItemName = deliveredItem.name;
                 string deliveredItemNameWithSpace = deliveredItemName.Replace('_', ' ');
@@ -726,14 +694,12 @@ public class DeliveryExperiment : CoroutineExperiment
                                                                                              {"player position", playerMovement.transform.position.ToString()},
                                                                                              {"store position", nextStore.transform.position.ToString()}});
                 
-                //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                #if !UNITY_WEBGL                                                                                                        // System.IO
-                    string lstFilepath = practice                                                                                       //
-                                ? System.IO.Path.Combine(UnityEPL.GetDataPath(), "practice-" + continuousTrialNum.ToString() + ".lst")  //
-                                : System.IO.Path.Combine(UnityEPL.GetDataPath(), continuousTrialNum.ToString() + ".lst");               //
-                    AppendWordToLst(lstFilepath, deliveredItemName);                                                                    //
-                #endif                                                                                                                  //
-                //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                #if !UNITY_WEBGL // System.IO
+                    string lstFilepath = practice
+                                ? System.IO.Path.Combine(UnityEPL.GetDataPath(), "practice-" + continuousTrialNum.ToString() + ".lst")
+                                : System.IO.Path.Combine(UnityEPL.GetDataPath(), continuousTrialNum.ToString() + ".lst");
+                    AppendWordToLst(lstFilepath, deliveredItemName);
+                #endif
 
                 this_trial_presented_stores.Add(nextStore);
                 all_presented_objects.Add(deliveredItemName);
@@ -853,16 +819,14 @@ public class DeliveryExperiment : CoroutineExperiment
         {
             int continuousTrialNum = trialNumber + trialNumOffset;
 
-            //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            #if !UNITY_WEBGL                                                                                                // NICLS
-            //Turn off ReadOnlyState                                                                                        //
-            if (NICLS_COURIER && trialNumber == NUM_CLASSIFIER_NORMALIZATION_TRIALS)                                        //
-            {                                                                                                               //
-                Debug.Log("READ_ONLY_OFF");                                                                                 //
-                niclsInterface.SendReadOnlyState(0);                                                                        //
-            }                                                                                                               //
-            #endif                                                                                                          //
-            //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            #if !UNITY_WEBGL // NICLS
+            //Turn off ReadOnlyState
+            if (NICLS_COURIER && trialNumber == NUM_CLASSIFIER_NORMALIZATION_TRIALS)
+            {
+                Debug.Log("READ_ONLY_OFF");
+                niclsInterface.SendReadOnlyState(0);
+            }
+            #endif
 
             // Next day message (and trial skip button)
             SetRamulatorState("WAITING", true, new Dictionary<string, object>());
@@ -889,13 +853,11 @@ public class DeliveryExperiment : CoroutineExperiment
             }
             SetRamulatorState("WAITING", false, new Dictionary<string, object>());
 
-            //////////////////////////////////////////////////////////////////////////////////
-            #if !UNITY_WEBGL                                                                // Ramulator
-                // Set ramulator trial start                                                //
-                if (useRamulator)                                                           //
-                    ramulatorInterface.BeginNewTrial(continuousTrialNum);                   //
-            #endif                                                                          //
-            //////////////////////////////////////////////////////////////////////////////////
+            #if !UNITY_WEBGL // Ramulator
+                // Set ramulator trial start
+                if (useRamulator)
+                    ramulatorInterface.BeginNewTrial(continuousTrialNum);
+            #endif
 
             // Do deliveries and recall
             yield return DoDeliveries(trialNumber, continuousTrialNum, practice: false);
@@ -971,7 +933,8 @@ public class DeliveryExperiment : CoroutineExperiment
             {
                 Debug.Log(inputField.text);
                 // if typed response is numeric value...
-                if (int.TryParse(inputField.text, out number_input))
+                int inputFieldAsNum;
+                if (int.TryParse(inputField.text, out inputFieldAsNum))
                 {
                     if (taskType == "value recall")
                     {
@@ -1073,34 +1036,31 @@ public class DeliveryExperiment : CoroutineExperiment
         yield return SkippableWait(RECALL_TEXT_DISPLAY_LENGTH);
         textDisplayer.ClearText();
 
+        #if !UNITY_WEBGL // System.IO
+            Dictionary<string, object> recordingData = new Dictionary<string, object>();
+            recordingData.Add("trial number", continuousTrialNum);
+            scriptedEventReporter.ReportScriptedEvent("object recall recording start", recordingData);
+            string output_directory = UnityEPL.GetDataPath();
+            string wavFilePath = practice
+                        ? System.IO.Path.Combine(output_directory, "practice-" + continuousTrialNum.ToString()) + ".wav"
+                        : System.IO.Path.Combine(output_directory, continuousTrialNum.ToString()) + ".wav";
+            soundRecorder.StartRecording(wavFilePath);
 
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        #if !UNITY_WEBGL                                                                                                  // System.IO
-            Dictionary<string, object> recordingData = new Dictionary<string, object>();                                  //
-            recordingData.Add("trial number", continuousTrialNum);                                                        //
-            scriptedEventReporter.ReportScriptedEvent("object recall recording start", recordingData);                    //
-            string output_directory = UnityEPL.GetDataPath();                                                             //
-            string wavFilePath = practice                                                                                 //
-                        ? System.IO.Path.Combine(output_directory, "practice-" + continuousTrialNum.ToString()) + ".wav"  //
-                        : System.IO.Path.Combine(output_directory, continuousTrialNum.ToString()) + ".wav";               //
-            soundRecorder.StartRecording(wavFilePath);                                                                    //
-                                                                                                                          //
-            if (practice && trialNumber == 0)                                                                             //
-                yield return DoFreeRecallDisplay("", PRACTICE_FREE_RECALL_LENGTH, practice: true, efrDisabled: true);     //
-            else if (practice)                                                                                            //
-                yield return DoFreeRecallDisplay("", PRACTICE_FREE_RECALL_LENGTH, practice: true);                        //
-            else                                                                                                          //
-                yield return DoFreeRecallDisplay("", FREE_RECALL_LENGTH);                                                 //
-                                                                                                                          //
-            scriptedEventReporter.ReportScriptedEvent("object recall recording stop", recordingData);                     //
-            soundRecorder.StopRecording();                                                                                //
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            if (practice && trialNumber == 0)
+                yield return DoFreeRecallDisplay("", PRACTICE_FREE_RECALL_LENGTH, practice: true, efrDisabled: true);
+            else if (practice)
+                yield return DoFreeRecallDisplay("", PRACTICE_FREE_RECALL_LENGTH, practice: true);
+            else
+                yield return DoFreeRecallDisplay("", FREE_RECALL_LENGTH);
+
+            scriptedEventReporter.ReportScriptedEvent("object recall recording stop", recordingData);
+            soundRecorder.StopRecording();
         #else
             // recordingData.Add("trial number", trialNumber);
             // scriptedEventReporter.ReportScriptedEvent("object recall typing start", recordingData);
             yield return DoTypedResponses(trialNumber, "free recall", FREE_RECALL_LENGTH, freeInputField, freeResponse);
             // scriptedEventReporter.ReportScriptedEvent("object recall typing end", recordingData);
-        #endif
+        #endif // !UNITY_WEBGL
 
         textDisplayer.ClearText();
         lowBeep.Play();
@@ -1135,37 +1095,33 @@ public class DeliveryExperiment : CoroutineExperiment
         textDisplayer.ClearText();
         foreach (StoreComponent cueStore in this_trial_presented_stores)
         {   
-            //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            #if !UNITY_WEBGL                                                                                                // NICLS
-            if (useNiclServer && (trialNumber >= NUM_CLASSIFIER_NORMALIZATION_TRIALS))                                      //
-            {                                                                                                               //
-                yield return new WaitForSeconds(WORD_PRESENTATION_DELAY);                                                   //
-                yield return WaitForClassifier(niclsClassifierTypes[continuousTrialNum]);                                   //
-            }                                                                                                               //
-            else                                                                                                            //
-            {                                                                                                               //
-                float wordDelay = UnityEngine.Random.Range(WORD_PRESENTATION_DELAY - WORD_PRESENTATION_JITTER,              //
-                                               WORD_PRESENTATION_DELAY + WORD_PRESENTATION_JITTER);                         //
-                yield return new WaitForSeconds(wordDelay);                                                                 //
-            }                                                                                                               //
-            #endif                                                                                                          //
-            //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            #if !UNITY_WEBGL // NICLS
+            if (useNiclServer && (trialNumber >= NUM_CLASSIFIER_NORMALIZATION_TRIALS))
+            {
+                yield return new WaitForSeconds(WORD_PRESENTATION_DELAY);
+                yield return WaitForClassifier(niclsClassifierTypes[continuousTrialNum]);
+            }
+            else
+            {
+                float wordDelay = UnityEngine.Random.Range(WORD_PRESENTATION_DELAY - WORD_PRESENTATION_JITTER,
+                                               WORD_PRESENTATION_DELAY + WORD_PRESENTATION_JITTER);
+                yield return new WaitForSeconds(wordDelay);
+            }
+            #endif
 
             cueStore.familiarization_object.SetActive(true);
             if (!COURIER_ONLINE)
                 messageImageDisplayer.SetCuedRecallMessage(true);
 
-            //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            #if !UNITY_WEBGL                                                                                                //  System.IO
-                string output_file_name = practice                                                                          //
-                            ? "practice-" + continuousTrialNum.ToString() + "-" + cueStore.GetStoreName()                   //
-                            : continuousTrialNum.ToString() + "-" + cueStore.GetStoreName();                                //
-                string output_directory = UnityEPL.GetDataPath();                                                           //
-                string wavFilePath = System.IO.Path.Combine(output_directory, output_file_name) + ".wav";                   //
-                string lstFilepath = System.IO.Path.Combine(output_directory, output_file_name) + ".lst";                   //
-                AppendWordToLst(lstFilepath, cueStore.GetLastPoppedItemName());                                             //
-            #endif                                                                                                          //
-            //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            #if !UNITY_WEBGL //  System.IO
+                string output_file_name = practice
+                            ? "practice-" + continuousTrialNum.ToString() + "-" + cueStore.GetStoreName()
+                            : continuousTrialNum.ToString() + "-" + cueStore.GetStoreName();
+                string output_directory = UnityEPL.GetDataPath();
+                string wavFilePath = System.IO.Path.Combine(output_directory, output_file_name) + ".wav";
+                string lstFilepath = System.IO.Path.Combine(output_directory, output_file_name) + ".lst";
+                AppendWordToLst(lstFilepath, cueStore.GetLastPoppedItemName());
+            #endif
 
             Dictionary<string, object> cuedRecordingData = new Dictionary<string, object>();
             cuedRecordingData.Add("trial number", COURIER_ONLINE ? trialNumber : continuousTrialNum);
@@ -1178,17 +1134,15 @@ public class DeliveryExperiment : CoroutineExperiment
             else
                 scriptedEventReporter.ReportScriptedEvent("cued recall recording start", cuedRecordingData);
             
-            //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            #if !UNITY_WEBGL                                                                                                // Microphone
-                soundRecorder.StartRecording(wavFilePath);                                                                  //
-                float startTime = Time.time;                                                                                //
-                while ((!InputManager.GetButtonDown("Continue") || Time.time < startTime + MIN_CUED_RECALL_TIME_PER_STORE)  //
-                    && Time.time < startTime + MAX_CUED_RECALL_TIME_PER_STORE)                                              //
-                    yield return null;                                                                                      //
-                                                                                                                            //
-                scriptedEventReporter.ReportScriptedEvent("cued recall recording stop", cuedRecordingData);                 //
-                soundRecorder.StopRecording();                                                                              //
-            //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            #if !UNITY_WEBGL // Microphone
+                soundRecorder.StartRecording(wavFilePath);
+                float startTime = Time.time;
+                while ((!InputManager.GetButtonDown("Continue") || Time.time < startTime + MIN_CUED_RECALL_TIME_PER_STORE)
+                    && Time.time < startTime + MAX_CUED_RECALL_TIME_PER_STORE)
+                    yield return null;
+
+                scriptedEventReporter.ReportScriptedEvent("cued recall recording stop", cuedRecordingData);
+                soundRecorder.StopRecording();
             #else
                 yield return DoTypedResponses(trialNumber, "cued recall", CUED_RECALL_TIME_PER_STORE, cuedInputField, cuedResponse, cueStore.GetStoreName());
             #endif
@@ -1210,9 +1164,7 @@ public class DeliveryExperiment : CoroutineExperiment
         Debug.Log("Final Recalls");
         scriptedEventReporter.ReportScriptedEvent("start final recall");
 
-        // LC : Whole chunk applied 
-        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        #if !UNITY_WEBGL
+        #if !UNITY_WEBGL // Microphone and System.IO
             SetRamulatorState("RETRIEVAL", true, new Dictionary<string, object>());
 
             string output_directory = UnityEPL.GetDataPath();
@@ -1277,7 +1229,6 @@ public class DeliveryExperiment : CoroutineExperiment
 
             SetRamulatorState("RETRIEVAL", false, new Dictionary<string, object>());
             scriptedEventReporter.ReportScriptedEvent("stop final recall");
-        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         #else
             messageImageDisplayer.SetGeneralBigMessageText("final store recall title", "final store recall main");
             yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
@@ -1849,24 +1800,24 @@ public class DeliveryExperiment : CoroutineExperiment
         SetRamulatorState("WAITING", false, new Dictionary<string, object>());
     }
 
-    //////////////////////////////////////////////////////////////////////////////////////
-    #if !UNITY_WEBGL                                                                    // System.IO
-    private void AppendWordToLst(string lstFilePath, string word)                       //
-    {                                                                                   //
-        System.IO.FileInfo lstFile = new System.IO.FileInfo(lstFilePath);               //
-        bool firstLine = !lstFile.Exists;                                               //
-        if (firstLine)                                                                  //
-            lstFile.Directory.Create();                                                 //
-        lstFile.Directory.Create();                                                     //
-        using (System.IO.StreamWriter w = System.IO.File.AppendText(lstFilePath))       //
-        {                                                                               //
-            if (!firstLine)                                                             //
-                w.Write(System.Environment.NewLine);                                    //
-            w.Write(word);                                                              //
-        }                                                                               //
-    }                                                                                   //
-    #endif                                                                              //
-    //////////////////////////////////////////////////////////////////////////////////////
+    
+    private void AppendWordToLst(string lstFilePath, string word)
+    {
+        #if !UNITY_WEBGL // System.IO
+            System.IO.FileInfo lstFile = new System.IO.FileInfo(lstFilePath);
+            bool firstLine = !lstFile.Exists;
+            if (firstLine)
+                lstFile.Directory.Create();
+            lstFile.Directory.Create();
+            using (System.IO.StreamWriter w = System.IO.File.AppendText(lstFilePath))
+            {
+                if (!firstLine)
+                    w.Write(System.Environment.NewLine);
+                w.Write(word);
+            }
+        #endif
+    }
+    
 
     public string GetStoreNameFromGameObjectName(string gameObjectName)
     {

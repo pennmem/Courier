@@ -29,7 +29,7 @@ public class InputReporter : DataReporter
 
     void CollectMouseEvents()
     {
-        #if !UNITY_WEBGL
+        #if !UNITY_WEBGL // Mac Application
             if (IsMacOS())
             {
                 int eventCount = UnityEPL.CountMouseEvents();

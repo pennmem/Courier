@@ -20,7 +20,7 @@ public class VideoControl : MonoBehaviour
         //        videoPlayer.Play();
         //}
 
-        #if !UNITY_WEBGL
+        #if !UNITY_WEBGL // WebGL No Secret Key
             // Stop
             if (InputManager.GetButtonDown("Secret"))
             {

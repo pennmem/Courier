@@ -20,7 +20,7 @@ public class DeliveryItems : MonoBehaviour
     public StoreAudio[] storeNamesToItems;
     public StoreAudio[] practiceStoreNamesToItems;
 
-#if !UNITY_WEBGL
+#if !UNITY_WEBGL // System.IO
     private static string RemainingItemsPath(string storeName)
     {
         return System.IO.Path.Combine(UnityEPL.GetDataPath(), "remaining_items", storeName);
@@ -92,7 +92,7 @@ public class DeliveryItems : MonoBehaviour
     void Awake()
     {
         reliableRandom = new System.Random(UnityEPL.GetParticipants()[0].GetHashCode());
-        #if !UNITY_WEBGL
+        #if !UNITY_WEBGL // System.IO
             WriteRemainingItemsFiles();
             WriteAlphabetizedItemsFile();
             WriteStoreNamesFile();
@@ -162,7 +162,7 @@ public class DeliveryItems : MonoBehaviour
 
     public AudioClip PopItem(string storeName)
     {
-        #if !UNITY_WEBGL
+        #if !UNITY_WEBGL // System.IO
             // Get the item
             string remainingItemsPath = RemainingItemsPath(storeName);
             string[] remainingItems = System.IO.File.ReadAllLines(remainingItemsPath);
@@ -192,7 +192,7 @@ public class DeliveryItems : MonoBehaviour
             System.Array.Resize(ref remainingItems, remainingItems.Length - 1);
             System.IO.File.WriteAllLines(remainingItemsPath, remainingItems);
             Debug.Log("Items remaining: " + remainingItems.Length.ToString());
-        #else // Online
+        #else
             int randomItemIndex = UnityEngine.Random.Range(0, remainingItems[storeName].Count);
             string randomItemName = remainingItems[storeName][randomItemIndex];
 
@@ -221,7 +221,7 @@ public class DeliveryItems : MonoBehaviour
 
     public static bool ItemsExhausted()
     {
-        #if !UNITY_WEBGL
+        #if !UNITY_WEBGL // System.IO
             bool itemsExhausted = false;
             string remainingItemsDirectory = RemainingItemsPath("");
             if (!System.IO.Directory.Exists(remainingItemsDirectory))
@@ -235,7 +235,7 @@ public class DeliveryItems : MonoBehaviour
                     itemsExhausted = true;
             }
             return itemsExhausted;
-        #else // Online
+        #else
 
             foreach(List<string> storeItems in remainingItems.Values)
             {

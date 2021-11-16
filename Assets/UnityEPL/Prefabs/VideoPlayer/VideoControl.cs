@@ -10,7 +10,7 @@ public class VideoControl : MonoBehaviour
 
     void Update()
     {
-        // JPB: TODO: Fix the video pause
+        // TODO: JPB: (Hokua) Fix the video pause
         // Pause
         //if (Input.GetKeyDown(KeyCode.Space)) 
         //{

@@ -15,7 +15,7 @@ public class BeginExperiment : MonoBehaviour
     public UnityEngine.UI.Text beginButtonText;
     public UnityEngine.UI.InputField sessionInput;
 
-    // JPB: TODO: Make these configuration variables
+    // TODO: JPB: Make these configuration variables
     private const bool NICLS_COURIER = true;
 
     string experiment_name = NICLS_COURIER ? "NiclsCourier" : "StandardCourier";
@@ -130,7 +130,7 @@ public class BeginExperiment : MonoBehaviour
         UnityEPL.SetExperimentName(experiment_name);
 
         LockLanguage();
-        // JPB: TODO: Use NextSessionNumber()
+        // TODO: JPB: Use NextSessionNumber()
         DeliveryExperiment.ConfigureExperiment(useRamulatorToggle.isOn, useNiclsToggle.isOn, UnityEPL.GetSessionNumber(), experiment_name);
         Debug.Log("Ram On: " + useRamulatorToggle.isOn);
         Debug.Log("Nicls On: " + useNiclsToggle.isOn);

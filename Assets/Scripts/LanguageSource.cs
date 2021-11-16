@@ -9,7 +9,7 @@ public static class LanguageSource
 
     private const string GERMAN_TRANSLATION_NEEDED = "GERMAN TRANSLATION NEEDED";
 
-    // JPB: TODO: Needs German translations
+    // TODO: JPB: Needs German translations
     private static Dictionary<string, string[]> language_string_dict = new Dictionary<string, string[]>()
     {
         {"", new string[] {"", ""}},

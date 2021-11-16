@@ -42,7 +42,7 @@ public class VideoSelector : MonoBehaviour
         #if !UNITY_WEBGL // WebGL VideoPlayer
             switch (videoType)
             {
-                // JPB: TODO: Refactor this to make movies an array of language options
+                // TODO: JPB: Refactor this to make movies an array of language options
                 case VideoType.MainIntro:
                     if (LanguageSource.current_language == LanguageSource.LANGUAGE.GERMAN)
                         videoPlayer.clip = germanIntro;

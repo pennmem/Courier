@@ -185,7 +185,6 @@ public class NiclsInterfaceHelper : IHostPC
         // excepts if there's an issue with latency, else returns
         //DoLatencyCheck();
 
-        // JPB: TODO: Put classifier stuff here
         Do(new EventBase(RepeatedlyUpdateClassifierResult));
         //DoRepeating(new RepeatingEvent(ClassifierResult, -1, 0, 1000));
 

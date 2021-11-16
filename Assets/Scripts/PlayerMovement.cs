@@ -5,7 +5,7 @@ using Luminosity.IO;
 
 public class PlayerMovement : MonoBehaviour
 {
-    // JPB: TODO: Make these configuration variables
+    // TODO: JPB: Make these configuration variables
     private const bool NICLS_COURIER = true;
 
     protected float maxTurnSpeed = NICLS_COURIER ? 50f : 45f;
@@ -115,7 +115,7 @@ public class PlayerMovement : MonoBehaviour
         return freeze_level > 0;
     }
 
-    // JPB: TODO: Fix this whole system
+    // TODO: JPB: Fix this whole system
     public bool IsDoubleFrozen()
     {
         return freeze_level > 1;

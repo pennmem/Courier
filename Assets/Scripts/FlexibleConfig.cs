@@ -76,6 +76,8 @@ public class Config
         }
     }
 
+    // TODO: JPB: (Hokua) Should this function be templated? What are the pros and cons?
+    //            Note: It could also be a "dynamic" type, but WebGL doesn't support it (so we can't use dynamic)
     private static object GetSetting(string setting)
     {
         object value;

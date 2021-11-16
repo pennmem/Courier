@@ -41,7 +41,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private static int continuousSessionNumber = -1;
     private static string expName;
 
-    // JPB: TODO: Make these configuration variables
+    // TODO: JPB: Make these configuration variables
 
     // Experiment type
     private const bool HOSPITAL_COURIER = false;
@@ -51,7 +51,7 @@ public class DeliveryExperiment : CoroutineExperiment
     
     private const string COURIER_VERSION = COURIER_ONLINE ? "v5.0.0online" : "v5.1.3";
 
-    private const string RECALL_TEXT = "*******"; // JPB: TODO: Remove this and use display system
+    private const string RECALL_TEXT = "*******"; // TODO: JPB: Remove this and use display system
     // Constants moved to the Config File
     //private const int DELIVERIES_PER_TRIAL = LESS_DELIVERIES ? 3 : (NICLS_COURIER ? 16 : 13);
     //private const int PRACTICE_DELIVERIES_PER_TRIAL = 4;
@@ -148,7 +148,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
 
     // Frame testing variables
-    private static bool IS_FRAME_TESTING = false;
+    private static bool isFrameTesting = false;
     private static int fpsValue = 0;
     private static float updateRateSeconds = 4.0f;
     private static int frameCount = 0;
@@ -203,7 +203,7 @@ public class DeliveryExperiment : CoroutineExperiment
         
 
         // Courier Online Frame testing
-        if (COURIER_ONLINE && IS_FRAME_TESTING) {
+        if (COURIER_ONLINE && isFrameTesting) {
             frameCount++;
             dt += Time.unscaledDeltaTime;
             if (dt > 1.0 / updateRateSeconds)
@@ -213,6 +213,8 @@ public class DeliveryExperiment : CoroutineExperiment
                 dt -= 1.0f / updateRateSeconds;
             }
             fpsValue = (int)Math.Round(fps);
+            // TODO: JPB: (Hokua) Make this use SetFPSDisplayText is MessageImageDisplayer
+            //            It is likely that all this Update() frame testing code should be moved into MessageImageDisplayer
             messageImageDisplayer.fpsDisplayText.text = fpsValue.ToString();
             fpsList.Add(fpsValue);
 
@@ -381,7 +383,7 @@ public class DeliveryExperiment : CoroutineExperiment
         textDisplayer.DisplayText("end text", endMessage);
 
         #if !UNITY_WEBGL // WebGL DLL
-            // JPB: TODO: Wait for button press to quit
+            // TODO: JPB: (Hokua) Wait for button press to quit
             while (true)
                 yield return null;
         #else
@@ -430,12 +432,12 @@ public class DeliveryExperiment : CoroutineExperiment
 
         WorldScreen();
         pointer.SetActive(false);
-        IS_FRAME_TESTING = true;
+        isFrameTesting = true;
         messageImageDisplayer.fpsDisplay.SetActive(true);
 
         yield return new WaitForSeconds(FRAME_TEST_LENGTH);
 
-        IS_FRAME_TESTING = false;
+        isFrameTesting = false;
 
         BlackScreen();
         int averageFps = (int)Math.Round(fpsList.Average());
@@ -1303,7 +1305,7 @@ public class DeliveryExperiment : CoroutineExperiment
                                  VideoSelector.VideoType.MusicVideos,
                                  videoOrder[continuousSessionNumber][clipNum]);
 
-            // JPB: TODO: Make this dynamic
+            // TODO: JPB: (Hokua) Make this dynamic
             var ratings = new string[] { "music video familiarity rating 0", "music video familiarity rating 1", "music video familiarity rating 2", "music video familiarity rating 3", "music video familiarity rating 4", };
             messageImageDisplayer.SetSlidingScaleText(titleText: "music video familiarity title",
                                                       ratings: ratings);
@@ -1800,7 +1802,8 @@ public class DeliveryExperiment : CoroutineExperiment
         SetRamulatorState("WAITING", false, new Dictionary<string, object>());
     }
 
-    
+
+
     private void AppendWordToLst(string lstFilePath, string word)
     {
         #if !UNITY_WEBGL // System.IO
@@ -1818,7 +1821,6 @@ public class DeliveryExperiment : CoroutineExperiment
         #endif
     }
     
-
     public string GetStoreNameFromGameObjectName(string gameObjectName)
     {
         foreach (StoreComponent store in environments[0].stores)

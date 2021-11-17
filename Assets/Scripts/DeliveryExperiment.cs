@@ -83,9 +83,9 @@ public class DeliveryExperiment : CoroutineExperiment
     private const float PAUSE_BEFORE_RETRIEVAL = 10f;
     private const float DISPLAY_ITEM_PAUSE = 5f;
     private const float AUDIO_TEXT_DISPLAY = 1.6f;
-    private const float WORD_PRESENTATION_DELAY = 1f;
+    private const float WORD_PRESENTATION_DELAY = NICLS_COURIER ? 1f : 1.25f; // TODO: JPB: Fix this is NICLS
     private const float WORD_PRESENTATION_JITTER = 0.25f;
-    private const float EFR_KEYPRESS_PRACTICE_DELAY = 2f;
+    private const float EFR_KEYPRESS_PRACTICE_DELAY = 2.25f;
     private const float EFR_KEYPRESS_PRACTICE_JITTER = 0.25f;
 
     // Keep as hardcoded values
@@ -1567,7 +1567,7 @@ public class DeliveryExperiment : CoroutineExperiment
         {
             SetEfrDisplay();
             float efrKeypressPracticedelay = UnityEngine.Random.Range(EFR_KEYPRESS_PRACTICE_DELAY - EFR_KEYPRESS_PRACTICE_JITTER,
-                                                          EFR_KEYPRESS_PRACTICE_DELAY + EFR_KEYPRESS_PRACTICE_JITTER);
+                                                                      EFR_KEYPRESS_PRACTICE_DELAY + EFR_KEYPRESS_PRACTICE_JITTER);
             yield return messageImageDisplayer.DisplayMessageTimed(
                 messageImageDisplayer.efr_display, efrKeypressPracticedelay);
 

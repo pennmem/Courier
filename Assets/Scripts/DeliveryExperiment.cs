@@ -46,8 +46,12 @@ public class DeliveryExperiment : CoroutineExperiment
     // Experiment type
     private const bool HOSPITAL_COURIER = false;
     private const bool NICLS_COURIER = true;
-    private const bool COURIER_ONLINE = true;
     private const bool GRANT_VERSION = false;
+    #if !UNITY_WEBGL
+        private const bool COURIER_ONLINE = false;
+    #else
+        private const bool COURIER_ONLINE = true;
+    #endif // !UNITY_WEBGL
     
     private const string COURIER_VERSION = COURIER_ONLINE ? "v5.0.0online" : "v5.1.3";
 
@@ -504,9 +508,6 @@ public class DeliveryExperiment : CoroutineExperiment
                                       LanguageSource.GetLanguageString("playing"),
                                       LanguageSource.GetLanguageString("recording confirmation"));
         #endif // !UNITY_WEBGL
-
-        if (HOSPITAL_COURIER && !COURIER_ONLINE)
-            yield return DoFamiliarization();
     }
 
     private IEnumerator DoRecapInstructions(bool forceFR = false)

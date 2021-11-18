@@ -44,8 +44,8 @@ public class DeliveryExperiment : CoroutineExperiment
     // TODO: JPB: Make these configuration variables
 
     // Experiment type
-    private const bool HOSPITAL_COURIER = false;
-    private const bool NICLS_COURIER = true;
+    private const bool HOSPITAL_COURIER = true;
+    private const bool NICLS_COURIER = false;
     private const bool GRANT_VERSION = false;
     #if !UNITY_WEBGL
         private const bool COURIER_ONLINE = false;
@@ -77,11 +77,12 @@ public class DeliveryExperiment : CoroutineExperiment
     private const float FREE_RECALL_LENGTH = 90f;
     private const float PRACTICE_FREE_RECALL_LENGTH = 25f;
     private const float STORE_FINAL_RECALL_LENGTH = 90f;
-    private const float FINAL_RECALL_LENGTH = NICLS_COURIER ? 120f : COURIER_ONLINE ? 240f : 180f;
+    private const float OBJECT_FINAL_RECALL_LENGTH = NICLS_COURIER ? 120f : COURIER_ONLINE ? 240f : 180f;
     private const float TIME_BETWEEN_DIFFERENT_RECALL_PHASES = 2f;
     private const float CUED_RECALL_TIME_PER_STORE = 10f;
     private const float MIN_CUED_RECALL_TIME_PER_STORE = 2f;
     private const float MAX_CUED_RECALL_TIME_PER_STORE = NICLS_COURIER ? 6f : 10f;
+    private const float POINTING_CORRECT_THRESHOLD = Mathf.PI / 12; // 15°
     private const float ARROW_CORRECTION_TIME = 3f;
     private const float ARROW_ROTATION_SPEED = 1f;
     private const float PAUSE_BEFORE_RETRIEVAL = 10f;
@@ -93,6 +94,8 @@ public class DeliveryExperiment : CoroutineExperiment
     private const float EFR_KEYPRESS_PRACTICE_JITTER = 0.25f;
 
     // Keep as hardcoded values
+    private const bool STAR_SYSTEM_ACTIVE = true;
+
     private const int NICLS_READ_ONLY_SESSIONS = 8;
     private const int NICLS_CLOSED_LOOP_SESSIONS = 4;
 
@@ -107,11 +110,11 @@ public class DeliveryExperiment : CoroutineExperiment
     public Familiarizer familiarizer;
     public MessageImageDisplayer messageImageDisplayer;
 
+    private static bool useRamulator = false;
+    private static bool useNiclServer = false;
     #if !UNITY_WEBGL // Syncbox, Ramulator, and NICLS
         private Syncbox syncs;
-        private static bool useRamulator;
         public RamulatorInterface ramulatorInterface;
-        private static bool useNiclServer;
         public NiclsInterface niclsInterface;
     #endif // !UNITY_WEBGL
 
@@ -175,15 +178,14 @@ public class DeliveryExperiment : CoroutineExperiment
     }
     
     public static void ConfigureExperiment(bool newUseRamulator, bool newUseNiclServer, int newSessionNumber, string newExpName)
-    {   
+    {
         #if !UNITY_WEBGL // Ramulator and NICLS
             useRamulator = newUseRamulator;
             useNiclServer = newUseNiclServer;
         #endif // !UNITY_WEBGL
         sessionNumber = newSessionNumber;
-        continuousSessionNumber = useNiclServer
-            ? NICLS_READ_ONLY_SESSIONS + sessionNumber
-            : sessionNumber;
+        continuousSessionNumber = useNiclServer ? NICLS_READ_ONLY_SESSIONS + sessionNumber :
+                                  sessionNumber;
         expName = newExpName;
         Config.experimentConfigName = expName;
     }
@@ -205,7 +207,6 @@ public class DeliveryExperiment : CoroutineExperiment
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
         
-
         // Courier Online Frame testing
         if (COURIER_ONLINE && isFrameTesting) {
             frameCount++;
@@ -246,6 +247,16 @@ public class DeliveryExperiment : CoroutineExperiment
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.SetCursor(new Texture2D(0, 0), new Vector2(0, 0), CursorMode.ForceSoftware);
+
+        // Turn player particles and falling leaves on
+        if (HOSPITAL_COURIER)
+        {
+            GameObject.Find("Player/player perspective/Particle System").SetActive(true);
+            var trees = new List<int> { 26, 27, 28, 29, 30, 31, 32, 33, 34, 44 };
+            string treeStr = "henry tc3 environment/edge/Tree ({0})/Particle System";
+            foreach (int treeIndex in trees)
+                GameObject.Find(string.Format(treeStr, treeIndex)).SetActive(true);
+        }
         
         #if !UNITY_WEBGL // Syncbox
             QualitySettings.vSyncCount = 1;
@@ -269,7 +280,6 @@ public class DeliveryExperiment : CoroutineExperiment
             UnityEPL.SetExperimentName("COURIER_ONLINE");
             UnityEPL.SetSessionNumber(0);
         #endif
-
 
         Dictionary<string, object> sceneData = new Dictionary<string, object>();
         sceneData.Add("sceneName", "MainGame");
@@ -379,7 +389,7 @@ public class DeliveryExperiment : CoroutineExperiment
             if (continuousSessionNumber == NICLS_READ_ONLY_SESSIONS + NICLS_CLOSED_LOOP_SESSIONS - 1)
             {
                 var ratings = new string[] { "music video question 0 rating 0", "music video question 0 rating 1" };
-                messageImageDisplayer.SetSlidingScale2Text(titleText: "music video question 0 title",
+                messageImageDisplayer.SetSlidingScale2Text(mainText: "music video question 0 title",
                                                            ratings: ratings);
                 StartCoroutine(messageImageDisplayer.DisplaySlidingScale2Message(messageImageDisplayer.sliding_scale_2_display));
             }
@@ -502,11 +512,11 @@ public class DeliveryExperiment : CoroutineExperiment
             yield return DoSubjectSessionQuitPrompt(sessionNumber, LanguageSource.GetLanguageString("running participant"));
 
         #if !UNITY_WEBGL // Microphone
-        yield return DoMicrophoneTest(LanguageSource.GetLanguageString("microphone test"),
-                                      LanguageSource.GetLanguageString("after the beep"),
-                                      LanguageSource.GetLanguageString("recording"),
-                                      LanguageSource.GetLanguageString("playing"),
-                                      LanguageSource.GetLanguageString("recording confirmation"));
+            yield return DoMicrophoneTest(LanguageSource.GetLanguageString("microphone test"),
+                                          LanguageSource.GetLanguageString("after the beep"),
+                                          LanguageSource.GetLanguageString("recording"),
+                                          LanguageSource.GetLanguageString("playing"),
+                                          LanguageSource.GetLanguageString("recording confirmation"));
         #endif // !UNITY_WEBGL
     }
 
@@ -742,6 +752,8 @@ public class DeliveryExperiment : CoroutineExperiment
         Debug.Log("Practice trials");
         scriptedEventReporter.ReportScriptedEvent("start practice trials");
 
+        starSystem.ResetSession();
+
         yield return DoRecapInstructions(forceFR: true);
 
         messageImageDisplayer.SetGeneralMessageText(mainText: "practice invitation");
@@ -810,6 +822,17 @@ public class DeliveryExperiment : CoroutineExperiment
             if (!COURIER_ONLINE)
                 yield return DoFixation(PAUSE_BEFORE_RETRIEVAL, practice: true);
             yield return DoRecall(trialNumber, trialNumber, practice: true);
+
+            // Delivery Scores
+            if (HOSPITAL_COURIER)
+            {
+                var mtFormatValues = new string[] { starSystem.NumCorrectInSession(c => c < POINTING_CORRECT_THRESHOLD / Mathf.PI).ToString(),
+                                                    starSystem.NumInSession().ToString() };
+                messageImageDisplayer.SetGeneralBigMessageText(titleText: "deliv day pointing accuracy title",
+                                                               mainText: "deliv day pointing accuracy main",
+                                                               mtFormatVals: mtFormatValues);
+                yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
+            }
         }
 
         messageImageDisplayer.SetGeneralMessageText(titleText: "new efr check understanding title",
@@ -872,6 +895,17 @@ public class DeliveryExperiment : CoroutineExperiment
             if (!COURIER_ONLINE)
                 yield return DoFixation(PAUSE_BEFORE_RETRIEVAL, practice: false);
             yield return DoRecall(trialNumber, continuousTrialNum, practice: false);
+
+            // Delivery Scores
+            if (HOSPITAL_COURIER)
+            {
+                var mtFormatValues = new string[] { starSystem.NumCorrectInSession(c => c < POINTING_CORRECT_THRESHOLD / Mathf.PI).ToString(),
+                                                    starSystem.NumInSession().ToString() };
+                messageImageDisplayer.SetGeneralBigMessageText(titleText: "deliv day pointing accuracy title",
+                                                               mainText: "deliv day pointing accuracy main",
+                                                               mtFormatVals: mtFormatValues);
+                yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
+            }
         }
         scriptedEventReporter.ReportScriptedEvent("stop trials");
     }
@@ -1227,7 +1261,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
             textDisplayer.ClearText();
             ClearTitle();
-            yield return DoFreeRecallDisplay("all objects recall", FINAL_RECALL_LENGTH);
+            yield return DoFreeRecallDisplay("all objects recall", OBJECT_FINAL_RECALL_LENGTH);
             scriptedEventReporter.ReportScriptedEvent("final object recall recording stop");
             soundRecorder.StopRecording();
 
@@ -1314,12 +1348,12 @@ public class DeliveryExperiment : CoroutineExperiment
 
             // TODO: JPB: (Hokua) Make this dynamic
             var ratings = new string[] { "music video familiarity rating 0", "music video familiarity rating 1", "music video familiarity rating 2", "music video familiarity rating 3", "music video familiarity rating 4", };
-            messageImageDisplayer.SetSlidingScaleText(titleText: "music video familiarity title",
+            messageImageDisplayer.SetSlidingScaleText(mainText: "music video familiarity title",
                                                       ratings: ratings);
             yield return messageImageDisplayer.DisplaySlidingScaleMessage(messageImageDisplayer.sliding_scale_display);
 
             ratings = new string[] { "music video engagement rating 0", "music video engagement rating 1", "music video engagement rating 2", "music video engagement rating 3", "music video engagement rating 4", };
-            messageImageDisplayer.SetSlidingScaleText(titleText: "music video engagement title",
+            messageImageDisplayer.SetSlidingScaleText(mainText: "music video engagement title",
                                                       ratings: ratings);
             yield return messageImageDisplayer.DisplaySlidingScaleMessage(messageImageDisplayer.sliding_scale_display);
         }
@@ -1391,32 +1425,36 @@ public class DeliveryExperiment : CoroutineExperiment
         }
 
         float pointerError = PointerError(nextStore.gameObject);
-        if (pointerError < Mathf.PI / 12)
+        if (pointerError < POINTING_CORRECT_THRESHOLD)
         {
             pointerParticleSystem.Play();
-            pointerText.text = LanguageSource.GetLanguageString("correct to within") + Mathf.RoundToInt(pointerError * Mathf.Rad2Deg).ToString() + ". ";
+            pointerText.text = LanguageSource.GetLanguageString("correct pointing");
         }
         else
         {
-            pointerText.text = LanguageSource.GetLanguageString("wrong by") + Mathf.RoundToInt(pointerError * Mathf.Rad2Deg).ToString() + ". ";
+            pointerText.text = LanguageSource.GetLanguageString("incorrect pointing");
         }
 
         float wrongness = pointerError / Mathf.PI;
         ColorPointer(new Color(wrongness, 1 - wrongness, .2f));
         bool improvement = starSystem.ReportScore(1 - wrongness);
 
+        if (STAR_SYSTEM_ACTIVE)
+            starSystem.gameObject.SetActive(true);
+            yield return starSystem.ShowDifference();
+
         if (improvement)
             pointerText.text = pointerText.text + LanguageSource.GetLanguageString("rating improved");
 
         pointerText.text = pointerText.text + "\n" + LanguageSource.GetLanguageString("continue");
 
-        yield return PointArrowToStore(nextStore.gameObject, ARROW_ROTATION_SPEED, ARROW_CORRECTION_TIME);
         while (!InputManager.GetButtonDown("Continue"))
             yield return null;
         scriptedEventReporter.ReportScriptedEvent("pointer message cleared");
         pointerParticleSystem.Stop();
         pointer.SetActive(false);
         pointerMessage.SetActive(false);
+        starSystem.gameObject.SetActive(false);
     }
 
     private bool lastPointingIndicatorState = false;
@@ -1717,6 +1755,8 @@ public class DeliveryExperiment : CoroutineExperiment
             }
             scriptedEventReporter.ReportScriptedEvent("stop classifier wait", classifierWaitInfo);
             Debug.Log("CLASSIFIER SAID TO GO ---------------------------------------------------------");
+        #else
+            yield return null;
         #endif // !UNITY_WEBGL
     }
     
@@ -1777,8 +1817,9 @@ public class DeliveryExperiment : CoroutineExperiment
         pauser.AllowPausing();
         regularCamera.enabled = true;
         blackScreenCamera.enabled = false;
-        if (!NICLS_COURIER)
-            starSystem.gameObject.SetActive(true);
+        // TODO: JPB: Hospital decide
+        //if (HOSPITAL_COURIER && STAR_SYSTEM_ACTIVE)
+        //    starSystem.gameObject.SetActive(true);
         memoryWordCanvas.SetActive(false);
         playerMovement.Zero();
     }

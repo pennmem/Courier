@@ -88554,6 +88554,12 @@ MonoBehaviour:
     type: 2}
   m_PrefabInternal: {fileID: 301704718}
   m_Script: {fileID: 708705254, guid: f70555f144d8491a825f0804e09c671c, type: 3}
+--- !u!114 &301704722 stripped
+MonoBehaviour:
+  m_PrefabParentObject: {fileID: 114094435386673154, guid: b593be3339cd548a6bd6fc689cb80b2b,
+    type: 2}
+  m_PrefabInternal: {fileID: 301704718}
+  m_Script: {fileID: 11500000, guid: 486e54f8403ba471383efdf3a6ef7c92, type: 3}
 --- !u!1 &301832327
 GameObject:
   m_ObjectHideFlags: 0
@@ -278751,7 +278757,7 @@ RectTransform:
   - {fileID: 321893258}
   - {fileID: 1074856502}
   m_Father: {fileID: 393670695}
-  m_RootOrder: 36
+  m_RootOrder: 37
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.27584165, y: 0.7034083}
   m_AnchorMax: {x: 0.7175839, y: 0.8464728}
@@ -282434,7 +282440,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 27f1eafd105a7444bbfd6db2535fc92b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  soundRecorder: {fileID: 0}
+  soundRecorder: {fileID: 1776115985}
   textDisplayer: {fileID: 411285200}
   videoPlayer: {fileID: 1556425419}
   videoSelector: {fileID: 1556425423}
@@ -282449,8 +282455,8 @@ MonoBehaviour:
   blackScreenCamera: {fileID: 2044357590}
   familiarizer: {fileID: 1485240232}
   messageImageDisplayer: {fileID: 393670696}
-  ramulatorInterface: {fileID: 0}
-  niclsInterface: {fileID: 0}
+  ramulatorInterface: {fileID: 301704722}
+  niclsInterface: {fileID: 1356727909}
   playerMovement: {fileID: 1558448419}
   pointer: {fileID: 1838878098}
   pointerParticleSystem: {fileID: 1602623931}
@@ -400777,6 +400783,12 @@ Prefab:
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 5eb10f8d3feb149fab21fe7302cfc2a7, type: 2}
   m_IsPrefabParent: 0
+--- !u!114 &1356727909 stripped
+MonoBehaviour:
+  m_PrefabParentObject: {fileID: 114412830428357968, guid: 5eb10f8d3feb149fab21fe7302cfc2a7,
+    type: 2}
+  m_PrefabInternal: {fileID: 1356727908}
+  m_Script: {fileID: 11500000, guid: f4c6fa20bebb049c9860e9eeff1f36a1, type: 3}
 --- !u!1001 &1357136244
 Prefab:
   m_ObjectHideFlags: 0
@@ -528622,6 +528634,12 @@ Prefab:
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 45ba32d8a228147e0a8fa7274e1f854c, type: 2}
   m_IsPrefabParent: 0
+--- !u!114 &1776115985 stripped
+MonoBehaviour:
+  m_PrefabParentObject: {fileID: 114833583114952270, guid: 45ba32d8a228147e0a8fa7274e1f854c,
+    type: 2}
+  m_PrefabInternal: {fileID: 1776115984}
+  m_Script: {fileID: 11500000, guid: 34942a3aeb56d41ce820605ff9127a45, type: 3}
 --- !u!1 &1776199984
 GameObject:
   m_ObjectHideFlags: 0

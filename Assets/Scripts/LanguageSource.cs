@@ -29,6 +29,8 @@ public static class LanguageSource
         { "keyboard", new string[] {"Use Arrow keys to adjust the arrow, then press (X) to continue", GERMAN_TRANSLATION_NEEDED} },
         { "wrong by", new string[] {"Not quite. The arrow will now show the exact direction. That was off by degrees: ", "Nicht ganz! Der Pfeil zeigt Ihnen nur die richtige Richtung. Abweichung in Grad zur korrekten Antwort: "} },
         { "correct to within", new string[] {"Good! That was correct to within degrees: ", "Fast perfekt! Abweichung in Grad zur korrekten Antwort: "} },
+        { "incorrect pointing", new string[] {"Not quite. That was more than 15 degrees away from the store location.", GERMAN_TRANSLATION_NEEDED} },
+        { "correct pointing", new string[] {"Good job! That was correct to within 15 degrees of the store location.", GERMAN_TRANSLATION_NEEDED} },
         { "all objects recall", new string[] {"Please recall all the objects that you delivered.", "Bitte erinnern Sie alle Gegenstände, die Sie zugestellt haben."} },
         { "all stores recall", new string[] {"Please recall all the stores that you delivered objects to.", "Bitte erinnern Sie alle Geschäfte, zu denen Sie Pakete geliefert haben."} },
         { "end message", new string[] {"Thank you for being a great delivery person!", "Vielen Dank für Ihre Teilnahme!"} },
@@ -130,6 +132,8 @@ public static class LanguageSource
         { "cued recall title", new string [] { "Cued Recall", GERMAN_TRANSLATION_NEEDED} },
         { "online cued recall main", new string [] {"Please recall which item you delivered to the store shown on the screen.\n\nPress the Enter key after recalling the item to move to the next store", GERMAN_TRANSLATION_NEEDED}},
 
+        {"deliv day pointing accuracy title", new string[] {"Pointing Accuracy", GERMAN_TRANSLATION_NEEDED} },
+
         { "final store recall title", new string [] {"Final Store Recall", GERMAN_TRANSLATION_NEEDED} },
         { "final store recall main", new string [] {"Try to recall stores that you delivered to.\n\nNote that you need to recall the store names", GERMAN_TRANSLATION_NEEDED} },
         { "final store recall text", new string [] {"Start typing store name one at a time...", GERMAN_TRANSLATION_NEEDED}},
@@ -196,10 +200,24 @@ public static class LanguageSource
         { "confetti", new string[] {"confetti", "Konfetti"} },
     };
 
+    private static Dictionary<string, string[]> language_formattable_string_dict = new Dictionary<string, string[]>()
+    {
+        {"", new string[] {"", ""}},
+
+        {"deliv day pointing accuracy main", new string[] { "Good job! You correctly pointed to {0} out of {1} items in this delivery day.", GERMAN_TRANSLATION_NEEDED } },
+    };
+
     public static string GetLanguageString(string string_name)
     {
         if (!language_string_dict.ContainsKey(string_name))
             throw new UnityException("I don't have a language string called: " + string_name);
         return language_string_dict[string_name][(int)current_language];
+    }
+
+    public static string GetFormattableLanguageString(string string_name, string[] format_values)
+    {
+        if (!language_formattable_string_dict.ContainsKey(string_name))
+            throw new UnityException("I don't have a language string called: " + string_name);
+        return string.Format(language_formattable_string_dict[string_name][(int)current_language], format_values);
     }
 }

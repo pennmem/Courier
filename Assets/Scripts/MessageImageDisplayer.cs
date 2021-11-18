@@ -307,7 +307,7 @@ public class MessageImageDisplayer : MonoBehaviour
     }
 
     public void SetEfrElementsActive(bool speakNowText = false, bool descriptiveText = false, 
-                                             bool controllerLeftButtonImage = false, bool controllerRightButtonImage = false)
+                                     bool controllerLeftButtonImage = false, bool controllerRightButtonImage = false)
     {
         efr_display.transform.Find("speak now text").GetComponent<Text>().gameObject.SetActive(speakNowText);
         efr_display.transform.Find("descriptive text").GetComponent<Text>().gameObject.SetActive(descriptiveText);
@@ -341,12 +341,77 @@ public class MessageImageDisplayer : MonoBehaviour
             general_big_message_display.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString(continueText);
     }
 
-    public void SetSlidingScaleText(string titleText = "", string[] ratings = null, string continueText = "continue")
+    public void SetGeneralMessageText(string titleText = "", string mainText = "", string descriptiveText = "", string continueText = "continue",
+                                      string[] ttFormatVals = null, string[] mtFormatVals = null, string[] dtFormatVals = null, string[] ctFormatVals = null)
+    {
+        if (titleText != null)
+            if (ttFormatVals == null)
+                general_message_display.transform.Find("title text").GetComponent<Text>().text = LanguageSource.GetLanguageString(titleText);
+            else
+                general_message_display.transform.Find("title text").GetComponent<Text>().text = LanguageSource.GetFormattableLanguageString(titleText, ttFormatVals);
+        if (mainText != null)
+            if (mtFormatVals == null)
+                general_message_display.transform.Find("main text").GetComponent<Text>().text = LanguageSource.GetLanguageString(mainText);
+            else
+                general_message_display.transform.Find("main text").GetComponent<Text>().text = LanguageSource.GetFormattableLanguageString(mainText, mtFormatVals);
+        if (descriptiveText != null)
+            if (dtFormatVals == null)
+                general_message_display.transform.Find("descriptive text").GetComponent<Text>().text = LanguageSource.GetLanguageString(descriptiveText);
+            else
+                general_message_display.transform.Find("descriptive text").GetComponent<Text>().text = LanguageSource.GetFormattableLanguageString(descriptiveText, dtFormatVals);
+        if (continueText != null)
+            if (ctFormatVals == null)
+                general_message_display.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString(continueText);
+            else
+                general_message_display.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetFormattableLanguageString(continueText, ctFormatVals);
+    }
+
+    public void SetGeneralBigMessageText(string titleText = "", string mainText = "", string continueText = "continue",
+                                         string[] ttFormatVals = null, string[] mtFormatVals = null, string[] ctFormatVals = null)
+    {
+        if (titleText != null)
+            if (ttFormatVals == null)
+                general_big_message_display.transform.Find("title text").GetComponent<Text>().text = LanguageSource.GetLanguageString(titleText);
+            else
+                general_big_message_display.transform.Find("title text").GetComponent<Text>().text = LanguageSource.GetFormattableLanguageString(titleText, ttFormatVals);
+        if (mainText != null)
+            if (mtFormatVals == null)
+                general_big_message_display.transform.Find("main text").GetComponent<Text>().text = LanguageSource.GetLanguageString(mainText);
+            else
+                general_big_message_display.transform.Find("main text").GetComponent<Text>().text = LanguageSource.GetFormattableLanguageString(mainText, mtFormatVals);
+        if (continueText != null)
+            if (ctFormatVals == null)
+                general_big_message_display.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString(continueText);
+            else
+                general_big_message_display.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetFormattableLanguageString(continueText, ctFormatVals);
+    }
+
+    public void SetGeneralBiggerMessageText(string titleText = "", string mainText = "", string continueText = "continue",
+                                            string[] ttFormatVals = null, string[] mtFormatVals = null, string[] ctFormatVals = null)
+    {
+        if (titleText != null)
+            if (ttFormatVals == null)
+                general_bigger_message_display.transform.Find("title text").GetComponent<Text>().text = LanguageSource.GetLanguageString(titleText);
+            else
+                general_bigger_message_display.transform.Find("title text").GetComponent<Text>().text = LanguageSource.GetFormattableLanguageString(titleText, ttFormatVals);
+        if (mainText != null)
+            if (mtFormatVals == null)
+                general_bigger_message_display.transform.Find("main text").GetComponent<Text>().text = LanguageSource.GetLanguageString(mainText);
+            else
+                general_bigger_message_display.transform.Find("main text").GetComponent<Text>().text = LanguageSource.GetFormattableLanguageString(mainText, mtFormatVals);
+        if (continueText != null)
+            if (ctFormatVals == null)
+                general_bigger_message_display.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString(continueText);
+            else
+                general_bigger_message_display.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetFormattableLanguageString(continueText, ctFormatVals);
+    }
+
+    public void SetSlidingScaleText(string mainText = "", string[] ratings = null, string continueText = "continue")
     {
         sliding_scale_display.transform.Find("sliding scale").GetComponent<Slider>().value = 2;
 
-        if (titleText != null)
-            sliding_scale_display.transform.Find("title text").GetComponent<Text>().text = LanguageSource.GetLanguageString(titleText);
+        if (mainText != null)
+            sliding_scale_display.transform.Find("main text").GetComponent<Text>().text = LanguageSource.GetLanguageString(mainText);
 
         int numRatings = sliding_scale_display.transform.Find("ratings").childCount;
         if (ratings != null)
@@ -360,12 +425,12 @@ public class MessageImageDisplayer : MonoBehaviour
             sliding_scale_display.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString(continueText);
     }
 
-    public void SetSlidingScale2Text(string titleText = "", string[] ratings = null, string continueText = "continue")
+    public void SetSlidingScale2Text(string mainText = "", string[] ratings = null, string continueText = "continue")
     {
         sliding_scale_2_display.transform.Find("sliding scale").GetComponent<Slider>().value = 1;
 
-        if (titleText != null)
-            sliding_scale_display.transform.Find("title text").GetComponent<Text>().text = LanguageSource.GetLanguageString(titleText);
+        if (mainText != null)
+            sliding_scale_display.transform.Find("main text").GetComponent<Text>().text = LanguageSource.GetLanguageString(mainText);
 
         int numRatings = sliding_scale_2_display.transform.Find("ratings").childCount;
         if (ratings != null)
@@ -379,39 +444,7 @@ public class MessageImageDisplayer : MonoBehaviour
             sliding_scale_2_display.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString(continueText);
     }
 
-    public void SetGeneralMessageText(string titleText = "", string mainText = "", string descriptiveText = "", string continueText = "continue")
-    {
-        if (titleText != null)
-            general_message_display.transform.Find("title text").GetComponent<Text>().text = LanguageSource.GetLanguageString(titleText);
-        if (mainText != null)
-            general_message_display.transform.Find("main text").GetComponent<Text>().text = LanguageSource.GetLanguageString(mainText);
-        if (descriptiveText != null)
-            general_message_display.transform.Find("descriptive text").GetComponent<Text>().text = LanguageSource.GetLanguageString(descriptiveText);
-        if (continueText != null)
-            general_message_display.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString(continueText);
-    }
-
-    public void SetGeneralBigMessageText(string titleText = "", string mainText = "", string continueText = "continue")
-    {
-        if (titleText != null)
-            general_big_message_display.transform.Find("title text").GetComponent<Text>().text = LanguageSource.GetLanguageString(titleText);
-        if (mainText != null)
-            general_big_message_display.transform.Find("main text").GetComponent<Text>().text = LanguageSource.GetLanguageString(mainText);
-        if (continueText != null)
-            general_big_message_display.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString(continueText);
-    }
-
-    public void SetGeneralBiggerMessageText(string titleText = "", string mainText = "", string continueText = "continue")
-    {
-        if (titleText != null)
-            general_bigger_message_display.transform.Find("title text").GetComponent<Text>().text = LanguageSource.GetLanguageString(titleText);
-        if (mainText != null)
-            general_bigger_message_display.transform.Find("main text").GetComponent<Text>().text = LanguageSource.GetLanguageString(mainText);
-        if (continueText != null)
-            general_bigger_message_display.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString(continueText);
-    }
-
-    public IEnumerator DoTextBoldTimedOrButton(string buttonName, Text displayText, float waitTime)
+    private IEnumerator DoTextBoldTimedOrButton(string buttonName, Text displayText, float waitTime)
     {
         string buttonText = displayText.text;
         Vector2 anchorMin = displayText.GetComponentInParent<RectTransform>().anchorMin;

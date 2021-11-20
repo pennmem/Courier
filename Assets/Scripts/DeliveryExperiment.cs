@@ -64,6 +64,7 @@ public class DeliveryExperiment : CoroutineExperiment
     //private const int TRIALS_PER_SESSION_DOUBLE_TOWN_LEARNING = LESS_TRIALS ? 1 : 3;
     private const int EFR_PRACTICE_TRIAL_NUM = 1;
     private const int NUM_CLASSIFIER_NORMALIZATION_TRIALS = 1;
+    private const int HOSPTIAL_TOWN_LEARNING_NUM_STORES = 8;
     private const int SINGLE_TOWN_LEARNING_SESSIONS = 1;
     private const int DOUBLE_TOWN_LEARNING_SESSIONS = 0;
     private const int POINTING_INDICATOR_DELAY = NICLS_COURIER ? 12 : 48;
@@ -140,8 +141,8 @@ public class DeliveryExperiment : CoroutineExperiment
     private string efrLeftLogMsg = "incorrect";
     private string efrRightLogMsg = "correct";
 
-    private List<StoreComponent> this_trial_presented_stores = new List<StoreComponent>();
-    private List<string> all_presented_objects = new List<string>();
+    private List<StoreComponent> thisTrialPresentedStores = new List<StoreComponent>();
+    private List<string> allPresentedObjects = new List<string>();
 
     List<NiclsClassifierType> niclsClassifierTypes = null;
 
@@ -331,24 +332,35 @@ public class DeliveryExperiment : CoroutineExperiment
 
         // Town Learning
         int trialsForFirstSubSession = Config.trialsPerSession;
-        if (sessionNumber < SINGLE_TOWN_LEARNING_SESSIONS + DOUBLE_TOWN_LEARNING_SESSIONS
-            && NICLS_COURIER && !useNiclServer)
+        if (sessionNumber < SINGLE_TOWN_LEARNING_SESSIONS + DOUBLE_TOWN_LEARNING_SESSIONS)
         {
-            Debug.Log("Town Learning Phase");
-            trialsForFirstSubSession = Config.trialsPerSessionSingleTownLearning;
-            messageImageDisplayer.SetGeneralMessageText("town learning title", "town learning main 1");
-            yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
-            WorldScreen();
-            yield return DoTownLearning(0, environment.stores.Length);
-
-            if (sessionNumber < DOUBLE_TOWN_LEARNING_SESSIONS)
+            if (NICLS_COURIER && !useNiclServer)
             {
-                trialsForFirstSubSession = Config.trialsPerSessionDoubleTownLearning;
-                messageImageDisplayer.SetGeneralMessageText("town learning title", "town learning main 2");
+                Debug.Log("Town Learning Phase");
+                trialsForFirstSubSession = Config.trialsPerSessionSingleTownLearning;
+                messageImageDisplayer.SetGeneralMessageText("town learning title", "town learning main 1");
                 yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
                 WorldScreen();
-                yield return DoTownLearning(1, environment.stores.Length);
-            } 
+                yield return DoTownLearning(0, environment.stores.Length);
+
+                if (sessionNumber < DOUBLE_TOWN_LEARNING_SESSIONS)
+                {
+                    trialsForFirstSubSession = Config.trialsPerSessionDoubleTownLearning;
+                    messageImageDisplayer.SetGeneralMessageText("town learning title", "town learning main 2");
+                    yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
+                    WorldScreen();
+                    yield return DoTownLearning(1, environment.stores.Length);
+                }
+            }
+            else if (HOSPITAL_COURIER)
+            {
+                Debug.Log("Town Learning Phase");
+                trialsForFirstSubSession = Config.trialsPerSessionSingleTownLearning;
+                messageImageDisplayer.SetGeneralMessageText("town learning title", "town learning main 1");
+                yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
+                WorldScreen();
+                yield return DoTownLearning(0, environment.stores.Length / 2);
+            }
         }
 
 
@@ -549,7 +561,7 @@ public class DeliveryExperiment : CoroutineExperiment
         scriptedEventReporter.ReportScriptedEvent("start town learning");
         messageImageDisplayer.please_find_the_blah_reminder.SetActive(true);
 
-        this_trial_presented_stores = new List<StoreComponent>();
+        thisTrialPresentedStores = new List<StoreComponent>();
         List<StoreComponent> unvisitedStores = new List<StoreComponent>(environment.stores);
 
         for (int i = 0; i < numDeliveries; i++)
@@ -567,6 +579,7 @@ public class DeliveryExperiment : CoroutineExperiment
             while (nextStore.IsVisible() && tries < environment.stores.Length);
 
             unvisitedStores.RemoveAt(random_store_index);
+            thisTrialPresentedStores.Add(nextStore);
 
             playerMovement.Freeze();
             messageImageDisplayer.SetReminderText(nextStore.GetStoreName());
@@ -597,7 +610,7 @@ public class DeliveryExperiment : CoroutineExperiment
         scriptedEventReporter.ReportScriptedEvent("stop town learning");
     }
 
-    private IEnumerator DoDeliveries(int trialNumber, int continuousTrialNum, bool practice = false)
+    private IEnumerator DoDeliveries(int trialNumber, int continuousTrialNum, bool practice = false, bool skipLastDelivStores = false)
     {
         Dictionary<string, object> trialData = new Dictionary<string, object>();
         trialData.Add("trial number", continuousTrialNum);
@@ -611,8 +624,11 @@ public class DeliveryExperiment : CoroutineExperiment
         SetRamulatorState("ENCODING", true, new Dictionary<string, object>());
         messageImageDisplayer.please_find_the_blah_reminder.SetActive(true);
 
-        this_trial_presented_stores = new List<StoreComponent>();
         List<StoreComponent> unvisitedStores = new List<StoreComponent>(environment.stores);
+        if (skipLastDelivStores)
+            foreach (var store in thisTrialPresentedStores)
+                unvisitedStores.Remove(store);
+        thisTrialPresentedStores = new List<StoreComponent>();
 
         int deliveries = practice ? Config.deliveriesPerPracticeTrial : Config.deliveriesPerTrial;
         int craft_shop_delivery_num = rng.Next(deliveries - 1);
@@ -640,7 +656,7 @@ public class DeliveryExperiment : CoroutineExperiment
                         nextStore = unvisitedStores[random_store_index];
                     }
                     while ((nextStore.IsVisible() && tries < environment.stores.Length)
-                            || random_store_index == craft_shop_index);
+                           || random_store_index == craft_shop_index);
                 }
             }
             else
@@ -719,8 +735,8 @@ public class DeliveryExperiment : CoroutineExperiment
                     AppendWordToLst(lstFilepath, deliveredItemName);
                 #endif
 
-                this_trial_presented_stores.Add(nextStore);
-                all_presented_objects.Add(deliveredItemName);
+                thisTrialPresentedStores.Add(nextStore);
+                allPresentedObjects.Add(deliveredItemName);
 
                 SetRamulatorState("WORD", true, new Dictionary<string, object>() { { "word", deliveredItemName } });
                 //add visuals with sound
@@ -736,6 +752,7 @@ public class DeliveryExperiment : CoroutineExperiment
                 playerMovement.Unfreeze();
             }
         }
+
     SkipRemainingDeliveries:
         messageImageDisplayer.please_find_the_blah_reminder.SetActive(false);
 
@@ -781,6 +798,9 @@ public class DeliveryExperiment : CoroutineExperiment
                     yield return DoEfrKeypressPractice();
                 }
 
+                if (HOSPITAL_COURIER) // Skip the second EFR practice deliv day (have it be a real deliv day)
+                    break;
+
                 messageImageDisplayer.SetGeneralMessageText(titleText: "new efr check understanding title",
                                                             mainText: "new efr check understanding main");
                 yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
@@ -818,7 +838,10 @@ public class DeliveryExperiment : CoroutineExperiment
             #endif                                                 
 
             // Do deliveries and recall
-            yield return DoDeliveries(trialNumber, trialNumber, practice: true);
+            if (HOSPITAL_COURIER && trialNumber == 0) // Skip town learning stores in first pratice deliv days
+                yield return DoDeliveries(trialNumber, trialNumber, practice: true, skipLastDelivStores: true);
+            else
+                yield return DoDeliveries(trialNumber, trialNumber, practice: true);
             if (!COURIER_ONLINE)
                 yield return DoFixation(PAUSE_BEFORE_RETRIEVAL, practice: true);
             yield return DoRecall(trialNumber, trialNumber, practice: true);
@@ -1115,12 +1138,17 @@ public class DeliveryExperiment : CoroutineExperiment
     {
         scriptedEventReporter.ReportScriptedEvent("start cued recall");
         BlackScreen();
-        this_trial_presented_stores.Shuffle(rng);
-        Debug.Log(this_trial_presented_stores);
+        thisTrialPresentedStores.Shuffle(rng);
+        Debug.Log(thisTrialPresentedStores);
         
         if (COURIER_ONLINE)
         {
-            messageImageDisplayer.SetGeneralBigMessageText("cued recall title", "online cued recall main");
+            messageImageDisplayer.SetGeneralBigMessageText(titleText: "cued recall title", mainText: "online cued recall main");
+            yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
+        }
+        else if (HOSPITAL_COURIER) // TODO: JPB: Merge this with the else statement (need descriptions)
+        {
+            messageImageDisplayer.SetGeneralBigMessageText(mainText: "store cue recall");
             yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
         }
         else
@@ -1135,20 +1163,20 @@ public class DeliveryExperiment : CoroutineExperiment
         textDisplayer.DisplayText("display recall text", RECALL_TEXT);
         yield return SkippableWait(RECALL_TEXT_DISPLAY_LENGTH);
         textDisplayer.ClearText();
-        foreach (StoreComponent cueStore in this_trial_presented_stores)
+        foreach (StoreComponent cueStore in thisTrialPresentedStores)
         {   
             #if !UNITY_WEBGL // NICLS
-            if (useNiclServer && (trialNumber >= NUM_CLASSIFIER_NORMALIZATION_TRIALS))
-            {
-                yield return new WaitForSeconds(WORD_PRESENTATION_DELAY);
-                yield return WaitForClassifier(niclsClassifierTypes[continuousTrialNum]);
-            }
-            else
-            {
-                float wordDelay = UnityEngine.Random.Range(WORD_PRESENTATION_DELAY - WORD_PRESENTATION_JITTER,
-                                               WORD_PRESENTATION_DELAY + WORD_PRESENTATION_JITTER);
-                yield return new WaitForSeconds(wordDelay);
-            }
+                if (useNiclServer && (trialNumber >= NUM_CLASSIFIER_NORMALIZATION_TRIALS))
+                {
+                    yield return new WaitForSeconds(WORD_PRESENTATION_DELAY);
+                    yield return WaitForClassifier(niclsClassifierTypes[continuousTrialNum]);
+                }
+                else
+                {
+                    float wordDelay = UnityEngine.Random.Range(WORD_PRESENTATION_DELAY - WORD_PRESENTATION_JITTER,
+                                                               WORD_PRESENTATION_DELAY + WORD_PRESENTATION_JITTER);
+                    yield return new WaitForSeconds(wordDelay);
+                }
             #endif
 
             cueStore.familiarization_object.SetActive(true);
@@ -1170,23 +1198,26 @@ public class DeliveryExperiment : CoroutineExperiment
             cuedRecordingData.Add("store", cueStore.GetStoreName());
             cuedRecordingData.Add("item", cueStore.GetLastPoppedItemName());
             cuedRecordingData.Add("store position", cueStore.transform.position.ToString());
-
-            if (COURIER_ONLINE)
-                scriptedEventReporter.ReportScriptedEvent("cued recall answer", cuedRecordingData);
-            else
-                scriptedEventReporter.ReportScriptedEvent("cued recall recording start", cuedRecordingData);
             
             #if !UNITY_WEBGL // Microphone
+                scriptedEventReporter.ReportScriptedEvent("cued recall recording start", cuedRecordingData);
                 soundRecorder.StartRecording(wavFilePath);
                 float startTime = Time.time;
-                while ((!InputManager.GetButtonDown("Continue") || Time.time < startTime + MIN_CUED_RECALL_TIME_PER_STORE)
-                    && Time.time < startTime + MAX_CUED_RECALL_TIME_PER_STORE)
-                    yield return null;
+                if (HOSPITAL_COURIER) // TODO: JPB: Hospital Fix this (add ecr)
+                    while ((!InputManager.GetButtonDown("Continue") || Time.time < startTime + MIN_CUED_RECALL_TIME_PER_STORE)
+                        && Time.time < startTime + MAX_CUED_RECALL_TIME_PER_STORE)
+                        yield return null;
+                else
+                    while ((!InputManager.GetButtonDown("Continue") || Time.time < startTime + MIN_CUED_RECALL_TIME_PER_STORE)
+                        && Time.time < startTime + MAX_CUED_RECALL_TIME_PER_STORE)
+                        yield return null;
 
                 scriptedEventReporter.ReportScriptedEvent("cued recall recording stop", cuedRecordingData);
                 soundRecorder.StopRecording();
             #else
+                scriptedEventReporter.ReportScriptedEvent("cued recall answer start", cuedRecordingData);
                 yield return DoTypedResponses(trialNumber, "cued recall", CUED_RECALL_TIME_PER_STORE, cuedInputField, cuedResponse, cueStore.GetStoreName());
+                scriptedEventReporter.ReportScriptedEvent("cued recall answer stop", cuedRecordingData);
             #endif
             
             
@@ -1253,7 +1284,7 @@ public class DeliveryExperiment : CoroutineExperiment
             output_file_name = "final free-" + subSessionNum;
             wavFilePath = System.IO.Path.Combine(output_directory, output_file_name) + ".wav";
             lstFilepath = System.IO.Path.Combine(output_directory, output_file_name) + ".lst";
-            foreach (string deliveredObject in all_presented_objects)
+            foreach (string deliveredObject in allPresentedObjects)
                 AppendWordToLst(lstFilepath, deliveredObject);
 
             scriptedEventReporter.ReportScriptedEvent("final object recall recording start");
@@ -1444,7 +1475,7 @@ public class DeliveryExperiment : CoroutineExperiment
             yield return starSystem.ShowDifference();
 
         if (improvement)
-            pointerText.text = pointerText.text + LanguageSource.GetLanguageString("rating improved");
+            pointerText.text = pointerText.text + "\n" + LanguageSource.GetLanguageString("rating improved");
 
         pointerText.text = pointerText.text + "\n" + LanguageSource.GetLanguageString("continue");
 
@@ -1544,6 +1575,20 @@ public class DeliveryExperiment : CoroutineExperiment
                     messageImageDisplayer.efr_display, waitTime,
                     efrLeftLogMsg, efrRightLogMsg, practice);
         }
+    }
+
+    private IEnumerator DoCuedRecallDisplay(string title, float waitTime, bool practice = false, bool ecrDisabled = false)
+    {
+        BlackScreen();
+        if (Config.efrEnabled && !ecrDisabled)
+        {
+            //yield return DoEcrDisplay(title, waitTime, practice);
+        }
+        else
+        {
+            
+        }
+        yield return null;
     }
 
     private IEnumerator DoEfrKeypressCheck()

@@ -62,6 +62,7 @@ public class MessageImageDisplayer : MonoBehaviour
         messageData.Add("message name", message.name);
         // TODO: JPB: (Hokua) Change this so that it takes a logging name (the message titleText or all text)
         scriptedEventReporter.ReportScriptedEvent("instruction message displayed", messageData);
+
         message.SetActive(true);
         yield return null;
         if (buttonName == "")
@@ -80,6 +81,7 @@ public class MessageImageDisplayer : MonoBehaviour
         messageData.Add("message name", message.name);
         // TODO: JPB: (Hokua) Change this so that it takes a logging name (the message titleText or all text)
         scriptedEventReporter.ReportScriptedEvent("instruction message displayed", messageData);
+
         message.SetActive(true);
         float startTime = Time.time;
         while (Time.time < startTime + waitTime)
@@ -105,16 +107,15 @@ public class MessageImageDisplayer : MonoBehaviour
         message.SetActive(false);
     }
 
-    public IEnumerator DisplayMessageKeypressBold(GameObject display, EfrButton boldButton)
+    public IEnumerator DisplayMessageKeypressBold(GameObject message, EfrButton boldButton)
     {
-        display.SetActive(true); // TODO: JPB: (Hokua) Should this line be present for all Display functions?
-
         // Report instruction displayed
         var messageData = new Dictionary<string, object>();
-        messageData.Add("message name", display.name);
+        messageData.Add("message name", message.name);
         // TODO: JPB: (Hokua) Change this so that it takes a logging name (the message titleText or all text)
         scriptedEventReporter.ReportScriptedEvent("instruction message displayed", messageData);
 
+        message.SetActive(true);
         while (true)
         {
             yield return null;
@@ -125,13 +126,13 @@ public class MessageImageDisplayer : MonoBehaviour
             }
             else if (InputManager.GetButtonDown("EfrLeft") && (boldButton == EfrButton.LeftButton))
             {
-                Text toggleText = display.transform.Find("left button text").GetComponent<Text>();
+                Text toggleText = message.transform.Find("left button text").GetComponent<Text>();
                 yield return DoTextBoldTimedOrButton("EfrLeft", toggleText, BUTTON_MSG_DISPLAY_WAIT);
                 break;
             }
             else if (InputManager.GetButtonDown("EfrRight") && (boldButton == EfrButton.RightButton))
             {
-                Text toggleText = display.transform.Find("right button text").GetComponent<Text>();
+                Text toggleText = message.transform.Find("right button text").GetComponent<Text>();
                 yield return DoTextBoldTimedOrButton("EfrRight", toggleText, BUTTON_MSG_DISPLAY_WAIT);
                 break;
             }
@@ -139,8 +140,45 @@ public class MessageImageDisplayer : MonoBehaviour
 
         // Report instruction cleared
         scriptedEventReporter.ReportScriptedEvent("instruction message cleared", messageData);
+        message.SetActive(false);
+    }
 
-        display.SetActive(false);
+    public IEnumerator DisplayMessageTimedKeypressBold(GameObject message, float waitTime, EfrButton boldButton)
+    {
+        // Report instruction displayed
+        var messageData = new Dictionary<string, object>();
+        messageData.Add("message name", message.name);
+        // TODO: JPB: (Hokua) Change this so that it takes a logging name (the message titleText or all text)
+        scriptedEventReporter.ReportScriptedEvent("instruction message displayed", messageData);
+
+        message.SetActive(true);
+        float startTime = Time.time;
+        while (Time.time < startTime + waitTime)
+        {
+            yield return null;
+
+            if (InputManager.GetButtonDown("Secret"))
+            {
+                break;
+            }
+            else if (InputManager.GetButtonDown("EfrLeft") && (boldButton == EfrButton.LeftButton))
+            {
+                Text toggleText = message.transform.Find("left button text").GetComponent<Text>();
+                yield return DoTextBoldTimedOrButton("EfrLeft", toggleText, BUTTON_MSG_DISPLAY_WAIT);
+                //break;
+            }
+            else if (InputManager.GetButtonDown("EfrRight") && (boldButton == EfrButton.RightButton))
+            {
+                Text toggleText = message.transform.Find("right button text").GetComponent<Text>();
+                yield return DoTextBoldTimedOrButton("EfrRight", toggleText, BUTTON_MSG_DISPLAY_WAIT);
+                //break;
+            }
+        }
+
+        // Report instruction cleared
+        scriptedEventReporter.ReportScriptedEvent("instruction message cleared", messageData);
+
+        message.SetActive(false);
     }
 
     public IEnumerator DisplayMessageTimedLRKeypressBold(GameObject display, float waitTime, 
@@ -220,6 +258,7 @@ public class MessageImageDisplayer : MonoBehaviour
         messageData.Add("message name", message.name);
         // TODO: JPB: (Hokua) Change this so that it takes a logging name (the message titleText or all text)
         scriptedEventReporter.ReportScriptedEvent("instruction message displayed", messageData);
+
         message.SetActive(true);
         yield return null;
         while (!InputManager.GetButtonDown(buttonName) && !InputManager.GetButtonDown("Secret"))
@@ -244,6 +283,7 @@ public class MessageImageDisplayer : MonoBehaviour
         messageData.Add("message name", message.name);
         // TODO: JPB: (Hokua) Change this so that it takes a logging name (the message titleText or all text)
         scriptedEventReporter.ReportScriptedEvent("instruction message displayed", messageData);
+
         message.SetActive(true);
         yield return null;
         var slider = message.transform.Find("sliding scale").GetComponent<Slider>();

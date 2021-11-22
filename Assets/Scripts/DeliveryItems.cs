@@ -91,7 +91,7 @@ public class DeliveryItems : MonoBehaviour
 
     void Awake()
     {
-        reliableRandom = new System.Random(UnityEPL.GetParticipants()[0].GetHashCode());
+        reliableRandom = ReliableRandom();
         #if !UNITY_WEBGL // System.IO
             WriteRemainingItemsFiles();
             WriteAlphabetizedItemsFile();
@@ -246,5 +246,12 @@ public class DeliveryItems : MonoBehaviour
 
             return false;
         #endif // !UNITY_WEBGL
+    }
+
+    public System.Random ReliableRandom()
+    {
+        string participantCode = UnityEPL.GetParticipants()[0];
+        string[] codeParts = participantCode.Split('_');
+        return new System.Random(codeParts[0].GetHashCode());
     }
 }

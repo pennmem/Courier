@@ -273,7 +273,7 @@ public class DeliveryExperiment : CoroutineExperiment
             if (Config.efrEnabled && Config.counterBalanceCorrectIncorrectButton)
             {
                 // We want randomness for different people, but consistency between sessions
-                System.Random reliableRandom = new System.Random(UnityEPL.GetParticipants()[0].GetHashCode());
+                System.Random reliableRandom = deliveryItems.ReliableRandom();
                 efrCorrectButtonSide = (EfrButton)reliableRandom.Next(0, 2);
             }
         #else // UNITY_WEBGL
@@ -1344,7 +1344,7 @@ public class DeliveryExperiment : CoroutineExperiment
         // Setup random video order list that's consistent across each participant's sessions
         // We create the whole list each time to make sure that the rng is consistent but unique per session group
         var videoOrder = new List<List<int>>();
-        var reliableRandom = new System.Random(UnityEPL.GetParticipants()[0].GetHashCode());
+        var reliableRandom = deliveryItems.ReliableRandom();
         int numSessionsPerVideoList = NUM_MUSIC_VIDEOS / NUM_MUSIC_VIDEOS_PER_SESSION;
         foreach (int i in Enumerable.Range(0, (continuousSessionNumber / numSessionsPerVideoList) + 1))
         {
@@ -1921,8 +1921,6 @@ public class DeliveryExperiment : CoroutineExperiment
                 return store.GetStoreName();
         throw new UnityException("That store game object doesn't exist in the stores list.");
     }
-
-   
 }
 
 public static class IListExtensions

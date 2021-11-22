@@ -432,10 +432,10 @@ public class DeliveryExperiment : CoroutineExperiment
         
         // Real trials
         if (Config.efrEnabled)
-            if (Config.newEfrEnabled)
-                messageImageDisplayer.SetGeneralMessageText(mainText: "first day main", descriptiveText: "new efr first day description");
+            if (Config.twoBtnEfrEnabled)
+                messageImageDisplayer.SetGeneralMessageText(mainText: "first day main", descriptiveText: "two btn er first day description");
             else
-                messageImageDisplayer.SetGeneralMessageText(mainText: "first day main", descriptiveText: "efr first day description");
+                messageImageDisplayer.SetGeneralMessageText(mainText: "first day main", descriptiveText: "one btn er first day description");
         else
             messageImageDisplayer.SetGeneralMessageText(mainText: "first day main");
         yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
@@ -535,11 +535,11 @@ public class DeliveryExperiment : CoroutineExperiment
     private IEnumerator DoRecapInstructions(bool forceFR = false)
     {
         GameObject[] messages;
-        if (Config.efrEnabled && !forceFR)
-            if (Config.newEfrEnabled)
-                messages = messageImageDisplayer.recap_instruction_messages_efr_en;
-            else
+        if (Config.efrEnabled && !forceFR) // TODO: JPB: Hospital handle ECR case
+            if (Config.twoBtnEfrEnabled)
                 messages = messageImageDisplayer.recap_instruction_messages_efr_2btn_en;
+            else
+                messages = messageImageDisplayer.recap_instruction_messages_efr_en;
         else
             messages = messageImageDisplayer.recap_instruction_messages_fr_en;
 
@@ -778,31 +778,35 @@ public class DeliveryExperiment : CoroutineExperiment
 
         for (int trialNumber = 0; trialNumber < numTrials; trialNumber++)
         {
-            // EFR instructions
-            if (Config.efrEnabled && trialNumber == EFR_PRACTICE_TRIAL_NUM)
+            // ER instructions
+            if ((Config.efrEnabled || Config.ecrEnabled) && trialNumber == EFR_PRACTICE_TRIAL_NUM)
             {
-                if (Config.newEfrEnabled)
-                {
-                    messageImageDisplayer.SetGeneralBigMessageText(titleText: "new efr instructions title",
-                                                                   mainText: "new efr instructions main");
-                    yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
-                    yield return DoNewEfrKeypressCheck();
-                    yield return DoNewEfrKeypressPractice();
-                }
-                else
+                if (Config.twoBtnEfrEnabled || Config.twoBtnEcrEnabled)
                 {
                     yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
                                          LanguageSource.GetLanguageString("efr intro video"),
                                          VideoSelector.VideoType.EfrIntro);
-                    yield return DoEfrKeypressCheck();
-                    yield return DoEfrKeypressPractice();
+                    yield return DoTwoBtnErKeypressCheck();
+                    yield return DoTwoBtnErKeypressPractice();
+                }
+                else // One btn ER
+                {
+                    if (Config.efrEnabled)
+                        messageImageDisplayer.SetGeneralBigMessageText(titleText: "one btn efr instructions title",
+                                                                       mainText: "one btn efr instructions main");
+                    if (Config.ecrEnabled) // TODO: JPB: Hospital add ecr instructions
+                        messageImageDisplayer.SetGeneralBigMessageText(titleText: "one btn ecr instructions title",
+                                                                       mainText: "one btn ecr instructions main");
+                    yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
+                    yield return DoOneBtnErKeypressCheck();
+                    yield return DoOneBtnErKeypressPractice();
                 }
 
-                if (HOSPITAL_COURIER) // Skip the second EFR practice deliv day (have it be a real deliv day)
+                if (HOSPITAL_COURIER) // Skip the second ER practice deliv day (have it be a real deliv day)
                     break;
 
-                messageImageDisplayer.SetGeneralMessageText(titleText: "new efr check understanding title",
-                                                            mainText: "new efr check understanding main");
+                messageImageDisplayer.SetGeneralMessageText(titleText: "er check understanding title",
+                                                            mainText: "er check understanding main");
                 yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
             }
 
@@ -858,8 +862,8 @@ public class DeliveryExperiment : CoroutineExperiment
             }
         }
 
-        messageImageDisplayer.SetGeneralMessageText(titleText: "new efr check understanding title",
-                                                    mainText: "new efr check understanding main");
+        messageImageDisplayer.SetGeneralMessageText(titleText: "er check understanding title",
+                                                    mainText: "er check understanding main");
         yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
 
         scriptedEventReporter.ReportScriptedEvent("stop practice trials");
@@ -1546,7 +1550,22 @@ public class DeliveryExperiment : CoroutineExperiment
         BlackScreen();
         if (Config.efrEnabled && !efrDisabled)
         {
-            yield return DoEfrDisplay(title, waitTime, practice);
+            if (Config.twoBtnEfrEnabled)
+            {
+                SetTwoBtnErDisplay();
+                messageImageDisplayer.SetEfrText(titleText: title);
+                messageImageDisplayer.SetEfrElementsActive(speakNowText: true);
+                yield return messageImageDisplayer.DisplayMessageTimedLRKeypressBold(
+                        messageImageDisplayer.efr_display, waitTime,
+                        efrLeftLogMsg, efrRightLogMsg, practice);
+            }
+            else // One btn EFR
+            {
+                messageImageDisplayer.SetGeneralBiggerMessageText(titleText: "one btn er message",
+                                                              continueText: "speak now");
+                yield return messageImageDisplayer.DisplayMessageTimed(
+                    messageImageDisplayer.general_bigger_message_display, waitTime);
+            }
         }
         else
         {
@@ -1556,42 +1575,41 @@ public class DeliveryExperiment : CoroutineExperiment
         }
     }
 
-    private IEnumerator DoEfrDisplay(string title, float waitTime, bool practice = false)
+    private IEnumerator DoCuedRecallDisplay(StoreComponent storeComponent, string title, float waitTime, bool practice = false, bool ecrDisabled = false)
     {
         BlackScreen();
-        if (Config.newEfrEnabled)
+        if (Config.ecrEnabled && !ecrDisabled)
         {
-            messageImageDisplayer.SetGeneralBiggerMessageText(titleText: "new efr message",
+            if (Config.twoBtnEcrEnabled)
+            {
+                SetTwoBtnErDisplay();
+                messageImageDisplayer.SetEfrText(titleText: title);
+                messageImageDisplayer.SetEfrElementsActive(speakNowText: true);
+                yield return messageImageDisplayer.DisplayMessageTimedLRKeypressBold(
+                        messageImageDisplayer.efr_display, waitTime,
+                        efrLeftLogMsg, efrRightLogMsg, practice);
+            }
+            else // One btn ECR
+            {
+                messageImageDisplayer.SetGeneralBiggerMessageText(titleText: "one btn er message",
                                                               continueText: "speak now");
-            yield return messageImageDisplayer.DisplayMessageTimed(
-                messageImageDisplayer.general_bigger_message_display, waitTime);
+                yield return messageImageDisplayer.DisplayMessageTimed(
+                    messageImageDisplayer.general_bigger_message_display, waitTime);
+            }
         }
         else
         {
-            SetEfrDisplay();
-            messageImageDisplayer.SetEfrText(titleText: title);
-            messageImageDisplayer.SetEfrElementsActive(speakNowText: true);
-            yield return messageImageDisplayer.DisplayMessageTimedLRKeypressBold(
-                    messageImageDisplayer.efr_display, waitTime,
-                    efrLeftLogMsg, efrRightLogMsg, practice);
-        }
-    }
-
-    private IEnumerator DoCuedRecallDisplay(string title, float waitTime, bool practice = false, bool ecrDisabled = false)
-    {
-        BlackScreen();
-        if (Config.efrEnabled && !ecrDisabled)
-        {
-            //yield return DoEcrDisplay(title, waitTime, practice);
-        }
-        else
-        {
-            
+            float startTime = Time.time;
+            while ((!InputManager.GetButtonDown("Continue") || Time.time < startTime + MIN_CUED_RECALL_TIME_PER_STORE)
+                        && Time.time < startTime + MAX_CUED_RECALL_TIME_PER_STORE)
+                yield return null;
         }
         yield return null;
     }
 
-    private IEnumerator DoEfrKeypressCheck()
+
+
+    private IEnumerator DoTwoBtnErKeypressCheck()
     {
         if (InputManager.GetButton("Secret"))
             yield break;
@@ -1600,14 +1618,14 @@ public class DeliveryExperiment : CoroutineExperiment
         BlackScreen();
 
         // Display intro message
-        messageImageDisplayer.SetGeneralMessageText(mainText: "efr check main");
+        messageImageDisplayer.SetGeneralMessageText(mainText: "er check main");
         yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
 
         // Setup EFR display
-        SetEfrDisplay();
+        SetTwoBtnErDisplay();
 
         // Ask for right button press
-        messageImageDisplayer.SetEfrText(descriptiveText: "efr check description right button");
+        messageImageDisplayer.SetEfrText(descriptiveText: "two btn er check description right button");
         messageImageDisplayer.SetEfrElementsActive(descriptiveText: true, controllerRightButtonImage: true);
         yield return messageImageDisplayer.DisplayMessageKeypressBold(
            messageImageDisplayer.efr_display, EfrButton.RightButton);
@@ -1615,7 +1633,7 @@ public class DeliveryExperiment : CoroutineExperiment
             messageImageDisplayer.efr_display, 1f, efrLeftLogMsg, efrRightLogMsg);
 
         // Ask for left button press
-        messageImageDisplayer.SetEfrText(descriptiveText: "efr check description left button");
+        messageImageDisplayer.SetEfrText(descriptiveText: "two btn er check description left button");
         messageImageDisplayer.SetEfrElementsActive(descriptiveText: true, controllerLeftButtonImage: true);
         yield return messageImageDisplayer.DisplayMessageKeypressBold(
             messageImageDisplayer.efr_display, EfrButton.LeftButton);
@@ -1625,7 +1643,7 @@ public class DeliveryExperiment : CoroutineExperiment
         scriptedEventReporter.ReportScriptedEvent("stop efr keypress check");
     }
 
-    private IEnumerator DoEfrKeypressPractice()
+    private IEnumerator DoTwoBtnErKeypressPractice()
     {
         if (InputManager.GetButton("Secret"))
             yield break;
@@ -1634,8 +1652,8 @@ public class DeliveryExperiment : CoroutineExperiment
         BlackScreen();
 
         // Display intro message
-        messageImageDisplayer.SetGeneralBigMessageText(titleText: "efr keypress practice main", 
-                                                       mainText: "efr keypress practice description");
+        messageImageDisplayer.SetGeneralBigMessageText(titleText: "two btn er keypress practice main", 
+                                                       mainText: "two btn er keypress practice description");
         yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
 
         // Setup EFR display
@@ -1649,7 +1667,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
         foreach (var buttonIndicator in lrButtonIndicator)
         {
-            SetEfrDisplay();
+            SetTwoBtnErDisplay();
             float efrKeypressPracticedelay = UnityEngine.Random.Range(EFR_KEYPRESS_PRACTICE_DELAY - EFR_KEYPRESS_PRACTICE_JITTER,
                                                                       EFR_KEYPRESS_PRACTICE_DELAY + EFR_KEYPRESS_PRACTICE_JITTER);
             yield return messageImageDisplayer.DisplayMessageTimed(
@@ -1657,7 +1675,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
             if (buttonIndicator == EfrButton.LeftButton)
             {
-                SetEfrDisplay(EfrButton.LeftButton);
+                SetTwoBtnErDisplay(EfrButton.LeftButton);
                 messageImageDisplayer.SetEfrTextResize(LeftButtonSize: 0.3f);
                 yield return messageImageDisplayer.DisplayMessageKeypressBold(
                     messageImageDisplayer.efr_display, EfrButton.LeftButton);
@@ -1665,7 +1683,7 @@ public class DeliveryExperiment : CoroutineExperiment
             }
             else if (buttonIndicator == EfrButton.RightButton)
             {
-                SetEfrDisplay(EfrButton.RightButton);
+                SetTwoBtnErDisplay(EfrButton.RightButton);
                 messageImageDisplayer.SetEfrTextResize(rightButtonSize: 0.3f);
                 yield return messageImageDisplayer.DisplayMessageKeypressBold(
                     messageImageDisplayer.efr_display, EfrButton.RightButton);
@@ -1676,7 +1694,7 @@ public class DeliveryExperiment : CoroutineExperiment
         scriptedEventReporter.ReportScriptedEvent("stop efr keypress practice");
     }
 
-    private IEnumerator DoNewEfrKeypressCheck()
+    private IEnumerator DoOneBtnErKeypressCheck()
     {
         if (Config.skipNewEfrKeypressCheck || InputManager.GetButton("Secret"))
             yield break;
@@ -1685,11 +1703,11 @@ public class DeliveryExperiment : CoroutineExperiment
         BlackScreen();
 
         // Display intro message
-        messageImageDisplayer.SetGeneralMessageText(mainText: "efr check main");
+        messageImageDisplayer.SetGeneralMessageText(mainText: "er check main");
         yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
 
         // Ask for reject button press
-        messageImageDisplayer.SetGeneralBiggerMessageText(titleText: "new efr message",
+        messageImageDisplayer.SetGeneralBiggerMessageText(titleText: "one btn er message",
                                                           continueText: "");
         yield return messageImageDisplayer.DisplayMessage(
             messageImageDisplayer.general_bigger_message_display, "EfrReject");
@@ -1697,7 +1715,7 @@ public class DeliveryExperiment : CoroutineExperiment
         scriptedEventReporter.ReportScriptedEvent("stop efr keypress check");
     }
 
-    private IEnumerator DoNewEfrKeypressPractice()
+    private IEnumerator DoOneBtnErKeypressPractice()
     {
         if (Config.skipNewEfrKeypressPractice || InputManager.GetButton("Secret"))
             yield break;
@@ -1706,12 +1724,12 @@ public class DeliveryExperiment : CoroutineExperiment
         BlackScreen();
 
         // Display intro message
-        messageImageDisplayer.SetGeneralBigMessageText(titleText: "new efr keypress practice main",
-                                                       mainText: "new efr keypress practice description");
+        messageImageDisplayer.SetGeneralBigMessageText(titleText: "one btn er keypress practice main",
+                                                       mainText: "one btn er keypress practice description");
         yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
 
         // Ask for reject button press
-        messageImageDisplayer.SetGeneralBiggerMessageText(titleText: "new efr message",
+        messageImageDisplayer.SetGeneralBiggerMessageText(titleText: "one btn er message",
                                                           continueText: "");
         for (int i = 0; i < Config.newEfrKeypressPractices; i++)
             yield return messageImageDisplayer.DisplayMessage(
@@ -1720,35 +1738,35 @@ public class DeliveryExperiment : CoroutineExperiment
         scriptedEventReporter.ReportScriptedEvent("stop efr keypress practice");
     }
 
-    private void SetEfrDisplay(EfrButton? keypressPractice = null)
+    private void SetTwoBtnErDisplay(EfrButton? keypressPractice = null)
     {
         if (efrCorrectButtonSide == EfrButton.RightButton)
         {
             efrLeftLogMsg = "incorrect";
             efrRightLogMsg = "correct";
             if (keypressPractice == EfrButton.LeftButton)
-                messageImageDisplayer.SetEfrText(leftButton: "efr keypress practice left button incorrect message",
-                                                 rightButton: "efr right button correct message");
+                messageImageDisplayer.SetEfrText(leftButton: "two btn er keypress practice left button incorrect message",
+                                                 rightButton: "two btn er right button correct message");
             else if (keypressPractice == EfrButton.RightButton)
-                messageImageDisplayer.SetEfrText(leftButton: "efr left button incorrect message",
-                                                 rightButton: "efr keypress practice right button correct message");
+                messageImageDisplayer.SetEfrText(leftButton: "two btn er left button incorrect message",
+                                                 rightButton: "two btn efr keypress practice right button correct message");
             else
-                messageImageDisplayer.SetEfrText(leftButton: "efr left button incorrect message",
-                                                 rightButton: "efr right button correct message");
+                messageImageDisplayer.SetEfrText(leftButton: "two btn er left button incorrect message",
+                                                 rightButton: "two btn efr right button correct message");
         }
         else if (efrCorrectButtonSide == EfrButton.LeftButton)
         {
             efrLeftLogMsg = "correct";
             efrRightLogMsg = "incorrect";
             if (keypressPractice == EfrButton.LeftButton)
-                messageImageDisplayer.SetEfrText(leftButton: "efr keypress practice left button correct message",
-                                                 rightButton: "efr right button incorrect message");
+                messageImageDisplayer.SetEfrText(leftButton: "two btn er keypress practice left button correct message",
+                                                 rightButton: "two btn er right button incorrect message");
             if (keypressPractice == EfrButton.RightButton)
-                messageImageDisplayer.SetEfrText(leftButton: "efr left button correct message",
-                                                 rightButton: "efr keypress practice right button incorrect message");
+                messageImageDisplayer.SetEfrText(leftButton: "two btn er left button correct message",
+                                                 rightButton: "two btn er keypress practice right button incorrect message");
             else
-                messageImageDisplayer.SetEfrText(leftButton: "efr left button correct message",
-                                                 rightButton: "efr right button incorrect message");
+                messageImageDisplayer.SetEfrText(leftButton: "two btn er left button correct message",
+                                                 rightButton: "two btn er right button incorrect message");
         }
     }
 

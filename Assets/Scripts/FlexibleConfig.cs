@@ -35,7 +35,9 @@ public class Config
 
     // Game Logic
     public static bool efrEnabled { get { return (bool)Config.GetSetting("efrEnabled"); } }
-    public static bool newEfrEnabled { get { return (bool)Config.GetSetting("newEfrEnabled"); } }
+    public static bool ecrEnabled { get { return (bool)Config.GetSetting("ecrEnabled"); } }
+    public static bool twoBtnEfrEnabled { get { return (bool)Config.GetSetting("twoBtnEfrEnabled"); } }
+    public static bool twoBtnEcrEnabled { get { return (bool)Config.GetSetting("twoBtnEcrEnabled"); } }
     public static bool niclsCourier { get { return (bool)Config.GetSetting("niclsCourier"); } }
     public static bool counterBalanceCorrectIncorrectButton { get { return (bool)Config.GetSetting("counterBalanceCorrectIncorrectButton"); } }
     public static bool smoothMovement { get { return (bool)Config.GetSetting("smoothMovement"); } }

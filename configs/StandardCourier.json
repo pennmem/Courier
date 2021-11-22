@@ -8,7 +8,7 @@
     "skipNewEfrKeypressPractice": true,
 
     "efrEnabled": true,
-    "ecrEnabled": false,
+    "ecrEnabled": true,
     "twoBtnEfrEnabled": false,
     "twoBtnEcrEnabled": false,
     "niclsCourier": true,

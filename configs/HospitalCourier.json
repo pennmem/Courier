@@ -17,7 +17,7 @@
     "trialsPerSession": 5,
     "trialsPerSessionSingleTownLearning": 2,
     "trialsPerSessionDoubleTownLearning": 2,
-    "deliveriesPerPracticeTrial": 16,
+    "deliveriesPerPracticeTrial": 9,
     "deliveriesPerTrial": 16,
 
     "newEfrKeypressPractices": 20

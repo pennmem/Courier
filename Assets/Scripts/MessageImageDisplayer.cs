@@ -40,10 +40,12 @@ public class MessageImageDisplayer : MonoBehaviour
     private const float BUTTON_MSG_DISPLAY_WAIT = 0.3f;
     private const int REQUIRED_VALID_BUTTON_PRESSES = 1;
 
-    public enum EfrButton
+    public enum ActionButton
     {
         LeftButton,
-        RightButton
+        RightButton,
+        RejectButton,
+        ContinueButton
     }
 
     public IEnumerator DisplayLanguageMessage(GameObject[] langMessages, string buttonName = "Continue")
@@ -71,6 +73,20 @@ public class MessageImageDisplayer : MonoBehaviour
         else
             while (!InputManager.GetButtonDown(buttonName) && !InputManager.GetButtonDown("Secret"))
                 yield return null;
+        scriptedEventReporter.ReportScriptedEvent("instruction message cleared", messageData);
+        message.SetActive(false);
+    }
+
+    public IEnumerator DisplayMessageFunction(GameObject message, Func<IEnumerator> func)
+    {
+        Dictionary<string, object> messageData = new Dictionary<string, object>();
+        messageData.Add("message name", message.name);
+        // TODO: JPB: (Hokua) Change this so that it takes a logging name (the message titleText or all text)
+        scriptedEventReporter.ReportScriptedEvent("instruction message displayed", messageData);
+
+        message.SetActive(true);
+        yield return func();
+
         scriptedEventReporter.ReportScriptedEvent("instruction message cleared", messageData);
         message.SetActive(false);
     }
@@ -107,7 +123,8 @@ public class MessageImageDisplayer : MonoBehaviour
         message.SetActive(false);
     }
 
-    public IEnumerator DisplayMessageKeypressBold(GameObject message, EfrButton boldButton)
+    public IEnumerator DisplayMessageLRKeypressBold(GameObject message, ActionButton boldButton,
+        string leftLogMessage = "leftKey", string rightLogMessage = "rightKey")
     {
         // Report instruction displayed
         var messageData = new Dictionary<string, object>();
@@ -122,19 +139,34 @@ public class MessageImageDisplayer : MonoBehaviour
 
             if (InputManager.GetButtonDown("Secret"))
             {
+                scriptedEventReporter.ReportScriptedEvent("keypress",
+                        new Dictionary<string, object> { { "response", "Secret" } });
                 break;
             }
-            else if (InputManager.GetButtonDown("EfrLeft") && (boldButton == EfrButton.LeftButton))
+            else if (InputManager.GetButtonDown("EfrLeft") && (boldButton == ActionButton.LeftButton))
             {
+                scriptedEventReporter.ReportScriptedEvent("keypress",
+                        new Dictionary<string, object> { { "response", leftLogMessage } });
                 Text toggleText = message.transform.Find("left button text").GetComponent<Text>();
                 yield return DoTextBoldTimedOrButton("EfrLeft", toggleText, BUTTON_MSG_DISPLAY_WAIT);
                 break;
             }
-            else if (InputManager.GetButtonDown("EfrRight") && (boldButton == EfrButton.RightButton))
+            else if (InputManager.GetButtonDown("EfrRight") && (boldButton == ActionButton.RightButton))
             {
+                scriptedEventReporter.ReportScriptedEvent("keypress",
+                        new Dictionary<string, object> { { "response", rightLogMessage } });
                 Text toggleText = message.transform.Find("right button text").GetComponent<Text>();
                 yield return DoTextBoldTimedOrButton("EfrRight", toggleText, BUTTON_MSG_DISPLAY_WAIT);
                 break;
+            }
+            else if (InputManager.anyKeyDown)
+            {
+                foreach (KeyCode kcode in Enum.GetValues(typeof(KeyCode)))
+                {
+                    if (InputManager.GetKey(kcode))
+                        scriptedEventReporter.ReportScriptedEvent("keypress",
+                            new Dictionary<string, object> { { "response", kcode.ToString() } });
+                }
             }
         }
 
@@ -143,7 +175,9 @@ public class MessageImageDisplayer : MonoBehaviour
         message.SetActive(false);
     }
 
-    public IEnumerator DisplayMessageTimedKeypressBold(GameObject message, float waitTime, EfrButton boldButton)
+    // TODO: JPB: (Hokeu) Add practice looping like DisplayMessageTimedLRKeypressBold has
+    public IEnumerator DisplayMessageTimedKeypressBold(GameObject message, float waitTime, ActionButton boldButton, string boldTextName,
+        string buttonLogMessage = "button", bool breakOnKeypress = false, float minWaitTime = 0f)
     {
         // Report instruction displayed
         var messageData = new Dictionary<string, object>();
@@ -159,19 +193,54 @@ public class MessageImageDisplayer : MonoBehaviour
 
             if (InputManager.GetButtonDown("Secret"))
             {
+                scriptedEventReporter.ReportScriptedEvent("keypress",
+                        new Dictionary<string, object> { { "response", "Secret" } });
                 break;
             }
-            else if (InputManager.GetButtonDown("EfrLeft") && (boldButton == EfrButton.LeftButton))
+            else if (InputManager.GetButtonDown("EfrLeft") && (boldButton == ActionButton.LeftButton))
             {
-                Text toggleText = message.transform.Find("left button text").GetComponent<Text>();
+                scriptedEventReporter.ReportScriptedEvent("keypress",
+                        new Dictionary<string, object> { { "response", buttonLogMessage } });
+                Text toggleText = message.transform.Find(boldTextName).GetComponent<Text>();
                 yield return DoTextBoldTimedOrButton("EfrLeft", toggleText, BUTTON_MSG_DISPLAY_WAIT);
-                //break;
+                if (breakOnKeypress && (Time.time >= startTime + minWaitTime))
+                    break;
             }
-            else if (InputManager.GetButtonDown("EfrRight") && (boldButton == EfrButton.RightButton))
+            else if (InputManager.GetButtonDown("EfrRight") && (boldButton == ActionButton.RightButton))
             {
-                Text toggleText = message.transform.Find("right button text").GetComponent<Text>();
+                scriptedEventReporter.ReportScriptedEvent("keypress",
+                        new Dictionary<string, object> { { "response", buttonLogMessage } });
+                Text toggleText = message.transform.Find(boldTextName).GetComponent<Text>();
                 yield return DoTextBoldTimedOrButton("EfrRight", toggleText, BUTTON_MSG_DISPLAY_WAIT);
-                //break;
+                if (breakOnKeypress && (Time.time >= startTime + minWaitTime))
+                    break;
+            }
+            else if (InputManager.GetButtonDown("EfrReject") && (boldButton == ActionButton.RejectButton))
+            {
+                scriptedEventReporter.ReportScriptedEvent("keypress",
+                        new Dictionary<string, object> { { "response", buttonLogMessage } });
+                Text toggleText = message.transform.Find(boldTextName).GetComponent<Text>();
+                yield return DoTextBoldTimedOrButton("EfrReject", toggleText, BUTTON_MSG_DISPLAY_WAIT);
+                if (breakOnKeypress && (Time.time >= startTime + minWaitTime))
+                    break;
+            }
+            else if (InputManager.GetButtonDown("Continue") && (boldButton == ActionButton.ContinueButton))
+            {
+                scriptedEventReporter.ReportScriptedEvent("keypress",
+                        new Dictionary<string, object> { { "response", buttonLogMessage } });
+                Text toggleText = message.transform.Find(boldTextName).GetComponent<Text>();
+                yield return DoTextBoldTimedOrButton("Continue", toggleText, BUTTON_MSG_DISPLAY_WAIT);
+                if (breakOnKeypress && (Time.time >= startTime + minWaitTime))
+                    break;
+            }
+            else if (InputManager.anyKeyDown)
+            {
+                foreach (KeyCode kcode in Enum.GetValues(typeof(KeyCode)))
+                {
+                    if (InputManager.GetKey(kcode))
+                        scriptedEventReporter.ReportScriptedEvent("keypress",
+                            new Dictionary<string, object> { { "response", kcode.ToString() } });
+                }
             }
         }
 
@@ -182,20 +251,20 @@ public class MessageImageDisplayer : MonoBehaviour
     }
 
     public IEnumerator DisplayMessageTimedLRKeypressBold(GameObject display, float waitTime, 
-        string leftLogMessage = "leftKey", string rightLogMessage = "rightKey", bool retry = false)
+        string leftLogMessage = "leftKey", string rightLogMessage = "rightKey", bool retry = false, bool breakOnKeypress = false)
     {
         Text leftText = display.transform.Find("left button text").GetComponent<Text>();
         Text rightText = display.transform.Find("right button text").GetComponent<Text>();
 
-        // Report instruction displayed
-        var messageData = new Dictionary<string, object>();
-        messageData.Add("message name", display.name);
-        // TODO: JPB: (Hokua) Change this so that it takes a logging name (the message titleText or all text)
-        scriptedEventReporter.ReportScriptedEvent("instruction message displayed", messageData);
-
         int numValidButtonPresses = 0;
         while (numValidButtonPresses < REQUIRED_VALID_BUTTON_PRESSES)
         {
+            // Report instruction displayed
+            var messageData = new Dictionary<string, object>();
+            messageData.Add("message name", display.name);
+            // TODO: JPB: (Hokua) Change this so that it takes a logging name (the message titleText or all text)
+            scriptedEventReporter.ReportScriptedEvent("instruction message displayed", messageData);
+
             display.SetActive(true);
 
             float startTime = Time.time;
@@ -215,6 +284,8 @@ public class MessageImageDisplayer : MonoBehaviour
                         new Dictionary<string, object> { { "response", leftLogMessage } });
                     yield return DoTextBoldTimedOrButton("EfrLeft", leftText, BUTTON_MSG_DISPLAY_WAIT);
                     numValidButtonPresses++;
+                    if (breakOnKeypress)
+                        break;
                 }
                 else if (InputManager.GetButtonDown("EfrRight"))
                 {
@@ -222,10 +293,12 @@ public class MessageImageDisplayer : MonoBehaviour
                         new Dictionary<string, object> { { "response", rightLogMessage } });
                     yield return DoTextBoldTimedOrButton("EfrRight", rightText, BUTTON_MSG_DISPLAY_WAIT);
                     numValidButtonPresses++;
+                    if (breakOnKeypress)
+                        break;
                 }
                 else if (InputManager.anyKeyDown)
                 {
-                    foreach (KeyCode kcode in System.Enum.GetValues(typeof(KeyCode)))
+                    foreach (KeyCode kcode in Enum.GetValues(typeof(KeyCode)))
                     {
                         if (InputManager.GetKey(kcode))
                             scriptedEventReporter.ReportScriptedEvent("keypress",
@@ -306,10 +379,9 @@ public class MessageImageDisplayer : MonoBehaviour
     }
 
     // Display message for cued recall
-    public void SetCuedRecallMessage(bool isActive)
+    public void SetCuedRecallMessage(string bottomText)
     {
-        cued_recall_message.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString("cued recall message");
-        cued_recall_message.SetActive(isActive);
+        cued_recall_message.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString(bottomText);
     }
 
     public void SetReminderText(string store_name)
@@ -371,6 +443,7 @@ public class MessageImageDisplayer : MonoBehaviour
     }
 
     // TODO: JPB: (Hokua) See if this can be combined with FpsDisplayer.cs in some way
+    // TODO: JPB: Change all "continue text" to "bottom text"
     public void SetFPSDisplayText(string fpsValue = "", string mainText = "", string continueText = "continue")
     {
         if (fpsValue != null)

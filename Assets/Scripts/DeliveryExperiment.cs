@@ -82,7 +82,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private const float TIME_BETWEEN_DIFFERENT_RECALL_PHASES = 2f;
     private const float CUED_RECALL_TIME_PER_STORE = 10f;
     private const float MIN_CUED_RECALL_TIME_PER_STORE = 2f;
-    private const float MAX_CUED_RECALL_TIME_PER_STORE = NICLS_COURIER ? 6f : 10f;
+    private const float MAX_CUED_RECALL_TIME_PER_STORE = NICLS_COURIER ? 6f : 7.5f;
     private const float POINTING_CORRECT_THRESHOLD = Mathf.PI / 12; // 15°
     private const float ARROW_CORRECTION_TIME = 3f;
     private const float ARROW_ROTATION_SPEED = 1f;
@@ -137,7 +137,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
     private System.Random rng = new System.Random();
 
-    private EfrButton efrCorrectButtonSide = EfrButton.RightButton;
+    private ActionButton efrCorrectButtonSide = ActionButton.RightButton;
     private string efrLeftLogMsg = "incorrect";
     private string efrRightLogMsg = "correct";
 
@@ -274,7 +274,7 @@ public class DeliveryExperiment : CoroutineExperiment
             {
                 // We want randomness for different people, but consistency between sessions
                 System.Random reliableRandom = deliveryItems.ReliableRandom();
-                efrCorrectButtonSide = (EfrButton)reliableRandom.Next(0, 2);
+                efrCorrectButtonSide = (ActionButton)reliableRandom.Next(0, 2);
             }
         #else // UNITY_WEBGL
             UnityEPL.AddParticipant(System.Guid.NewGuid().ToString());
@@ -1183,10 +1183,6 @@ public class DeliveryExperiment : CoroutineExperiment
                 }
             #endif
 
-            cueStore.familiarization_object.SetActive(true);
-            if (!COURIER_ONLINE)
-                messageImageDisplayer.SetCuedRecallMessage(true);
-
             #if !UNITY_WEBGL //  System.IO
                 string output_file_name = practice
                             ? "practice-" + continuousTrialNum.ToString() + "-" + cueStore.GetStoreName()
@@ -1206,15 +1202,13 @@ public class DeliveryExperiment : CoroutineExperiment
             #if !UNITY_WEBGL // Microphone
                 scriptedEventReporter.ReportScriptedEvent("cued recall recording start", cuedRecordingData);
                 soundRecorder.StartRecording(wavFilePath);
-                float startTime = Time.time;
-                if (HOSPITAL_COURIER) // TODO: JPB: Hospital Fix this (add ecr)
-                    while ((!InputManager.GetButtonDown("Continue") || Time.time < startTime + MIN_CUED_RECALL_TIME_PER_STORE)
-                        && Time.time < startTime + MAX_CUED_RECALL_TIME_PER_STORE)
-                        yield return null;
+
+                if (practice && trialNumber == 0)
+                    yield return DoCuedRecallDisplay(cueStore, "", MAX_CUED_RECALL_TIME_PER_STORE, practice: true, ecrDisabled: true, minWaitTime: MIN_CUED_RECALL_TIME_PER_STORE);
+                else if (practice)
+                    yield return DoCuedRecallDisplay(cueStore, "", MAX_CUED_RECALL_TIME_PER_STORE, practice: true, minWaitTime: MIN_CUED_RECALL_TIME_PER_STORE);
                 else
-                    while ((!InputManager.GetButtonDown("Continue") || Time.time < startTime + MIN_CUED_RECALL_TIME_PER_STORE)
-                        && Time.time < startTime + MAX_CUED_RECALL_TIME_PER_STORE)
-                        yield return null;
+                    yield return DoCuedRecallDisplay(cueStore, "", MAX_CUED_RECALL_TIME_PER_STORE, minWaitTime: MIN_CUED_RECALL_TIME_PER_STORE);
 
                 scriptedEventReporter.ReportScriptedEvent("cued recall recording stop", cuedRecordingData);
                 soundRecorder.StopRecording();
@@ -1224,15 +1218,12 @@ public class DeliveryExperiment : CoroutineExperiment
                 scriptedEventReporter.ReportScriptedEvent("cued recall answer stop", cuedRecordingData);
             #endif
             
-            
-            cueStore.familiarization_object.SetActive(false);
             lowBeep.Play();
             scriptedEventReporter.ReportScriptedEvent("sound played", new Dictionary<string, object>() { { "sound name", "low beep" }, { "sound duration", highBeep.clip.length.ToString() } });
             textDisplayer.DisplayText("display recall text", RECALL_TEXT);
             yield return SkippableWait(RECALL_TEXT_DISPLAY_LENGTH);
             textDisplayer.ClearText();
         }
-        messageImageDisplayer.SetCuedRecallMessage(false);
         scriptedEventReporter.ReportScriptedEvent("stop cued recall");
     }
 
@@ -1575,35 +1566,47 @@ public class DeliveryExperiment : CoroutineExperiment
         }
     }
 
-    private IEnumerator DoCuedRecallDisplay(StoreComponent storeComponent, string title, float waitTime, bool practice = false, bool ecrDisabled = false)
+    private IEnumerator DoCuedRecallDisplay(StoreComponent store, string title, float waitTime, bool practice = false, bool ecrDisabled = false, float minWaitTime = 0f)
     {
         BlackScreen();
-        if (Config.ecrEnabled && !ecrDisabled)
+
+        if (Config.ecrEnabled && !ecrDisabled) 
         {
             if (Config.twoBtnEcrEnabled)
             {
-                SetTwoBtnErDisplay();
-                messageImageDisplayer.SetEfrText(titleText: title);
-                messageImageDisplayer.SetEfrElementsActive(speakNowText: true);
-                yield return messageImageDisplayer.DisplayMessageTimedLRKeypressBold(
-                        messageImageDisplayer.efr_display, waitTime,
-                        efrLeftLogMsg, efrRightLogMsg, practice);
+                throw new NotImplementedException("Two button ECR not implemented");
+
+                // TODO: JPB: Hospital add two btn ECR
+                //SetTwoBtnErDisplay();
+                //messageImageDisplayer.SetEfrText(titleText: title);
+                //messageImageDisplayer.SetEfrElementsActive(speakNowText: true);
+                //yield return messageImageDisplayer.DisplayMessageTimedLRKeypressBold(
+                //        messageImageDisplayer.efr_display, waitTime,
+                //        efrLeftLogMsg, efrRightLogMsg, practice);
             }
             else // One btn ECR
             {
-                messageImageDisplayer.SetGeneralBiggerMessageText(titleText: "one btn er message",
-                                                              continueText: "speak now");
-                yield return messageImageDisplayer.DisplayMessageTimed(
-                    messageImageDisplayer.general_bigger_message_display, waitTime);
+                messageImageDisplayer.SetCuedRecallMessage("one btn er message");
+                Func<IEnumerator> func = () => { return messageImageDisplayer.DisplayMessageTimedKeypressBold(
+                    messageImageDisplayer.cued_recall_message, waitTime, ActionButton.RejectButton, "continue text", "reject button"); };
+                yield return messageImageDisplayer.DisplayMessageFunction(store.familiarization_object, func);
             }
         }
         else
         {
-            float startTime = Time.time;
-            while ((!InputManager.GetButtonDown("Continue") || Time.time < startTime + MIN_CUED_RECALL_TIME_PER_STORE)
-                        && Time.time < startTime + MAX_CUED_RECALL_TIME_PER_STORE)
-                yield return null;
+            if (NICLS_COURIER)
+            {
+                messageImageDisplayer.SetCuedRecallMessage("cued recall message");
+                Func<IEnumerator> func = () => { return messageImageDisplayer.DisplayMessageTimedKeypressBold(
+                    messageImageDisplayer.cued_recall_message, waitTime, ActionButton.ContinueButton, "continue text", "continue button", true, minWaitTime); };
+                yield return messageImageDisplayer.DisplayMessageFunction(store.familiarization_object, func);
+            }
+            else
+            {
+                yield return messageImageDisplayer.DisplayMessageTimed(store.familiarization_object, waitTime);
+            }
         }
+
         yield return null;
     }
 
@@ -1627,16 +1630,16 @@ public class DeliveryExperiment : CoroutineExperiment
         // Ask for right button press
         messageImageDisplayer.SetEfrText(descriptiveText: "two btn er check description right button");
         messageImageDisplayer.SetEfrElementsActive(descriptiveText: true, controllerRightButtonImage: true);
-        yield return messageImageDisplayer.DisplayMessageKeypressBold(
-           messageImageDisplayer.efr_display, EfrButton.RightButton);
+        yield return messageImageDisplayer.DisplayMessageLRKeypressBold(
+           messageImageDisplayer.efr_display, ActionButton.RightButton);
         yield return messageImageDisplayer.DisplayMessageTimedLRKeypressBold(
             messageImageDisplayer.efr_display, 1f, efrLeftLogMsg, efrRightLogMsg);
 
         // Ask for left button press
         messageImageDisplayer.SetEfrText(descriptiveText: "two btn er check description left button");
         messageImageDisplayer.SetEfrElementsActive(descriptiveText: true, controllerLeftButtonImage: true);
-        yield return messageImageDisplayer.DisplayMessageKeypressBold(
-            messageImageDisplayer.efr_display, EfrButton.LeftButton);
+        yield return messageImageDisplayer.DisplayMessageLRKeypressBold(
+            messageImageDisplayer.efr_display, ActionButton.LeftButton);
         yield return messageImageDisplayer.DisplayMessageTimedLRKeypressBold(
             messageImageDisplayer.efr_display, 1f, efrLeftLogMsg, efrRightLogMsg);
 
@@ -1660,8 +1663,8 @@ public class DeliveryExperiment : CoroutineExperiment
         messageImageDisplayer.SetEfrElementsActive();
 
         // Show equal number of left and right keypress practices in random order
-        List<EfrButton> lrButtonIndicator = Enumerable.Repeat(EfrButton.LeftButton, EFR_KEYPRESS_PRACTICES)
-                                                      .Concat(Enumerable.Repeat(EfrButton.RightButton, EFR_KEYPRESS_PRACTICES))
+        List<ActionButton> lrButtonIndicator = Enumerable.Repeat(ActionButton.LeftButton, EFR_KEYPRESS_PRACTICES)
+                                                      .Concat(Enumerable.Repeat(ActionButton.RightButton, EFR_KEYPRESS_PRACTICES))
                                                       .ToList();
         lrButtonIndicator.Shuffle(rng);
 
@@ -1673,20 +1676,20 @@ public class DeliveryExperiment : CoroutineExperiment
             yield return messageImageDisplayer.DisplayMessageTimed(
                 messageImageDisplayer.efr_display, efrKeypressPracticedelay);
 
-            if (buttonIndicator == EfrButton.LeftButton)
+            if (buttonIndicator == ActionButton.LeftButton)
             {
-                SetTwoBtnErDisplay(EfrButton.LeftButton);
+                SetTwoBtnErDisplay(ActionButton.LeftButton);
                 messageImageDisplayer.SetEfrTextResize(LeftButtonSize: 0.3f);
-                yield return messageImageDisplayer.DisplayMessageKeypressBold(
-                    messageImageDisplayer.efr_display, EfrButton.LeftButton);
+                yield return messageImageDisplayer.DisplayMessageLRKeypressBold(
+                    messageImageDisplayer.efr_display, ActionButton.LeftButton);
                 messageImageDisplayer.SetEfrTextResize(LeftButtonSize: -0.3f);
             }
-            else if (buttonIndicator == EfrButton.RightButton)
+            else if (buttonIndicator == ActionButton.RightButton)
             {
-                SetTwoBtnErDisplay(EfrButton.RightButton);
+                SetTwoBtnErDisplay(ActionButton.RightButton);
                 messageImageDisplayer.SetEfrTextResize(rightButtonSize: 0.3f);
-                yield return messageImageDisplayer.DisplayMessageKeypressBold(
-                    messageImageDisplayer.efr_display, EfrButton.RightButton);
+                yield return messageImageDisplayer.DisplayMessageLRKeypressBold(
+                    messageImageDisplayer.efr_display, ActionButton.RightButton);
                 messageImageDisplayer.SetEfrTextResize(rightButtonSize: -0.3f);
             }
         }
@@ -1738,30 +1741,30 @@ public class DeliveryExperiment : CoroutineExperiment
         scriptedEventReporter.ReportScriptedEvent("stop efr keypress practice");
     }
 
-    private void SetTwoBtnErDisplay(EfrButton? keypressPractice = null)
+    private void SetTwoBtnErDisplay(ActionButton? keypressPractice = null)
     {
-        if (efrCorrectButtonSide == EfrButton.RightButton)
+        if (efrCorrectButtonSide == ActionButton.RightButton)
         {
             efrLeftLogMsg = "incorrect";
             efrRightLogMsg = "correct";
-            if (keypressPractice == EfrButton.LeftButton)
+            if (keypressPractice == ActionButton.LeftButton)
                 messageImageDisplayer.SetEfrText(leftButton: "two btn er keypress practice left button incorrect message",
                                                  rightButton: "two btn er right button correct message");
-            else if (keypressPractice == EfrButton.RightButton)
+            else if (keypressPractice == ActionButton.RightButton)
                 messageImageDisplayer.SetEfrText(leftButton: "two btn er left button incorrect message",
                                                  rightButton: "two btn efr keypress practice right button correct message");
             else
                 messageImageDisplayer.SetEfrText(leftButton: "two btn er left button incorrect message",
                                                  rightButton: "two btn efr right button correct message");
         }
-        else if (efrCorrectButtonSide == EfrButton.LeftButton)
+        else if (efrCorrectButtonSide == ActionButton.LeftButton)
         {
             efrLeftLogMsg = "correct";
             efrRightLogMsg = "incorrect";
-            if (keypressPractice == EfrButton.LeftButton)
+            if (keypressPractice == ActionButton.LeftButton)
                 messageImageDisplayer.SetEfrText(leftButton: "two btn er keypress practice left button correct message",
                                                  rightButton: "two btn er right button incorrect message");
-            if (keypressPractice == EfrButton.RightButton)
+            if (keypressPractice == ActionButton.RightButton)
                 messageImageDisplayer.SetEfrText(leftButton: "two btn er left button correct message",
                                                  rightButton: "two btn er keypress practice right button incorrect message");
             else

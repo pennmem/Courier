@@ -6,6 +6,7 @@ using UnityEngine;
 using Luminosity.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using UnityEngine.Networking;
 
 using Accord.Math;
 using Accord.Statistics.Distributions.Multivariate;
@@ -235,19 +236,57 @@ public class DeliveryExperiment : CoroutineExperiment
     {
         if (UnityEPL.viewCheck)
             return;
-        
-        if (COURIER_ONLINE)
-            ConfigureExperiment(false, false, 0, "CourierOnline");
 
+        // Configure Experiment
+        if (COURIER_ONLINE)
+        {
+            UnityEPL.AddParticipant(System.Guid.NewGuid().ToString());
+            UnityEPL.SetExperimentName("COURIER_ONLINE");
+            UnityEPL.SetSessionNumber(0);
+            ConfigureExperiment(false, false, 0, "CourierOnline");
+        }
+
+        // Session check
         if (sessionNumber == -1)
             throw new UnityException("Please call ConfigureExperiment before beginning the experiment.");
 
+        // Exception handling
         AppDomain currentDomain = AppDomain.CurrentDomain;
         currentDomain.UnhandledException += new UnhandledExceptionEventHandler(UncaughtExceptionHandler);
 
+        // Cursor removal
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.SetCursor(new Texture2D(0, 0), new Vector2(0, 0), CursorMode.ForceSoftware);
+
+        // Player controls
+        if (HOSPITAL_COURIER)
+        {
+            #if !UNITY_WEBGL // System.IO
+                string configPath = System.IO.Path.Combine(
+                    Directory.GetParent(Directory.GetParent(UnityEPL.GetParticipantFolder()).FullName).FullName,
+                    "configs");
+                InputManager.Load(Path.Combine(configPath, "SingleStickDrivingControls.xml"));
+            #else
+                string systemConfigPath = "http://psiturk.sas.upenn.edu:22371/static/js/Unity/build/StreamingAssets/SingleStickDrivingControls.xml";
+                UnityWebRequest systemWWW = UnityWebRequest.Get(systemConfigPath);
+                yield return systemWWW.SendWebRequest();
+
+                // TODO: LC: if (systemWWW.result != UnityWebRequest.Result.Success) for later Unity versions
+                if (systemWWW.isNetworkError || systemWWW.isHttpError)
+                {
+                    Debug.Log("Network error " + systemWWW.error);
+                }
+                else
+                {
+                    using (TextReader reader = new StringReader(systemWWW.downloadHandler.text))
+                    {
+                        InputLoaderXML loader = new InputLoaderXML(reader);
+                        InputManager.Load(loader);
+                    }
+                }
+            #endif // !UNITY_WEBGL
+        }
 
         // Turn player particles and falling leaves off for Nicls Courier
         if (NICLS_COURIER)
@@ -258,7 +297,8 @@ public class DeliveryExperiment : CoroutineExperiment
             foreach (int treeIndex in trees)
                 GameObject.Find(string.Format(treeStr, treeIndex)).SetActive(false);
         }
-        
+
+        // Syncbox setup
         #if !UNITY_WEBGL // Syncbox
             QualitySettings.vSyncCount = 1;
             Application.targetFrameRate = 300;
@@ -268,19 +308,15 @@ public class DeliveryExperiment : CoroutineExperiment
                 syncs = GameObject.Find("SyncBox").GetComponent<Syncbox>();
                 syncs.StartPulse();
             }
-
-            // Randomize efr correct/incorrect button sides
-            if (Config.efrEnabled && Config.counterBalanceCorrectIncorrectButton)
-            {
-                // We want randomness for different people, but consistency between sessions
-                System.Random reliableRandom = deliveryItems.ReliableRandom();
-                efrCorrectButtonSide = (ActionButton)reliableRandom.Next(0, 2);
-            }
-        #else // UNITY_WEBGL
-            UnityEPL.AddParticipant(System.Guid.NewGuid().ToString());
-            UnityEPL.SetExperimentName("COURIER_ONLINE");
-            UnityEPL.SetSessionNumber(0);
         #endif
+
+        // Randomize efr correct/incorrect button sides
+        if (Config.efrEnabled && Config.counterBalanceCorrectIncorrectButton)
+        {
+            // We want randomness for different people, but consistency between sessions
+            System.Random reliableRandom = deliveryItems.ReliableRandom();
+            efrCorrectButtonSide = (ActionButton)reliableRandom.Next(0, 2);
+        }
 
         Dictionary<string, object> sceneData = new Dictionary<string, object>();
         sceneData.Add("sceneName", "MainGame");

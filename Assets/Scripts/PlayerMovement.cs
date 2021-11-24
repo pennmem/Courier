@@ -54,7 +54,7 @@ public class PlayerMovement : MonoBehaviour
             if (!IsFrozen())
             {
                 horizontalInput = InputManager.GetAxis("Horizontal");
-                verticalInput = InputManager.GetAxisRaw("Vertical");
+                verticalInput = InputManager.GetAxis("Vertical");
 
                 // Rotate the bike handlebars
                 //handlebars.transform.localRotation = Quaternion.Euler(horizontalInput * maxHandlebarRotationX, dampedHorizInput * maxHandlebarRotationY, 0);
@@ -83,7 +83,7 @@ public class PlayerMovement : MonoBehaviour
         if (!smoothMovement)
         {
             horizontalInput = InputManager.GetAxis("Horizontal");
-            verticalInput = InputManager.GetAxisRaw("Vertical");
+            verticalInput = InputManager.GetAxis("Vertical");
             if (!IsFrozen())
             {
                 // Rotate the bike handlebars

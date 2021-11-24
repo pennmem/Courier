@@ -1547,15 +1547,25 @@ public class DeliveryExperiment : CoroutineExperiment
                 messageImageDisplayer.SetEfrText(titleText: title);
                 messageImageDisplayer.SetEfrElementsActive(speakNowText: true);
                 yield return messageImageDisplayer.DisplayMessageTimedLRKeypressBold(
-                        messageImageDisplayer.efr_display, waitTime,
-                        efrLeftLogMsg, efrRightLogMsg, practice);
+                    messageImageDisplayer.efr_display, waitTime,
+                    efrLeftLogMsg, efrRightLogMsg, practice);
             }
             else // One btn EFR
             {
-                messageImageDisplayer.SetGeneralBiggerMessageText(titleText: "one btn er message",
-                                                              continueText: "speak now");
-                yield return messageImageDisplayer.DisplayMessageTimed(
-                    messageImageDisplayer.general_bigger_message_display, waitTime);
+                if (NICLS_COURIER)
+                {
+                    messageImageDisplayer.SetGeneralBiggerMessageText(titleText: "one btn er message",
+                                                                      continueText: "speak now");
+                    yield return messageImageDisplayer.DisplayMessageTimed(
+                        messageImageDisplayer.general_bigger_message_display, waitTime);
+                }
+                else
+                {
+                    messageImageDisplayer.SetGeneralBiggerMessageText(titleText: "one btn er message",
+                                                                      continueText: "speak now");
+                    yield return messageImageDisplayer.DisplayMessageTimedKeypressBold(
+                        messageImageDisplayer.general_bigger_message_display, waitTime, ActionButton.RejectButton, "title text", "reject button");
+                }
             }
         }
         else

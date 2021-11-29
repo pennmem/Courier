@@ -46,9 +46,9 @@
         <Positive>None</Positive>
         <Negative>None</Negative>
         <DeadZoneType>CutOff</DeadZoneType>
-        <DeadZone>0.2</DeadZone>
+        <DeadZone>0.1</DeadZone>
         <Gravity>1</Gravity>
-        <Sensitivity>3</Sensitivity>
+        <Sensitivity>1</Sensitivity>
         <Scale>1</Scale>
         <Snap>false</Snap>
         <Invert>false</Invert>
@@ -63,9 +63,9 @@
         <Positive>None</Positive>
         <Negative>None</Negative>
         <DeadZoneType>CutOff</DeadZoneType>
-        <DeadZone>0.2</DeadZone>
+        <DeadZone>0.1</DeadZone>
         <Gravity>1</Gravity>
-        <Sensitivity>3</Sensitivity>
+        <Sensitivity>1</Sensitivity>
         <Scale>1</Scale>
         <Snap>false</Snap>
         <Invert>false</Invert>
@@ -376,7 +376,7 @@
         <GamepadIndex>GamepadOne</GamepadIndex>
       </Binding>
       <Binding>
-        <Positive>JoystickButton0</Positive>
+        <Positive>JoystickButton1</Positive>
         <Negative>None</Negative>
         <DeadZoneType>CutOff</DeadZoneType>
         <DeadZone>0</DeadZone>
@@ -450,7 +450,7 @@
         <GamepadIndex>GamepadOne</GamepadIndex>
       </Binding>
       <Binding>
-        <Positive>JoystickButton2</Positive>
+        <Positive>JoystickButton9</Positive>
         <Negative>None</Negative>
         <DeadZoneType>CutOff</DeadZoneType>
         <DeadZone>0</DeadZone>
@@ -487,7 +487,7 @@
         <GamepadIndex>GamepadOne</GamepadIndex>
       </Binding>
       <Binding>
-        <Positive>JoystickButton0</Positive>
+        <Positive>JoystickButton1</Positive>
         <Negative>None</Negative>
         <DeadZoneType>CutOff</DeadZoneType>
         <DeadZone>0</DeadZone>
@@ -505,23 +505,6 @@
       </Binding>
       <Binding>
         <Positive>Y</Positive>
-        <Negative>None</Negative>
-        <DeadZoneType>CutOff</DeadZoneType>
-        <DeadZone>0</DeadZone>
-        <Gravity>1</Gravity>
-        <Sensitivity>1</Sensitivity>
-        <Scale>1</Scale>
-        <Snap>false</Snap>
-        <Invert>false</Invert>
-        <Type>Button</Type>
-        <Axis>0</Axis>
-        <Joystick>0</Joystick>
-        <GamepadButton>LeftStick</GamepadButton>
-        <GamepadAxis>LeftThumbstickX</GamepadAxis>
-        <GamepadIndex>GamepadOne</GamepadIndex>
-      </Binding>
-      <Binding>
-        <Positive>JoystickButton3</Positive>
         <Negative>None</Negative>
         <DeadZoneType>CutOff</DeadZoneType>
         <DeadZone>0</DeadZone>

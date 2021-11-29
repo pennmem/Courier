@@ -28,14 +28,19 @@ public class PlayerMovement : MonoBehaviour
     protected const float maxHandlebarRotationX = 20f;
     protected const float maxHandlebarRotationY = 15f;
 
-    private bool smoothMovement = false;
+    private bool temporallySmoothedTurning = false;
+    private bool sinSmoothedTurning = false;
+    private bool cubicSmoothedTurning = true;
+
     void Start()
     {
         originalPosition = gameObject.transform.position;
         originalRotation = gameObject.transform.rotation;
 
         playerBody = GetComponent<Rigidbody>();
-        smoothMovement = Config.Get(() => Config.smoothMovement, false);
+        temporallySmoothedTurning = Config.Get(() => Config.temporallySmoothedTurning, false);
+        sinSmoothedTurning = Config.Get(() => Config.sinSmoothedTurning, false);
+        cubicSmoothedTurning = Config.Get(() => Config.cubicSmoothedTurning, true);
     }
 
     public float horizontalInput;
@@ -46,7 +51,7 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
-        if (smoothMovement)
+        if (temporallySmoothedTurning)
         {
             // This is only in Update because we want it locked to frame rate.
             // Because MoveRotation is used, the rotation doesn't occur until the next FixedUpdate
@@ -54,6 +59,10 @@ public class PlayerMovement : MonoBehaviour
             if (!IsFrozen())
             {
                 horizontalInput = InputManager.GetAxis("Horizontal");
+                if (sinSmoothedTurning)
+                    horizontalInput = SinCurve(horizontalInput);
+                else if (cubicSmoothedTurning)
+                    horizontalInput = CubicCurve(horizontalInput);
                 verticalInput = InputManager.GetAxis("Vertical");
 
                 // Rotate the bike handlebars
@@ -78,11 +87,31 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    float SinCurve(float x)
+    {
+        var xAbs = Mathf.Abs(x);
+        var y = 0.5f * (Mathf.Sin(Mathf.PI * xAbs - Mathf.PI / 2) + 1);
+        return y * Mathf.Sign(x);
+    }
+
+    float CubicCurve(float x)
+    {
+        var xAbs = Mathf.Abs(x);
+        var y = (xAbs < 0.5f)
+                ? 4 * Mathf.Pow(xAbs, 3)
+                : 1 - Mathf.Pow(-2 * xAbs + 2, 3) / 2;
+        return y * Mathf.Sign(x);
+    }
+
     void FixedUpdate()
     {
-        if (!smoothMovement)
+        if (!temporallySmoothedTurning)
         {
             horizontalInput = InputManager.GetAxis("Horizontal");
+            if (sinSmoothedTurning)
+                horizontalInput = SinCurve(horizontalInput);
+            else if (cubicSmoothedTurning)
+                horizontalInput = CubicCurve(horizontalInput);
             verticalInput = InputManager.GetAxis("Vertical");
             if (!IsFrozen())
             {

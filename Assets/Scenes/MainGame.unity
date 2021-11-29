@@ -27517,8 +27517,8 @@ MonoBehaviour:
         m_negative: 115
         m_deadZoneType: 0
         m_deadZone: 0
-        m_gravity: 3
-        m_sensitivity: 3
+        m_gravity: 100
+        m_sensitivity: 100
         m_scale: 1
         m_snap: 1
         m_invert: 0
@@ -27532,8 +27532,8 @@ MonoBehaviour:
         m_negative: 274
         m_deadZoneType: 0
         m_deadZone: 0
-        m_gravity: 3
-        m_sensitivity: 3
+        m_gravity: 100
+        m_sensitivity: 100
         m_scale: 1
         m_snap: 1
         m_invert: 0
@@ -27547,8 +27547,8 @@ MonoBehaviour:
         m_negative: 334
         m_deadZoneType: 0
         m_deadZone: 0.02
-        m_gravity: 3
-        m_sensitivity: 1
+        m_gravity: 100
+        m_sensitivity: 100
         m_scale: 1
         m_snap: 1
         m_invert: 0
@@ -63671,9 +63671,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5af5b0cb12eeb074f97c4e252c3ca7a2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  outputFormat: 0
-  framesPerWrite: 300
-  writeAutomatically: 1
 --- !u!1 &213670579
 GameObject:
   m_ObjectHideFlags: 0

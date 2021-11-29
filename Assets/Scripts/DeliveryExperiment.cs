@@ -260,33 +260,41 @@ public class DeliveryExperiment : CoroutineExperiment
         Cursor.SetCursor(new Texture2D(0, 0), new Vector2(0, 0), CursorMode.ForceSoftware);
 
         // Player controls
+        string controlName = "DrivingControls";
         if (HOSPITAL_COURIER)
-        {
-            #if !UNITY_WEBGL // System.IO
-                string configPath = System.IO.Path.Combine(
-                    Directory.GetParent(Directory.GetParent(UnityEPL.GetParticipantFolder()).FullName).FullName,
-                    "configs");
-                InputManager.Load(Path.Combine(configPath, "SingleStickDrivingControls.xml"));
-            #else
-                string systemConfigPath = "http://psiturk.sas.upenn.edu:22371/static/js/Unity/build/StreamingAssets/SingleStickDrivingControls.xml";
-                UnityWebRequest systemWWW = UnityWebRequest.Get(systemConfigPath);
-                yield return systemWWW.SendWebRequest();
+            controlName = "SingleStick" + controlName;
+        else
+            controlName = "Split" + controlName;
 
-                // TODO: LC: if (systemWWW.result != UnityWebRequest.Result.Success) for later Unity versions
-                if (systemWWW.isNetworkError || systemWWW.isHttpError)
+        if (Config.Get(() => Config.ps4Controller, false))
+            controlName = "Ps4" + controlName;
+
+        #if !UNITY_WEBGL // System.IO
+            string configPath = System.IO.Path.Combine(
+                Directory.GetParent(Directory.GetParent(UnityEPL.GetParticipantFolder()).FullName).FullName,
+                "configs");
+            InputManager.Load(Path.Combine(configPath, controlName));
+        #else
+            // string experimentConfigPath = System.IO.Path.Combine(Application.streamingAssetsPath, controlName);
+            string systemConfigPath = "http://psiturk.sas.upenn.edu:22371/static/js/Unity/build/StreamingAssets/" + controlName;
+            UnityWebRequest systemWWW = UnityWebRequest.Get(systemConfigPath);
+            yield return systemWWW.SendWebRequest();
+
+            // TODO: LC: if (systemWWW.result != UnityWebRequest.Result.Success) for later Unity versions
+            if (systemWWW.isNetworkError || systemWWW.isHttpError)
+            {
+                Debug.Log("Network error " + systemWWW.error);
+            }
+            else
+            {
+                using (TextReader reader = new StringReader(systemWWW.downloadHandler.text))
                 {
-                    Debug.Log("Network error " + systemWWW.error);
+                    InputLoaderXML loader = new InputLoaderXML(reader);
+                    InputManager.Load(loader);
                 }
-                else
-                {
-                    using (TextReader reader = new StringReader(systemWWW.downloadHandler.text))
-                    {
-                        InputLoaderXML loader = new InputLoaderXML(reader);
-                        InputManager.Load(loader);
-                    }
-                }
-            #endif // !UNITY_WEBGL
-        }
+            }
+        #endif // !UNITY_WEBGL
+
 
         // Turn player particles and falling leaves off for Nicls Courier
         if (NICLS_COURIER)

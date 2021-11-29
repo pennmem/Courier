@@ -185,7 +185,6 @@ public abstract class CoroutineExperiment : MonoBehaviour
             Debug.Log(Config.onlineSystemConfigText);
         }
 
-        // TODO: JPB: Ask Leo about this (and the similar situation in player controls setup of Start() in Delivery Experiment)
         // string experimentConfigPath = System.IO.Path.Combine(Application.streamingAssetsPath, "CourierOnline.json");
         string experimentConfigPath = "http://psiturk.sas.upenn.edu:22371/static/js/Unity/build/StreamingAssets/CourierOnline.json";
         UnityWebRequest experimentWWW = UnityWebRequest.Get(experimentConfigPath);

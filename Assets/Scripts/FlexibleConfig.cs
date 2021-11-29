@@ -20,8 +20,11 @@ public class Config
     public static string niclServerIP { get { return (string)Config.GetSetting("niclServerIP"); } }
     public static int niclServerPort { get { return (int)Config.GetSetting("niclServerPort"); } }
 
-    // Programmer Conveniences
+    // Hardware
     public static bool noSyncbox { get { return (bool)Config.GetSetting("noSyncbox"); } }
+    public static bool ps4Controller { get { return (bool)Config.GetSetting("ps4Contoller"); } }
+
+    // Programmer Conveniences
     public static bool lessTrials { get { return (bool)Config.GetSetting("lessTrials"); } }
     public static bool lessDeliveries { get { return (bool)Config.GetSetting("lessDeliveries"); } }
     public static bool showFps { get { return (bool)Config.GetSetting("showFps"); } }
@@ -40,7 +43,9 @@ public class Config
     public static bool twoBtnEcrEnabled { get { return (bool)Config.GetSetting("twoBtnEcrEnabled"); } }
     public static bool niclsCourier { get { return (bool)Config.GetSetting("niclsCourier"); } }
     public static bool counterBalanceCorrectIncorrectButton { get { return (bool)Config.GetSetting("counterBalanceCorrectIncorrectButton"); } }
-    public static bool smoothMovement { get { return (bool)Config.GetSetting("smoothMovement"); } }
+    public static bool temporallySmoothedTurning { get { return (bool)Config.GetSetting("temporallySmoothedTurning"); } }
+    public static bool sinSmoothedTurning { get { return (bool)Config.GetSetting("sinSmoothedTurning"); } }
+    public static bool cubicSmoothedTurning { get { return (bool)Config.GetSetting("cubicSmoothedTurning"); } }
 
     // Constants
     public static int trialsPerSession { get {
@@ -80,6 +85,7 @@ public class Config
 
     // TODO: JPB: (Hokua) Should this function be templated? What are the pros and cons?
     //            Note: It could also be a "dynamic" type, but WebGL doesn't support it (so we can't use dynamic)
+    //            Should it be a nullable type and remove the Get<T> function? (hint: Look up the ?? operator)
     private static object GetSetting(string setting)
     {
         object value;

@@ -610,19 +610,8 @@ public class DeliveryExperiment : CoroutineExperiment
 
         for (int i = 0; i < numDeliveries; i++)
         {
-            StoreComponent nextStore = null;
-            int random_store_index = -1;
-            int tries = 0;
-
-            do
-            {
-                tries++;
-                random_store_index = UnityEngine.Random.Range(0, unvisitedStores.Count);
-                nextStore = unvisitedStores[random_store_index];
-            }
-            while (nextStore.IsVisible() && tries < environment.stores.Length);
-
-            unvisitedStores.RemoveAt(random_store_index);
+            StoreComponent nextStore = PickNextStore(unvisitedStores);
+            unvisitedStores.Remove(nextStore);
             thisTrialPresentedStores.Add(nextStore);
 
             playerMovement.Freeze();
@@ -654,59 +643,6 @@ public class DeliveryExperiment : CoroutineExperiment
         scriptedEventReporter.ReportScriptedEvent("stop town learning");
     }
 
-    private List<StoreComponent> NonVisibleStores(List<StoreComponent> stores)
-    {
-        return stores.Where(store => !store.IsVisible()).ToList();
-    }
-
-    private List<StoreComponent> StoresNotBehindPlayer(List<StoreComponent> stores)
-    {
-        return stores.Where(store =>
-        {
-            var player = playerMovement.gameObject.transform;
-            float angle = UnityEngine.Vector3.Angle(player.forward, store.transform.position - player.position);
-            return angle < 90f;
-        }).ToList();
-    }
-
-    private StoreComponent PickNextStore(List<StoreComponent> stores)
-    {
-        int NUM_CLOSE_STORES = 3;
-
-        if (stores == null || stores.Count == 0)
-            throw new ArgumentException("There are no stores in provided list");
-        Debug.Log("Unvisited Stores: " + string.Join(", ", stores));
-
-        var tempStores = NonVisibleStores(stores);
-        if (tempStores.Count == 0)
-            goto PickStore;
-        else
-            stores = tempStores;
-        Debug.Log("NonVisible Stores: " + string.Join(", ", stores));
-
-        tempStores = StoresNotBehindPlayer(stores);
-        if (tempStores.Count == 0)
-            goto PickStore;
-        else
-            stores = tempStores;
-        Debug.Log("Not Behind Player Stores: " + string.Join(", ", stores));
-
-    PickStore:
-        stores.Sort( (store1, store2) =>
-        {
-            float dist1 = UnityEngine.Vector3.Distance(playerMovement.gameObject.transform.position, store1.transform.position);
-            float dist2 = UnityEngine.Vector3.Distance(playerMovement.gameObject.transform.position, store2.transform.position);
-            if (dist1 == dist2) return 0;
-            else if (dist1 < dist2) return -1;
-            else return 1;
-        });
-
-        Debug.Log("Sorted Stores: " + string.Join(", ", stores));
-
-        int numStoresToChooseFrom = Math.Min(NUM_CLOSE_STORES, stores.Count() - 1);
-        return stores[rng.Next(numStoresToChooseFrom)];
-    }
-
     private IEnumerator DoDeliveries(int trialNumber, int continuousTrialNum, bool practice = false, bool skipLastDelivStores = false)
     {
         Dictionary<string, object> trialData = new Dictionary<string, object>();
@@ -734,6 +670,7 @@ public class DeliveryExperiment : CoroutineExperiment
         {
             StoreComponent nextStore = PickNextStore(unvisitedStores);
             unvisitedStores.Remove(nextStore);
+            thisTrialPresentedStores.Add(nextStore);
 
             playerMovement.Freeze();
             messageImageDisplayer.please_find_the_blah_reminder.SetActive(false);
@@ -797,8 +734,6 @@ public class DeliveryExperiment : CoroutineExperiment
                                 : System.IO.Path.Combine(UnityEPL.GetDataPath(), continuousTrialNum.ToString() + ".lst");
                     AppendWordToLst(lstFilepath, deliveredItemName);
                 #endif
-
-                thisTrialPresentedStores.Add(nextStore);
                 allPresentedObjects.Add(deliveredItemName);
 
                 SetRamulatorState("WORD", true, new Dictionary<string, object>() { { "word", deliveredItemName } });
@@ -1961,6 +1896,61 @@ public class DeliveryExperiment : CoroutineExperiment
         //    starSystem.gameObject.SetActive(true);
         memoryWordCanvas.SetActive(false);
         playerMovement.Zero();
+    }
+
+
+
+    private List<StoreComponent> NonVisibleStores(List<StoreComponent> stores)
+    {
+        return stores.Where(store => !store.IsVisible()).ToList();
+    }
+
+    private List<StoreComponent> StoresNotBehindPlayer(List<StoreComponent> stores)
+    {
+        return stores.Where(store =>
+        {
+            var player = playerMovement.gameObject.transform;
+            float angle = UnityEngine.Vector3.Angle(player.forward, store.transform.position - player.position);
+            return angle < 90f;
+        }).ToList();
+    }
+
+    private StoreComponent PickNextStore(List<StoreComponent> stores)
+    {
+        int NUM_CLOSE_STORES = 3;
+
+        if (stores == null || stores.Count == 0)
+            throw new ArgumentException("There are no stores in provided list");
+        Debug.Log("Unvisited Stores: " + string.Join(", ", stores));
+
+        var tempStores = NonVisibleStores(stores);
+        if (tempStores.Count == 0)
+            goto PickStore;
+        else
+            stores = tempStores;
+        Debug.Log("NonVisible Stores: " + string.Join(", ", stores));
+
+        tempStores = StoresNotBehindPlayer(stores);
+        if (tempStores.Count == 0)
+            goto PickStore;
+        else
+            stores = tempStores;
+        Debug.Log("Not Behind Player Stores: " + string.Join(", ", stores));
+
+    PickStore:
+        stores.Sort((store1, store2) =>
+        {
+            float dist1 = UnityEngine.Vector3.Distance(playerMovement.gameObject.transform.position, store1.transform.position);
+            float dist2 = UnityEngine.Vector3.Distance(playerMovement.gameObject.transform.position, store2.transform.position);
+            if (dist1 == dist2) return 0;
+            else if (dist1 < dist2) return -1;
+            else return 1;
+        });
+
+        Debug.Log("Sorted Stores: " + string.Join(", ", stores));
+
+        int numStoresToChooseFrom = Math.Min(NUM_CLOSE_STORES, stores.Count() - 1);
+        return stores[rng.Next(numStoresToChooseFrom)];
     }
 
 

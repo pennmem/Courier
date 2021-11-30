@@ -654,6 +654,62 @@ public class DeliveryExperiment : CoroutineExperiment
         scriptedEventReporter.ReportScriptedEvent("stop town learning");
     }
 
+    private List<StoreComponent> VisibleStores(List<StoreComponent> stores)
+    {
+        return (List<StoreComponent>)stores.Where(store => store.IsVisible());
+    }
+
+    private List<StoreComponent> StoresBehindPlayer(List<StoreComponent> stores)
+    {
+        return (List<StoreComponent>)stores.Where(store =>
+        {
+            var player = playerMovement.gameObject.transform;
+            float angle = UnityEngine.Vector3.Angle(player.forward, store.transform.position - player.position);
+            return angle < 90f;
+        });
+    }
+
+    private StoreComponent PickNextStore(List<StoreComponent> stores)
+    {
+        int MIN_PICK_STORES = 3;
+
+        if (stores == null || stores.Count() < 1)
+            throw new ArgumentException("There are no stores in provided list");
+
+        Debug.Log(string.Join(", ", stores));
+
+        var tempStores = VisibleStores(stores);
+        if (tempStores.Count() < MIN_PICK_STORES)
+            goto PickStore;
+        else
+            stores = tempStores;
+
+        Debug.Log(string.Join(", ", stores));
+
+        tempStores = StoresBehindPlayer(stores);
+        if (tempStores.Count() < MIN_PICK_STORES)
+            goto PickStore;
+        else
+            stores = tempStores;
+
+        Debug.Log(string.Join(", ", stores));
+
+    PickStore:
+        stores.Sort( (store1, store2) =>
+        {
+            float dist1 = UnityEngine.Vector3.Distance(playerMovement.gameObject.transform.position, store1.transform.position);
+            float dist2 = UnityEngine.Vector3.Distance(playerMovement.gameObject.transform.position, store2.transform.position);
+            if (dist1 == dist2) return 0;
+            else if (dist1 < dist2) return -1;
+            else return 1;
+        });
+
+        Debug.Log(string.Join(", ", stores));
+
+        int numStoresToChooseFrom = Math.Min(3, stores.Count() - 1);
+        return stores[rng.Next(numStoresToChooseFrom)];
+    }
+
     private IEnumerator DoDeliveries(int trialNumber, int continuousTrialNum, bool practice = false, bool skipLastDelivStores = false)
     {
         Dictionary<string, object> trialData = new Dictionary<string, object>();
@@ -679,6 +735,9 @@ public class DeliveryExperiment : CoroutineExperiment
 
         for (int i = 0; i < deliveries; i++)
         {
+            //StoreComponent nextStore = PickNextStore(unvisitedStores);
+            //unvisitedStores.Remove(nextStore);
+
             StoreComponent nextStore = null;
             int random_store_index = -1;
             int tries = 0;

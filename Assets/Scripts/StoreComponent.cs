@@ -64,7 +64,7 @@ public class StoreComponent : MonoBehaviour
             renderesVisible.Add(theRenderer.isVisible);
         foreach (bool isVisible in renderesVisible)
             thisIsVisible |= isVisible;
-        Debug.Log(storeName + " is visible: " + thisIsVisible.ToString());
+        //Debug.Log(storeName + " is visible: " + thisIsVisible.ToString());
         return thisIsVisible;
     }
 
@@ -90,5 +90,10 @@ public class StoreComponent : MonoBehaviour
     public string GetLastPoppedItemName()
     {
         return mostRecentlyPoppedItem;
+    }
+
+    public override string ToString()
+    {
+        return storeName;
     }
 }

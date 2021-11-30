@@ -260,7 +260,7 @@ public class DeliveryExperiment : CoroutineExperiment
         Cursor.SetCursor(new Texture2D(0, 0), new Vector2(0, 0), CursorMode.ForceSoftware);
 
         // Player controls
-        string controlName = "DrivingControls";
+        string controlName = "DrivingControls.xml";
         if (HOSPITAL_COURIER)
             controlName = "SingleStick" + controlName;
         else
@@ -654,45 +654,42 @@ public class DeliveryExperiment : CoroutineExperiment
         scriptedEventReporter.ReportScriptedEvent("stop town learning");
     }
 
-    private List<StoreComponent> VisibleStores(List<StoreComponent> stores)
+    private List<StoreComponent> NonVisibleStores(List<StoreComponent> stores)
     {
-        return (List<StoreComponent>)stores.Where(store => store.IsVisible());
+        return stores.Where(store => !store.IsVisible()).ToList();
     }
 
-    private List<StoreComponent> StoresBehindPlayer(List<StoreComponent> stores)
+    private List<StoreComponent> StoresNotBehindPlayer(List<StoreComponent> stores)
     {
-        return (List<StoreComponent>)stores.Where(store =>
+        return stores.Where(store =>
         {
             var player = playerMovement.gameObject.transform;
             float angle = UnityEngine.Vector3.Angle(player.forward, store.transform.position - player.position);
             return angle < 90f;
-        });
+        }).ToList();
     }
 
     private StoreComponent PickNextStore(List<StoreComponent> stores)
     {
-        int MIN_PICK_STORES = 3;
+        int NUM_CLOSE_STORES = 3;
 
-        if (stores == null || stores.Count() < 1)
+        if (stores == null || stores.Count == 0)
             throw new ArgumentException("There are no stores in provided list");
+        Debug.Log("Unvisited Stores: " + string.Join(", ", stores));
 
-        Debug.Log(string.Join(", ", stores));
-
-        var tempStores = VisibleStores(stores);
-        if (tempStores.Count() < MIN_PICK_STORES)
+        var tempStores = NonVisibleStores(stores);
+        if (tempStores.Count == 0)
             goto PickStore;
         else
             stores = tempStores;
+        Debug.Log("NonVisible Stores: " + string.Join(", ", stores));
 
-        Debug.Log(string.Join(", ", stores));
-
-        tempStores = StoresBehindPlayer(stores);
-        if (tempStores.Count() < MIN_PICK_STORES)
+        tempStores = StoresNotBehindPlayer(stores);
+        if (tempStores.Count == 0)
             goto PickStore;
         else
             stores = tempStores;
-
-        Debug.Log(string.Join(", ", stores));
+        Debug.Log("Not Behind Player Stores: " + string.Join(", ", stores));
 
     PickStore:
         stores.Sort( (store1, store2) =>
@@ -704,9 +701,9 @@ public class DeliveryExperiment : CoroutineExperiment
             else return 1;
         });
 
-        Debug.Log(string.Join(", ", stores));
+        Debug.Log("Sorted Stores: " + string.Join(", ", stores));
 
-        int numStoresToChooseFrom = Math.Min(3, stores.Count() - 1);
+        int numStoresToChooseFrom = Math.Min(NUM_CLOSE_STORES, stores.Count() - 1);
         return stores[rng.Next(numStoresToChooseFrom)];
     }
 
@@ -735,45 +732,8 @@ public class DeliveryExperiment : CoroutineExperiment
 
         for (int i = 0; i < deliveries; i++)
         {
-            //StoreComponent nextStore = PickNextStore(unvisitedStores);
-            //unvisitedStores.Remove(nextStore);
-
-            StoreComponent nextStore = null;
-            int random_store_index = -1;
-            int tries = 0;
-
-            int craft_shop_index = unvisitedStores.FindIndex(store => store.GetStoreName() == "craft shop");
-            if (practice && trialNumber == 0)
-            {
-                if (i == craft_shop_delivery_num)
-                {
-                    random_store_index = craft_shop_index;
-                    nextStore = unvisitedStores[random_store_index];
-                }
-                else
-                {
-                    do
-                    {
-                        tries++;
-                        random_store_index = rng.Next(unvisitedStores.Count);
-                        nextStore = unvisitedStores[random_store_index];
-                    }
-                    while ((nextStore.IsVisible() && tries < environment.stores.Length)
-                           || random_store_index == craft_shop_index);
-                }
-            }
-            else
-            {
-                do
-                {
-                    tries++;
-                    random_store_index = rng.Next(unvisitedStores.Count);
-                    nextStore = unvisitedStores[random_store_index];
-                }
-                while (nextStore.IsVisible() && tries < environment.stores.Length);
-            }
-
-            unvisitedStores.RemoveAt(random_store_index);
+            StoreComponent nextStore = PickNextStore(unvisitedStores);
+            unvisitedStores.Remove(nextStore);
 
             playerMovement.Freeze();
             messageImageDisplayer.please_find_the_blah_reminder.SetActive(false);

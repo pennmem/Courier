@@ -3746,8 +3746,8 @@ MonoBehaviour:
         m_negative: 97
         m_deadZoneType: 0
         m_deadZone: 0
-        m_gravity: 3
-        m_sensitivity: 3
+        m_gravity: 100
+        m_sensitivity: 100
         m_scale: 1
         m_snap: 1
         m_invert: 0
@@ -3761,8 +3761,8 @@ MonoBehaviour:
         m_negative: 276
         m_deadZoneType: 0
         m_deadZone: 0
-        m_gravity: 3
-        m_sensitivity: 3
+        m_gravity: 100
+        m_sensitivity: 100
         m_scale: 1
         m_snap: 1
         m_invert: 0
@@ -3775,22 +3775,7 @@ MonoBehaviour:
       - m_positive: 0
         m_negative: 0
         m_deadZoneType: 0
-        m_deadZone: 0.01
-        m_gravity: 1
-        m_sensitivity: 3
-        m_scale: 1
-        m_snap: 0
-        m_invert: 0
-        m_type: 6
-        m_axis: 0
-        m_joystick: 0
-        m_gamepadButton: 0
-        m_gamepadAxis: 0
-        m_gamepadIndex: 0
-      - m_positive: 0
-        m_negative: 0
-        m_deadZoneType: 0
-        m_deadZone: 0.01
+        m_deadZone: 0.2
         m_gravity: 1
         m_sensitivity: 3
         m_scale: 1
@@ -3798,6 +3783,21 @@ MonoBehaviour:
         m_invert: 0
         m_type: 6
         m_axis: 2
+        m_joystick: 0
+        m_gamepadButton: 0
+        m_gamepadAxis: 0
+        m_gamepadIndex: 0
+      - m_positive: 0
+        m_negative: 0
+        m_deadZoneType: 0
+        m_deadZone: 0.2
+        m_gravity: 1
+        m_sensitivity: 3
+        m_scale: 1
+        m_snap: 0
+        m_invert: 0
+        m_type: 6
+        m_axis: 0
         m_joystick: 0
         m_gamepadButton: 0
         m_gamepadAxis: 0
@@ -3835,35 +3835,20 @@ MonoBehaviour:
         m_gamepadButton: 0
         m_gamepadAxis: 0
         m_gamepadIndex: 0
-      - m_positive: 0
-        m_negative: 0
+      - m_positive: 335
+        m_negative: 334
         m_deadZoneType: 0
-        m_deadZone: 0.01
-        m_gravity: 1
-        m_sensitivity: 3
+        m_deadZone: 0.02
+        m_gravity: 3
+        m_sensitivity: 1
         m_scale: 1
-        m_snap: 0
-        m_invert: 1
-        m_type: 6
-        m_axis: 1
+        m_snap: 1
+        m_invert: 0
+        m_type: 2
+        m_axis: 0
         m_joystick: 0
         m_gamepadButton: 0
-        m_gamepadAxis: 0
-        m_gamepadIndex: 0
-      - m_positive: 0
-        m_negative: 0
-        m_deadZoneType: 0
-        m_deadZone: 0.01
-        m_gravity: 1
-        m_sensitivity: 3
-        m_scale: 1
-        m_snap: 0
-        m_invert: 1
-        m_type: 6
-        m_axis: 3
-        m_joystick: 0
-        m_gamepadButton: 0
-        m_gamepadAxis: 0
+        m_gamepadAxis: 7
         m_gamepadIndex: 0
     - m_name: LookHorizontal
       m_description: 

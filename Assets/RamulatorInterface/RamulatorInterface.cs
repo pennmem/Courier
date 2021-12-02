@@ -1,4 +1,6 @@
-﻿using System;
+﻿#if !UNITY_WEBGL // Ramulator
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -182,3 +184,4 @@ public class RamulatorInterface : MonoBehaviour
         scriptedEventReporter.ReportScriptedEvent("network", messageDataDict);
     }
 }
+#endif // !UNITY_WEBGL

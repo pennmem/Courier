@@ -1,3 +1,4 @@
+#if UNITY_WEBGL // WebGL DLL
 using UnityEngine;
 using System;
 using System.IO;
@@ -51,3 +52,5 @@ public class WriteToPsiturkHandler : WriteToDiskHandler {
 //         }
 //     }
 }
+
+#endif // UNITY_WEBGL

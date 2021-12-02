@@ -16,9 +16,13 @@ public class BeginExperiment : MonoBehaviour
     public UnityEngine.UI.InputField sessionInput;
 
     // TODO: JPB: Make these configuration variables
-    private const bool NICLS_COURIER = true;
+    private const bool HOSPITAL_COURIER = true;
+    private const bool NICLS_COURIER = false;
+    private const bool GRANT_VERSION = false;
 
-    string experiment_name = NICLS_COURIER ? "NiclsCourier" : "StandardCourier";
+    string experiment_name = HOSPITAL_COURIER ? "HospitalCourier" :
+                             NICLS_COURIER ? "NiclsCourier" :
+                             "StandardCourier";
 
     private const string scene_name = "MainGame";
 

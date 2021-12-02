@@ -6,6 +6,7 @@ using UnityEngine;
 using Luminosity.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using UnityEngine.Networking;
 
 using Accord.Math;
 using Accord.Statistics.Distributions.Multivariate;
@@ -44,12 +45,16 @@ public class DeliveryExperiment : CoroutineExperiment
     // TODO: JPB: Make these configuration variables
 
     // Experiment type
-    private const bool HOSPITAL_COURIER = false;
-    private const bool NICLS_COURIER = true;
-    private const bool COURIER_ONLINE = true;
+    private const bool HOSPITAL_COURIER = true;
+    private const bool NICLS_COURIER = false;
     private const bool GRANT_VERSION = false;
+    #if !UNITY_WEBGL
+        private const bool COURIER_ONLINE = false;
+    #else
+        private const bool COURIER_ONLINE = true;
+    #endif // !UNITY_WEBGL
     
-    private const string COURIER_VERSION = COURIER_ONLINE ? "v5.0.0online" : "v5.1.3";
+    private const string COURIER_VERSION = COURIER_ONLINE ? "v5.0.0online" : "v5.2.0";
 
     private const string RECALL_TEXT = "*******"; // TODO: JPB: Remove this and use display system
     // Constants moved to the Config File
@@ -60,6 +65,7 @@ public class DeliveryExperiment : CoroutineExperiment
     //private const int TRIALS_PER_SESSION_DOUBLE_TOWN_LEARNING = LESS_TRIALS ? 1 : 3;
     private const int EFR_PRACTICE_TRIAL_NUM = 1;
     private const int NUM_CLASSIFIER_NORMALIZATION_TRIALS = 1;
+    private const int HOSPTIAL_TOWN_LEARNING_NUM_STORES = 8;
     private const int SINGLE_TOWN_LEARNING_SESSIONS = 1;
     private const int DOUBLE_TOWN_LEARNING_SESSIONS = 0;
     private const int POINTING_INDICATOR_DELAY = NICLS_COURIER ? 12 : 48;
@@ -73,22 +79,25 @@ public class DeliveryExperiment : CoroutineExperiment
     private const float FREE_RECALL_LENGTH = 90f;
     private const float PRACTICE_FREE_RECALL_LENGTH = 25f;
     private const float STORE_FINAL_RECALL_LENGTH = 90f;
-    private const float FINAL_RECALL_LENGTH = NICLS_COURIER ? 120f : COURIER_ONLINE ? 240f : 180f;
+    private const float OBJECT_FINAL_RECALL_LENGTH = NICLS_COURIER ? 120f : COURIER_ONLINE ? 240f : 180f;
     private const float TIME_BETWEEN_DIFFERENT_RECALL_PHASES = 2f;
     private const float CUED_RECALL_TIME_PER_STORE = 10f;
     private const float MIN_CUED_RECALL_TIME_PER_STORE = 2f;
-    private const float MAX_CUED_RECALL_TIME_PER_STORE = NICLS_COURIER ? 6f : 10f;
+    private const float MAX_CUED_RECALL_TIME_PER_STORE = NICLS_COURIER ? 6f : 7.5f;
+    private const float POINTING_CORRECT_THRESHOLD = Mathf.PI / 12; // 15°
     private const float ARROW_CORRECTION_TIME = 3f;
     private const float ARROW_ROTATION_SPEED = 1f;
     private const float PAUSE_BEFORE_RETRIEVAL = 10f;
     private const float DISPLAY_ITEM_PAUSE = 5f;
     private const float AUDIO_TEXT_DISPLAY = 1.6f;
-    private const float WORD_PRESENTATION_DELAY = 1f;
+    private const float WORD_PRESENTATION_DELAY = NICLS_COURIER ? 1f : 1.25f; // TODO: JPB: Fix this is NICLS
     private const float WORD_PRESENTATION_JITTER = 0.25f;
-    private const float EFR_KEYPRESS_PRACTICE_DELAY = 2f;
+    private const float EFR_KEYPRESS_PRACTICE_DELAY = 2.25f;
     private const float EFR_KEYPRESS_PRACTICE_JITTER = 0.25f;
 
     // Keep as hardcoded values
+    private const bool STAR_SYSTEM_ACTIVE = true;
+
     private const int NICLS_READ_ONLY_SESSIONS = 8;
     private const int NICLS_CLOSED_LOOP_SESSIONS = 4;
 
@@ -103,11 +112,11 @@ public class DeliveryExperiment : CoroutineExperiment
     public Familiarizer familiarizer;
     public MessageImageDisplayer messageImageDisplayer;
 
+    private static bool useRamulator = false;
+    private static bool useNiclServer = false;
     #if !UNITY_WEBGL // Syncbox, Ramulator, and NICLS
         private Syncbox syncs;
-        private static bool useRamulator;
         public RamulatorInterface ramulatorInterface;
-        private static bool useNiclServer;
         public NiclsInterface niclsInterface;
     #endif // !UNITY_WEBGL
 
@@ -129,12 +138,12 @@ public class DeliveryExperiment : CoroutineExperiment
 
     private System.Random rng = new System.Random();
 
-    private EfrButton efrCorrectButtonSide = EfrButton.RightButton;
+    private ActionButton efrCorrectButtonSide = ActionButton.RightButton;
     private string efrLeftLogMsg = "incorrect";
     private string efrRightLogMsg = "correct";
 
-    private List<StoreComponent> this_trial_presented_stores = new List<StoreComponent>();
-    private List<string> all_presented_objects = new List<string>();
+    private List<StoreComponent> thisTrialPresentedStores = new List<StoreComponent>();
+    private List<string> allPresentedObjects = new List<string>();
 
     List<NiclsClassifierType> niclsClassifierTypes = null;
 
@@ -171,15 +180,14 @@ public class DeliveryExperiment : CoroutineExperiment
     }
     
     public static void ConfigureExperiment(bool newUseRamulator, bool newUseNiclServer, int newSessionNumber, string newExpName)
-    {   
+    {
         #if !UNITY_WEBGL // Ramulator and NICLS
             useRamulator = newUseRamulator;
             useNiclServer = newUseNiclServer;
         #endif // !UNITY_WEBGL
         sessionNumber = newSessionNumber;
-        continuousSessionNumber = useNiclServer
-            ? NICLS_READ_ONLY_SESSIONS + sessionNumber
-            : sessionNumber;
+        continuousSessionNumber = useNiclServer ? NICLS_READ_ONLY_SESSIONS + sessionNumber :
+                                  sessionNumber;
         expName = newExpName;
         Config.experimentConfigName = expName;
     }
@@ -201,7 +209,6 @@ public class DeliveryExperiment : CoroutineExperiment
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
         
-
         // Courier Online Frame testing
         if (COURIER_ONLINE && isFrameTesting) {
             frameCount++;
@@ -229,20 +236,77 @@ public class DeliveryExperiment : CoroutineExperiment
     {
         if (UnityEPL.viewCheck)
             return;
-        
-        if (COURIER_ONLINE)
-            ConfigureExperiment(false, false, 0, "CourierOnline");
 
+        // Configure Experiment
+        if (COURIER_ONLINE)
+        {
+            UnityEPL.AddParticipant(System.Guid.NewGuid().ToString());
+            UnityEPL.SetExperimentName("COURIER_ONLINE");
+            UnityEPL.SetSessionNumber(0);
+            ConfigureExperiment(false, false, 0, "CourierOnline");
+        }
+
+        // Session check
         if (sessionNumber == -1)
             throw new UnityException("Please call ConfigureExperiment before beginning the experiment.");
 
+        // Exception handling
         AppDomain currentDomain = AppDomain.CurrentDomain;
         currentDomain.UnhandledException += new UnhandledExceptionEventHandler(UncaughtExceptionHandler);
 
+        // Cursor removal
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.SetCursor(new Texture2D(0, 0), new Vector2(0, 0), CursorMode.ForceSoftware);
-        
+
+        // Player controls
+        string controlName = "DrivingControls.xml";
+        if (HOSPITAL_COURIER)
+            controlName = "SingleStick" + controlName;
+        else
+            controlName = "Split" + controlName;
+
+        if (Config.Get(() => Config.ps4Controller, false))
+            controlName = "Ps4" + controlName;
+
+        #if !UNITY_WEBGL // System.IO
+            string configPath = System.IO.Path.Combine(
+                Directory.GetParent(Directory.GetParent(UnityEPL.GetParticipantFolder()).FullName).FullName,
+                "configs");
+            InputManager.Load(Path.Combine(configPath, controlName));
+        #else
+            // string experimentConfigPath = System.IO.Path.Combine(Application.streamingAssetsPath, controlName);
+            string systemConfigPath = "http://psiturk.sas.upenn.edu:22371/static/js/Unity/build/StreamingAssets/" + controlName;
+            UnityWebRequest systemWWW = UnityWebRequest.Get(systemConfigPath);
+            yield return systemWWW.SendWebRequest();
+
+            // TODO: LC: if (systemWWW.result != UnityWebRequest.Result.Success) for later Unity versions
+            if (systemWWW.isNetworkError || systemWWW.isHttpError)
+            {
+                Debug.Log("Network error " + systemWWW.error);
+            }
+            else
+            {
+                using (TextReader reader = new StringReader(systemWWW.downloadHandler.text))
+                {
+                    InputLoaderXML loader = new InputLoaderXML(reader);
+                    InputManager.Load(loader);
+                }
+            }
+        #endif // !UNITY_WEBGL
+
+
+        // Turn player particles and falling leaves off for Nicls Courier
+        if (NICLS_COURIER)
+        {
+            GameObject.Find("Player/player perspective/Particle System").SetActive(false);
+            var trees = new List<int> { 26, 27, 28, 29, 30, 31, 32, 33, 34, 44 };
+            string treeStr = "henry tc3 environment/edge/Tree ({0})/Particle System";
+            foreach (int treeIndex in trees)
+                GameObject.Find(string.Format(treeStr, treeIndex)).SetActive(false);
+        }
+
+        // Syncbox setup
         #if !UNITY_WEBGL // Syncbox
             QualitySettings.vSyncCount = 1;
             Application.targetFrameRate = 300;
@@ -252,20 +316,15 @@ public class DeliveryExperiment : CoroutineExperiment
                 syncs = GameObject.Find("SyncBox").GetComponent<Syncbox>();
                 syncs.StartPulse();
             }
-
-            // Randomize efr correct/incorrect button sides
-            if (Config.efrEnabled && Config.counterBalanceCorrectIncorrectButton)
-            {
-                // We want randomness for different people, but consistency between sessions
-                System.Random reliableRandom = new System.Random(UnityEPL.GetParticipants()[0].GetHashCode());
-                efrCorrectButtonSide = (EfrButton)reliableRandom.Next(0, 2);
-            }
-        #else // UNITY_WEBGL
-            UnityEPL.AddParticipant(System.Guid.NewGuid().ToString());
-            UnityEPL.SetExperimentName("COURIER_ONLINE");
-            UnityEPL.SetSessionNumber(0);
         #endif
 
+        // Randomize efr correct/incorrect button sides
+        if (Config.efrEnabled && Config.counterBalanceCorrectIncorrectButton)
+        {
+            // We want randomness for different people, but consistency between sessions
+            System.Random reliableRandom = deliveryItems.ReliableRandom();
+            efrCorrectButtonSide = (ActionButton)reliableRandom.Next(0, 2);
+        }
 
         Dictionary<string, object> sceneData = new Dictionary<string, object>();
         sceneData.Add("sceneName", "MainGame");
@@ -317,24 +376,35 @@ public class DeliveryExperiment : CoroutineExperiment
 
         // Town Learning
         int trialsForFirstSubSession = Config.trialsPerSession;
-        if (sessionNumber < SINGLE_TOWN_LEARNING_SESSIONS + DOUBLE_TOWN_LEARNING_SESSIONS
-            && NICLS_COURIER && !useNiclServer)
+        if (sessionNumber < SINGLE_TOWN_LEARNING_SESSIONS + DOUBLE_TOWN_LEARNING_SESSIONS)
         {
-            Debug.Log("Town Learning Phase");
-            trialsForFirstSubSession = Config.trialsPerSessionSingleTownLearning;
-            messageImageDisplayer.SetGeneralMessageText("town learning title", "town learning main 1");
-            yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
-            WorldScreen();
-            yield return DoTownLearning(0, environment.stores.Length);
-
-            if (sessionNumber < DOUBLE_TOWN_LEARNING_SESSIONS)
+            if (NICLS_COURIER && !useNiclServer)
             {
-                trialsForFirstSubSession = Config.trialsPerSessionDoubleTownLearning;
-                messageImageDisplayer.SetGeneralMessageText("town learning title", "town learning main 2");
+                Debug.Log("Town Learning Phase");
+                trialsForFirstSubSession = Config.trialsPerSessionSingleTownLearning;
+                messageImageDisplayer.SetGeneralMessageText("town learning title", "town learning main 1");
                 yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
                 WorldScreen();
-                yield return DoTownLearning(1, environment.stores.Length);
-            } 
+                yield return DoTownLearning(0, environment.stores.Length);
+
+                if (sessionNumber < DOUBLE_TOWN_LEARNING_SESSIONS)
+                {
+                    trialsForFirstSubSession = Config.trialsPerSessionDoubleTownLearning;
+                    messageImageDisplayer.SetGeneralMessageText("town learning title", "town learning main 2");
+                    yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
+                    WorldScreen();
+                    yield return DoTownLearning(1, environment.stores.Length);
+                }
+            }
+            else if (HOSPITAL_COURIER)
+            {
+                Debug.Log("Town Learning Phase");
+                trialsForFirstSubSession = Config.trialsPerSessionSingleTownLearning;
+                messageImageDisplayer.SetGeneralMessageText("town learning title", "town learning main 1");
+                yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
+                WorldScreen();
+                yield return DoTownLearning(0, environment.stores.Length / 2);
+            }
         }
 
 
@@ -375,7 +445,7 @@ public class DeliveryExperiment : CoroutineExperiment
             if (continuousSessionNumber == NICLS_READ_ONLY_SESSIONS + NICLS_CLOSED_LOOP_SESSIONS - 1)
             {
                 var ratings = new string[] { "music video question 0 rating 0", "music video question 0 rating 1" };
-                messageImageDisplayer.SetSlidingScale2Text(titleText: "music video question 0 title",
+                messageImageDisplayer.SetSlidingScale2Text(mainText: "music video question 0 title",
                                                            ratings: ratings);
                 StartCoroutine(messageImageDisplayer.DisplaySlidingScale2Message(messageImageDisplayer.sliding_scale_2_display));
             }
@@ -406,10 +476,10 @@ public class DeliveryExperiment : CoroutineExperiment
         
         // Real trials
         if (Config.efrEnabled)
-            if (Config.newEfrEnabled)
-                messageImageDisplayer.SetGeneralMessageText(mainText: "first day main", descriptiveText: "new efr first day description");
+            if (Config.twoBtnEfrEnabled)
+                messageImageDisplayer.SetGeneralMessageText(mainText: "first day main", descriptiveText: "two btn er first day description");
             else
-                messageImageDisplayer.SetGeneralMessageText(mainText: "first day main", descriptiveText: "efr first day description");
+                messageImageDisplayer.SetGeneralMessageText(mainText: "first day main", descriptiveText: "one btn er first day description");
         else
             messageImageDisplayer.SetGeneralMessageText(mainText: "first day main");
         yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
@@ -498,25 +568,22 @@ public class DeliveryExperiment : CoroutineExperiment
             yield return DoSubjectSessionQuitPrompt(sessionNumber, LanguageSource.GetLanguageString("running participant"));
 
         #if !UNITY_WEBGL // Microphone
-        yield return DoMicrophoneTest(LanguageSource.GetLanguageString("microphone test"),
-                                      LanguageSource.GetLanguageString("after the beep"),
-                                      LanguageSource.GetLanguageString("recording"),
-                                      LanguageSource.GetLanguageString("playing"),
-                                      LanguageSource.GetLanguageString("recording confirmation"));
+            yield return DoMicrophoneTest(LanguageSource.GetLanguageString("microphone test"),
+                                          LanguageSource.GetLanguageString("after the beep"),
+                                          LanguageSource.GetLanguageString("recording"),
+                                          LanguageSource.GetLanguageString("playing"),
+                                          LanguageSource.GetLanguageString("recording confirmation"));
         #endif // !UNITY_WEBGL
-
-        if (HOSPITAL_COURIER && !COURIER_ONLINE)
-            yield return DoFamiliarization();
     }
 
     private IEnumerator DoRecapInstructions(bool forceFR = false)
     {
         GameObject[] messages;
-        if (Config.efrEnabled && !forceFR)
-            if (Config.newEfrEnabled)
-                messages = messageImageDisplayer.recap_instruction_messages_efr_en;
-            else
+        if (Config.efrEnabled && !forceFR) // TODO: JPB: Hospital handle ECR case
+            if (Config.twoBtnEfrEnabled)
                 messages = messageImageDisplayer.recap_instruction_messages_efr_2btn_en;
+            else
+                messages = messageImageDisplayer.recap_instruction_messages_efr_en;
         else
             messages = messageImageDisplayer.recap_instruction_messages_fr_en;
 
@@ -538,24 +605,14 @@ public class DeliveryExperiment : CoroutineExperiment
         scriptedEventReporter.ReportScriptedEvent("start town learning");
         messageImageDisplayer.please_find_the_blah_reminder.SetActive(true);
 
-        this_trial_presented_stores = new List<StoreComponent>();
+        thisTrialPresentedStores = new List<StoreComponent>();
         List<StoreComponent> unvisitedStores = new List<StoreComponent>(environment.stores);
 
         for (int i = 0; i < numDeliveries; i++)
         {
-            StoreComponent nextStore = null;
-            int random_store_index = -1;
-            int tries = 0;
-
-            do
-            {
-                tries++;
-                random_store_index = UnityEngine.Random.Range(0, unvisitedStores.Count);
-                nextStore = unvisitedStores[random_store_index];
-            }
-            while (nextStore.IsVisible() && tries < environment.stores.Length);
-
-            unvisitedStores.RemoveAt(random_store_index);
+            StoreComponent nextStore = PickNextStore(unvisitedStores);
+            unvisitedStores.Remove(nextStore);
+            thisTrialPresentedStores.Add(nextStore);
 
             playerMovement.Freeze();
             messageImageDisplayer.SetReminderText(nextStore.GetStoreName());
@@ -586,7 +643,7 @@ public class DeliveryExperiment : CoroutineExperiment
         scriptedEventReporter.ReportScriptedEvent("stop town learning");
     }
 
-    private IEnumerator DoDeliveries(int trialNumber, int continuousTrialNum, bool practice = false)
+    private IEnumerator DoDeliveries(int trialNumber, int continuousTrialNum, bool practice = false, bool skipLastDelivStores = false)
     {
         Dictionary<string, object> trialData = new Dictionary<string, object>();
         trialData.Add("trial number", continuousTrialNum);
@@ -600,50 +657,20 @@ public class DeliveryExperiment : CoroutineExperiment
         SetRamulatorState("ENCODING", true, new Dictionary<string, object>());
         messageImageDisplayer.please_find_the_blah_reminder.SetActive(true);
 
-        this_trial_presented_stores = new List<StoreComponent>();
         List<StoreComponent> unvisitedStores = new List<StoreComponent>(environment.stores);
+        if (skipLastDelivStores)
+            foreach (var store in thisTrialPresentedStores)
+                unvisitedStores.Remove(store);
+        thisTrialPresentedStores = new List<StoreComponent>();
 
         int deliveries = practice ? Config.deliveriesPerPracticeTrial : Config.deliveriesPerTrial;
         int craft_shop_delivery_num = rng.Next(deliveries - 1);
 
         for (int i = 0; i < deliveries; i++)
         {
-            StoreComponent nextStore = null;
-            int random_store_index = -1;
-            int tries = 0;
-
-            int craft_shop_index = unvisitedStores.FindIndex(store => store.GetStoreName() == "craft shop");
-            if (practice && trialNumber == 0)
-            {
-                if (i == craft_shop_delivery_num)
-                {
-                    random_store_index = craft_shop_index;
-                    nextStore = unvisitedStores[random_store_index];
-                }
-                else
-                {
-                    do
-                    {
-                        tries++;
-                        random_store_index = rng.Next(unvisitedStores.Count);
-                        nextStore = unvisitedStores[random_store_index];
-                    }
-                    while ((nextStore.IsVisible() && tries < environment.stores.Length)
-                            || random_store_index == craft_shop_index);
-                }
-            }
-            else
-            {
-                do
-                {
-                    tries++;
-                    random_store_index = rng.Next(unvisitedStores.Count);
-                    nextStore = unvisitedStores[random_store_index];
-                }
-                while (nextStore.IsVisible() && tries < environment.stores.Length);
-            }
-
-            unvisitedStores.RemoveAt(random_store_index);
+            StoreComponent nextStore = PickNextStore(unvisitedStores);
+            unvisitedStores.Remove(nextStore);
+            thisTrialPresentedStores.Add(nextStore);
 
             playerMovement.Freeze();
             messageImageDisplayer.please_find_the_blah_reminder.SetActive(false);
@@ -707,9 +734,7 @@ public class DeliveryExperiment : CoroutineExperiment
                                 : System.IO.Path.Combine(UnityEPL.GetDataPath(), continuousTrialNum.ToString() + ".lst");
                     AppendWordToLst(lstFilepath, deliveredItemName);
                 #endif
-
-                this_trial_presented_stores.Add(nextStore);
-                all_presented_objects.Add(deliveredItemName);
+                allPresentedObjects.Add(deliveredItemName);
 
                 SetRamulatorState("WORD", true, new Dictionary<string, object>() { { "word", deliveredItemName } });
                 //add visuals with sound
@@ -725,6 +750,7 @@ public class DeliveryExperiment : CoroutineExperiment
                 playerMovement.Unfreeze();
             }
         }
+
     SkipRemainingDeliveries:
         messageImageDisplayer.please_find_the_blah_reminder.SetActive(false);
 
@@ -741,6 +767,8 @@ public class DeliveryExperiment : CoroutineExperiment
         Debug.Log("Practice trials");
         scriptedEventReporter.ReportScriptedEvent("start practice trials");
 
+        starSystem.ResetSession();
+
         yield return DoRecapInstructions(forceFR: true);
 
         messageImageDisplayer.SetGeneralMessageText(mainText: "practice invitation");
@@ -748,28 +776,35 @@ public class DeliveryExperiment : CoroutineExperiment
 
         for (int trialNumber = 0; trialNumber < numTrials; trialNumber++)
         {
-            // EFR instructions
-            if (Config.efrEnabled && trialNumber == EFR_PRACTICE_TRIAL_NUM)
+            // ER instructions
+            if ((Config.efrEnabled || Config.ecrEnabled) && trialNumber == EFR_PRACTICE_TRIAL_NUM)
             {
-                if (Config.newEfrEnabled)
-                {
-                    messageImageDisplayer.SetGeneralBigMessageText(titleText: "new efr instructions title",
-                                                                   mainText: "new efr instructions main");
-                    yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
-                    yield return DoNewEfrKeypressCheck();
-                    yield return DoNewEfrKeypressPractice();
-                }
-                else
+                if (Config.twoBtnEfrEnabled || Config.twoBtnEcrEnabled)
                 {
                     yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
                                          LanguageSource.GetLanguageString("efr intro video"),
                                          VideoSelector.VideoType.EfrIntro);
-                    yield return DoEfrKeypressCheck();
-                    yield return DoEfrKeypressPractice();
+                    yield return DoTwoBtnErKeypressCheck();
+                    yield return DoTwoBtnErKeypressPractice();
+                }
+                else // One btn ER
+                {
+                    if (Config.efrEnabled)
+                        messageImageDisplayer.SetGeneralBigMessageText(titleText: "one btn efr instructions title",
+                                                                       mainText: "one btn efr instructions main");
+                    if (Config.ecrEnabled) // TODO: JPB: Hospital add ecr instructions
+                        messageImageDisplayer.SetGeneralBigMessageText(titleText: "one btn ecr instructions title",
+                                                                       mainText: "one btn ecr instructions main");
+                    yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
+                    yield return DoOneBtnErKeypressCheck();
+                    yield return DoOneBtnErKeypressPractice();
                 }
 
-                messageImageDisplayer.SetGeneralMessageText(titleText: "new efr check understanding title",
-                                                            mainText: "new efr check understanding main");
+                if (HOSPITAL_COURIER) // Skip the second ER practice deliv day (have it be a real deliv day)
+                    break;
+
+                messageImageDisplayer.SetGeneralMessageText(titleText: "er check understanding title",
+                                                            mainText: "er check understanding main");
                 yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
             }
 
@@ -805,14 +840,28 @@ public class DeliveryExperiment : CoroutineExperiment
             #endif                                                 
 
             // Do deliveries and recall
-            yield return DoDeliveries(trialNumber, trialNumber, practice: true);
+            if (HOSPITAL_COURIER && trialNumber == 0) // Skip town learning stores in first pratice deliv days
+                yield return DoDeliveries(trialNumber, trialNumber, practice: true, skipLastDelivStores: true);
+            else
+                yield return DoDeliveries(trialNumber, trialNumber, practice: true);
             if (!COURIER_ONLINE)
                 yield return DoFixation(PAUSE_BEFORE_RETRIEVAL, practice: true);
             yield return DoRecall(trialNumber, trialNumber, practice: true);
+
+            // Delivery Scores
+            if (HOSPITAL_COURIER)
+            {
+                var mtFormatValues = new string[] { starSystem.NumCorrectInSession(c => c < POINTING_CORRECT_THRESHOLD / Mathf.PI).ToString(),
+                                                    starSystem.NumInSession().ToString() };
+                messageImageDisplayer.SetGeneralBigMessageText(titleText: "deliv day pointing accuracy title",
+                                                               mainText: "deliv day pointing accuracy main",
+                                                               mtFormatVals: mtFormatValues);
+                yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
+            }
         }
 
-        messageImageDisplayer.SetGeneralMessageText(titleText: "new efr check understanding title",
-                                                    mainText: "new efr check understanding main");
+        messageImageDisplayer.SetGeneralMessageText(titleText: "er check understanding title",
+                                                    mainText: "er check understanding main");
         yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
 
         scriptedEventReporter.ReportScriptedEvent("stop practice trials");
@@ -871,6 +920,17 @@ public class DeliveryExperiment : CoroutineExperiment
             if (!COURIER_ONLINE)
                 yield return DoFixation(PAUSE_BEFORE_RETRIEVAL, practice: false);
             yield return DoRecall(trialNumber, continuousTrialNum, practice: false);
+
+            // Delivery Scores
+            if (HOSPITAL_COURIER)
+            {
+                var mtFormatValues = new string[] { starSystem.NumCorrectInSession(c => c < POINTING_CORRECT_THRESHOLD / Mathf.PI).ToString(),
+                                                    starSystem.NumInSession().ToString() };
+                messageImageDisplayer.SetGeneralBigMessageText(titleText: "deliv day pointing accuracy title",
+                                                               mainText: "deliv day pointing accuracy main",
+                                                               mtFormatVals: mtFormatValues);
+                yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
+            }
         }
         scriptedEventReporter.ReportScriptedEvent("stop trials");
     }
@@ -1080,12 +1140,17 @@ public class DeliveryExperiment : CoroutineExperiment
     {
         scriptedEventReporter.ReportScriptedEvent("start cued recall");
         BlackScreen();
-        this_trial_presented_stores.Shuffle(rng);
-        Debug.Log(this_trial_presented_stores);
+        thisTrialPresentedStores.Shuffle(rng);
+        Debug.Log(thisTrialPresentedStores);
         
         if (COURIER_ONLINE)
         {
-            messageImageDisplayer.SetGeneralBigMessageText("cued recall title", "online cued recall main");
+            messageImageDisplayer.SetGeneralBigMessageText(titleText: "cued recall title", mainText: "online cued recall main");
+            yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
+        }
+        else if (HOSPITAL_COURIER) // TODO: JPB: Merge this with the else statement (need descriptions)
+        {
+            messageImageDisplayer.SetGeneralBigMessageText(mainText: "store cue recall");
             yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
         }
         else
@@ -1100,25 +1165,21 @@ public class DeliveryExperiment : CoroutineExperiment
         textDisplayer.DisplayText("display recall text", RECALL_TEXT);
         yield return SkippableWait(RECALL_TEXT_DISPLAY_LENGTH);
         textDisplayer.ClearText();
-        foreach (StoreComponent cueStore in this_trial_presented_stores)
+        foreach (StoreComponent cueStore in thisTrialPresentedStores)
         {   
             #if !UNITY_WEBGL // NICLS
-            if (useNiclServer && (trialNumber >= NUM_CLASSIFIER_NORMALIZATION_TRIALS))
-            {
-                yield return new WaitForSeconds(WORD_PRESENTATION_DELAY);
-                yield return WaitForClassifier(niclsClassifierTypes[continuousTrialNum]);
-            }
-            else
-            {
-                float wordDelay = UnityEngine.Random.Range(WORD_PRESENTATION_DELAY - WORD_PRESENTATION_JITTER,
-                                               WORD_PRESENTATION_DELAY + WORD_PRESENTATION_JITTER);
-                yield return new WaitForSeconds(wordDelay);
-            }
+                if (useNiclServer && (trialNumber >= NUM_CLASSIFIER_NORMALIZATION_TRIALS))
+                {
+                    yield return new WaitForSeconds(WORD_PRESENTATION_DELAY);
+                    yield return WaitForClassifier(niclsClassifierTypes[continuousTrialNum]);
+                }
+                else
+                {
+                    float wordDelay = UnityEngine.Random.Range(WORD_PRESENTATION_DELAY - WORD_PRESENTATION_JITTER,
+                                                               WORD_PRESENTATION_DELAY + WORD_PRESENTATION_JITTER);
+                    yield return new WaitForSeconds(wordDelay);
+                }
             #endif
-
-            cueStore.familiarization_object.SetActive(true);
-            if (!COURIER_ONLINE)
-                messageImageDisplayer.SetCuedRecallMessage(true);
 
             #if !UNITY_WEBGL //  System.IO
                 string output_file_name = practice
@@ -1135,34 +1196,32 @@ public class DeliveryExperiment : CoroutineExperiment
             cuedRecordingData.Add("store", cueStore.GetStoreName());
             cuedRecordingData.Add("item", cueStore.GetLastPoppedItemName());
             cuedRecordingData.Add("store position", cueStore.transform.position.ToString());
-
-            if (COURIER_ONLINE)
-                scriptedEventReporter.ReportScriptedEvent("cued recall answer", cuedRecordingData);
-            else
-                scriptedEventReporter.ReportScriptedEvent("cued recall recording start", cuedRecordingData);
             
             #if !UNITY_WEBGL // Microphone
+                scriptedEventReporter.ReportScriptedEvent("cued recall recording start", cuedRecordingData);
                 soundRecorder.StartRecording(wavFilePath);
-                float startTime = Time.time;
-                while ((!InputManager.GetButtonDown("Continue") || Time.time < startTime + MIN_CUED_RECALL_TIME_PER_STORE)
-                    && Time.time < startTime + MAX_CUED_RECALL_TIME_PER_STORE)
-                    yield return null;
+
+                if (practice && trialNumber == 0)
+                    yield return DoCuedRecallDisplay(cueStore, "", MAX_CUED_RECALL_TIME_PER_STORE, practice: true, ecrDisabled: true, minWaitTime: MIN_CUED_RECALL_TIME_PER_STORE);
+                else if (practice)
+                    yield return DoCuedRecallDisplay(cueStore, "", MAX_CUED_RECALL_TIME_PER_STORE, practice: true, minWaitTime: MIN_CUED_RECALL_TIME_PER_STORE);
+                else
+                    yield return DoCuedRecallDisplay(cueStore, "", MAX_CUED_RECALL_TIME_PER_STORE, minWaitTime: MIN_CUED_RECALL_TIME_PER_STORE);
 
                 scriptedEventReporter.ReportScriptedEvent("cued recall recording stop", cuedRecordingData);
                 soundRecorder.StopRecording();
             #else
+                scriptedEventReporter.ReportScriptedEvent("cued recall answer start", cuedRecordingData);
                 yield return DoTypedResponses(trialNumber, "cued recall", CUED_RECALL_TIME_PER_STORE, cuedInputField, cuedResponse, cueStore.GetStoreName());
+                scriptedEventReporter.ReportScriptedEvent("cued recall answer stop", cuedRecordingData);
             #endif
             
-            
-            cueStore.familiarization_object.SetActive(false);
             lowBeep.Play();
             scriptedEventReporter.ReportScriptedEvent("sound played", new Dictionary<string, object>() { { "sound name", "low beep" }, { "sound duration", highBeep.clip.length.ToString() } });
             textDisplayer.DisplayText("display recall text", RECALL_TEXT);
             yield return SkippableWait(RECALL_TEXT_DISPLAY_LENGTH);
             textDisplayer.ClearText();
         }
-        messageImageDisplayer.SetCuedRecallMessage(false);
         scriptedEventReporter.ReportScriptedEvent("stop cued recall");
     }
 
@@ -1218,7 +1277,7 @@ public class DeliveryExperiment : CoroutineExperiment
             output_file_name = "final free-" + subSessionNum;
             wavFilePath = System.IO.Path.Combine(output_directory, output_file_name) + ".wav";
             lstFilepath = System.IO.Path.Combine(output_directory, output_file_name) + ".lst";
-            foreach (string deliveredObject in all_presented_objects)
+            foreach (string deliveredObject in allPresentedObjects)
                 AppendWordToLst(lstFilepath, deliveredObject);
 
             scriptedEventReporter.ReportScriptedEvent("final object recall recording start");
@@ -1226,7 +1285,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
             textDisplayer.ClearText();
             ClearTitle();
-            yield return DoFreeRecallDisplay("all objects recall", FINAL_RECALL_LENGTH);
+            yield return DoFreeRecallDisplay("all objects recall", OBJECT_FINAL_RECALL_LENGTH);
             scriptedEventReporter.ReportScriptedEvent("final object recall recording stop");
             soundRecorder.StopRecording();
 
@@ -1278,7 +1337,7 @@ public class DeliveryExperiment : CoroutineExperiment
         // Setup random video order list that's consistent across each participant's sessions
         // We create the whole list each time to make sure that the rng is consistent but unique per session group
         var videoOrder = new List<List<int>>();
-        var reliableRandom = new System.Random(UnityEPL.GetParticipants()[0].GetHashCode());
+        var reliableRandom = deliveryItems.ReliableRandom();
         int numSessionsPerVideoList = NUM_MUSIC_VIDEOS / NUM_MUSIC_VIDEOS_PER_SESSION;
         foreach (int i in Enumerable.Range(0, (continuousSessionNumber / numSessionsPerVideoList) + 1))
         {
@@ -1313,12 +1372,12 @@ public class DeliveryExperiment : CoroutineExperiment
 
             // TODO: JPB: (Hokua) Make this dynamic
             var ratings = new string[] { "music video familiarity rating 0", "music video familiarity rating 1", "music video familiarity rating 2", "music video familiarity rating 3", "music video familiarity rating 4", };
-            messageImageDisplayer.SetSlidingScaleText(titleText: "music video familiarity title",
+            messageImageDisplayer.SetSlidingScaleText(mainText: "music video familiarity title",
                                                       ratings: ratings);
             yield return messageImageDisplayer.DisplaySlidingScaleMessage(messageImageDisplayer.sliding_scale_display);
 
             ratings = new string[] { "music video engagement rating 0", "music video engagement rating 1", "music video engagement rating 2", "music video engagement rating 3", "music video engagement rating 4", };
-            messageImageDisplayer.SetSlidingScaleText(titleText: "music video engagement title",
+            messageImageDisplayer.SetSlidingScaleText(mainText: "music video engagement title",
                                                       ratings: ratings);
             yield return messageImageDisplayer.DisplaySlidingScaleMessage(messageImageDisplayer.sliding_scale_display);
         }
@@ -1390,32 +1449,36 @@ public class DeliveryExperiment : CoroutineExperiment
         }
 
         float pointerError = PointerError(nextStore.gameObject);
-        if (pointerError < Mathf.PI / 12)
+        if (pointerError < POINTING_CORRECT_THRESHOLD)
         {
             pointerParticleSystem.Play();
-            pointerText.text = LanguageSource.GetLanguageString("correct to within") + Mathf.RoundToInt(pointerError * Mathf.Rad2Deg).ToString() + ". ";
+            pointerText.text = LanguageSource.GetLanguageString("correct pointing");
         }
         else
         {
-            pointerText.text = LanguageSource.GetLanguageString("wrong by") + Mathf.RoundToInt(pointerError * Mathf.Rad2Deg).ToString() + ". ";
+            pointerText.text = LanguageSource.GetLanguageString("incorrect pointing");
         }
 
         float wrongness = pointerError / Mathf.PI;
         ColorPointer(new Color(wrongness, 1 - wrongness, .2f));
         bool improvement = starSystem.ReportScore(1 - wrongness);
 
+        if (STAR_SYSTEM_ACTIVE)
+            starSystem.gameObject.SetActive(true);
+            yield return starSystem.ShowDifference();
+
         if (improvement)
-            pointerText.text = pointerText.text + LanguageSource.GetLanguageString("rating improved");
+            pointerText.text = pointerText.text + "\n" + LanguageSource.GetLanguageString("rating improved");
 
         pointerText.text = pointerText.text + "\n" + LanguageSource.GetLanguageString("continue");
 
-        yield return PointArrowToStore(nextStore.gameObject, ARROW_ROTATION_SPEED, ARROW_CORRECTION_TIME);
         while (!InputManager.GetButtonDown("Continue"))
             yield return null;
         scriptedEventReporter.ReportScriptedEvent("pointer message cleared");
         pointerParticleSystem.Stop();
         pointer.SetActive(false);
         pointerMessage.SetActive(false);
+        starSystem.gameObject.SetActive(false);
     }
 
     private bool lastPointingIndicatorState = false;
@@ -1476,7 +1539,32 @@ public class DeliveryExperiment : CoroutineExperiment
         BlackScreen();
         if (Config.efrEnabled && !efrDisabled)
         {
-            yield return DoEfrDisplay(title, waitTime, practice);
+            if (Config.twoBtnEfrEnabled)
+            {
+                SetTwoBtnErDisplay();
+                messageImageDisplayer.SetEfrText(titleText: title);
+                messageImageDisplayer.SetEfrElementsActive(speakNowText: true);
+                yield return messageImageDisplayer.DisplayMessageTimedLRKeypressBold(
+                    messageImageDisplayer.efr_display, waitTime,
+                    efrLeftLogMsg, efrRightLogMsg, practice);
+            }
+            else // One btn EFR
+            {
+                if (NICLS_COURIER)
+                {
+                    messageImageDisplayer.SetGeneralBiggerMessageText(titleText: "one btn er message",
+                                                                      continueText: "speak now");
+                    yield return messageImageDisplayer.DisplayMessageTimed(
+                        messageImageDisplayer.general_bigger_message_display, waitTime);
+                }
+                else
+                {
+                    messageImageDisplayer.SetGeneralBiggerMessageText(titleText: "one btn er message",
+                                                                      continueText: "speak now");
+                    yield return messageImageDisplayer.DisplayMessageTimedKeypressBold(
+                        messageImageDisplayer.general_bigger_message_display, waitTime, ActionButton.RejectButton, "title text", "reject button");
+                }
+            }
         }
         else
         {
@@ -1486,28 +1574,53 @@ public class DeliveryExperiment : CoroutineExperiment
         }
     }
 
-    private IEnumerator DoEfrDisplay(string title, float waitTime, bool practice = false)
+    private IEnumerator DoCuedRecallDisplay(StoreComponent store, string title, float waitTime, bool practice = false, bool ecrDisabled = false, float minWaitTime = 0f)
     {
         BlackScreen();
-        if (Config.newEfrEnabled)
+
+        if (Config.ecrEnabled && !ecrDisabled) 
         {
-            messageImageDisplayer.SetGeneralBiggerMessageText(titleText: "new efr message",
-                                                              continueText: "speak now");
-            yield return messageImageDisplayer.DisplayMessageTimed(
-                messageImageDisplayer.general_bigger_message_display, waitTime);
+            if (Config.twoBtnEcrEnabled)
+            {
+                throw new NotImplementedException("Two button ECR not implemented");
+
+                // TODO: JPB: Hospital add two btn ECR
+                //SetTwoBtnErDisplay();
+                //messageImageDisplayer.SetEfrText(titleText: title);
+                //messageImageDisplayer.SetEfrElementsActive(speakNowText: true);
+                //yield return messageImageDisplayer.DisplayMessageTimedLRKeypressBold(
+                //        messageImageDisplayer.efr_display, waitTime,
+                //        efrLeftLogMsg, efrRightLogMsg, practice);
+            }
+            else // One btn ECR
+            {
+                messageImageDisplayer.SetCuedRecallMessage("one btn er message");
+                Func<IEnumerator> func = () => { return messageImageDisplayer.DisplayMessageTimedKeypressBold(
+                    messageImageDisplayer.cued_recall_message, waitTime, ActionButton.RejectButton, "continue text", "reject button"); };
+                yield return messageImageDisplayer.DisplayMessageFunction(store.familiarization_object, func);
+            }
         }
         else
         {
-            SetEfrDisplay();
-            messageImageDisplayer.SetEfrText(titleText: title);
-            messageImageDisplayer.SetEfrElementsActive(speakNowText: true);
-            yield return messageImageDisplayer.DisplayMessageTimedLRKeypressBold(
-                    messageImageDisplayer.efr_display, waitTime,
-                    efrLeftLogMsg, efrRightLogMsg, practice);
+            if (NICLS_COURIER)
+            {
+                messageImageDisplayer.SetCuedRecallMessage("cued recall message");
+                Func<IEnumerator> func = () => { return messageImageDisplayer.DisplayMessageTimedKeypressBold(
+                    messageImageDisplayer.cued_recall_message, waitTime, ActionButton.ContinueButton, "continue text", "continue button", true, minWaitTime); };
+                yield return messageImageDisplayer.DisplayMessageFunction(store.familiarization_object, func);
+            }
+            else
+            {
+                yield return messageImageDisplayer.DisplayMessageTimed(store.familiarization_object, waitTime);
+            }
         }
+
+        yield return null;
     }
 
-    private IEnumerator DoEfrKeypressCheck()
+
+
+    private IEnumerator DoTwoBtnErKeypressCheck()
     {
         if (InputManager.GetButton("Secret"))
             yield break;
@@ -1516,32 +1629,32 @@ public class DeliveryExperiment : CoroutineExperiment
         BlackScreen();
 
         // Display intro message
-        messageImageDisplayer.SetGeneralMessageText(mainText: "efr check main");
+        messageImageDisplayer.SetGeneralMessageText(mainText: "er check main");
         yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
 
         // Setup EFR display
-        SetEfrDisplay();
+        SetTwoBtnErDisplay();
 
         // Ask for right button press
-        messageImageDisplayer.SetEfrText(descriptiveText: "efr check description right button");
+        messageImageDisplayer.SetEfrText(descriptiveText: "two btn er check description right button");
         messageImageDisplayer.SetEfrElementsActive(descriptiveText: true, controllerRightButtonImage: true);
-        yield return messageImageDisplayer.DisplayMessageKeypressBold(
-           messageImageDisplayer.efr_display, EfrButton.RightButton);
+        yield return messageImageDisplayer.DisplayMessageLRKeypressBold(
+           messageImageDisplayer.efr_display, ActionButton.RightButton);
         yield return messageImageDisplayer.DisplayMessageTimedLRKeypressBold(
             messageImageDisplayer.efr_display, 1f, efrLeftLogMsg, efrRightLogMsg);
 
         // Ask for left button press
-        messageImageDisplayer.SetEfrText(descriptiveText: "efr check description left button");
+        messageImageDisplayer.SetEfrText(descriptiveText: "two btn er check description left button");
         messageImageDisplayer.SetEfrElementsActive(descriptiveText: true, controllerLeftButtonImage: true);
-        yield return messageImageDisplayer.DisplayMessageKeypressBold(
-            messageImageDisplayer.efr_display, EfrButton.LeftButton);
+        yield return messageImageDisplayer.DisplayMessageLRKeypressBold(
+            messageImageDisplayer.efr_display, ActionButton.LeftButton);
         yield return messageImageDisplayer.DisplayMessageTimedLRKeypressBold(
             messageImageDisplayer.efr_display, 1f, efrLeftLogMsg, efrRightLogMsg);
 
         scriptedEventReporter.ReportScriptedEvent("stop efr keypress check");
     }
 
-    private IEnumerator DoEfrKeypressPractice()
+    private IEnumerator DoTwoBtnErKeypressPractice()
     {
         if (InputManager.GetButton("Secret"))
             yield break;
@@ -1550,41 +1663,41 @@ public class DeliveryExperiment : CoroutineExperiment
         BlackScreen();
 
         // Display intro message
-        messageImageDisplayer.SetGeneralBigMessageText(titleText: "efr keypress practice main", 
-                                                       mainText: "efr keypress practice description");
+        messageImageDisplayer.SetGeneralBigMessageText(titleText: "two btn er keypress practice main", 
+                                                       mainText: "two btn er keypress practice description");
         yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
 
         // Setup EFR display
         messageImageDisplayer.SetEfrElementsActive();
 
         // Show equal number of left and right keypress practices in random order
-        List<EfrButton> lrButtonIndicator = Enumerable.Repeat(EfrButton.LeftButton, EFR_KEYPRESS_PRACTICES)
-                                                      .Concat(Enumerable.Repeat(EfrButton.RightButton, EFR_KEYPRESS_PRACTICES))
+        List<ActionButton> lrButtonIndicator = Enumerable.Repeat(ActionButton.LeftButton, EFR_KEYPRESS_PRACTICES)
+                                                      .Concat(Enumerable.Repeat(ActionButton.RightButton, EFR_KEYPRESS_PRACTICES))
                                                       .ToList();
         lrButtonIndicator.Shuffle(rng);
 
         foreach (var buttonIndicator in lrButtonIndicator)
         {
-            SetEfrDisplay();
+            SetTwoBtnErDisplay();
             float efrKeypressPracticedelay = UnityEngine.Random.Range(EFR_KEYPRESS_PRACTICE_DELAY - EFR_KEYPRESS_PRACTICE_JITTER,
-                                                          EFR_KEYPRESS_PRACTICE_DELAY + EFR_KEYPRESS_PRACTICE_JITTER);
+                                                                      EFR_KEYPRESS_PRACTICE_DELAY + EFR_KEYPRESS_PRACTICE_JITTER);
             yield return messageImageDisplayer.DisplayMessageTimed(
                 messageImageDisplayer.efr_display, efrKeypressPracticedelay);
 
-            if (buttonIndicator == EfrButton.LeftButton)
+            if (buttonIndicator == ActionButton.LeftButton)
             {
-                SetEfrDisplay(EfrButton.LeftButton);
+                SetTwoBtnErDisplay(ActionButton.LeftButton);
                 messageImageDisplayer.SetEfrTextResize(LeftButtonSize: 0.3f);
-                yield return messageImageDisplayer.DisplayMessageKeypressBold(
-                    messageImageDisplayer.efr_display, EfrButton.LeftButton);
+                yield return messageImageDisplayer.DisplayMessageLRKeypressBold(
+                    messageImageDisplayer.efr_display, ActionButton.LeftButton);
                 messageImageDisplayer.SetEfrTextResize(LeftButtonSize: -0.3f);
             }
-            else if (buttonIndicator == EfrButton.RightButton)
+            else if (buttonIndicator == ActionButton.RightButton)
             {
-                SetEfrDisplay(EfrButton.RightButton);
+                SetTwoBtnErDisplay(ActionButton.RightButton);
                 messageImageDisplayer.SetEfrTextResize(rightButtonSize: 0.3f);
-                yield return messageImageDisplayer.DisplayMessageKeypressBold(
-                    messageImageDisplayer.efr_display, EfrButton.RightButton);
+                yield return messageImageDisplayer.DisplayMessageLRKeypressBold(
+                    messageImageDisplayer.efr_display, ActionButton.RightButton);
                 messageImageDisplayer.SetEfrTextResize(rightButtonSize: -0.3f);
             }
         }
@@ -1592,7 +1705,7 @@ public class DeliveryExperiment : CoroutineExperiment
         scriptedEventReporter.ReportScriptedEvent("stop efr keypress practice");
     }
 
-    private IEnumerator DoNewEfrKeypressCheck()
+    private IEnumerator DoOneBtnErKeypressCheck()
     {
         if (Config.skipNewEfrKeypressCheck || InputManager.GetButton("Secret"))
             yield break;
@@ -1601,11 +1714,11 @@ public class DeliveryExperiment : CoroutineExperiment
         BlackScreen();
 
         // Display intro message
-        messageImageDisplayer.SetGeneralMessageText(mainText: "efr check main");
+        messageImageDisplayer.SetGeneralMessageText(mainText: "er check main");
         yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
 
         // Ask for reject button press
-        messageImageDisplayer.SetGeneralBiggerMessageText(titleText: "new efr message",
+        messageImageDisplayer.SetGeneralBiggerMessageText(titleText: "one btn er message",
                                                           continueText: "");
         yield return messageImageDisplayer.DisplayMessage(
             messageImageDisplayer.general_bigger_message_display, "EfrReject");
@@ -1613,7 +1726,7 @@ public class DeliveryExperiment : CoroutineExperiment
         scriptedEventReporter.ReportScriptedEvent("stop efr keypress check");
     }
 
-    private IEnumerator DoNewEfrKeypressPractice()
+    private IEnumerator DoOneBtnErKeypressPractice()
     {
         if (Config.skipNewEfrKeypressPractice || InputManager.GetButton("Secret"))
             yield break;
@@ -1622,12 +1735,12 @@ public class DeliveryExperiment : CoroutineExperiment
         BlackScreen();
 
         // Display intro message
-        messageImageDisplayer.SetGeneralBigMessageText(titleText: "new efr keypress practice main",
-                                                       mainText: "new efr keypress practice description");
+        messageImageDisplayer.SetGeneralBigMessageText(titleText: "one btn er keypress practice main",
+                                                       mainText: "one btn er keypress practice description");
         yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
 
         // Ask for reject button press
-        messageImageDisplayer.SetGeneralBiggerMessageText(titleText: "new efr message",
+        messageImageDisplayer.SetGeneralBiggerMessageText(titleText: "one btn er message",
                                                           continueText: "");
         for (int i = 0; i < Config.newEfrKeypressPractices; i++)
             yield return messageImageDisplayer.DisplayMessage(
@@ -1636,35 +1749,35 @@ public class DeliveryExperiment : CoroutineExperiment
         scriptedEventReporter.ReportScriptedEvent("stop efr keypress practice");
     }
 
-    private void SetEfrDisplay(EfrButton? keypressPractice = null)
+    private void SetTwoBtnErDisplay(ActionButton? keypressPractice = null)
     {
-        if (efrCorrectButtonSide == EfrButton.RightButton)
+        if (efrCorrectButtonSide == ActionButton.RightButton)
         {
             efrLeftLogMsg = "incorrect";
             efrRightLogMsg = "correct";
-            if (keypressPractice == EfrButton.LeftButton)
-                messageImageDisplayer.SetEfrText(leftButton: "efr keypress practice left button incorrect message",
-                                                 rightButton: "efr right button correct message");
-            else if (keypressPractice == EfrButton.RightButton)
-                messageImageDisplayer.SetEfrText(leftButton: "efr left button incorrect message",
-                                                 rightButton: "efr keypress practice right button correct message");
+            if (keypressPractice == ActionButton.LeftButton)
+                messageImageDisplayer.SetEfrText(leftButton: "two btn er keypress practice left button incorrect message",
+                                                 rightButton: "two btn er right button correct message");
+            else if (keypressPractice == ActionButton.RightButton)
+                messageImageDisplayer.SetEfrText(leftButton: "two btn er left button incorrect message",
+                                                 rightButton: "two btn efr keypress practice right button correct message");
             else
-                messageImageDisplayer.SetEfrText(leftButton: "efr left button incorrect message",
-                                                 rightButton: "efr right button correct message");
+                messageImageDisplayer.SetEfrText(leftButton: "two btn er left button incorrect message",
+                                                 rightButton: "two btn efr right button correct message");
         }
-        else if (efrCorrectButtonSide == EfrButton.LeftButton)
+        else if (efrCorrectButtonSide == ActionButton.LeftButton)
         {
             efrLeftLogMsg = "correct";
             efrRightLogMsg = "incorrect";
-            if (keypressPractice == EfrButton.LeftButton)
-                messageImageDisplayer.SetEfrText(leftButton: "efr keypress practice left button correct message",
-                                                 rightButton: "efr right button incorrect message");
-            if (keypressPractice == EfrButton.RightButton)
-                messageImageDisplayer.SetEfrText(leftButton: "efr left button correct message",
-                                                 rightButton: "efr keypress practice right button incorrect message");
+            if (keypressPractice == ActionButton.LeftButton)
+                messageImageDisplayer.SetEfrText(leftButton: "two btn er keypress practice left button correct message",
+                                                 rightButton: "two btn er right button incorrect message");
+            if (keypressPractice == ActionButton.RightButton)
+                messageImageDisplayer.SetEfrText(leftButton: "two btn er left button correct message",
+                                                 rightButton: "two btn er keypress practice right button incorrect message");
             else
-                messageImageDisplayer.SetEfrText(leftButton: "efr left button correct message",
-                                                 rightButton: "efr right button incorrect message");
+                messageImageDisplayer.SetEfrText(leftButton: "two btn er left button correct message",
+                                                 rightButton: "two btn er right button incorrect message");
         }
     }
 
@@ -1716,6 +1829,8 @@ public class DeliveryExperiment : CoroutineExperiment
             }
             scriptedEventReporter.ReportScriptedEvent("stop classifier wait", classifierWaitInfo);
             Debug.Log("CLASSIFIER SAID TO GO ---------------------------------------------------------");
+        #else
+            yield return null;
         #endif // !UNITY_WEBGL
     }
     
@@ -1776,10 +1891,66 @@ public class DeliveryExperiment : CoroutineExperiment
         pauser.AllowPausing();
         regularCamera.enabled = true;
         blackScreenCamera.enabled = false;
-        if (!NICLS_COURIER)
-            starSystem.gameObject.SetActive(true);
+        // TODO: JPB: Hospital decide
+        //if (HOSPITAL_COURIER && STAR_SYSTEM_ACTIVE)
+        //    starSystem.gameObject.SetActive(true);
         memoryWordCanvas.SetActive(false);
         playerMovement.Zero();
+    }
+
+
+
+    private List<StoreComponent> NonVisibleStores(List<StoreComponent> stores)
+    {
+        return stores.Where(store => !store.IsVisible()).ToList();
+    }
+
+    private List<StoreComponent> StoresNotBehindPlayer(List<StoreComponent> stores)
+    {
+        return stores.Where(store =>
+        {
+            var player = playerMovement.gameObject.transform;
+            float angle = UnityEngine.Vector3.Angle(player.forward, store.transform.position - player.position);
+            return angle < 90f;
+        }).ToList();
+    }
+
+    private StoreComponent PickNextStore(List<StoreComponent> stores)
+    {
+        int NUM_CLOSE_STORES = 3;
+
+        if (stores == null || stores.Count == 0)
+            throw new ArgumentException("There are no stores in provided list");
+        Debug.Log("Unvisited Stores: " + string.Join(", ", stores));
+
+        var tempStores = NonVisibleStores(stores);
+        if (tempStores.Count == 0)
+            goto PickStore;
+        else
+            stores = tempStores;
+        Debug.Log("NonVisible Stores: " + string.Join(", ", stores));
+
+        tempStores = StoresNotBehindPlayer(stores);
+        if (tempStores.Count == 0)
+            goto PickStore;
+        else
+            stores = tempStores;
+        Debug.Log("Not Behind Player Stores: " + string.Join(", ", stores));
+
+    PickStore:
+        stores.Sort((store1, store2) =>
+        {
+            float dist1 = UnityEngine.Vector3.Distance(playerMovement.gameObject.transform.position, store1.transform.position);
+            float dist2 = UnityEngine.Vector3.Distance(playerMovement.gameObject.transform.position, store2.transform.position);
+            if (dist1 == dist2) return 0;
+            else if (dist1 < dist2) return -1;
+            else return 1;
+        });
+
+        Debug.Log("Sorted Stores: " + string.Join(", ", stores));
+
+        int numStoresToChooseFrom = Math.Min(NUM_CLOSE_STORES, stores.Count() - 1);
+        return stores[rng.Next(numStoresToChooseFrom)];
     }
 
 
@@ -1834,8 +2005,6 @@ public class DeliveryExperiment : CoroutineExperiment
                 return store.GetStoreName();
         throw new UnityException("That store game object doesn't exist in the stores list.");
     }
-
-   
 }
 
 public static class IListExtensions

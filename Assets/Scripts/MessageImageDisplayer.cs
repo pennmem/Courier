@@ -40,10 +40,12 @@ public class MessageImageDisplayer : MonoBehaviour
     private const float BUTTON_MSG_DISPLAY_WAIT = 0.3f;
     private const int REQUIRED_VALID_BUTTON_PRESSES = 1;
 
-    public enum EfrButton
+    public enum ActionButton
     {
         LeftButton,
-        RightButton
+        RightButton,
+        RejectButton,
+        ContinueButton
     }
 
     public IEnumerator DisplayLanguageMessage(GameObject[] langMessages, string buttonName = "Continue")
@@ -62,6 +64,7 @@ public class MessageImageDisplayer : MonoBehaviour
         messageData.Add("message name", message.name);
         // TODO: JPB: (Hokua) Change this so that it takes a logging name (the message titleText or all text)
         scriptedEventReporter.ReportScriptedEvent("instruction message displayed", messageData);
+
         message.SetActive(true);
         yield return null;
         if (buttonName == "")
@@ -74,12 +77,27 @@ public class MessageImageDisplayer : MonoBehaviour
         message.SetActive(false);
     }
 
+    public IEnumerator DisplayMessageFunction(GameObject message, Func<IEnumerator> func)
+    {
+        Dictionary<string, object> messageData = new Dictionary<string, object>();
+        messageData.Add("message name", message.name);
+        // TODO: JPB: (Hokua) Change this so that it takes a logging name (the message titleText or all text)
+        scriptedEventReporter.ReportScriptedEvent("instruction message displayed", messageData);
+
+        message.SetActive(true);
+        yield return func();
+
+        scriptedEventReporter.ReportScriptedEvent("instruction message cleared", messageData);
+        message.SetActive(false);
+    }
+
     public IEnumerator DisplayMessageTimed(GameObject message, float waitTime)
     {
         Dictionary<string, object> messageData = new Dictionary<string, object>();
         messageData.Add("message name", message.name);
         // TODO: JPB: (Hokua) Change this so that it takes a logging name (the message titleText or all text)
         scriptedEventReporter.ReportScriptedEvent("instruction message displayed", messageData);
+
         message.SetActive(true);
         float startTime = Time.time;
         while (Time.time < startTime + waitTime)
@@ -105,59 +123,148 @@ public class MessageImageDisplayer : MonoBehaviour
         message.SetActive(false);
     }
 
-    public IEnumerator DisplayMessageKeypressBold(GameObject display, EfrButton boldButton)
+    public IEnumerator DisplayMessageLRKeypressBold(GameObject message, ActionButton boldButton,
+        string leftLogMessage = "leftKey", string rightLogMessage = "rightKey")
     {
-        display.SetActive(true); // TODO: JPB: (Hokua) Should this line be present for all Display functions?
-
         // Report instruction displayed
         var messageData = new Dictionary<string, object>();
-        messageData.Add("message name", display.name);
+        messageData.Add("message name", message.name);
         // TODO: JPB: (Hokua) Change this so that it takes a logging name (the message titleText or all text)
         scriptedEventReporter.ReportScriptedEvent("instruction message displayed", messageData);
 
+        message.SetActive(true);
         while (true)
         {
             yield return null;
 
             if (InputManager.GetButtonDown("Secret"))
             {
+                scriptedEventReporter.ReportScriptedEvent("keypress",
+                        new Dictionary<string, object> { { "response", "Secret" } });
                 break;
             }
-            else if (InputManager.GetButtonDown("EfrLeft") && (boldButton == EfrButton.LeftButton))
+            else if (InputManager.GetButtonDown("EfrLeft") && (boldButton == ActionButton.LeftButton))
             {
-                Text toggleText = display.transform.Find("left button text").GetComponent<Text>();
+                scriptedEventReporter.ReportScriptedEvent("keypress",
+                        new Dictionary<string, object> { { "response", leftLogMessage } });
+                Text toggleText = message.transform.Find("left button text").GetComponent<Text>();
                 yield return DoTextBoldTimedOrButton("EfrLeft", toggleText, BUTTON_MSG_DISPLAY_WAIT);
                 break;
             }
-            else if (InputManager.GetButtonDown("EfrRight") && (boldButton == EfrButton.RightButton))
+            else if (InputManager.GetButtonDown("EfrRight") && (boldButton == ActionButton.RightButton))
             {
-                Text toggleText = display.transform.Find("right button text").GetComponent<Text>();
+                scriptedEventReporter.ReportScriptedEvent("keypress",
+                        new Dictionary<string, object> { { "response", rightLogMessage } });
+                Text toggleText = message.transform.Find("right button text").GetComponent<Text>();
                 yield return DoTextBoldTimedOrButton("EfrRight", toggleText, BUTTON_MSG_DISPLAY_WAIT);
                 break;
+            }
+            else if (InputManager.anyKeyDown)
+            {
+                foreach (KeyCode kcode in Enum.GetValues(typeof(KeyCode)))
+                {
+                    if (InputManager.GetKey(kcode))
+                        scriptedEventReporter.ReportScriptedEvent("keypress",
+                            new Dictionary<string, object> { { "response", kcode.ToString() } });
+                }
+            }
+        }
+
+        // Report instruction cleared
+        scriptedEventReporter.ReportScriptedEvent("instruction message cleared", messageData);
+        message.SetActive(false);
+    }
+
+    // TODO: JPB: (Hokeu) Add practice looping like DisplayMessageTimedLRKeypressBold has
+    public IEnumerator DisplayMessageTimedKeypressBold(GameObject message, float waitTime, ActionButton boldButton, string boldTextName,
+        string buttonLogMessage = "button", bool breakOnKeypress = false, float minWaitTime = 0f)
+    {
+        // Report instruction displayed
+        var messageData = new Dictionary<string, object>();
+        messageData.Add("message name", message.name);
+        // TODO: JPB: (Hokua) Change this so that it takes a logging name (the message titleText or all text)
+        scriptedEventReporter.ReportScriptedEvent("instruction message displayed", messageData);
+
+        message.SetActive(true);
+        float startTime = Time.time;
+        while (Time.time < startTime + waitTime)
+        {
+            yield return null;
+
+            if (InputManager.GetButtonDown("Secret"))
+            {
+                scriptedEventReporter.ReportScriptedEvent("keypress",
+                        new Dictionary<string, object> { { "response", "Secret" } });
+                break;
+            }
+            else if (InputManager.GetButtonDown("EfrLeft") && (boldButton == ActionButton.LeftButton))
+            {
+                scriptedEventReporter.ReportScriptedEvent("keypress",
+                        new Dictionary<string, object> { { "response", buttonLogMessage } });
+                Text toggleText = message.transform.Find(boldTextName).GetComponent<Text>();
+                yield return DoTextBoldTimedOrButton("EfrLeft", toggleText, BUTTON_MSG_DISPLAY_WAIT);
+                if (breakOnKeypress && (Time.time >= startTime + minWaitTime))
+                    break;
+            }
+            else if (InputManager.GetButtonDown("EfrRight") && (boldButton == ActionButton.RightButton))
+            {
+                scriptedEventReporter.ReportScriptedEvent("keypress",
+                        new Dictionary<string, object> { { "response", buttonLogMessage } });
+                Text toggleText = message.transform.Find(boldTextName).GetComponent<Text>();
+                yield return DoTextBoldTimedOrButton("EfrRight", toggleText, BUTTON_MSG_DISPLAY_WAIT);
+                if (breakOnKeypress && (Time.time >= startTime + minWaitTime))
+                    break;
+            }
+            else if (InputManager.GetButtonDown("EfrReject") && (boldButton == ActionButton.RejectButton))
+            {
+                scriptedEventReporter.ReportScriptedEvent("keypress",
+                        new Dictionary<string, object> { { "response", buttonLogMessage } });
+                Text toggleText = message.transform.Find(boldTextName).GetComponent<Text>();
+                yield return DoTextBoldTimedOrButton("EfrReject", toggleText, BUTTON_MSG_DISPLAY_WAIT);
+                if (breakOnKeypress && (Time.time >= startTime + minWaitTime))
+                    break;
+            }
+            else if (InputManager.GetButtonDown("Continue") && (boldButton == ActionButton.ContinueButton))
+            {
+                scriptedEventReporter.ReportScriptedEvent("keypress",
+                        new Dictionary<string, object> { { "response", buttonLogMessage } });
+                Text toggleText = message.transform.Find(boldTextName).GetComponent<Text>();
+                yield return DoTextBoldTimedOrButton("Continue", toggleText, BUTTON_MSG_DISPLAY_WAIT);
+                if (breakOnKeypress && (Time.time >= startTime + minWaitTime))
+                    break;
+            }
+            else if (InputManager.anyKeyDown)
+            {
+                foreach (KeyCode kcode in Enum.GetValues(typeof(KeyCode)))
+                {
+                    if (InputManager.GetKey(kcode))
+                        scriptedEventReporter.ReportScriptedEvent("keypress",
+                            new Dictionary<string, object> { { "response", kcode.ToString() } });
+                }
             }
         }
 
         // Report instruction cleared
         scriptedEventReporter.ReportScriptedEvent("instruction message cleared", messageData);
 
-        display.SetActive(false);
+        message.SetActive(false);
     }
 
     public IEnumerator DisplayMessageTimedLRKeypressBold(GameObject display, float waitTime, 
-        string leftLogMessage = "leftKey", string rightLogMessage = "rightKey", bool retry = false)
+        string leftLogMessage = "leftKey", string rightLogMessage = "rightKey", bool retry = false, bool breakOnKeypress = false)
     {
         Text leftText = display.transform.Find("left button text").GetComponent<Text>();
         Text rightText = display.transform.Find("right button text").GetComponent<Text>();
 
-        // Report instruction displayed
-        var messageData = new Dictionary<string, object>();
-        messageData.Add("message name", display.name);
-        // TODO: JPB: (Hokua) Change this so that it takes a logging name (the message titleText or all text)
-        scriptedEventReporter.ReportScriptedEvent("instruction message displayed", messageData);
-
         int numValidButtonPresses = 0;
         while (numValidButtonPresses < REQUIRED_VALID_BUTTON_PRESSES)
         {
+            // Report instruction displayed
+            var messageData = new Dictionary<string, object>();
+            messageData.Add("message name", display.name);
+            // TODO: JPB: (Hokua) Change this so that it takes a logging name (the message titleText or all text)
+            scriptedEventReporter.ReportScriptedEvent("instruction message displayed", messageData);
+
             display.SetActive(true);
 
             float startTime = Time.time;
@@ -177,6 +284,8 @@ public class MessageImageDisplayer : MonoBehaviour
                         new Dictionary<string, object> { { "response", leftLogMessage } });
                     yield return DoTextBoldTimedOrButton("EfrLeft", leftText, BUTTON_MSG_DISPLAY_WAIT);
                     numValidButtonPresses++;
+                    if (breakOnKeypress)
+                        break;
                 }
                 else if (InputManager.GetButtonDown("EfrRight"))
                 {
@@ -184,10 +293,12 @@ public class MessageImageDisplayer : MonoBehaviour
                         new Dictionary<string, object> { { "response", rightLogMessage } });
                     yield return DoTextBoldTimedOrButton("EfrRight", rightText, BUTTON_MSG_DISPLAY_WAIT);
                     numValidButtonPresses++;
+                    if (breakOnKeypress)
+                        break;
                 }
                 else if (InputManager.anyKeyDown)
                 {
-                    foreach (KeyCode kcode in System.Enum.GetValues(typeof(KeyCode)))
+                    foreach (KeyCode kcode in Enum.GetValues(typeof(KeyCode)))
                     {
                         if (InputManager.GetKey(kcode))
                             scriptedEventReporter.ReportScriptedEvent("keypress",
@@ -220,6 +331,7 @@ public class MessageImageDisplayer : MonoBehaviour
         messageData.Add("message name", message.name);
         // TODO: JPB: (Hokua) Change this so that it takes a logging name (the message titleText or all text)
         scriptedEventReporter.ReportScriptedEvent("instruction message displayed", messageData);
+
         message.SetActive(true);
         yield return null;
         while (!InputManager.GetButtonDown(buttonName) && !InputManager.GetButtonDown("Secret"))
@@ -244,6 +356,7 @@ public class MessageImageDisplayer : MonoBehaviour
         messageData.Add("message name", message.name);
         // TODO: JPB: (Hokua) Change this so that it takes a logging name (the message titleText or all text)
         scriptedEventReporter.ReportScriptedEvent("instruction message displayed", messageData);
+
         message.SetActive(true);
         yield return null;
         var slider = message.transform.Find("sliding scale").GetComponent<Slider>();
@@ -266,10 +379,9 @@ public class MessageImageDisplayer : MonoBehaviour
     }
 
     // Display message for cued recall
-    public void SetCuedRecallMessage(bool isActive)
+    public void SetCuedRecallMessage(string bottomText)
     {
-        cued_recall_message.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString("cued recall message");
-        cued_recall_message.SetActive(isActive);
+        cued_recall_message.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString(bottomText);
     }
 
     public void SetReminderText(string store_name)
@@ -307,7 +419,7 @@ public class MessageImageDisplayer : MonoBehaviour
     }
 
     public void SetEfrElementsActive(bool speakNowText = false, bool descriptiveText = false, 
-                                             bool controllerLeftButtonImage = false, bool controllerRightButtonImage = false)
+                                     bool controllerLeftButtonImage = false, bool controllerRightButtonImage = false)
     {
         efr_display.transform.Find("speak now text").GetComponent<Text>().gameObject.SetActive(speakNowText);
         efr_display.transform.Find("descriptive text").GetComponent<Text>().gameObject.SetActive(descriptiveText);
@@ -331,6 +443,7 @@ public class MessageImageDisplayer : MonoBehaviour
     }
 
     // TODO: JPB: (Hokua) See if this can be combined with FpsDisplayer.cs in some way
+    // TODO: JPB: Change all "continue text" to "bottom text"
     public void SetFPSDisplayText(string fpsValue = "", string mainText = "", string continueText = "continue")
     {
         if (fpsValue != null)
@@ -341,12 +454,77 @@ public class MessageImageDisplayer : MonoBehaviour
             general_big_message_display.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString(continueText);
     }
 
-    public void SetSlidingScaleText(string titleText = "", string[] ratings = null, string continueText = "continue")
+    public void SetGeneralMessageText(string titleText = "", string mainText = "", string descriptiveText = "", string continueText = "continue",
+                                      string[] ttFormatVals = null, string[] mtFormatVals = null, string[] dtFormatVals = null, string[] ctFormatVals = null)
+    {
+        if (titleText != null)
+            if (ttFormatVals == null)
+                general_message_display.transform.Find("title text").GetComponent<Text>().text = LanguageSource.GetLanguageString(titleText);
+            else
+                general_message_display.transform.Find("title text").GetComponent<Text>().text = LanguageSource.GetFormattableLanguageString(titleText, ttFormatVals);
+        if (mainText != null)
+            if (mtFormatVals == null)
+                general_message_display.transform.Find("main text").GetComponent<Text>().text = LanguageSource.GetLanguageString(mainText);
+            else
+                general_message_display.transform.Find("main text").GetComponent<Text>().text = LanguageSource.GetFormattableLanguageString(mainText, mtFormatVals);
+        if (descriptiveText != null)
+            if (dtFormatVals == null)
+                general_message_display.transform.Find("descriptive text").GetComponent<Text>().text = LanguageSource.GetLanguageString(descriptiveText);
+            else
+                general_message_display.transform.Find("descriptive text").GetComponent<Text>().text = LanguageSource.GetFormattableLanguageString(descriptiveText, dtFormatVals);
+        if (continueText != null)
+            if (ctFormatVals == null)
+                general_message_display.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString(continueText);
+            else
+                general_message_display.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetFormattableLanguageString(continueText, ctFormatVals);
+    }
+
+    public void SetGeneralBigMessageText(string titleText = "", string mainText = "", string continueText = "continue",
+                                         string[] ttFormatVals = null, string[] mtFormatVals = null, string[] ctFormatVals = null)
+    {
+        if (titleText != null)
+            if (ttFormatVals == null)
+                general_big_message_display.transform.Find("title text").GetComponent<Text>().text = LanguageSource.GetLanguageString(titleText);
+            else
+                general_big_message_display.transform.Find("title text").GetComponent<Text>().text = LanguageSource.GetFormattableLanguageString(titleText, ttFormatVals);
+        if (mainText != null)
+            if (mtFormatVals == null)
+                general_big_message_display.transform.Find("main text").GetComponent<Text>().text = LanguageSource.GetLanguageString(mainText);
+            else
+                general_big_message_display.transform.Find("main text").GetComponent<Text>().text = LanguageSource.GetFormattableLanguageString(mainText, mtFormatVals);
+        if (continueText != null)
+            if (ctFormatVals == null)
+                general_big_message_display.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString(continueText);
+            else
+                general_big_message_display.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetFormattableLanguageString(continueText, ctFormatVals);
+    }
+
+    public void SetGeneralBiggerMessageText(string titleText = "", string mainText = "", string continueText = "continue",
+                                            string[] ttFormatVals = null, string[] mtFormatVals = null, string[] ctFormatVals = null)
+    {
+        if (titleText != null)
+            if (ttFormatVals == null)
+                general_bigger_message_display.transform.Find("title text").GetComponent<Text>().text = LanguageSource.GetLanguageString(titleText);
+            else
+                general_bigger_message_display.transform.Find("title text").GetComponent<Text>().text = LanguageSource.GetFormattableLanguageString(titleText, ttFormatVals);
+        if (mainText != null)
+            if (mtFormatVals == null)
+                general_bigger_message_display.transform.Find("main text").GetComponent<Text>().text = LanguageSource.GetLanguageString(mainText);
+            else
+                general_bigger_message_display.transform.Find("main text").GetComponent<Text>().text = LanguageSource.GetFormattableLanguageString(mainText, mtFormatVals);
+        if (continueText != null)
+            if (ctFormatVals == null)
+                general_bigger_message_display.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString(continueText);
+            else
+                general_bigger_message_display.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetFormattableLanguageString(continueText, ctFormatVals);
+    }
+
+    public void SetSlidingScaleText(string mainText = "", string[] ratings = null, string continueText = "continue")
     {
         sliding_scale_display.transform.Find("sliding scale").GetComponent<Slider>().value = 2;
 
-        if (titleText != null)
-            sliding_scale_display.transform.Find("title text").GetComponent<Text>().text = LanguageSource.GetLanguageString(titleText);
+        if (mainText != null)
+            sliding_scale_display.transform.Find("main text").GetComponent<Text>().text = LanguageSource.GetLanguageString(mainText);
 
         int numRatings = sliding_scale_display.transform.Find("ratings").childCount;
         if (ratings != null)
@@ -360,12 +538,12 @@ public class MessageImageDisplayer : MonoBehaviour
             sliding_scale_display.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString(continueText);
     }
 
-    public void SetSlidingScale2Text(string titleText = "", string[] ratings = null, string continueText = "continue")
+    public void SetSlidingScale2Text(string mainText = "", string[] ratings = null, string continueText = "continue")
     {
         sliding_scale_2_display.transform.Find("sliding scale").GetComponent<Slider>().value = 1;
 
-        if (titleText != null)
-            sliding_scale_display.transform.Find("title text").GetComponent<Text>().text = LanguageSource.GetLanguageString(titleText);
+        if (mainText != null)
+            sliding_scale_display.transform.Find("main text").GetComponent<Text>().text = LanguageSource.GetLanguageString(mainText);
 
         int numRatings = sliding_scale_2_display.transform.Find("ratings").childCount;
         if (ratings != null)
@@ -379,39 +557,7 @@ public class MessageImageDisplayer : MonoBehaviour
             sliding_scale_2_display.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString(continueText);
     }
 
-    public void SetGeneralMessageText(string titleText = "", string mainText = "", string descriptiveText = "", string continueText = "continue")
-    {
-        if (titleText != null)
-            general_message_display.transform.Find("title text").GetComponent<Text>().text = LanguageSource.GetLanguageString(titleText);
-        if (mainText != null)
-            general_message_display.transform.Find("main text").GetComponent<Text>().text = LanguageSource.GetLanguageString(mainText);
-        if (descriptiveText != null)
-            general_message_display.transform.Find("descriptive text").GetComponent<Text>().text = LanguageSource.GetLanguageString(descriptiveText);
-        if (continueText != null)
-            general_message_display.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString(continueText);
-    }
-
-    public void SetGeneralBigMessageText(string titleText = "", string mainText = "", string continueText = "continue")
-    {
-        if (titleText != null)
-            general_big_message_display.transform.Find("title text").GetComponent<Text>().text = LanguageSource.GetLanguageString(titleText);
-        if (mainText != null)
-            general_big_message_display.transform.Find("main text").GetComponent<Text>().text = LanguageSource.GetLanguageString(mainText);
-        if (continueText != null)
-            general_big_message_display.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString(continueText);
-    }
-
-    public void SetGeneralBiggerMessageText(string titleText = "", string mainText = "", string continueText = "continue")
-    {
-        if (titleText != null)
-            general_bigger_message_display.transform.Find("title text").GetComponent<Text>().text = LanguageSource.GetLanguageString(titleText);
-        if (mainText != null)
-            general_bigger_message_display.transform.Find("main text").GetComponent<Text>().text = LanguageSource.GetLanguageString(mainText);
-        if (continueText != null)
-            general_bigger_message_display.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString(continueText);
-    }
-
-    public IEnumerator DoTextBoldTimedOrButton(string buttonName, Text displayText, float waitTime)
+    private IEnumerator DoTextBoldTimedOrButton(string buttonName, Text displayText, float waitTime)
     {
         string buttonText = displayText.text;
         Vector2 anchorMin = displayText.GetComponentInParent<RectTransform>().anchorMin;

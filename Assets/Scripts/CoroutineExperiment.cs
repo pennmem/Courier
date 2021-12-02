@@ -155,7 +155,16 @@ public abstract class CoroutineExperiment : MonoBehaviour
         SetRamulatorState("WAITING", false, new Dictionary<string, object>());
     }
 
-    // LC: This should later be refactored into FlexibleConfig.cs
+    class ReadOnlineFile
+    {
+        ReadOnlineFile(string filePath)
+        {
+
+        }
+    }
+
+
+    // TODO: LC: This should later be refactored into FlexibleConfig.cs
     protected IEnumerator GetOnlineConfig()
     {
         Debug.Log("setting web request");
@@ -164,7 +173,7 @@ public abstract class CoroutineExperiment : MonoBehaviour
         UnityWebRequest systemWWW = UnityWebRequest.Get(systemConfigPath);
         yield return systemWWW.SendWebRequest();
 
-        // if (systemWWW.result != UnityWebRequest.Result.Success) for later Unity versions
+        // TODO: LC: if (systemWWW.result != UnityWebRequest.Result.Success) for later Unity versions
         if (systemWWW.isNetworkError || systemWWW.isHttpError)
         {
             Debug.Log("Network error " + systemWWW.error);
@@ -175,13 +184,13 @@ public abstract class CoroutineExperiment : MonoBehaviour
             Debug.Log("Online System Config fetched!!");
             Debug.Log(Config.onlineSystemConfigText);
         }
-        
+
         // string experimentConfigPath = System.IO.Path.Combine(Application.streamingAssetsPath, "CourierOnline.json");
         string experimentConfigPath = "http://psiturk.sas.upenn.edu:22371/static/js/Unity/build/StreamingAssets/CourierOnline.json";
         UnityWebRequest experimentWWW = UnityWebRequest.Get(experimentConfigPath);
         yield return experimentWWW.SendWebRequest();
 
-        // if (experimentWWW.result != UnityWebRequest.Result.Success) for later Unity versions
+        // TODO: LC: if (experimentWWW.result != UnityWebRequest.Result.Success) for later Unity versions
         if (experimentWWW.isNetworkError || experimentWWW.isHttpError)
         {
             Debug.Log("Network error " + experimentWWW.error);
@@ -196,10 +205,10 @@ public abstract class CoroutineExperiment : MonoBehaviour
 
     protected void Quit()
     {
-#if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPlaying = false;
-#else
-        Application.Quit();
-#endif
+        #if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+        #else
+            Application.Quit();
+        #endif
     }
 }

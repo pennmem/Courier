@@ -8,7 +8,9 @@
     "skipNewEfrKeypressPractice": true,
 
     "efrEnabled": true,
-    "newEfrEnabled": true,
+    "ecrEnabled": false,
+    "twoBtnEfrEnabled": false,
+    "twoBtnEcrEnabled": false,
     "niclsCourier": true,
     "counterBalanceCorrectIncorrectButton": false,
 
@@ -16,7 +18,7 @@
     "trialsPerSessionSingleTownLearning": 2,
     "trialsPerSessionDoubleTownLearning": 2,
     "deliveriesPerPracticeTrial": 16,
-    "deliveriesPerTrial":16,
-    
-    "newEfrKeypressPractices":20
+    "deliveriesPerTrial": 16,
+
+    "newEfrKeypressPractices": 20
 }

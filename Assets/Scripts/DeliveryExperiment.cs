@@ -54,7 +54,7 @@ public class DeliveryExperiment : CoroutineExperiment
         private const bool COURIER_ONLINE = true;
     #endif // !UNITY_WEBGL
     
-    private const string COURIER_VERSION = COURIER_ONLINE ? "v5.0.0online" : "v5.1.3";
+    private const string COURIER_VERSION = COURIER_ONLINE ? "v5.0.0online" : "v5.2.0";
 
     private const string RECALL_TEXT = "*******"; // TODO: JPB: Remove this and use display system
     // Constants moved to the Config File

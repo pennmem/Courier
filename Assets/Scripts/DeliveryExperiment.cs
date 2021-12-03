@@ -315,6 +315,8 @@ public class DeliveryExperiment : CoroutineExperiment
         scriptedEventReporter.ReportScriptedEvent("unhandled program exception", exceptionData);
     }
 
+
+
     void Update()
     {
         Cursor.visible = false;
@@ -403,6 +405,8 @@ public class DeliveryExperiment : CoroutineExperiment
         StartCoroutine(ExperimentCoroutine());
     }
 
+
+
     private IEnumerator ExperimentCoroutine()
     {
         Debug.Log(UnityEPL.GetDataPath());
@@ -413,34 +417,12 @@ public class DeliveryExperiment : CoroutineExperiment
         // Write versions to logfile
         LogVersions(expName);
 
+        // Set Config for Courier Online
         if (COURIER_ONLINE)
-            yield return GetOnlineConfig();
-        
-        #if !UNITY_WEBGL // System.IO
-            // Player controls
-            string controlName = "DrivingControls.xml";
-            if (HOSPITAL_COURIER)
-                controlName = "SingleStick" + controlName;
-            else
-                controlName = "Split" + controlName;
+            yield return Config.GetOnlineConfig();
 
-            if (Config.Get(() => Config.ps4Controller, false))
-                controlName = "Ps4" + controlName;
-
-            string configPath = System.IO.Path.Combine(
-                Directory.GetParent(Directory.GetParent(UnityEPL.GetParticipantFolder()).FullName).FullName,
-                "configs");
-            InputManager.Load(Path.Combine(configPath, controlName));
-
-            // Randomize efr correct/incorrect button sides
-            if (Config.efrEnabled && Config.counterBalanceCorrectIncorrectButton)
-            {
-                // We want randomness for different people, but consistency between sessions
-                System.Random reliableRandom = deliveryItems.ReliableRandom();
-                efrCorrectButtonSide = (ActionButton)reliableRandom.Next(0, 2);
-            }
-        #endif // !UNITY_WEBGL
-
+        // Save Config
+        Config.SaveConfigs(scriptedEventReporter, UnityEPL.GetDataPath());
 
         // Setup Environment
         yield return EnableEnvironment();

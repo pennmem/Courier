@@ -157,52 +157,6 @@ public abstract class CoroutineExperiment : MonoBehaviour
         SetRamulatorState("WAITING", false, new Dictionary<string, object>());
     }
 
-    class ReadOnlineFile
-    {
-        ReadOnlineFile(string filePath)
-        {
-
-        }
-    }
-
-
-    // TODO: LC: This should later be refactored into FlexibleConfig.cs
-    protected IEnumerator GetOnlineConfig()
-    {
-        Debug.Log("setting web request");
-        string systemConfigPath = System.IO.Path.Combine(Application.streamingAssetsPath, "config.json");
-        UnityWebRequest systemWWW = new UnityWebRequest(systemConfigPath);
-        systemWWW.downloadHandler = new DownloadHandlerBuffer();
-        yield return systemWWW.SendWebRequest();
-
-        if (systemWWW.result != UnityWebRequest.Result.Success)
-        {
-            Debug.Log("Network error " + systemWWW.error);
-        }
-        else
-        {
-            Config.onlineSystemConfigText = systemWWW.downloadHandler.text;
-            Debug.Log("Online System Config fetched!!");
-            Debug.Log(Config.onlineSystemConfigText);
-        }
-
-        string experimentConfigPath = System.IO.Path.Combine(Application.streamingAssetsPath, Config.experimentConfigName + ".json");
-        UnityWebRequest experimentWWW = new UnityWebRequest(experimentConfigPath);
-        experimentWWW.downloadHandler = new DownloadHandlerBuffer();
-        yield return experimentWWW.SendWebRequest();
-
-        if (systemWWW.result != UnityWebRequest.Result.Success)
-        {
-            Debug.Log("Network error " + experimentWWW.error);
-        }
-        else
-        {
-            Config.onlineExperimentConfigText = experimentWWW.downloadHandler.text;
-            Debug.Log("Online Experiment Config fetched!!");
-            Debug.Log(Config.onlineExperimentConfigText);
-        }
-    }
-
     protected void Quit()
     {
         #if UNITY_EDITOR

@@ -49,13 +49,13 @@ public class WriteToDiskHandler : DataHandler
             waitingPoints.Enqueue(dataPoint);
     }
 
-    public virtual IEnumerator DoWrite()
+#if !UNITY_WEBGL // System.IO
+    public IEnumerator DoWrite()
     {
         yield return null;
-        Debug.Log(waitingPoints.Count);
+        Debug.Log("writing " + waitingPoints.Count + " json lines to file");
         while (waitingPoints.Count > 0)
         {
-            //yield return null;
             string directory = UnityEPL.GetDataPath();
             System.IO.Directory.CreateDirectory(directory);
             string filePath = System.IO.Path.Combine(directory, "unnamed_file");
@@ -72,6 +72,54 @@ public class WriteToDiskHandler : DataHandler
             }
             System.IO.File.AppendAllText(filePath, writeMe + System.Environment.NewLine);
         }
-        Debug.Log("Done");
+        Debug.Log("wrote " + waitingPoints.Count + " json lines to file");
     }
+#else
+    [DllImport("__Internal")]
+    private static extern void SaveData();
+
+    [DllImport("__Internal")]
+    private static extern void AddData(string data);
+
+    public IEnumerator DoWrite()
+    {
+        while (waitingPoints.Count > 0)
+        {
+            yield return null;
+            DataPoint dataPoint = waitingPoints.Dequeue();
+
+            string json = dataPoint.ToJSON();
+            // Debug.Log(json);
+            AddData(json);
+        }
+        SaveData();
+    }
+#endif // !UNITY_WEBGL
+
+#if UNITY_WEBGL // Microphone
+    //public static byte[] Compress(byte[] data)
+    // {
+    //     MemoryStream output = new MemoryStream();
+    //     using (GZipStream dstream = new GZipStream(output, System.IO.Compression.CompressionLevel.Optimal))
+    //     {
+    //         dstream.Write(data, 0, data.Length);
+    //     }
+    //     return output.ToArray();
+    // }
+
+    // public void SaveAudio(string filename, float[] audio) {
+    //     Byte[] data = Compress(SavWav.ToWav(audio));
+    //     UnityWebRequest www = UnityWebRequest.Put("/audio/" + filename + ".gz", data);
+
+    //     StartCoroutine(_SaveAudioCoroutine(www));
+    // }
+
+    // private IEnumerator _SaveAudioCoroutine(UnityWebRequest www) {
+    //     yield return www.SendWebRequest();
+
+    //     if(www.isNetworkError || www.isHttpError) {
+    //         throw new Exception("Connection to the server lost");
+    //     }
+    // }
+#endif // UNITY_WEBGL
 }

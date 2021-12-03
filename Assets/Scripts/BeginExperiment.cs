@@ -30,6 +30,10 @@ public class BeginExperiment : MonoBehaviour
     public const string EXP_NAME_NICLS = "NiclsCourier";
 
     private void OnEnable() {
+        #if UNITY_WEBGL
+            SceneManager.LoadScene(scene_name);
+        #endif // UNITY_WEBGL
+
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
     }

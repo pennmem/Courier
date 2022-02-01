@@ -259,6 +259,48 @@ public class DeliveryExperiment : CoroutineExperiment
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.SetCursor(new Texture2D(0, 0), new Vector2(0, 0), CursorMode.ForceSoftware);
 
+        // Turn player particles and falling leaves off for Nicls Courier
+        if (NICLS_COURIER)
+        {
+            GameObject.Find("Player/player perspective/Particle System").SetActive(false);
+            var trees = new List<int> { 26, 27, 28, 29, 30, 31, 32, 33, 34, 44 };
+            string treeStr = "henry tc3 environment/edge/Tree ({0})/Particle System";
+            foreach (int treeIndex in trees)
+                GameObject.Find(string.Format(treeStr, treeIndex)).SetActive(false);
+        }
+
+        // Syncbox setup
+        #if !UNITY_WEBGL // Syncbox
+            QualitySettings.vSyncCount = 1;
+            Application.targetFrameRate = 300;
+            // Start syncpulses
+            if (!Config.noSyncbox)
+            {
+                syncs = GameObject.Find("SyncBox").GetComponent<Syncbox>();
+                syncs.StartPulse();
+            }
+        #endif
+
+        Dictionary<string, object> sceneData = new Dictionary<string, object>();
+        sceneData.Add("sceneName", "MainGame");
+        scriptedEventReporter.ReportScriptedEvent("loadScene", sceneData);
+
+        StartCoroutine(ExperimentCoroutine());
+    }
+
+    private IEnumerator ExperimentCoroutine()
+    {
+        Debug.Log(UnityEPL.GetDataPath());
+
+        foreach (string name in UnityEPL.GetParticipants())
+            Debug.Log(name);
+
+        // Write versions to logfile
+        LogVersions(expName);
+
+        if (COURIER_ONLINE)
+            yield return GetOnlineConfig();
+        
         // Player controls
         string controlName = "DrivingControls.xml";
         if (HOSPITAL_COURIER)
@@ -295,29 +337,6 @@ public class DeliveryExperiment : CoroutineExperiment
             }
         #endif // !UNITY_WEBGL
 
-
-        // Turn player particles and falling leaves off for Nicls Courier
-        if (NICLS_COURIER)
-        {
-            GameObject.Find("Player/player perspective/Particle System").SetActive(false);
-            var trees = new List<int> { 26, 27, 28, 29, 30, 31, 32, 33, 34, 44 };
-            string treeStr = "henry tc3 environment/edge/Tree ({0})/Particle System";
-            foreach (int treeIndex in trees)
-                GameObject.Find(string.Format(treeStr, treeIndex)).SetActive(false);
-        }
-
-        // Syncbox setup
-        #if !UNITY_WEBGL // Syncbox
-            QualitySettings.vSyncCount = 1;
-            Application.targetFrameRate = 300;
-            // Start syncpulses
-            if (!Config.noSyncbox)
-            {
-                syncs = GameObject.Find("SyncBox").GetComponent<Syncbox>();
-                syncs.StartPulse();
-            }
-        #endif
-
         // Randomize efr correct/incorrect button sides
         if (Config.efrEnabled && Config.counterBalanceCorrectIncorrectButton)
         {
@@ -325,26 +344,6 @@ public class DeliveryExperiment : CoroutineExperiment
             System.Random reliableRandom = deliveryItems.ReliableRandom();
             efrCorrectButtonSide = (ActionButton)reliableRandom.Next(0, 2);
         }
-
-        Dictionary<string, object> sceneData = new Dictionary<string, object>();
-        sceneData.Add("sceneName", "MainGame");
-        scriptedEventReporter.ReportScriptedEvent("loadScene", sceneData);
-
-        StartCoroutine(ExperimentCoroutine());
-    }
-
-    private IEnumerator ExperimentCoroutine()
-    {
-        Debug.Log(UnityEPL.GetDataPath());
-
-        foreach (string name in UnityEPL.GetParticipants())
-            Debug.Log(name);
-
-        // Write versions to logfile
-        LogVersions(expName);
-
-        if (COURIER_ONLINE)
-            yield return GetOnlineConfig();
 
         // Setup Environment
         yield return EnableEnvironment();

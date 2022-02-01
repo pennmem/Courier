@@ -39,9 +39,9 @@ public class VideoControl : MonoBehaviour
     public void StartVideo()
     {
         Debug.Log("VideoControl start video");
-        #if UNITY_WEBGL
-            videoPlayer.loopPointReached += (VideoPlayer vp) => gameObject.SetActive(false);
-        #endif
+        // #if UNITY_WEBGL
+        //     videoPlayer.loopPointReached += (VideoPlayer vp) => gameObject.SetActive(false);
+        // #endif
         gameObject.SetActive(true);
     }
 

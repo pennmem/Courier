@@ -10,9 +10,9 @@ using UnityEngine.Networking;
 public abstract class CoroutineExperiment : MonoBehaviour
 {
     private const int MICROPHONE_TEST_LENGTH = 5;
-
-    public SoundRecorder soundRecorder;
-    
+    #if !UNITY_WEBGL
+        public SoundRecorder soundRecorder;
+    #endif
     public TextDisplayer textDisplayer;
     public VideoControl videoPlayer;
     public VideoSelector videoSelector;
@@ -44,6 +44,7 @@ public abstract class CoroutineExperiment : MonoBehaviour
             Quit();
     }
 
+    #if !UNITY_WEBGL
     protected IEnumerator DoMicrophoneTest(string title, string press_any_key, string recording, string playing, string confirmation)
     {
         DisplayTitle(title);
@@ -97,6 +98,7 @@ public abstract class CoroutineExperiment : MonoBehaviour
 
         ClearTitle();
     }
+    #endif
 
     protected void DisplayTitle(string title)
     {

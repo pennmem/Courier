@@ -1406,12 +1406,16 @@ public class DeliveryExperiment : CoroutineExperiment
             Dictionary<string, object> recordingData = new Dictionary<string, object>();
             recordingData.Add("video number", videoIndex);
             scriptedEventReporter.ReportScriptedEvent("music video recall recording start", recordingData);
-            soundRecorder.StartRecording(wavFilePath);
+            #if !UNITY_WEBGL
+                soundRecorder.StartRecording(wavFilePath);
+            #endif
 
             yield return DoFreeRecallDisplay("music video " + videoIndex + " recall", MUSIC_VIDEO_RECALL_TIME, efrDisabled: true);
 
             scriptedEventReporter.ReportScriptedEvent("music video recall recording stop", recordingData);
-            soundRecorder.StopRecording();
+            #if !UNITY_WEBGL
+                soundRecorder.StopRecording();
+            #endif
 
             lowBeep.Play();
             scriptedEventReporter.ReportScriptedEvent("sound played", new Dictionary<string, object>() { { "sound name", "low beep" }, { "sound duration", lowBeep.clip.length.ToString() } });

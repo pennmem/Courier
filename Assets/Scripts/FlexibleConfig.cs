@@ -30,7 +30,6 @@ public class Config
     public static bool showFps { get { return (bool)Config.GetSetting("showFps"); } }
 
     // Game Section Skips
-    public static bool skipFPS { get { return (bool)Config.GetSetting("skipFPS"); } }
     public static bool skipIntros { get { return (bool)Config.GetSetting("skipIntros"); } }
     public static bool skipTownLearning { get { return (bool)Config.GetSetting("skipTownLearning"); } }
     public static bool skipNewEfrKeypressCheck { get { return (bool)Config.GetSetting("skipNewEfrKeypressCheck"); } }
@@ -41,8 +40,8 @@ public class Config
     public static bool ecrEnabled { get { return (bool)Config.GetSetting("ecrEnabled"); } }
     public static bool twoBtnEfrEnabled { get { return (bool)Config.GetSetting("twoBtnEfrEnabled"); } }
     public static bool twoBtnEcrEnabled { get { return (bool)Config.GetSetting("twoBtnEcrEnabled"); } }
-    public static bool niclsCourier { get { return (bool)Config.GetSetting("niclsCourier"); } }
     public static bool counterBalanceCorrectIncorrectButton { get { return (bool)Config.GetSetting("counterBalanceCorrectIncorrectButton"); } }
+
     public static bool temporallySmoothedTurning { get { return (bool)Config.GetSetting("temporallySmoothedTurning"); } }
     public static bool sinSmoothedTurning { get { return (bool)Config.GetSetting("sinSmoothedTurning"); } }
     public static bool cubicSmoothedTurning { get { return (bool)Config.GetSetting("cubicSmoothedTurning"); } }

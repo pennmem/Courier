@@ -170,13 +170,11 @@ public abstract class CoroutineExperiment : MonoBehaviour
     protected IEnumerator GetOnlineConfig()
     {
         Debug.Log("setting web request");
-        // string systemConfigPath = System.IO.Path.Combine(Application.streamingAssetsPath, "config.json");
-        string systemConfigPath = "http://psiturk.sas.upenn.edu:22371/static/js/Unity/build/StreamingAssets/config.json";
+        string systemConfigPath = System.IO.Path.Combine(Application.streamingAssetsPath, "config.json");
         UnityWebRequest systemWWW = UnityWebRequest.Get(systemConfigPath);
         yield return systemWWW.SendWebRequest();
 
-        // TODO: LC: if (systemWWW.result != UnityWebRequest.Result.Success) for later Unity versions
-        if (systemWWW.isNetworkError || systemWWW.isHttpError)
+        if (systemWWW.result != UnityWebRequest.Result.Success)
         {
             Debug.Log("Network error " + systemWWW.error);
         }
@@ -187,13 +185,11 @@ public abstract class CoroutineExperiment : MonoBehaviour
             Debug.Log(Config.onlineSystemConfigText);
         }
 
-        // string experimentConfigPath = System.IO.Path.Combine(Application.streamingAssetsPath, "CourierOnline.json");
-        string experimentConfigPath = "http://psiturk.sas.upenn.edu:22371/static/js/Unity/build/StreamingAssets/CourierOnline.json";
+        string experimentConfigPath = System.IO.Path.Combine(Application.streamingAssetsPath, "CourierOnline.json");
         UnityWebRequest experimentWWW = UnityWebRequest.Get(experimentConfigPath);
         yield return experimentWWW.SendWebRequest();
 
-        // TODO: LC: if (experimentWWW.result != UnityWebRequest.Result.Success) for later Unity versions
-        if (experimentWWW.isNetworkError || experimentWWW.isHttpError)
+        if (systemWWW.result != UnityWebRequest.Result.Success)
         {
             Debug.Log("Network error " + experimentWWW.error);
         }

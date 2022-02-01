@@ -1,0 +1,31 @@
+{
+    "noSyncbox": true,
+    "ps4Controller": false,
+
+    "lessTrials": false,
+    "lessDeliveries": false,
+    "showFps": false,
+    
+    "skipIntros": false,
+    "skipTownLearning": true,
+    "skipNewEfrKeypressCheck": true,
+    "skipNewEfrKeypressPractice": true,
+    
+    "efrEnabled": false,
+    "ecrEnabled": false,
+    "twoBtnEfrEnabled": false,
+    "twoBtnEcrEnabled": false,
+    "counterBalanceCorrectIncorrectButton": false,
+
+    "temporallySmoothedTurning": false,
+    "sinSmoothedTurning": false,
+    "cubicSmoothedTurning": false,
+    
+    "trialsPerSession": 6,
+    "trialsPerSessionSingleTownLearning": 2,
+    "trialsPerSessionDoubleTownLearning": 2,
+    "deliveriesPerPracticeTrial": 13,
+    "deliveriesPerTrial": 13,
+    
+    "newEfrKeypressPractices":0
+}

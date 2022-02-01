@@ -243,7 +243,7 @@ public class DeliveryExperiment : CoroutineExperiment
             UnityEPL.AddParticipant(System.Guid.NewGuid().ToString());
             UnityEPL.SetExperimentName("COURIER_ONLINE");
             UnityEPL.SetSessionNumber(0);
-            ConfigureExperiment(false, false, 0, "CourierOnline");
+            ConfigureExperiment(false, false, 0, "HospitalCourier");
         }
 
         // Session check
@@ -301,49 +301,31 @@ public class DeliveryExperiment : CoroutineExperiment
         if (COURIER_ONLINE)
             yield return GetOnlineConfig();
         
-        // Player controls
-        string controlName = "DrivingControls.xml";
-        if (HOSPITAL_COURIER)
-            controlName = "SingleStick" + controlName;
-        else
-            controlName = "Split" + controlName;
-
-        if (Config.Get(() => Config.ps4Controller, false))
-            controlName = "Ps4" + controlName;
-
         #if !UNITY_WEBGL // System.IO
+            // Player controls
+            string controlName = "DrivingControls.xml";
+            if (HOSPITAL_COURIER)
+                controlName = "SingleStick" + controlName;
+            else
+                controlName = "Split" + controlName;
+
+            if (Config.Get(() => Config.ps4Controller, false))
+                controlName = "Ps4" + controlName;
+
             string configPath = System.IO.Path.Combine(
                 Directory.GetParent(Directory.GetParent(UnityEPL.GetParticipantFolder()).FullName).FullName,
                 "configs");
             InputManager.Load(Path.Combine(configPath, controlName));
-        #else
-            // string experimentConfigPath = System.IO.Path.Combine(Application.streamingAssetsPath, controlName);
-            string systemConfigPath = "http://psiturk.sas.upenn.edu:22371/static/js/Unity/build/StreamingAssets/" + controlName;
-            UnityWebRequest systemWWW = UnityWebRequest.Get(systemConfigPath);
-            yield return systemWWW.SendWebRequest();
 
-            // TODO: LC: if (systemWWW.result != UnityWebRequest.Result.Success) for later Unity versions
-            if (systemWWW.isNetworkError || systemWWW.isHttpError)
+            // Randomize efr correct/incorrect button sides
+            if (Config.efrEnabled && Config.counterBalanceCorrectIncorrectButton)
             {
-                Debug.Log("Network error " + systemWWW.error);
-            }
-            else
-            {
-                using (TextReader reader = new StringReader(systemWWW.downloadHandler.text))
-                {
-                    InputLoaderXML loader = new InputLoaderXML(reader);
-                    InputManager.Load(loader);
-                }
+                // We want randomness for different people, but consistency between sessions
+                System.Random reliableRandom = deliveryItems.ReliableRandom();
+                efrCorrectButtonSide = (ActionButton)reliableRandom.Next(0, 2);
             }
         #endif // !UNITY_WEBGL
 
-        // Randomize efr correct/incorrect button sides
-        if (Config.efrEnabled && Config.counterBalanceCorrectIncorrectButton)
-        {
-            // We want randomness for different people, but consistency between sessions
-            System.Random reliableRandom = deliveryItems.ReliableRandom();
-            efrCorrectButtonSide = (ActionButton)reliableRandom.Next(0, 2);
-        }
 
         // Setup Environment
         yield return EnableEnvironment();
@@ -496,10 +478,6 @@ public class DeliveryExperiment : CoroutineExperiment
     private IEnumerator DoFrameTest()
     {
         Debug.Log("Frame Testing");
-        if (Config.skipFPS)
-            yield break;
-
-        Debug.Log("config works");
 
         messageImageDisplayer.SetGeneralBigMessageText(titleText: "frame test start title", mainText: "frame test start main");
         yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);

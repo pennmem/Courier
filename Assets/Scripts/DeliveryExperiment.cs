@@ -49,9 +49,9 @@ public class DeliveryExperiment : CoroutineExperiment
     // TODO: JPB: Make these configuration variables
 
     // Experiment type
-    private const bool HOSPITAL_COURIER = true;
+    private const bool HOSPITAL_COURIER = false;
     private const bool NICLS_COURIER = false;
-    private const bool GRANT_VERSION = false;
+    private const bool VALUE_COURIER = true;
     #if !UNITY_WEBGL
         private const bool COURIER_ONLINE = false;
     #else
@@ -557,9 +557,15 @@ public class DeliveryExperiment : CoroutineExperiment
         }
         else
         {
-            yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
+            if (VALUE_COURIER)
+                yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
                                  LanguageSource.GetLanguageString("standard intro video"),
-                                 VideoSelector.VideoType.MainIntro);
+                                 VideoSelector.VideoType.valueIntro);
+            else
+                yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
+                                    LanguageSource.GetLanguageString("standard intro video"),
+                                    VideoSelector.VideoType.MainIntro);
+            yield return DoOnlineRecapInstructions();
         }
 
         if (HOSPITAL_COURIER && !COURIER_ONLINE)
@@ -588,6 +594,15 @@ public class DeliveryExperiment : CoroutineExperiment
         foreach (var message in messages)
             yield return messageImageDisplayer.DisplayMessage(message);
     }
+
+    private IEnumerator DoOnlineRecapInstructions()
+    {
+        // TODO: LC: separate out "value" version from "original" like above DoRecapInstructions()
+        GameObject[] messages = messageImageDisplayer.online_instruction_messages_en;
+
+        yield return null;
+    }
+
 
     private IEnumerator DoFamiliarization()
     {

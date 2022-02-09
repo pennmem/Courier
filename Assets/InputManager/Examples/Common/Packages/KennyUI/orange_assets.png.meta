@@ -101,6 +101,8 @@ TextureImporter:
   isReadable: 0
   streamingMipmaps: 0
   streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMasterTextureLimit: 0
   grayScaleToAlpha: 0
   generateCubemap: 6
   cubemapConvolution: 0
@@ -109,9 +111,9 @@ TextureImporter:
   maxTextureSize: 1024
   textureSettings:
     serializedVersion: 2
-    filterMode: -1
+    filterMode: 1
     aniso: 16
-    mipBias: -100
+    mipBias: 0
     wrapU: 1
     wrapV: 1
     wrapW: 1
@@ -132,9 +134,12 @@ TextureImporter:
   textureType: 8
   textureShape: 1
   singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
   maxTextureSizeSet: 0
   compressionQualitySet: 0
   textureFormatSet: 0
+  ignorePngGamma: 0
   applyGammaDecoding: 1
   platformSettings:
   - serializedVersion: 3
@@ -708,6 +713,33 @@ TextureImporter:
     edges: []
     weights: []
     secondaryTextures: []
+    nameFileIdTable:
+      orange_assets_12: 21300024
+      orange_assets_0: 21300000
+      orange_assets_21: 21300042
+      orange_assets_13: 21300026
+      orange_assets_11: 21300022
+      orange_assets_18: 21300036
+      orange_assets_22: 21300044
+      orange_assets_3: 21300006
+      orange_assets_6: 21300012
+      orange_assets_16: 21300032
+      orange_assets_10: 21300020
+      orange_assets_17: 21300034
+      orange_assets_23: 21300046
+      orange_assets_25: 21300050
+      orange_assets_24: 21300048
+      orange_assets_2: 21300004
+      orange_assets_1: 21300002
+      orange_assets_7: 21300014
+      orange_assets_15: 21300030
+      orange_assets_19: 21300038
+      orange_assets_9: 21300018
+      orange_panel: 21300040
+      orange_assets_4: 21300008
+      orange_assets_5: 21300010
+      orange_assets_14: 21300028
+      orange_assets_8: 21300016
   spritePackingTag: 
   pSDRemoveMatte: 0
   pSDShowRemoveMatteOption: 0

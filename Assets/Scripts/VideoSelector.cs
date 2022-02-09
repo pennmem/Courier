@@ -15,7 +15,6 @@ public class VideoSelector : MonoBehaviour
     public UnityEngine.Video.VideoClip niclsEnglishIntro;
     public UnityEngine.Video.VideoClip[] niclsMovie;
     public UnityEngine.Video.VideoClip[] musicVideos;
-    public UnityEngine.Video.VideoClip valueCourier;
 
     void OnEnable()
     {
@@ -85,7 +84,7 @@ public class VideoSelector : MonoBehaviour
                  case VideoType.valueIntro:
                     videoPlayer.url = System.IO.Path.Combine(path,"instruction_video_updated.mp4");
                     break;
-                    
+
                 // LC: could later add onto webGL but not yet
                 // case VideoType.EfrIntro:
                 //     videoPlayer.url = System.IO.Path.Combine(path,

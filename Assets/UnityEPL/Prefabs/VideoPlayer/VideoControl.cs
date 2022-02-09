@@ -27,14 +27,15 @@ public class VideoControl : MonoBehaviour
                 videoPlayer.Stop();
                 gameObject.SetActive(false);
             }
-        #endif
 
-        // Video finished
-        if (videoPlayer.time >= videoPlayer.clip.length)
-        {
-            gameObject.SetActive(false);
-        }
+            // Video finished
+            if (videoPlayer.time >= videoPlayer.clip.length)
+            {
+                gameObject.SetActive(false);
+            }
+        #endif
     }
+
 
     public void StartVideo()
     {

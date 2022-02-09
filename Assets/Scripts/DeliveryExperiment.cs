@@ -336,8 +336,8 @@ public class DeliveryExperiment : CoroutineExperiment
         yield return EnableEnvironment();
 
         // Frame Rate Test
-        if (COURIER_ONLINE)
-            yield return DoFrameTest();
+        // if (COURIER_ONLINE)
+        //     yield return DoFrameTest();
 
         #if !UNITY_WEBGL // NICLS
             // Setup Ramulator
@@ -359,9 +359,6 @@ public class DeliveryExperiment : CoroutineExperiment
 
         // Intros
         yield return DoIntros();
-
-        // if (COURIER_ONLINE)
-        //     yield return DoAttentionCheck();
 
         // Town Learning
         int trialsForFirstSubSession = Config.trialsPerSession;
@@ -538,23 +535,24 @@ public class DeliveryExperiment : CoroutineExperiment
     }
 
     private IEnumerator DoIntros()
-    {   
+    {                                                                                                 
         Debug.Log("DoIntros");
-        if (Config.skipIntros)                                                                                          
-            yield break;                                                                                                
 
         BlackScreen();
 
+        // firts session of NICLS_COURIER
         if (NICLS_COURIER && sessionNumber == 0 && !useNiclServer)
         {
             yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
                                  LanguageSource.GetLanguageString("standard intro video"),
                                  VideoSelector.VideoType.NiclsMainIntro);
         }
+        // not the first session, no need for intro video
         else if (NICLS_COURIER) // sessionNumber >= 1 || useNiclServer                                              
         {
             yield return DoRecapInstructions();
         }
+        // rest would be HOSPITAL & VALUE COURIER
         else
         {
             if (VALUE_COURIER)

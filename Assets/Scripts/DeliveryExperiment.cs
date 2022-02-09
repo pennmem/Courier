@@ -556,13 +556,13 @@ public class DeliveryExperiment : CoroutineExperiment
         else
         {
             if (VALUE_COURIER)
-                yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
-                                 LanguageSource.GetLanguageString("standard intro video"),
-                                 VideoSelector.VideoType.valueIntro);
-            else
-                yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
-                                    LanguageSource.GetLanguageString("standard intro video"),
-                                    VideoSelector.VideoType.MainIntro);
+            //     yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
+            //                      LanguageSource.GetLanguageString("standard intro video"),
+            //                      VideoSelector.VideoType.valueIntro);
+            // else
+            //     yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
+            //                         LanguageSource.GetLanguageString("standard intro video"),
+            //                         VideoSelector.VideoType.MainIntro);
             yield return DoOnlineRecapInstructions();
         }
 
@@ -595,10 +595,36 @@ public class DeliveryExperiment : CoroutineExperiment
 
     private IEnumerator DoOnlineRecapInstructions()
     {
+        BlackScreen();
         // TODO: LC: separate out "value" version from "original" like above DoRecapInstructions()
-        GameObject[] messages = messageImageDisplayer.online_instruction_messages_en;
+        GameObject[] messages = HOSPITAL_COURIER ? messageImageDisplayer.online_hospital_instruction_messages_en 
+                                                 : messageImageDisplayer.online_value_instruction_messages_en;
 
-        yield return null;
+        int lastpage = messages.Length-1;
+        int currpage = 0;
+        int prevpage = 0;
+        bool isLastPage = currpage == lastpage;
+
+        while (!isLastPage && !InputManager.GetButtonDown("Continue"))
+        {
+            yield return null;
+            if (InputManager.GetButtonDown("UI_Left"))
+            {
+                prevpage = currpage;
+                currpage = Math.Max(currpage-1, 0);
+
+            }
+            if (InputManager.GetButtonDown("UI_Right"))
+            {
+                prevpage = currpage;
+                currpage = Math.Min(currpage+1, lastpage);
+            }
+
+            messages[prevpage].SetActive(false);
+            messages[currpage].SetActive(true);
+        }
+        messages[currpage].SetActive(false);
+        Debug.Log("slide finished");
     }
 
 

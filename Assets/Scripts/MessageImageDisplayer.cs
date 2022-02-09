@@ -17,7 +17,8 @@ public class MessageImageDisplayer : MonoBehaviour
     public GameObject[] recap_instruction_messages_efr_en;
     public GameObject[] recap_instruction_messages_fr_en;
 
-    public GameObject[] online_instruction_messages_en;
+    public GameObject[] online_hospital_instruction_messages_en;
+    public GameObject[] online_value_instruction_messages_en;
 
     public GameObject[] music_video_prompts;
 

@@ -24,6 +24,7 @@ public static class LanguageSource
         //{ "you now have", new string[] {"You now have points: ", "Aktuelle Punktzahl: "} },
         //{ "you earn points", new string[] {"You earned points: ", "Verdiente Punkte: "} },
         { "continue", new string[] {"Press (X) to continue.", "Drücken Sie (X) um fortzufahren."} },
+        { "no continue", new string[] {"", ""} },
         { "please point", new string[] {"Please point to the ", "Bitte richten Sie den Pfeil aus auf "} },
         { "joystick", new string[] {"Use the joystick to adjust the arrow, then press (X) to continue.", "Nutzen Sie den Joystick um den Pfeil zu rotieren und (X) um zu bestätigen."} },
         { "keyboard", new string[] {"Use Arrow keys to adjust the arrow, then press (X) to continue", GERMAN_TRANSLATION_NEEDED} },
@@ -57,9 +58,11 @@ public static class LanguageSource
         { "frame test start main", new string [] { "First, we will check if your connection is fast enough to complete this task. \nAs a test, please briefly navigate around this town using the arrow keys.", 
                                                    GERMAN_TRANSLATION_NEEDED } },
         { "frame test end title", new string [] { "Your average FPS was ", GERMAN_TRANSLATION_NEEDED } },
-        { "frame test end main", new string [] { "If you experienced any significant lag, you will likely take longer than average to complete the task. However, we can only pay a fixed rate for task completion, regardless of time taken." + "\n" +
+        { "frame test end pass", new string [] { "You passed our initial FPS check! However, if you experienced any significant lag, you will likely take longer than average to complete the task. However, we can only pay a fixed rate for task completion, regardless of time taken." + "\n" +
                                                  "If your connection was strong and you wish to continue, press (X)." + "\n" +
                                                  "Otherwise, close the window to exit the experiment.", GERMAN_TRANSLATION_NEEDED } },
+        { "frame test end fail", new string [] { "Unfortunately, we require a minimum frame rate of 30 per second for our task to run smoothly. \n Please restart the experiment with better computing environment, or return the HIT.",
+                                                 GERMAN_TRANSLATION_NEEDED } },
         { "frame test continue main", new string [] { "Thank you for your participation. \n\nTry to focus on the task and good luck!", GERMAN_TRANSLATION_NEEDED } },
 
 

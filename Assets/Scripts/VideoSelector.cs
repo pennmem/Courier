@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 public class VideoSelector : MonoBehaviour
 {
@@ -72,38 +73,40 @@ public class VideoSelector : MonoBehaviour
                     break;
                 default: break;
             }
-#else
-            string oldPath = "http://psiturk.sas.upenn.edu:22371/static/js/Unity/build/StreamingAssets";
+        #else
+            string path = Application.streamingAssetsPath;
             switch (videoType)
             {
                 case VideoType.MainIntro:
                     if (LanguageSource.current_language == LanguageSource.LANGUAGE.GERMAN)
-                        videoPlayer.url = System.IO.Path.Combine(oldPath,
+                        videoPlayer.url = System.IO.Path.Combine(path,
                                                                  "germanCourierIntro.mov");
                     else
-                        videoPlayer.url = System.IO.Path.Combine(oldPath,
+                        videoPlayer.url = System.IO.Path.Combine(path,
                                                                  "instruction_video.mp4");
                     break;
-                case VideoType.EfrIntro:
-                    videoPlayer.url = System.IO.Path.Combine(oldPath,
-                                                             "englishCourierEfrIntro.mp4");
-                    break;
-                case VideoType.NewEfrIntro:
-                    videoPlayer.url = System.IO.Path.Combine(oldPath,
-                                                             "englishCourierEfrIntro.mp4");
-                    break;
-                case VideoType.NiclsMainIntro:
-                    videoPlayer.url = System.IO.Path.Combine(oldPath,
-                                                             "englishCourierIntroShort_NoPoint_NoRecap.mov");
-                    break;
-                case VideoType.NiclsMovie:
-                    videoPlayer.url = System.IO.Path.Combine(oldPath,
-                                                             "Sherlock_" + videoIndex+1 + ".mov");
-                    break;
-                case VideoType.MusicVideos:
-                    videoPlayer.url = System.IO.Path.Combine(oldPath,
-                                                             "music_video_" + videoIndex + ".mov");
-                    break;
+
+                // LC: could later add onto webGL but not yet
+                // case VideoType.EfrIntro:
+                //     videoPlayer.url = System.IO.Path.Combine(path,
+                //                                              "englishCourierEfrIntro.mp4");
+                //     break;
+                // case VideoType.NewEfrIntro:
+                //     videoPlayer.url = System.IO.Path.Combine(path,
+                //                                              "englishCourierEfrIntro.mp4");
+                //     break;
+                // case VideoType.NiclsMainIntro:
+                //     videoPlayer.url = System.IO.Path.Combine(path,
+                //                                              "englishCourierIntroShort_NoPoint_NoRecap.mov");
+                //     break;
+                // case VideoType.NiclsMovie:
+                //     videoPlayer.url = System.IO.Path.Combine(path,
+                //                                              "Sherlock_" + videoIndex+1 + ".mov");
+                //     break;
+                // case VideoType.MusicVideos:
+                //     videoPlayer.url = System.IO.Path.Combine(path,
+                //                                              "music_video_" + videoIndex + ".mov");
+                //     break;
                 default: break;
 
             }

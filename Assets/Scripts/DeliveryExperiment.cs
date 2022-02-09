@@ -7,6 +7,7 @@ using Luminosity.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using UnityEngine.Networking;
+using UnityEngine.UI;
 
 using Accord.Math;
 using Accord.Statistics.Distributions.Multivariate;
@@ -33,6 +34,9 @@ public class DeliveryExperiment : CoroutineExperiment
     #if UNITY_WEBGL
         [DllImport("__Internal")]
         private static extern void EndTask();
+
+        // [DllImport("__Internal")]
+        // private static extern void NoRefresh();
     #endif
 
     public delegate void StateChange(string stateName, bool on);
@@ -157,6 +161,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
 
     // Frame testing variables
+    private static int FPScutoff = 30;
     private static bool isFrameTesting = false;
     private static int fpsValue = 0;
     private static float updateRateSeconds = 4.0f;
@@ -355,9 +360,12 @@ public class DeliveryExperiment : CoroutineExperiment
         // Intros
         yield return DoIntros();
 
+        // if (COURIER_ONLINE)
+        //     yield return DoAttentionCheck();
+
         // Town Learning
         int trialsForFirstSubSession = Config.trialsPerSession;
-        if (sessionNumber < SINGLE_TOWN_LEARNING_SESSIONS + DOUBLE_TOWN_LEARNING_SESSIONS)
+        if (!COURIER_ONLINE && sessionNumber < SINGLE_TOWN_LEARNING_SESSIONS + DOUBLE_TOWN_LEARNING_SESSIONS)
         {
             if (NICLS_COURIER && !useNiclServer)
             {
@@ -391,7 +399,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
         // Task Recap Instructions and Practice Trials
         // Using useNiclsServer to skip practices on closed loop sessions
-        if (sessionNumber == 0 && !useNiclServer)
+        if (sessionNumber == 0 && !useNiclServer && !COURIER_ONLINE)
             yield return DoPracticeTrials(2);
 
         // Delay note
@@ -507,13 +515,26 @@ public class DeliveryExperiment : CoroutineExperiment
         playerMovement.Reset();
 
 
-        messageImageDisplayer.SetFPSDisplayText(fpsValue: averageFps.ToString(), mainText: "frame test end main");
-        yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
+        // TODO: LC: add hard cutoff at 30 FPS : DONE
+        if (averageFps < FPScutoff)
+        {
+            Debug.Log("FPS CHECK FAILED");
+            scriptedEventReporter.ReportScriptedEvent("fps check failed");
+            messageImageDisplayer.SetFPSDisplayText(fpsValue: averageFps.ToString(), mainText: "frame test end fail", continueText: "no continue");
+            yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display, "No Continue");
+        }
+        else
+        {
+            Debug.Log("FPS CHECK PASSED");
+            scriptedEventReporter.ReportScriptedEvent("fps check passed");
+            messageImageDisplayer.SetFPSDisplayText(fpsValue: averageFps.ToString(), mainText: "frame test end pass");
+            yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
 
-        yield return new WaitForSeconds(1.5f);
+            yield return new WaitForSeconds(1.5f);
 
-        messageImageDisplayer.SetGeneralBigMessageText(mainText: "frame test continue main");
-        yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
+            messageImageDisplayer.SetGeneralBigMessageText(mainText: "frame test continue main");
+            yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
+        }
     }
 
     private IEnumerator DoIntros()
@@ -1448,8 +1469,11 @@ public class DeliveryExperiment : CoroutineExperiment
             starSystem.gameObject.SetActive(true);
             yield return starSystem.ShowDifference();
 
+        yield return new WaitForSeconds(0.5f);
+        pointerText.text = "";
+
         if (improvement)
-            pointerText.text = pointerText.text + "\n" + LanguageSource.GetLanguageString("rating improved");
+            pointerText.text = pointerText.text + LanguageSource.GetLanguageString("rating improved");
 
         pointerText.text = pointerText.text + "\n" + LanguageSource.GetLanguageString("continue");
 

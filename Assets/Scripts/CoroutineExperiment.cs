@@ -171,7 +171,8 @@ public abstract class CoroutineExperiment : MonoBehaviour
     {
         Debug.Log("setting web request");
         string systemConfigPath = System.IO.Path.Combine(Application.streamingAssetsPath, "config.json");
-        UnityWebRequest systemWWW = UnityWebRequest.Get(systemConfigPath);
+        UnityWebRequest systemWWW = new UnityWebRequest(systemConfigPath);
+        systemWWW.downloadHandler = new DownloadHandlerBuffer();
         yield return systemWWW.SendWebRequest();
 
         if (systemWWW.result != UnityWebRequest.Result.Success)
@@ -185,8 +186,9 @@ public abstract class CoroutineExperiment : MonoBehaviour
             Debug.Log(Config.onlineSystemConfigText);
         }
 
-        string experimentConfigPath = System.IO.Path.Combine(Application.streamingAssetsPath, "CourierOnline.json");
-        UnityWebRequest experimentWWW = UnityWebRequest.Get(experimentConfigPath);
+        string experimentConfigPath = System.IO.Path.Combine(Application.streamingAssetsPath, Config.experimentConfigName + ".json");
+        UnityWebRequest experimentWWW = new UnityWebRequest(experimentConfigPath);
+        experimentWWW.downloadHandler = new DownloadHandlerBuffer();
         yield return experimentWWW.SendWebRequest();
 
         if (systemWWW.result != UnityWebRequest.Result.Success)

@@ -24,7 +24,7 @@ public struct Environment
 
 public enum StorePointType 
 {
-    SpacialPosition,
+    SpatialPosition,
     SerialPosition,
     Random,
 }
@@ -59,6 +59,7 @@ public class DeliveryExperiment : CoroutineExperiment
     #endif // !UNITY_WEBGL
     
     private const string COURIER_VERSION = COURIER_ONLINE ? "v5.0.0online" : "v5.2.0";
+    private const bool DEBUG = true;
 
     private const string RECALL_TEXT = "*******"; // TODO: JPB: Remove this and use display system
     // Constants moved to the Config File
@@ -80,7 +81,8 @@ public class DeliveryExperiment : CoroutineExperiment
     private const float FAMILIARIZATION_PRESENTATION_LENGTH = 1.5f;
     private const float RECALL_MESSAGE_DISPLAY_LENGTH = 6f;
     private const float RECALL_TEXT_DISPLAY_LENGTH = 1f;
-    private const float FREE_RECALL_LENGTH = 90f;
+    private const float FREE_RECALL_LENGTH = DEBUG ? 1f : 90f;
+    private const float VALUE_RECALL_LENGTH = 10f;
     private const float PRACTICE_FREE_RECALL_LENGTH = 25f;
     private const float STORE_FINAL_RECALL_LENGTH = 90f;
     private const float OBJECT_FINAL_RECALL_LENGTH = NICLS_COURIER ? 120f : COURIER_ONLINE ? 240f : 180f;
@@ -159,6 +161,8 @@ public class DeliveryExperiment : CoroutineExperiment
     public GameObject cuedInputField;
     public UnityEngine.UI.InputField cuedResponse;
 
+    public GameObject freeRecallWrongType;
+    public GameObject valueGuessWrongType;
 
     // Frame testing variables
     private static int FPScutoff = 30;
@@ -170,10 +174,107 @@ public class DeliveryExperiment : CoroutineExperiment
     private float fps = 0.0f;
     private List<int> fpsList = new List<int>();
 
-    // Temporal/Distance store points
-    // private StorePointType storePointType = StorePointType.Random;
-    // private int free_index = 0;
-    // private int value_index = 0;
+    // Store Generation variables
+    int freeIndex = 0;
+    int valueIndex = 0;
+
+    // store points generating algorithms
+    double[] RandomStorePoints(int numStores)
+    {
+        // Same as temporal algorithm but shuffled
+        double[] storePoints = TemporalStorePoints(numStores);
+        storePoints.Shuffle(new System.Random());
+
+        return storePoints;
+    }
+
+    double[] StandardizeStorePoints(double[] storePoints)
+    {
+        // std = sqrt(mean(x)), where x = abs(a - a.mean())**2
+        double[] storePoints2 = Vector.Zeros(storePoints.Length);
+        for (int i = 0; i < storePoints.Length; i++)
+            storePoints2[i] = Math.Pow(Math.Abs(storePoints[i] - storePoints.Average()), 2);
+        double std = Math.Sqrt(storePoints2.Average());
+
+        // points_standardized = (points - mean(points)) / std(points)
+        storePoints = Elementwise.Subtract(storePoints, storePoints.Average());
+        storePoints = Elementwise.Divide(storePoints, std);
+
+        return storePoints;
+    }
+
+    double[] TemporalStorePoints(int numStores)
+    {
+        // Setup covariance matrix variables
+        double[] serialPositions = Vector.Range(new Accord.DoubleRange(0, numStores), 1);
+        int N = serialPositions.Length;
+        double[] mu = Vector.Zeros(N);
+        double[,] K = Matrix.Zeros(N, N);
+        int rhoSq = numStores;
+
+        // Create covariance matrix
+        for (int i = 0; i < N-1; i++)
+        {
+            K[i, i] = 1;
+            for (int j = i+1; j < N; j++)
+            {
+                K[i, j] = Math.Exp(-(1d / (2d * rhoSq)) * Math.Pow(serialPositions[i] - serialPositions[j], 2));
+                K[j, i] = K[i, j];
+            }
+        }
+        K[(N - 1), (N - 1)] = 1;
+
+        // Generate point values
+        double[] storePoints = new MultivariateNormalDistribution(mu, K).Generate();
+        // standardize point values
+        storePoints = StandardizeStorePoints(storePoints);
+
+        // sample points from gaussian process
+        double pointMean = new UniformContinuousDistribution(30, 70).Generate();
+        double pointVar = new UniformContinuousDistribution(13, 17).Generate();
+        storePoints = Elementwise.Multiply(storePoints, pointVar);
+        storePoints = Elementwise.Add(storePoints, pointMean);
+
+        return storePoints;
+    }
+
+    void SpatialStorePoints(StoreComponent[] stores)
+    {
+        // Setup covariance matrix variables
+        int N = stores.Length;
+        double[] mu = Vector.Zeros(N);
+        double[,] K = Matrix.Zeros(N, N);
+        double rhoSq = N;
+        
+        // Create covariance matrix
+        for (int i = 0; i < N - 1; i++)
+        {
+            K[i, i] = 1;
+            for (int j = i + 1; j < N; j++)
+            {
+                var a = new double[2] { stores[i].transform.position.x, stores[i].transform.position.y };
+                var b = new double[2] { stores[j].transform.position.x, stores[j].transform.position.y };
+                K[i, j] = Math.Exp(-(1d / (2d * rhoSq)) * Distance.Euclidean(a, b));
+                K[j, i] = K[i, j];
+            }
+        }
+        K[(N - 1), (N - 1)] = 1;
+
+        // Generate point values
+        double[] storePoints = new MultivariateNormalDistribution(mu, K).Generate();
+        // standardize point values
+        storePoints = StandardizeStorePoints(storePoints);
+
+        // sample points from gaussian process
+        double pointMean = new UniformContinuousDistribution(30, 70).Generate();
+        double pointVar = new UniformContinuousDistribution(13, 17).Generate();
+        storePoints = Elementwise.Multiply(storePoints, pointVar);
+        storePoints = Elementwise.Add(storePoints, pointMean);
+
+        // Set store object point values
+        for (int i = 0; i < N; i++)
+            stores[i].points = storePoints[i];
+    }
 
     // These names are used in for what is sent to the log
     // If you change them, then you have to change the event processing (or the logging code)
@@ -248,7 +349,7 @@ public class DeliveryExperiment : CoroutineExperiment
             UnityEPL.AddParticipant(System.Guid.NewGuid().ToString());
             UnityEPL.SetExperimentName("COURIER_ONLINE");
             UnityEPL.SetSessionNumber(0);
-            ConfigureExperiment(false, false, 0, "HospitalCourier");
+            ConfigureExperiment(false, false, 0, "ValueCourier");
         }
 
         // Session check
@@ -473,11 +574,14 @@ public class DeliveryExperiment : CoroutineExperiment
 
         // Final Recalls
         BlackScreen();
-        if (NICLS_COURIER)
-            yield return messageImageDisplayer.DisplayLanguageMessage(messageImageDisplayer.nicls_final_recall_messages);
-        else
-            yield return messageImageDisplayer.DisplayLanguageMessage(messageImageDisplayer.final_recall_messages);
-        yield return DoFinalRecall(subSessionNum);
+        if (!VALUE_COURIER)
+        {
+            if (NICLS_COURIER)
+                yield return messageImageDisplayer.DisplayLanguageMessage(messageImageDisplayer.nicls_final_recall_messages);
+            else
+                yield return messageImageDisplayer.DisplayLanguageMessage(messageImageDisplayer.final_recall_messages);
+            yield return DoFinalRecall(subSessionNum);
+        }
     }
 
     private IEnumerator DoFrameTest()
@@ -555,18 +659,22 @@ public class DeliveryExperiment : CoroutineExperiment
         // rest would be HOSPITAL & VALUE COURIER
         else
         {
+            // change what video to show based on the experiment type
             if (VALUE_COURIER)
-            //     yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
-            //                      LanguageSource.GetLanguageString("standard intro video"),
-            //                      VideoSelector.VideoType.valueIntro);
-            // else
-            //     yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
-            //                         LanguageSource.GetLanguageString("standard intro video"),
-            //                         VideoSelector.VideoType.MainIntro);
-            yield return DoOnlineRecapInstructions();
+                yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
+                                 LanguageSource.GetLanguageString("standard intro video"),
+                                 VideoSelector.VideoType.valueIntro);
+            else
+                yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
+                                    LanguageSource.GetLanguageString("standard intro video"),
+                                    VideoSelector.VideoType.MainIntro);
+            
+            // show recap instruction at the end of video for online
+            if (COURIER_ONLINE)
+                yield return DoOnlineRecapInstructions();
         }
 
-        if (HOSPITAL_COURIER && !COURIER_ONLINE)
+        if (HOSPITAL_COURIER)
             yield return DoSubjectSessionQuitPrompt(sessionNumber, LanguageSource.GetLanguageString("running participant"));
 
         #if !UNITY_WEBGL // Microphone
@@ -680,7 +788,7 @@ public class DeliveryExperiment : CoroutineExperiment
         scriptedEventReporter.ReportScriptedEvent("stop town learning");
     }
 
-    private IEnumerator DoDeliveries(int trialNumber, int continuousTrialNum, bool practice = false, bool skipLastDelivStores = false)
+    private IEnumerator DoDeliveries(int trialNumber, int continuousTrialNum, bool practice = false, bool skipLastDelivStores = false, StorePointType storePointType = StorePointType.Random)
     {
         Dictionary<string, object> trialData = new Dictionary<string, object>();
         trialData.Add("trial number", continuousTrialNum);
@@ -690,6 +798,21 @@ public class DeliveryExperiment : CoroutineExperiment
             scriptedEventReporter.ReportScriptedEvent("start deliveries", trialData);
 
         WorldScreen();
+
+        // Set store points for the delivery day
+        double[] allStoresPoints = null;
+        switch(storePointType)
+        {
+            case StorePointType.Random:
+                allStoresPoints = RandomStorePoints(environment.stores.Length);
+                break;
+            case StorePointType.SerialPosition:
+                allStoresPoints = TemporalStorePoints(environment.stores.Length);
+                break;
+            case StorePointType.SpatialPosition:
+                SpatialStorePoints(environment.stores);
+                break;
+        }
 
         SetRamulatorState("ENCODING", true, new Dictionary<string, object>());
         messageImageDisplayer.please_find_the_blah_reminder.SetActive(true);
@@ -728,6 +851,20 @@ public class DeliveryExperiment : CoroutineExperiment
             }
             yield return DisplayPointingIndicator(nextStore, false);
 
+            // Get points for this store, default value being -1
+            double storePoints = 0.0;
+            switch (storePointType)
+            {
+                case StorePointType.Random:
+                case StorePointType.SerialPosition:
+                    storePoints = allStoresPoints[i];
+                    break;
+                case StorePointType.SpatialPosition:
+                    storePoints = nextStore.points;
+                    break;
+            }
+            storePoints = VALUE_COURIER ? storePoints : -1.0;
+
             ///AUDIO PRESENTATION OF OBJECT///
             if (i != deliveries - 1)
             {
@@ -754,7 +891,10 @@ public class DeliveryExperiment : CoroutineExperiment
                 #endif
 
                 string deliveredItemName = deliveredItem.name;
-                string deliveredItemNameWithSpace = deliveredItemName.Replace('_', ' ');
+                int roundedPoints = (int)Math.Round(storePoints);
+                Debug.Log(storePointType);
+                string deliveredItemNameWithSpace = VALUE_COURIER ? deliveredItemName.Replace('_', ' ') + ", " + roundedPoints.ToString() 
+                                                                  : deliveredItemName.Replace('_', ' ');
                 audioPlayback.clip = deliveredItem;
                 audioPlayback.Play();
                 scriptedEventReporter.ReportScriptedEvent("object presentation begins",
@@ -763,7 +903,11 @@ public class DeliveryExperiment : CoroutineExperiment
                                                                                              {"store name", nextStore.GetStoreName()},
                                                                                              {"serial position", i+1},
                                                                                              {"player position", playerMovement.transform.position.ToString()},
-                                                                                             {"store position", nextStore.transform.position.ToString()}});
+                                                                                             {"store position", nextStore.transform.position.ToString()},
+                                                                                             {"store value", roundedPoints},
+                                                                                             {"point condition", storePointType}
+                                                                                            
+                                                                                            });
                 
                 #if !UNITY_WEBGL // System.IO
                     string lstFilepath = practice
@@ -908,6 +1052,21 @@ public class DeliveryExperiment : CoroutineExperiment
     {
         Debug.Log("Real trials");
         scriptedEventReporter.ReportScriptedEvent("start trials");
+
+        // randomize the order of free recall & value guess task
+        bool[] freeTaskFirst = new bool[numTrials];
+        for (int i = 0; i < numTrials/2; i++) {
+            freeTaskFirst[i] = true;
+        }
+        freeTaskFirst.Shuffle(new System.Random());
+
+        List<StorePointType> freeList = Enum.GetValues(typeof(StorePointType)).Cast<StorePointType>().ToList();
+        List<StorePointType> valueList = Enum.GetValues(typeof(StorePointType)).Cast<StorePointType>().ToList();
+
+        // create a condition list for each task
+        freeList.Shuffle(new System.Random(UnityEPL.GetParticipants()[0].GetHashCode()));
+        valueList.Shuffle(new System.Random());
+
         for (int trialNumber = 0; trialNumber < numTrials; trialNumber++)
         {
             int continuousTrialNum = trialNumber + trialNumOffset;
@@ -952,11 +1111,21 @@ public class DeliveryExperiment : CoroutineExperiment
                     ramulatorInterface.BeginNewTrial(continuousTrialNum);
             #endif
 
-            // Do deliveries and recall
-            yield return DoDeliveries(trialNumber, continuousTrialNum, practice: false);
+            // LC: order of which the task appears is evenly randomized (3 free / 3 value)
+            if (freeTaskFirst[trialNumber])
+            {
+                // LC: for each case, all 3 conditions should appear (serial, spatial, random)
+                yield return DoDeliveries(trialNumber, continuousTrialNum, practice: false, storePointType: freeList[freeIndex]);
+                freeIndex += 1;
+            }
+            else
+            {
+                yield return DoDeliveries(trialNumber, continuousTrialNum, practice: false, storePointType: valueList[valueIndex]);
+                valueIndex += 1;
+            }
             if (!COURIER_ONLINE)
                 yield return DoFixation(PAUSE_BEFORE_RETRIEVAL, practice: false);
-            yield return DoRecall(trialNumber, continuousTrialNum, practice: false);
+            yield return DoRecall(trialNumber, continuousTrialNum, practice: false, freeFirst: freeTaskFirst[trialNumber]);
 
             // Delivery Scores
             if (HOSPITAL_COURIER)
@@ -968,6 +1137,18 @@ public class DeliveryExperiment : CoroutineExperiment
                                                                mtFormatVals: mtFormatValues);
                 yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
             }
+
+            // Delivery Progress
+            if (VALUE_COURIER)
+            {
+                int currTrial = trialNumber + 1;
+                var mtFormatValues = new string[] { currTrial.ToString(), numTrials.ToString() };
+                messageImageDisplayer.SetGeneralBigMessageText(titleText: "deliv day progress title",
+                                                            mainText: "deliv day progress main", 
+                                                            mtFormatVals: mtFormatValues);
+                yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
+            }
+
         }
         scriptedEventReporter.ReportScriptedEvent("stop trials");
     }
@@ -1042,7 +1223,7 @@ public class DeliveryExperiment : CoroutineExperiment
                 {
                     if (taskType == "value recall")
                     {
-                        // valueGuessWrongType.SetActive(false);
+                        valueGuessWrongType.SetActive(false);
 
                         // save & report the response
                         Dictionary<string, object> typedData = new Dictionary<string, object>();
@@ -1059,7 +1240,7 @@ public class DeliveryExperiment : CoroutineExperiment
                     // tasks other than value guess should have word response
                     else
                     {
-                        // freeRecallWrongType.SetActive(true);
+                        freeRecallWrongType.SetActive(true);
                     }
                 }
                 // if typed response is not numeric value...
@@ -1068,11 +1249,11 @@ public class DeliveryExperiment : CoroutineExperiment
                     // value guess should have numeric response
                     if (taskType == "value recall")
                     {
-                        // valueGuessWrongType.SetActive(true);
+                        valueGuessWrongType.SetActive(true);
                     }
                     else
                     {
-                        // freeRecallWrongType.SetActive(false);
+                        freeRecallWrongType.SetActive(false);
 
                         // save & report the response
                         Dictionary<string, object> typedData = new Dictionary<string, object>();
@@ -1107,17 +1288,32 @@ public class DeliveryExperiment : CoroutineExperiment
         inputField.Select();
         inputField.text = "";
         inputObject.SetActive(false);
-        // freeRecallWrongType.SetActive(false);
-        // valueGuessWrongType.SetActive(false);
+        freeRecallWrongType.SetActive(false);
+        valueGuessWrongType.SetActive(false);
     }
 
-    private IEnumerator DoRecall(int trialNumber, int continuousTrialNum, bool practice = false)
+    private IEnumerator DoRecall(int trialNumber, int continuousTrialNum, bool practice = false, bool freeFirst = true)
     {
         SetRamulatorState("RETRIEVAL", true, new Dictionary<string, object>());
 
-        yield return DoFreeRecall(trialNumber, continuousTrialNum, practice);
-
-        yield return DoCuedRecall(trialNumber, continuousTrialNum, practice);
+        if (VALUE_COURIER)
+        {
+            if (freeFirst)
+            {
+                yield return DoFreeRecall(trialNumber, continuousTrialNum, practice);
+                yield return DoValueRecall(trialNumber);
+            }
+            else
+            {
+                yield return DoFreeRecall(trialNumber, continuousTrialNum, practice);
+                yield return DoValueRecall(trialNumber);
+            }
+        }
+        else
+        {
+            yield return DoFreeRecall(trialNumber, continuousTrialNum, practice);
+            yield return DoCuedRecall(trialNumber, continuousTrialNum, practice);
+        }
 
         SetRamulatorState("RETRIEVAL", false, new Dictionary<string, object>());
     }
@@ -1216,9 +1412,7 @@ public class DeliveryExperiment : CoroutineExperiment
                                                                WORD_PRESENTATION_DELAY + WORD_PRESENTATION_JITTER);
                     yield return new WaitForSeconds(wordDelay);
                 }
-            #endif
 
-            #if !UNITY_WEBGL //  System.IO
                 string output_file_name = practice
                             ? "practice-" + continuousTrialNum.ToString() + "-" + cueStore.GetStoreName()
                             : continuousTrialNum.ToString() + "-" + cueStore.GetStoreName();
@@ -1227,6 +1421,8 @@ public class DeliveryExperiment : CoroutineExperiment
                 string lstFilepath = System.IO.Path.Combine(output_directory, output_file_name) + ".lst";
                 AppendWordToLst(lstFilepath, cueStore.GetLastPoppedItemName());
             #endif
+
+            cueStore.familiarization_object.SetActive(true);
 
             Dictionary<string, object> cuedRecordingData = new Dictionary<string, object>();
             cuedRecordingData.Add("trial number", COURIER_ONLINE ? trialNumber : continuousTrialNum);
@@ -1260,6 +1456,27 @@ public class DeliveryExperiment : CoroutineExperiment
             textDisplayer.ClearText();
         }
         scriptedEventReporter.ReportScriptedEvent("stop cued recall");
+    }
+
+    // LC: not implemented for double session, only for single session
+    private IEnumerator DoValueRecall(int trialNumber)
+    {
+        scriptedEventReporter.ReportScriptedEvent("start value recall");
+        BlackScreen();
+
+        if (COURIER_ONLINE)
+        {
+            messageImageDisplayer.SetGeneralBigMessageText("value recall title", "value recall main");
+            yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
+        }
+
+        #if !UNITY_WEBGL
+            // TODO: implement for UNITY standalone version
+        #else
+            yield return DoTypedResponses(trialNumber, "value recall", VALUE_RECALL_LENGTH, freeInputField, freeResponse);
+        #endif
+
+        scriptedEventReporter.ReportScriptedEvent("stop value recall");
     }
 
     private IEnumerator DoFinalRecall(int subSessionNum)

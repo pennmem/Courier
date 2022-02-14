@@ -10,6 +10,7 @@ public class StoreComponent : MonoBehaviour
 
     public DeliveryItems deliveryItems;
     public GameObject familiarization_object;
+    public double points;
 
     public string GetStoreName()
     {

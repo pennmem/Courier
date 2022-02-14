@@ -18,7 +18,7 @@ public class BeginExperiment : MonoBehaviour
     // TODO: JPB: Make these configuration variables
     private const bool HOSPITAL_COURIER = true;
     private const bool NICLS_COURIER = false;
-    private const bool GRANT_VERSION = false;
+    private const bool VALUE_COURIER = false;
 
     string experiment_name = HOSPITAL_COURIER ? "HospitalCourier" :
                              NICLS_COURIER ? "NiclsCourier" :

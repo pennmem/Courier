@@ -129,14 +129,16 @@ public static class LanguageSource
         { "one btn er message", new string [] { "Press the (B) key to reject a recalled item", GERMAN_TRANSLATION_NEEDED } },
 
         { "free recall title", new string [] { "Free Recall", GERMAN_TRANSLATION_NEEDED} },
-        { "free recall main", new string [] { "Try to recall all the items that you delivered to the stores in this delivery day.\n\nType one item and press Enter to submit your response and type your next response", 
-                                              GERMAN_TRANSLATION_NEEDED}}, 
+        { "free recall main", new string [] { "Try to recall all the items that you delivered to the stores in this delivery day.\n\nType one item and press <Enter> to submit and type your next response", 
+                                              GERMAN_TRANSLATION_NEEDED}},
 
         { "cued recall message", new string [] {"Press the (X) key after recalling the item to move to the next store", GERMAN_TRANSLATION_NEEDED}},
         { "cued recall title", new string [] { "Cued Recall", GERMAN_TRANSLATION_NEEDED} },
         { "online cued recall main", new string [] {"Please recall which item you delivered to the store shown on the screen.\n\nPress the Enter key after recalling the item to move to the next store", GERMAN_TRANSLATION_NEEDED}},
 
         { "deliv day pointing accuracy title", new string[] {"Pointing Accuracy", GERMAN_TRANSLATION_NEEDED} },
+        { "deliv day progress title", new string[] {"", GERMAN_TRANSLATION_NEEDED} },
+
 
         { "final store recall title", new string [] {"Final Store Recall", GERMAN_TRANSLATION_NEEDED} },
         { "final store recall main", new string [] {"Try to recall stores that you delivered to.\n\nNote that you need to recall the store names", GERMAN_TRANSLATION_NEEDED} },
@@ -209,6 +211,7 @@ public static class LanguageSource
         {"", new string[] {"", ""}},
 
         {"deliv day pointing accuracy main", new string[] { "Good job! You correctly pointed to {0} out of {1} items in this delivery day.", GERMAN_TRANSLATION_NEEDED } },
+        {"deliv day progress main", new string[] { "{0} out of {1} delivery days completed!!", GERMAN_TRANSLATION_NEEDED } },
     };
 
     public static string GetLanguageString(string string_name)

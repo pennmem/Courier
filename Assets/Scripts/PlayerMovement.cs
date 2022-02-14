@@ -7,10 +7,15 @@ public class PlayerMovement : MonoBehaviour
 {
     // TODO: JPB: Make these configuration variables
     private const bool NICLS_COURIER = true;
+    #if !UNITY_WEBGL
+        private const bool COURIER_ONLINE = false;
+    #else
+        private const bool COURIER_ONLINE = true;
+    #endif // !UNITY_WEBGL
 
-    protected float maxTurnSpeed = NICLS_COURIER ? 50f : 45f;
-    protected const float maxForwardSpeed = 10f;
-    protected const float maxBackwardSpeed = 4f;
+    protected float maxTurnSpeed = NICLS_COURIER ? 50f : COURIER_ONLINE ? 120f : 45f;
+    protected const float maxForwardSpeed = COURIER_ONLINE ? 18f : 10f;
+    protected const float maxBackwardSpeed = COURIER_ONLINE ? 13f : 4f;
 
     protected const float rotDampingTime = 0.05f;
 

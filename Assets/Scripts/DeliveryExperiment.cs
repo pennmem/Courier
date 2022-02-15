@@ -49,16 +49,19 @@ public class DeliveryExperiment : CoroutineExperiment
     // TODO: JPB: Make these configuration variables
 
     // Experiment type
-    private const bool HOSPITAL_COURIER = false;
+    private const bool HOSPITAL_COURIER = true;
     private const bool NICLS_COURIER = false;
-    private const bool VALUE_COURIER = true;
+    private const bool VALUE_COURIER = false;
     #if !UNITY_WEBGL
         private const bool COURIER_ONLINE = false;
     #else
         private const bool COURIER_ONLINE = true;
     #endif // !UNITY_WEBGL
+
+    // debug
+    private const bool skipFPS = true;
     
-    private const string COURIER_VERSION = COURIER_ONLINE ? "v5.0.0online" : "v5.2.0";
+    private const string COURIER_VERSION = COURIER_ONLINE ? "v5.0.0online" : "v5.2.1";
     private const bool DEBUG = true;
 
     private const string RECALL_TEXT = "*******"; // TODO: JPB: Remove this and use display system
@@ -102,7 +105,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private const float EFR_KEYPRESS_PRACTICE_JITTER = 0.25f;
 
     // Keep as hardcoded values
-    private const bool STAR_SYSTEM_ACTIVE = true;
+    private const bool STAR_SYSTEM_ACTIVE = false;
 
     private const int NICLS_READ_ONLY_SESSIONS = 8;
     private const int NICLS_CLOSED_LOOP_SESSIONS = 4;
@@ -131,6 +134,8 @@ public class DeliveryExperiment : CoroutineExperiment
     public ParticleSystem pointerParticleSystem;
     public GameObject pointerMessage;
     public UnityEngine.UI.Text pointerText;
+    public GameObject navigationMessage;
+    public UnityEngine.UI.Text navigationText;
     public StarSystem starSystem;
     public DeliveryItems deliveryItems;
     public Pauser pauser;
@@ -349,7 +354,11 @@ public class DeliveryExperiment : CoroutineExperiment
             UnityEPL.AddParticipant(System.Guid.NewGuid().ToString());
             UnityEPL.SetExperimentName("COURIER_ONLINE");
             UnityEPL.SetSessionNumber(0);
-            ConfigureExperiment(false, false, 0, "ValueCourier");
+            ConfigureExperiment(false, false, 0, "HospitalCourier");
+        }
+        else
+        {
+            ConfigureExperiment(false, false, 0, "HospitalCourier");
         }
 
         // Session check
@@ -437,8 +446,8 @@ public class DeliveryExperiment : CoroutineExperiment
         yield return EnableEnvironment();
 
         // Frame Rate Test
-        // if (COURIER_ONLINE)
-        //     yield return DoFrameTest();
+        if (COURIER_ONLINE)
+            yield return DoFrameTest();
 
         #if !UNITY_WEBGL // NICLS
             // Setup Ramulator
@@ -463,7 +472,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
         // Town Learning
         int trialsForFirstSubSession = Config.trialsPerSession;
-        if (!COURIER_ONLINE && sessionNumber < SINGLE_TOWN_LEARNING_SESSIONS + DOUBLE_TOWN_LEARNING_SESSIONS)
+        if (sessionNumber < SINGLE_TOWN_LEARNING_SESSIONS + DOUBLE_TOWN_LEARNING_SESSIONS)
         {
             if (NICLS_COURIER && !useNiclServer)
             {
@@ -586,6 +595,9 @@ public class DeliveryExperiment : CoroutineExperiment
 
     private IEnumerator DoFrameTest()
     {
+        if (skipFPS)
+            yield break;
+
         Debug.Log("Frame Testing");
 
         messageImageDisplayer.SetGeneralBigMessageText(titleText: "frame test start title", mainText: "frame test start main");
@@ -640,6 +652,9 @@ public class DeliveryExperiment : CoroutineExperiment
 
     private IEnumerator DoIntros()
     {                                                                                                 
+        if (Config.skipIntros)
+            yield break;
+        
         Debug.Log("DoIntros");
 
         BlackScreen();
@@ -748,21 +763,42 @@ public class DeliveryExperiment : CoroutineExperiment
             yield break;                                                                                                
 
         scriptedEventReporter.ReportScriptedEvent("start town learning");
-        messageImageDisplayer.please_find_the_blah_reminder.SetActive(true);
 
         thisTrialPresentedStores = new List<StoreComponent>();
         List<StoreComponent> unvisitedStores = new List<StoreComponent>(environment.stores);
 
         for (int i = 0; i < numDeliveries; i++)
         {
+            messageImageDisplayer.please_find_the_blah_reminder.SetActive(false);
+
             StoreComponent nextStore = PickNextStore(unvisitedStores);
             unvisitedStores.Remove(nextStore);
             thisTrialPresentedStores.Add(nextStore);
 
             playerMovement.Freeze();
-            messageImageDisplayer.SetReminderText(nextStore.GetStoreName());
-            yield return new WaitForSeconds(0.5f);
+            pointerParticleSystem.Play();
+            yield return new WaitForSeconds(.2f);
+            pointerParticleSystem.Stop();
+
+            // LC: add message to each start of navigation
+            navigationMessage.SetActive(true);
+            if (i != 0)
+                navigationText.text = LanguageSource.GetLanguageString("correct pointing");
+            else
+                navigationText.text = "";
+            navigationText.text += LanguageSource.GetLanguageString("town learning prompt 1") +
+                                   LanguageSource.GetLanguageString(nextStore.GetStoreName()) + ".\n" + 
+                                   LanguageSource.GetLanguageString("town learning prompt 2") + 
+                                   LanguageSource.GetLanguageString(nextStore.GetStoreName()) + ".\n\n" +
+                                   LanguageSource.GetLanguageString("continue");
+
+            while (!InputManager.GetButtonDown("Continue"))
+                yield return null;
+            navigationMessage.SetActive(false);
             playerMovement.Unfreeze();
+
+            messageImageDisplayer.please_find_the_blah_reminder.SetActive(true);
+            messageImageDisplayer.SetReminderText(nextStore.GetStoreName());
 
             float startTime = Time.time;
             while (!nextStore.PlayerInDeliveryPosition())
@@ -1725,11 +1761,13 @@ public class DeliveryExperiment : CoroutineExperiment
             starSystem.gameObject.SetActive(true);
             yield return starSystem.ShowDifference();
 
-        yield return new WaitForSeconds(0.5f);
-        pointerText.text = "";
-
-        if (improvement)
-            pointerText.text = pointerText.text + LanguageSource.GetLanguageString("rating improved");
+        if (STAR_SYSTEM_ACTIVE)
+        {
+            starSystem.gameObject.SetActive(true);
+            yield return starSystem.ShowDifference();
+            if (improvement)
+                pointerText.text = pointerText.text + "\n" + LanguageSource.GetLanguageString("rating improved");
+        }
 
         pointerText.text = pointerText.text + "\n" + LanguageSource.GetLanguageString("continue");
 

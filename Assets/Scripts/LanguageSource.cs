@@ -30,8 +30,8 @@ public static class LanguageSource
         { "keyboard", new string[] {"Use Arrow keys to adjust the arrow, then press (X) to continue", GERMAN_TRANSLATION_NEEDED} },
         { "wrong by", new string[] {"Not quite. The arrow will now show the exact direction. That was off by degrees: ", "Nicht ganz! Der Pfeil zeigt Ihnen nur die richtige Richtung. Abweichung in Grad zur korrekten Antwort: "} },
         { "correct to within", new string[] {"Good! That was correct to within degrees: ", "Fast perfekt! Abweichung in Grad zur korrekten Antwort: "} },
-        { "incorrect pointing", new string[] {"Not quite. That was more than 15 degrees away from the store location.", GERMAN_TRANSLATION_NEEDED} },
-        { "correct pointing", new string[] {"Good job! That was correct to within 15 degrees of the store location.", GERMAN_TRANSLATION_NEEDED} },
+        { "incorrect pointing", new string[] {"Not quite. ", GERMAN_TRANSLATION_NEEDED} },
+        { "correct pointing", new string[] {"Good job! ", GERMAN_TRANSLATION_NEEDED} },
         { "all objects recall", new string[] {"Please recall all the objects that you delivered.", "Bitte erinnern Sie alle Gegenstände, die Sie zugestellt haben."} },
         { "all stores recall", new string[] {"Please recall all the stores that you delivered objects to.", "Bitte erinnern Sie alle Geschäfte, zu denen Sie Pakete geliefert haben."} },
         { "end message", new string[] {"Thank you for being a great delivery person!", "Vielen Dank für Ihre Teilnahme!"} },
@@ -69,6 +69,9 @@ public static class LanguageSource
         { "town learning title", new string [] { "Town Learning Phase", GERMAN_TRANSLATION_NEEDED } },
         { "town learning main 1", new string [] { "Now let's learn the layout of the town!\nPlease locate all of the stores one by one.", GERMAN_TRANSLATION_NEEDED } },
         { "town learning main 2", new string [] { "Let's do it again!\nPlease locate all of the stores one by one.", GERMAN_TRANSLATION_NEEDED } },
+
+        { "town learning prompt 1", new string[] { "Next target store is the ", GERMAN_TRANSLATION_NEEDED } },
+        { "town learning prompt 2", new string[] { "Please navigate to the ", GERMAN_TRANSLATION_NEEDED } },
 
         { "two btn er left button correct message", new string [] { " Press the <i>left button</i> \nfor correct recall",
                                                                     GERMAN_TRANSLATION_NEEDED } },

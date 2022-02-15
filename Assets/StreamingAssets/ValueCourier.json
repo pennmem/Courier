@@ -6,8 +6,8 @@
     "lessDeliveries": false,
     "showFps": false,
     
-    "skipIntros": false,
-    "skipTownLearning": true,
+    "skipIntros": true,
+    "skipTownLearning": false,
     "skipNewEfrKeypressCheck": true,
     "skipNewEfrKeypressPractice": true,
     

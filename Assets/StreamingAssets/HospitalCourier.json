@@ -7,7 +7,7 @@
     "showFps": false,
     
     "skipIntros": true,
-    "skipTownLearning": true,
+    "skipTownLearning": false,
     "skipNewEfrKeypressCheck": true,
     "skipNewEfrKeypressPractice": true,
     

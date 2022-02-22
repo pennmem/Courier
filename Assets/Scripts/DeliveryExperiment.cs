@@ -887,9 +887,8 @@ public class DeliveryExperiment : CoroutineExperiment
             if (i != deliveries - 1)
             {
                 playerMovement.Freeze();
-                AudioClip deliveredItem = (practice && trialNumber == 0 && i == craft_shop_delivery_num)
-                    ? nextStore.PopPracticeItem(LanguageSource.GetLanguageString("confetti"))
-                    : nextStore.PopItem();
+                Debug.Log(trialNumber);
+                AudioClip deliveredItem = nextStore.PopItem();
 
                 #if !UNITY_WEBGL // NICLS
                     if (useNiclServer && !practice)

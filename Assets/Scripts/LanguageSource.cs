@@ -111,9 +111,16 @@ public static class LanguageSource
         { "one btn efr instructions main", new string[] { "In this section of the study, we would like you to vocalize words that come to your mind during the free recall sections (the long sections directly following deliveries, NOT the recalls with store cues).\n\nPlease continue to recall as many words as possible from the just-presented list. In addition, every time a specific, salient word comes to mind, say it aloud, even if you have already recalled it or if it was not presented on the most recent delivery day.\n\nOnly say other words if they come to mind as you are trying to recall items on the most recently presented list. This is not a free-association task.\n\nIf the word you have just said aloud was NOT presented on the most recent list, or if you have already recalled it in this recall period, press the B key after recalling that word, but before recalling the next word.",
                                                       GERMAN_TRANSLATION_NEEDED} },
 
+        // TODO: LC: change the prompt
+        { "one btn ecr instructions title", new string[] { "Externalized Cued Recall (ECR) Instructions" } },
+        { "one btn ecr instructions main", new string[] { "In this section of the study, we would like you to vocalize words that come to your mind during the free recall sections (the long sections directly following deliveries, NOT the recalls with store cues).\n\nPlease continue to recall as many words as possible from the just-presented list. In addition, every time a specific, salient word comes to mind, say it aloud, even if you have already recalled it or if it was not presented on the most recent delivery day.\n\nOnly say other words if they come to mind as you are trying to recall items on the most recently presented list. This is not a free-association task.\n\nIf the word you have just said aloud was NOT presented on the most recent list, or if you have already recalled it in this recall period, press the B key after recalling that word, but before recalling the next word.",
+                                                      GERMAN_TRANSLATION_NEEDED} },
+
         { "one btn er keypress practice main", new string [] { "Let's practice pressing the reject key.", GERMAN_TRANSLATION_NEEDED } },
         { "one btn er keypress practice description", new string [] { "Press the (B) key 20 times and wait about 3 seconds between each keypress.\n\nThe screen will automatically continue when you are done.",
                                                                    GERMAN_TRANSLATION_NEEDED } },
+
+        { "er check main", new string[] { "CHANGE ME", GERMAN_TRANSLATION_NEEDED } },
 
         { "er check understanding title", new string[] { "ER Review", GERMAN_TRANSLATION_NEEDED } },
         { "er check understanding main", new string[] { "Please press the buzzer to call the researcher in now.", GERMAN_TRANSLATION_NEEDED } },

@@ -180,6 +180,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private List<int> fpsList = new List<int>();
 
     // Store Generation variables
+    public bool[] freeTaskFirst;
     int freeIndex = 0;
     int valueIndex = 0;
 
@@ -319,8 +320,8 @@ public class DeliveryExperiment : CoroutineExperiment
 
     void Update()
     {
-        Cursor.visible = false;
-        Cursor.lockState = CursorLockMode.Locked;
+        // Cursor.visible = false;
+        // Cursor.lockState = CursorLockMode.Locked;
         
         // Courier Online Frame testing
         if (COURIER_ONLINE && isFrameTesting) {
@@ -922,8 +923,8 @@ public class DeliveryExperiment : CoroutineExperiment
                                                                                              {"player position", playerMovement.transform.position.ToString()},
                                                                                              {"store position", nextStore.transform.position.ToString()},
                                                                                              {"store value", roundedPoints},
-                                                                                             {"point condition", storePointType}
-                                                                                            
+                                                                                             {"point condition", storePointType},
+                                                                                             {"task condition", "NOT IMPLEMENTED YET"},
                                                                                             });
                 
                 #if !UNITY_WEBGL // System.IO
@@ -967,7 +968,8 @@ public class DeliveryExperiment : CoroutineExperiment
 
         starSystem.ResetSession();
 
-        yield return DoRecapInstructions(forceFR: true);
+        if (!HOSPITAL_COURIER)
+            yield return DoRecapInstructions(forceFR: true);
 
         messageImageDisplayer.SetGeneralMessageText(mainText: "practice invitation");
         yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
@@ -1071,7 +1073,7 @@ public class DeliveryExperiment : CoroutineExperiment
         scriptedEventReporter.ReportScriptedEvent("start trials");
 
         // randomize the order of free recall & value guess task
-        bool[] freeTaskFirst = new bool[numTrials];
+        freeTaskFirst = new bool[numTrials];
         for (int i = 0; i < numTrials/2; i++) {
             freeTaskFirst[i] = true;
         }
@@ -1994,6 +1996,7 @@ public class DeliveryExperiment : CoroutineExperiment
         BlackScreen();
 
         // Display intro message
+        // TODO: LC: missing text here
         messageImageDisplayer.SetGeneralMessageText(mainText: "er check main");
         yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
 

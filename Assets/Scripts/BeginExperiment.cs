@@ -15,6 +15,9 @@ public class BeginExperiment : MonoBehaviour
     public UnityEngine.UI.Text beginButtonText;
     public UnityEngine.UI.InputField sessionInput;
 
+    // LC: Add UseElemem toggle
+    public UnityEngine.UI.Toggle useElememToggle;
+
     // TODO: JPB: Make these configuration variables
     private const bool HOSPITAL_COURIER = true;
     private const bool NICLS_COURIER = false;
@@ -139,9 +142,12 @@ public class BeginExperiment : MonoBehaviour
 
         LockLanguage();
         // TODO: JPB: Use NextSessionNumber()
-        DeliveryExperiment.ConfigureExperiment(useRamulatorToggle.isOn, useNiclsToggle.isOn, UnityEPL.GetSessionNumber(), experiment_name);
+        // LC: added in Elemem 
+        DeliveryExperiment.ConfigureExperiment(useRamulatorToggle.isOn, useNiclsToggle.isOn, useElememToggle.isOn,
+                                               UnityEPL.GetSessionNumber(), experiment_name);
         Debug.Log("Ram On: " + useRamulatorToggle.isOn);
         Debug.Log("Nicls On: " + useNiclsToggle.isOn);
+        Debug.Log("Elemem On: " + useElememToggle.isOn);
         SceneManager.LoadScene(scene_name);
     }
 

@@ -111,16 +111,15 @@ public static class LanguageSource
         { "one btn efr instructions main", new string[] { "In this section of the study, we would like you to vocalize words that come to your mind during the free recall sections (the long sections directly following deliveries, NOT the recalls with store cues).\n\nPlease continue to recall as many words as possible from the just-presented list. In addition, every time a specific, salient word comes to mind, say it aloud, even if you have already recalled it or if it was not presented on the most recent delivery day.\n\nOnly say other words if they come to mind as you are trying to recall items on the most recently presented list. This is not a free-association task.\n\nIf the word you have just said aloud was NOT presented on the most recent list, or if you have already recalled it in this recall period, press the B key after recalling that word, but before recalling the next word.",
                                                       GERMAN_TRANSLATION_NEEDED} },
 
-        // TODO: LC: change the prompt
-        { "one btn ecr instructions title", new string[] { "Externalized Cued Recall (ECR) Instructions" } },
-        { "one btn ecr instructions main", new string[] { "In this section of the study, we would like you to vocalize words that come to your mind during the free recall sections (the long sections directly following deliveries, NOT the recalls with store cues).\n\nPlease continue to recall as many words as possible from the just-presented list. In addition, every time a specific, salient word comes to mind, say it aloud, even if you have already recalled it or if it was not presented on the most recent delivery day.\n\nOnly say other words if they come to mind as you are trying to recall items on the most recently presented list. This is not a free-association task.\n\nIf the word you have just said aloud was NOT presented on the most recent list, or if you have already recalled it in this recall period, press the B key after recalling that word, but before recalling the next word.",
+        { "one btn ecr instructions title", new string[] { "Required Response Cued Recall (RCR) Instructions" } },
+        { "one btn ecr instructions main", new string[] { "Next, stores will be presented on the screen one at a time. For each store, please try and recall, aloud, the item you delivered to it.\n\nWe are interested in your best guess as to the delivered item, so even if you are not sure if the remembered item is correct, please say it aloud into the microphone and press the ‘B’ button after saying the item to indicate that the item you recalled was a guess. \n\nYou’ll do this for all stores visited in the delivery day.",
                                                       GERMAN_TRANSLATION_NEEDED} },
 
         { "one btn er keypress practice main", new string [] { "Let's practice pressing the reject key.", GERMAN_TRANSLATION_NEEDED } },
         { "one btn er keypress practice description", new string [] { "Press the (B) key 20 times and wait about 3 seconds between each keypress.\n\nThe screen will automatically continue when you are done.",
                                                                    GERMAN_TRANSLATION_NEEDED } },
 
-        { "er check main", new string[] { "CHANGE ME", GERMAN_TRANSLATION_NEEDED } },
+        { "er check main", new string[] { "Let's make sure your keys are working.", GERMAN_TRANSLATION_NEEDED } },
 
         { "er check understanding title", new string[] { "ER Review", GERMAN_TRANSLATION_NEEDED } },
         { "er check understanding main", new string[] { "Please press the buzzer to call the researcher in now.", GERMAN_TRANSLATION_NEEDED } },
@@ -142,9 +141,11 @@ public static class LanguageSource
         { "free recall main", new string [] { "Try to recall all the items that you delivered to the stores in this delivery day.\n\nType one item and press <Enter> to submit and type your next response", 
                                               GERMAN_TRANSLATION_NEEDED}},
 
-        { "cued recall message", new string [] {"Press the (X) key after recalling the item to move to the next store", GERMAN_TRANSLATION_NEEDED}},
+        { "cued recall message", new string [] { "Press the (X) key after recalling the item to move to the next store", GERMAN_TRANSLATION_NEEDED } },
         { "cued recall title", new string [] { "Cued Recall", GERMAN_TRANSLATION_NEEDED} },
         { "online cued recall main", new string [] {"Please recall which item you delivered to the store shown on the screen.\n\nPress the Enter key after recalling the item to move to the next store", GERMAN_TRANSLATION_NEEDED}},
+        { "one btn ecr message", new string[] { "Press the (B) key if a recalled item was a guess", GERMAN_TRANSLATION_NEEDED } },
+
 
         { "deliv day pointing accuracy title", new string[] {"Pointing Accuracy", GERMAN_TRANSLATION_NEEDED} },
         { "deliv day progress title", new string[] {"", GERMAN_TRANSLATION_NEEDED} },
@@ -220,7 +221,7 @@ public static class LanguageSource
     {
         {"", new string[] {"", ""}},
 
-        {"deliv day pointing accuracy main", new string[] { "Good job! You correctly pointed to {0} out of {1} items in this delivery day.", GERMAN_TRANSLATION_NEEDED } },
+        {"deliv day pointing accuracy main", new string[] { "Good job! You correctly pointed to {0} out of {1} stores in this delivery day.", GERMAN_TRANSLATION_NEEDED } },
         {"deliv day progress main", new string[] { "{0} out of {1} delivery days completed!!", GERMAN_TRANSLATION_NEEDED } },
     };
 

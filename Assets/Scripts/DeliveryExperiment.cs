@@ -90,7 +90,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private const float STORE_FINAL_RECALL_LENGTH = 90f;
     private const float OBJECT_FINAL_RECALL_LENGTH = NICLS_COURIER ? 120f : COURIER_ONLINE ? 240f : 180f;
     private const float TIME_BETWEEN_DIFFERENT_RECALL_PHASES = 2f;
-    private const float CUED_RECALL_TIME_PER_STORE = 10f;
+    // private const float CUED_RECALL_TIME_PER_STORE = 10f;
     private const float MIN_CUED_RECALL_TIME_PER_STORE = 2f;
     private const float MAX_CUED_RECALL_TIME_PER_STORE = NICLS_COURIER ? 6f : 7.5f;
     private const float POINTING_CORRECT_THRESHOLD = Mathf.PI / 12; // 15°
@@ -123,6 +123,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
     private static bool useRamulator = false;
     private static bool useNiclServer = false;
+    private static bool useElemem = false;
     #if !UNITY_WEBGL // Syncbox, Ramulator, and NICLS
         private Syncbox syncs;
         public RamulatorInterface ramulatorInterface;
@@ -291,11 +292,12 @@ public class DeliveryExperiment : CoroutineExperiment
         Sham
     }
     
-    public static void ConfigureExperiment(bool newUseRamulator, bool newUseNiclServer, int newSessionNumber, string newExpName)
+    public static void ConfigureExperiment(bool newUseRamulator, bool newUseNiclServer, bool newUseElemem, int newSessionNumber, string newExpName)
     {
         #if !UNITY_WEBGL // Ramulator and NICLS
             useRamulator = newUseRamulator;
             useNiclServer = newUseNiclServer;
+            useElemem = newUseElemem;
         #endif // !UNITY_WEBGL
         sessionNumber = newSessionNumber;
         continuousSessionNumber = useNiclServer ? NICLS_READ_ONLY_SESSIONS + sessionNumber :
@@ -357,11 +359,11 @@ public class DeliveryExperiment : CoroutineExperiment
             UnityEPL.AddParticipant(System.Guid.NewGuid().ToString());
             UnityEPL.SetExperimentName("COURIER_ONLINE");
             UnityEPL.SetSessionNumber(0);
-            ConfigureExperiment(false, false, 0, "HospitalCourier");
+            ConfigureExperiment(false, false, false, 0, "HospitalCourier");
         }
         else
         {
-            ConfigureExperiment(false, false, 0, "HospitalCourier");
+            ConfigureExperiment(false, false, false, 0, "HospitalCourier");
         }
 
         // Session check
@@ -687,7 +689,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private IEnumerator DoRecapInstructions(bool forceFR = false)
     {
         GameObject[] messages;
-        if (Config.efrEnabled && !forceFR) // TODO: JPB: Hospital handle ECR case
+        if (Config.efrEnabled && !forceFR) // TODO: JPB: Hospital handle ECR case // LC: No need for this for now since Hopsital doesn't have Recap 
             if (Config.twoBtnEfrEnabled)
                 messages = messageImageDisplayer.recap_instruction_messages_efr_2btn_en;
             else
@@ -989,9 +991,11 @@ public class DeliveryExperiment : CoroutineExperiment
                 }
                 else // One btn ER
                 {
+                    // TODO: LC: Show instruction videos instead of slides
                     if (Config.efrEnabled)
                         messageImageDisplayer.SetGeneralBigMessageText(titleText: "one btn efr instructions title",
                                                                        mainText: "one btn efr instructions main");
+                    yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
                     if (Config.ecrEnabled) // TODO: JPB: Hospital add ecr instructions
                         messageImageDisplayer.SetGeneralBigMessageText(titleText: "one btn ecr instructions title",
                                                                        mainText: "one btn ecr instructions main");
@@ -1039,25 +1043,26 @@ public class DeliveryExperiment : CoroutineExperiment
                     ramulatorInterface.BeginNewTrial(trialNumber); 
             #endif                                                 
 
-            // Do deliveries and recall
+            // Do deliveries
             if (HOSPITAL_COURIER && trialNumber == 0) // Skip town learning stores in first pratice deliv days
                 yield return DoDeliveries(trialNumber, trialNumber, practice: true, skipLastDelivStores: true);
             else
                 yield return DoDeliveries(trialNumber, trialNumber, practice: true);
-            if (!COURIER_ONLINE)
-                yield return DoFixation(PAUSE_BEFORE_RETRIEVAL, practice: true);
-            yield return DoRecall(trialNumber, trialNumber, practice: true);
-
-            // Delivery Scores
+            // Delivery Scores : LC : now pointing feedback comes right after the delivery day
             if (HOSPITAL_COURIER)
             {
-                var mtFormatValues = new string[] { starSystem.NumCorrectInSession(c => c < POINTING_CORRECT_THRESHOLD / Mathf.PI).ToString(),
+                var mtFormatValues = new string[] { starSystem.NumCorrectInSession(c => c < POINTING_CORRECT_THRESHOLD / Mathf.PI ).ToString(),
                                                     starSystem.NumInSession().ToString() };
                 messageImageDisplayer.SetGeneralBigMessageText(titleText: "deliv day pointing accuracy title",
                                                                mainText: "deliv day pointing accuracy main",
                                                                mtFormatVals: mtFormatValues);
                 yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
             }
+            // Do recalls
+            if (!COURIER_ONLINE)
+                yield return DoFixation(PAUSE_BEFORE_RETRIEVAL, practice: true);
+            yield return DoRecall(trialNumber, trialNumber, practice: true);
+
         }
 
         messageImageDisplayer.SetGeneralMessageText(titleText: "er check understanding title",
@@ -1142,10 +1147,6 @@ public class DeliveryExperiment : CoroutineExperiment
                 yield return DoDeliveries(trialNumber, continuousTrialNum, practice: false, storePointType: valueList[valueIndex]);
                 valueIndex += 1;
             }
-            if (!COURIER_ONLINE)
-                yield return DoFixation(PAUSE_BEFORE_RETRIEVAL, practice: false);
-            yield return DoRecall(trialNumber, continuousTrialNum, practice: false, freeFirst: freeTaskFirst[trialNumber]);
-
             // Delivery Scores
             if (HOSPITAL_COURIER)
             {
@@ -1156,6 +1157,11 @@ public class DeliveryExperiment : CoroutineExperiment
                                                                mtFormatVals: mtFormatValues);
                 yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
             }
+            // Do recall
+            if (!COURIER_ONLINE)
+                yield return DoFixation(PAUSE_BEFORE_RETRIEVAL, practice: false);
+            yield return DoRecall(trialNumber, continuousTrialNum, practice: false, freeFirst: freeTaskFirst[trialNumber]);
+
 
             // Delivery Progress
             if (VALUE_COURIER)
@@ -1202,7 +1208,6 @@ public class DeliveryExperiment : CoroutineExperiment
         scriptedEventReporter.ReportScriptedEvent("stop fixation");
     }
 
-    // LC: no warning field implemented yet
     private IEnumerator DoTypedResponses(int trialNumber, string taskType, float taskLength, GameObject inputObject,
                                          UnityEngine.UI.InputField inputField, string storeName = "")
     {
@@ -1344,6 +1349,15 @@ public class DeliveryExperiment : CoroutineExperiment
             messageImageDisplayer.SetGeneralBigMessageText("free recall title", "free recall main");
             yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
         }
+
+        if (HOSPITAL_COURIER && !practice)
+        {
+            // LC: add reminder instructions at the beginning of every recall task
+            if (Config.efrEnabled)
+                messageImageDisplayer.SetGeneralBigMessageText(titleText: "one btn efr instructions title",
+                                                                mainText: "one btn efr instructions main");
+            yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
+        }
         
         scriptedEventReporter.ReportScriptedEvent("start free recall");
         BlackScreen();
@@ -1402,6 +1416,12 @@ public class DeliveryExperiment : CoroutineExperiment
         }
         else if (HOSPITAL_COURIER) // TODO: JPB: Merge this with the else statement (need descriptions)
         {
+            // LC: add reminder instructions at the beginning of every recall task
+            if (Config.ecrEnabled)
+                messageImageDisplayer.SetGeneralBigMessageText(titleText: "one btn ecr instructions title",
+                                                                mainText: "one btn ecr instructions main");
+            yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
+    
             messageImageDisplayer.SetGeneralBigMessageText(mainText: "store cue recall");
             yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
         }
@@ -1876,7 +1896,7 @@ public class DeliveryExperiment : CoroutineExperiment
             }
             else // One btn ECR
             {
-                messageImageDisplayer.SetCuedRecallMessage("one btn er message");
+                messageImageDisplayer.SetCuedRecallMessage("one btn ecr message");
                 Func<IEnumerator> func = () => { return messageImageDisplayer.DisplayMessageTimedKeypressBold(
                     messageImageDisplayer.cued_recall_message, waitTime, ActionButton.RejectButton, "continue text", "reject button"); };
                 yield return messageImageDisplayer.DisplayMessageFunction(store.familiarization_object, func);

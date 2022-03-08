@@ -361,10 +361,6 @@ public class DeliveryExperiment : CoroutineExperiment
             UnityEPL.SetSessionNumber(0);
             ConfigureExperiment(false, false, false, 0, "HospitalCourier");
         }
-        else
-        {
-            ConfigureExperiment(false, false, false, 0, "HospitalCourier");
-        }
 
         // Session check
         if (sessionNumber == -1)
@@ -570,10 +566,6 @@ public class DeliveryExperiment : CoroutineExperiment
         BlackScreen();
         if (!VALUE_COURIER)
         {
-            if (NICLS_COURIER)
-                yield return messageImageDisplayer.DisplayLanguageMessage(messageImageDisplayer.nicls_final_recall_messages);
-            else
-                yield return messageImageDisplayer.DisplayLanguageMessage(messageImageDisplayer.final_recall_messages);
             yield return DoFinalRecall(subSessionNum);
         }
     }
@@ -993,13 +985,10 @@ public class DeliveryExperiment : CoroutineExperiment
                 {
                     // TODO: LC: Show instruction videos instead of slides
                     if (Config.efrEnabled)
-                        messageImageDisplayer.SetGeneralBigMessageText(titleText: "one btn efr instructions title",
-                                                                       mainText: "one btn efr instructions main");
-                    yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
-                    if (Config.ecrEnabled) // TODO: JPB: Hospital add ecr instructions
-                        messageImageDisplayer.SetGeneralBigMessageText(titleText: "one btn ecr instructions title",
-                                                                       mainText: "one btn ecr instructions main");
-                    yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
+                        yield return DoVideo(LanguageSource.GetLanguageString("one btn efr intro video"),
+                                             LanguageSource.GetLanguageString("standard intro video"),
+                                             VideoSelector.VideoType.EfrIntro);
+
                     yield return DoOneBtnErKeypressCheck();
                     yield return DoOneBtnErKeypressPractice();
                 }
@@ -1533,6 +1522,11 @@ public class DeliveryExperiment : CoroutineExperiment
             
             if (!NICLS_COURIER)
             {
+                yield return messageImageDisplayer.DisplayLanguageMessage(messageImageDisplayer.final_recall_messages);
+                // LC: final store recall reminder slide
+                messageImageDisplayer.SetGeneralBigMessageText("final store recall title", "final store recall main");
+                yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
+
                 highBeep.Play();
                 scriptedEventReporter.ReportScriptedEvent("sound played", new Dictionary<string, object>() { { "sound name", "high beep" }, { "sound duration", highBeep.clip.length.ToString() } });
                 textDisplayer.DisplayText("display recall text", RECALL_TEXT);
@@ -1560,6 +1554,14 @@ public class DeliveryExperiment : CoroutineExperiment
 
                 yield return SkippableWait(TIME_BETWEEN_DIFFERENT_RECALL_PHASES);
             }
+
+            // LC: moved this message from DoSubsession to here
+            if (NICLS_COURIER)
+                yield return messageImageDisplayer.DisplayLanguageMessage(messageImageDisplayer.nicls_final_recall_messages);
+            else
+                // LC: final object recall reminder slide
+                messageImageDisplayer.SetGeneralBigMessageText("final object recall title", "final object recall main");
+                yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
 
             highBeep.Play();
             scriptedEventReporter.ReportScriptedEvent("sound played", new Dictionary<string, object>() { { "sound name", "high beep" }, { "sound duration", highBeep.clip.length.ToString() } });

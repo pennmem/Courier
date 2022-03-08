@@ -10,13 +10,15 @@ using UnityEngine;
 using System.Net.Sockets;
 using Newtonsoft.Json.Linq;
 
-public abstract class IHostPC : EventLoop {
-    public abstract JObject WaitForMessage(string type, int timeout);
-    public abstract JObject WaitForMessages(string[] types, int timeout);
-    public abstract void Connect();
-    public abstract void HandleMessage(string message, DateTime time);
-    public abstract void SendMessage(string type, Dictionary<string, object> data);
-}
+
+// there is already an IHostPC in NiclsInterface
+// public abstract class IHostPC : EventLoop {
+//     public abstract JObject WaitForMessage(string type, int timeout);
+//     public abstract JObject WaitForMessages(string[] types, int timeout);
+//     public abstract void Connect();
+//     public abstract void HandleMessage(string message, DateTime time);
+//     public abstract void SendMessage(string type, Dictionary<string, object> data);
+// }
 
 public class ElememListener {
     ElememInterfaceHelper ElememInterfaceHelper;
@@ -173,9 +175,9 @@ public class ElememInterfaceHelper : IHostPC
         SendMessage("CONNECTED"); // Awake
         WaitForMessage("CONNECTED_OK", messageTimeout);
 
-        ExperimentSettings experimentSettings = FRExperimentSettings.GetSettingsByName(UnityEPL.GetExperimentName());
+        // LC: removed ExperimentSettings 
         Dictionary<string, object> configDict = new Dictionary<string, object>();
-        configDict.Add("stim_mode", experimentSettings.stimMode.ToString());
+        configDict.Add("stim_mode", "closed");
         //configDict.Add("experiment", UnityEPL.GetExperimentName()); // This is added in the DataPoint class
         configDict.Add("subject", UnityEPL.GetParticipants()[0]);
         configDict.Add("session", UnityEPL.GetSessionNumber().ToString());

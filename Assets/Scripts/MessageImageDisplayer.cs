@@ -16,6 +16,7 @@ public class MessageImageDisplayer : MonoBehaviour
     public GameObject[] recap_instruction_messages_efr_2btn_en; // TODO: JPB: Make this work for german
     public GameObject[] recap_instruction_messages_efr_en;
     public GameObject[] recap_instruction_messages_fr_en;
+    public GameObject[] hospital_recap_instruction_messages_en;
 
     public GameObject[] online_hospital_instruction_messages_en;
     public GameObject[] online_value_instruction_messages_en;
@@ -385,9 +386,15 @@ public class MessageImageDisplayer : MonoBehaviour
     }
 
     // Display message for cued recall
-    public void SetCuedRecallMessage(string bottomText)
+    public void SetCuedRecallMessage(string bottomText, bool hospital=false)
     {
-        cued_recall_message.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString(bottomText);
+        if (hospital)
+        {
+            cued_recall_message.transform.Find("title text").GetComponent<Text>().text = LanguageSource.GetLanguageString(bottomText);
+            cued_recall_message.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString("speak now");
+        }
+        else
+            cued_recall_message.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString(bottomText);
     }
 
     public void SetReminderText(string store_name)
@@ -482,7 +489,12 @@ public class MessageImageDisplayer : MonoBehaviour
                 general_message_display.transform.Find("descriptive text").GetComponent<Text>().text = LanguageSource.GetFormattableLanguageString(descriptiveText, dtFormatVals);
         if (continueText != null)
             if (ctFormatVals == null)
-                general_message_display.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString(continueText);
+            {
+                if (continueText == "")
+                    general_message_display.transform.Find("continue text").GetComponent<Text>().text = "";
+                else
+                    general_message_display.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString(continueText);
+            }
             else
                 general_message_display.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetFormattableLanguageString(continueText, ctFormatVals);
     }

@@ -111,9 +111,10 @@ public abstract class CoroutineExperiment : MonoBehaviour
         titleMessage.SetActive(false);
     }
 
-    protected IEnumerator DoVideo(string playPrompt, string repeatPrompt, VideoSelector.VideoType videoType, int videoIndex = -1)
+    protected IEnumerator DoVideo(string playPrompt, string repeatPrompt, VideoSelector.VideoType videoType, int videoIndex = -1, bool skipPrompt=false)
     {
-        yield return PressAnyKey(playPrompt);
+        if (!skipPrompt)
+            yield return PressAnyKey(playPrompt);
 
         bool replay = false;
         do

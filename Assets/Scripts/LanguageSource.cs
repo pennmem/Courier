@@ -16,14 +16,16 @@ public static class LanguageSource
 
         { "final recall", new string[] {"All items exhausted. Press any key to proceed to final recall.", "Alle Gegenstände ausgeliefert. Weiter mit beliebiger Taste."} },
         { "final no recall", new string[] {"All items exhausted. Press any key to proceed.", GERMAN_TRANSLATION_NEEDED} },
-        { "store cue recall", new string[] {"Please recall which object you delivered to the store shown on the screen.", "Bitte nennen Sie den Gegenstand, den Sie zu dem dargestellten Geschäft geliefert haben."} },
-        { "day objects recall", new string[] {"After the beep, please recall all objects from this delivery day.", "Nach dem Piepton, erinnern Sie bitte alle Gegenstände, die Sie in dieser Runde zugestellt haben."} },
+        { "store cue recall", new string[] {"Please recall which item you delivered to the store shown on the screen.", GERMAN_TRANSLATION_NEEDED} },
+        { "day objects recall", new string[] {"After the beep, please recall all items from this delivery day.", GERMAN_TRANSLATION_NEEDED} },
         { "microphone test", new string[] {"Microphone Test", "Mikrofontest"} },
-        { "next package prompt", new string[] {"The next package has to be delivered to the ", "Als nächstes beliefern Sie "} },
+        { "next store prompt", new string[] {"The next target store is the ", GERMAN_TRANSLATION_NEEDED} },
+        { "next package prompt", new string[] {"The next item has to be delivered to the ", GERMAN_TRANSLATION_NEEDED} },
         { "rating improved", new string[] {"Your rating improved!", "Ihre Wertung hat sich verbessert!"} },
         //{ "you now have", new string[] {"You now have points: ", "Aktuelle Punktzahl: "} },
         //{ "you earn points", new string[] {"You earned points: ", "Verdiente Punkte: "} },
         { "continue", new string[] {"Press (X) to continue.", "Drücken Sie (X) um fortzufahren."} },
+        { "start", new string[] { "Press (X) to start.", GERMAN_TRANSLATION_NEEDED } },
         { "no continue", new string[] {"", ""} },
         { "please point", new string[] {"Please point to the ", "Bitte richten Sie den Pfeil aus auf "} },
         { "joystick", new string[] {"Use the joystick to adjust the arrow, then press (X) to continue.", "Nutzen Sie den Joystick um den Pfeil zu rotieren und (X) um zu bestätigen."} },
@@ -32,8 +34,8 @@ public static class LanguageSource
         { "correct to within", new string[] {"Good! That was correct to within degrees: ", "Fast perfekt! Abweichung in Grad zur korrekten Antwort: "} },
         { "incorrect pointing", new string[] {"Not quite. ", GERMAN_TRANSLATION_NEEDED} },
         { "correct pointing", new string[] {"Good job! ", GERMAN_TRANSLATION_NEEDED} },
-        { "all objects recall", new string[] {"Please recall all the objects that you delivered.", "Bitte erinnern Sie alle Gegenstände, die Sie zugestellt haben."} },
-        { "all stores recall", new string[] {"Please recall all the stores that you delivered objects to.", "Bitte erinnern Sie alle Geschäfte, zu denen Sie Pakete geliefert haben."} },
+        { "all objects recall", new string[] {"Please recall all the items that you delivered.", GERMAN_TRANSLATION_NEEDED} },
+        { "all stores recall", new string[] {"Please recall all the stores that you delivered items to.", GERMAN_TRANSLATION_NEEDED} },
         { "end message", new string[] {"Thank you for being a great delivery person!", "Vielen Dank für Ihre Teilnahme!"} },
         { "end message scored", new string[] {"Thank you for being a great delivery person! Your cumulative score is: ", "Vielen Dank für Ihre Teilnahme! Ihre abschließende Wertung ist: "} },
 
@@ -53,7 +55,7 @@ public static class LanguageSource
         { "first day main", new string [] { "Let’s start the first delivery day!", GERMAN_TRANSLATION_NEEDED } },
         { "two btn er first day description", new string [] { "Don’t forget to continue pressing the left/right buttons when recalling items at the end of each delivery day.",
                                                               GERMAN_TRANSLATION_NEEDED } },
-        { "one btn er first day description", new string [] { "Don’t forget to continue pressing the (B) button to reject words when recalling items at the end of each delivery day.",
+        { "one btn er first day description", new string [] { "Don't forget to press the B button after recalling an incorrect word when recalling items at the end of each delivery day.",
                                                       GERMAN_TRANSLATION_NEEDED } },
 
         { "frame test start title", new string [] { "Frame Rate Testing ", GERMAN_TRANSLATION_NEEDED } },
@@ -69,7 +71,7 @@ public static class LanguageSource
 
 
         { "town learning title", new string [] { "Town Learning Phase", GERMAN_TRANSLATION_NEEDED } },
-        { "town learning main 1", new string [] { "Now let's learn the layout of the town!\nPlease locate all of the stores one by one.", GERMAN_TRANSLATION_NEEDED } },
+        { "town learning main 1", new string [] { "Let's learn the layout of the town!\nPlease locate all of the stores one by one.", GERMAN_TRANSLATION_NEEDED } },
         { "town learning main 2", new string [] { "Let's do it again!\nPlease locate all of the stores one by one.", GERMAN_TRANSLATION_NEEDED } },
 
         { "town learning prompt 1", new string[] { "Next target store is the ", GERMAN_TRANSLATION_NEEDED } },
@@ -93,7 +95,8 @@ public static class LanguageSource
         { "two btn er keypress practice right button incorrect message", new string [] { "Press the <b><i>right button</i></b>\nfor incorrect recall",
                                                                                          GERMAN_TRANSLATION_NEEDED } },
 
-        { "practice invitation", new string [] { "Let's practice!", GERMAN_TRANSLATION_NEEDED }},
+        { "practice invitation", new string [] { "Let's practice!", GERMAN_TRANSLATION_NEEDED } },
+        { "practice hospital", new string [] { "Great, now you are familiar with the stores in the city.\nNow, let's start delivering items!" } },
 
         { "one btn er check main", new string [] { "Let's make sure your keys are working.", GERMAN_TRANSLATION_NEEDED } },
 
@@ -125,6 +128,7 @@ public static class LanguageSource
 
         { "er check understanding title", new string[] { "ER Review", GERMAN_TRANSLATION_NEEDED } },
         { "er check understanding main", new string[] { "Please press the buzzer to call the researcher in now.", GERMAN_TRANSLATION_NEEDED } },
+        { "er check understanding main hospital", new string[] { "Please call the researcher now.", GERMAN_TRANSLATION_NEEDED } },
 
         { "navigation note title", new string[] { "Quick Note!", GERMAN_TRANSLATION_NEEDED } },
         { "navigation note main", new string[] { "Please navigate from store to store as quickly and efficiently as you can.", GERMAN_TRANSLATION_NEEDED } },
@@ -138,6 +142,7 @@ public static class LanguageSource
         { "fr item", new string [] { "*******", "*******" } },
         { "speak now", new string [] { "(Please speak now)", GERMAN_TRANSLATION_NEEDED} },
         { "one btn er message", new string [] { "Press the (B) key to reject a recalled item", GERMAN_TRANSLATION_NEEDED } },
+        { "one btn er message store", new string [] { "Press the (B) key to reject a recalled store", GERMAN_TRANSLATION_NEEDED } },
 
         { "free recall title", new string [] { "Free Recall", GERMAN_TRANSLATION_NEEDED} },
         { "free recall main", new string [] { "Try to recall all the items that you delivered to the stores in this delivery day.\n\nType one item and press <Enter> to submit and type your next response", 
@@ -154,11 +159,11 @@ public static class LanguageSource
 
 
         { "final store recall title", new string [] {"Final Store Recall", GERMAN_TRANSLATION_NEEDED} },
-        { "final store recall main", new string [] {"Try to recall stores that you delivered to.\n\nNote that you need to recall the store names", GERMAN_TRANSLATION_NEEDED} },
+        { "final store recall main", new string [] {"Try to recall stores that you delivered items to.\n\nNote that you need to recall the store names", GERMAN_TRANSLATION_NEEDED} },
         { "final store recall text", new string [] {"Start typing store name one at a time...", GERMAN_TRANSLATION_NEEDED}},
         
-        { "final object recall title", new string [] {"Final Object Recall", GERMAN_TRANSLATION_NEEDED} },
-        { "final object recall main", new string [] {"Try to recall all the items that you delivered so far.", GERMAN_TRANSLATION_NEEDED} },
+        { "final object recall title", new string [] {"Final Item Recall", GERMAN_TRANSLATION_NEEDED} },
+        { "final object recall main", new string [] {"Try to recall all of the items that you delivered so far.", GERMAN_TRANSLATION_NEEDED} },
         { "final object recall text", new string [] {"Start typing item one at a time...", GERMAN_TRANSLATION_NEEDED}},
 
         { "play movie", new string[] {"Press any key to play movie.", "Starten Sie das Video mit beliebiger Taste."} },
@@ -223,7 +228,7 @@ public static class LanguageSource
     {
         {"", new string[] {"", ""}},
 
-        {"deliv day pointing accuracy main", new string[] { "Good job! You correctly pointed to {0} out of {1} stores in this delivery day.", GERMAN_TRANSLATION_NEEDED } },
+        {"deliv day pointing accuracy main", new string[] { "Good job! \n\nYou correctly pointed to {0} out of {1} stores in this delivery day.", GERMAN_TRANSLATION_NEEDED } },
         {"deliv day progress main", new string[] { "{0} out of {1} delivery days completed!!", GERMAN_TRANSLATION_NEEDED } },
     };
 

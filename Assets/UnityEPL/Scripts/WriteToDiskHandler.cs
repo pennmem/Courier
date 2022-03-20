@@ -54,7 +54,7 @@ public class WriteToDiskHandler : DataHandler
     public IEnumerator DoWrite()
     {
         yield return null;
-        Debug.Log("writing " + waitingPoints.Count + " json lines to file");
+        // Debug.Log("writing " + waitingPoints.Count + " json lines to file");
         while (waitingPoints.Count > 0)
         {
             string directory = UnityEPL.GetDataPath();
@@ -73,7 +73,7 @@ public class WriteToDiskHandler : DataHandler
             }
             System.IO.File.AppendAllText(filePath, writeMe + System.Environment.NewLine);
         }
-        Debug.Log("wrote " + waitingPoints.Count + " json lines to file");
+        // Debug.Log("wrote " + waitingPoints.Count + " json lines to file");
     }
 #else
     [DllImport("__Internal")]

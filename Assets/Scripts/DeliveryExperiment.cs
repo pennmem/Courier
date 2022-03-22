@@ -535,9 +535,11 @@ public class DeliveryExperiment : CoroutineExperiment
         }
 
         // Ending Message
-        string endMessage = NICLS_COURIER
-            ? LanguageSource.GetLanguageString("end message")
-            : LanguageSource.GetLanguageString("end message scored") + "\n\n" + starSystem.CumulativeRating().ToString("+#.##;-#.##");
+        string endMessage = LanguageSource.GetLanguageString("end message");
+        
+        // NICLS_COURIER
+        //     ? LanguageSource.GetLanguageString("end message")
+        //     : LanguageSource.GetLanguageString("end message scored") + "\n\n" + starSystem.CumulativeRating().ToString("+#.##;-#.##");
         textDisplayer.DisplayText("end text", endMessage);
 
         #if !UNITY_WEBGL // WebGL DLL
@@ -1974,10 +1976,12 @@ public class DeliveryExperiment : CoroutineExperiment
             }
             else // One btn ECR
             {
-                messageImageDisplayer.SetCuedRecallMessage("one btn ecr message", hospital: HOSPITAL_COURIER ? true : false);
+                messageImageDisplayer.SetCuedRecallMessage("one btn ecr message", HOSPITAL_COURIER, Config.ecrEnabled);
                 Func<IEnumerator> func = () => { return messageImageDisplayer.DisplayMessageTimedKeypressBold(
                     messageImageDisplayer.cued_recall_message, waitTime, ActionButton.RejectButton, HOSPITAL_COURIER ? "title text" : "continue text", "reject button"); };
+                messageImageDisplayer.cued_recall_title.SetActive(true);
                 yield return messageImageDisplayer.DisplayMessageFunction(store.familiarization_object, func);
+                messageImageDisplayer.cued_recall_title.SetActive(false);
             }
         }
         else
@@ -1991,7 +1995,9 @@ public class DeliveryExperiment : CoroutineExperiment
             }
             else
             {
-                yield return messageImageDisplayer.DisplayMessageTimed(store.familiarization_object, waitTime);
+                messageImageDisplayer.SetCuedRecallMessage("speak now", HOSPITAL_COURIER);
+                Func<IEnumerator> func = () => { return messageImageDisplayer.DisplayMessageTimed(messageImageDisplayer.cued_recall_message, waitTime); };
+                yield return messageImageDisplayer.DisplayMessageFunction(store.familiarization_object, func);
             }
         }
 
@@ -2098,9 +2104,15 @@ public class DeliveryExperiment : CoroutineExperiment
 
         // Ask for reject button press
         messageImageDisplayer.SetGeneralBiggerMessageText(titleText: "one btn er message", continueText: "");
-        float practiceTime = 5.0f;
-        yield return messageImageDisplayer.DisplayMessageTimedKeypressBold(messageImageDisplayer.general_bigger_message_display, 
-                                                                           practiceTime, ActionButton.RejectButton, "title text", "reject button");
+        messageImageDisplayer.general_bigger_message_display.SetActive(true);
+
+        Text toggleText = messageImageDisplayer.general_bigger_message_display.transform.Find("title text").GetComponent<Text>();
+
+        while (!InputManager.GetButton("EfrReject"))
+            yield return null;
+        yield return messageImageDisplayer.DoTextBoldTimedOrButton("EfrReject", toggleText, 0.5f);
+        yield return new WaitForSeconds(1.5f);
+        messageImageDisplayer.general_bigger_message_display.SetActive(false);
 
         scriptedEventReporter.ReportScriptedEvent("stop efr keypress check");
     }

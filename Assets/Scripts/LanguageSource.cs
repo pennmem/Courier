@@ -71,7 +71,7 @@ public static class LanguageSource
 
 
         { "town learning title", new string [] { "Town Learning Phase", GERMAN_TRANSLATION_NEEDED } },
-        { "town learning main 1", new string [] { "Let's learn the layout of the town!\nPlease locate all of the stores one by one.", GERMAN_TRANSLATION_NEEDED } },
+        { "town learning main 1", new string [] { "Let's learn the layout of the town!\nIn this phase, you'll be asked to locate stores in town, one by one.", GERMAN_TRANSLATION_NEEDED } },
         { "town learning main 2", new string [] { "Let's do it again!\nPlease locate all of the stores one by one.", GERMAN_TRANSLATION_NEEDED } },
 
         { "town learning prompt 1", new string[] { "Next target store is the ", GERMAN_TRANSLATION_NEEDED } },
@@ -163,7 +163,7 @@ public static class LanguageSource
         { "final store recall text", new string [] {"Start typing store name one at a time...", GERMAN_TRANSLATION_NEEDED}},
         
         { "final object recall title", new string [] {"Final Item Recall", GERMAN_TRANSLATION_NEEDED} },
-        { "final object recall main", new string [] {"Try to recall all of the items that you delivered so far.", GERMAN_TRANSLATION_NEEDED} },
+        { "final object recall main", new string [] {"Try to recall all of the items that you delivered so far across all delivery days.", GERMAN_TRANSLATION_NEEDED} },
         { "final object recall text", new string [] {"Start typing item one at a time...", GERMAN_TRANSLATION_NEEDED}},
 
         { "play movie", new string[] {"Press any key to play movie.", "Starten Sie das Video mit beliebiger Taste."} },

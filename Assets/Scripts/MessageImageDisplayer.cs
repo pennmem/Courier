@@ -32,6 +32,7 @@ public class MessageImageDisplayer : MonoBehaviour
     public GameObject free_recall_display;
     public GameObject efr_display;
     public GameObject cued_recall_message;
+    public GameObject cued_recall_title;
     public GameObject sliding_scale_display;
     public GameObject sliding_scale_2_display;
     public GameObject general_message_display;
@@ -386,12 +387,19 @@ public class MessageImageDisplayer : MonoBehaviour
     }
 
     // Display message for cued recall
-    public void SetCuedRecallMessage(string bottomText, bool hospital=false)
+    public void SetCuedRecallMessage(string bottomText, bool hospital=false, bool ecrEnabled=false)
     {
         if (hospital)
         {
-            cued_recall_message.transform.Find("title text").GetComponent<Text>().text = LanguageSource.GetLanguageString(bottomText);
-            cued_recall_message.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString("speak now");
+            if (ecrEnabled)
+            {
+                cued_recall_message.transform.Find("title text").GetComponent<Text>().text = LanguageSource.GetLanguageString(bottomText);
+                cued_recall_message.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString("speak now");
+            }
+            else
+            {
+                cued_recall_message.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString(bottomText);
+            }
         }
         else
             cued_recall_message.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString(bottomText);
@@ -577,7 +585,7 @@ public class MessageImageDisplayer : MonoBehaviour
             sliding_scale_2_display.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString(continueText);
     }
 
-    private IEnumerator DoTextBoldTimedOrButton(string buttonName, Text displayText, float waitTime)
+    public IEnumerator DoTextBoldTimedOrButton(string buttonName, Text displayText, float waitTime)
     {
         string buttonText = displayText.text;
         Vector2 anchorMin = displayText.GetComponentInParent<RectTransform>().anchorMin;

@@ -1978,10 +1978,10 @@ public class DeliveryExperiment : CoroutineExperiment
             {
                 messageImageDisplayer.SetCuedRecallMessage("one btn ecr message", HOSPITAL_COURIER, Config.ecrEnabled);
                 Func<IEnumerator> func = () => { return messageImageDisplayer.DisplayMessageTimedKeypressBold(
-                    messageImageDisplayer.cued_recall_message, waitTime, ActionButton.RejectButton, HOSPITAL_COURIER ? "title text" : "continue text", "reject button"); };
-                messageImageDisplayer.cued_recall_title.SetActive(true);
+                    messageImageDisplayer.cued_recall_title, waitTime, ActionButton.RejectButton, HOSPITAL_COURIER ? "title text" : "continue text", "reject button"); };
+                messageImageDisplayer.cued_recall_message.SetActive(true);
                 yield return messageImageDisplayer.DisplayMessageFunction(store.familiarization_object, func);
-                messageImageDisplayer.cued_recall_title.SetActive(false);
+                messageImageDisplayer.cued_recall_message.SetActive(false);
             }
         }
         else
@@ -1995,6 +1995,7 @@ public class DeliveryExperiment : CoroutineExperiment
             }
             else
             {
+                messageImageDisplayer.cued_recall_title.SetActive(false);
                 messageImageDisplayer.SetCuedRecallMessage("speak now", HOSPITAL_COURIER);
                 Func<IEnumerator> func = () => { return messageImageDisplayer.DisplayMessageTimed(messageImageDisplayer.cued_recall_message, waitTime); };
                 yield return messageImageDisplayer.DisplayMessageFunction(store.familiarization_object, func);

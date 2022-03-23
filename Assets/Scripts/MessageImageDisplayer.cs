@@ -33,6 +33,7 @@ public class MessageImageDisplayer : MonoBehaviour
     public GameObject efr_display;
     public GameObject cued_recall_message;
     public GameObject cued_recall_title;
+    public GameObject cued_recall_continue;
     public GameObject sliding_scale_display;
     public GameObject sliding_scale_2_display;
     public GameObject general_message_display;
@@ -393,16 +394,16 @@ public class MessageImageDisplayer : MonoBehaviour
         {
             if (ecrEnabled)
             {
-                cued_recall_message.transform.Find("title text").GetComponent<Text>().text = LanguageSource.GetLanguageString(bottomText);
-                cued_recall_message.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString("speak now");
+                cued_recall_title.transform.Find("title text").GetComponent<Text>().text = LanguageSource.GetLanguageString(bottomText);
+                cued_recall_continue.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString("speak now");
             }
             else
             {
-                cued_recall_message.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString(bottomText);
+                cued_recall_continue.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString(bottomText);
             }
         }
         else
-            cued_recall_message.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString(bottomText);
+            cued_recall_continue.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString(bottomText);
     }
 
     public void SetReminderText(string store_name)

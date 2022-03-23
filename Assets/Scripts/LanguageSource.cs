@@ -96,7 +96,7 @@ public static class LanguageSource
                                                                                          GERMAN_TRANSLATION_NEEDED } },
 
         { "practice invitation", new string [] { "Let's practice!", GERMAN_TRANSLATION_NEEDED } },
-        { "practice hospital", new string [] { "Great, now you are familiar with the stores in the city.\nNow, let's start delivering items!" } },
+        { "practice hospital", new string [] { "Great, now you are familiar with the stores in the city.\nNow, let's start delivering items!", GERMAN_TRANSLATION_NEEDED } },
 
         { "one btn er check main", new string [] { "Let's make sure your keys are working.", GERMAN_TRANSLATION_NEEDED } },
 
@@ -112,11 +112,11 @@ public static class LanguageSource
                                                                       "When the <b>left button</b> text becomes bolded - press the\nleft button",
                                                                       GERMAN_TRANSLATION_NEEDED}},
 
-        { "one btn efr instructions title", new string[] { "Externalized Free Recall (EFR) Instructions" } },
+        { "one btn efr instructions title", new string[] { "Externalized Free Recall (EFR) Instructions" , GERMAN_TRANSLATION_NEEDED} },
         { "one btn efr instructions main", new string[] { "In this section of the study, we would like you to vocalize words that come to your mind during the free recall sections (the long sections directly following deliveries, NOT the recalls with store cues).\n\nPlease continue to recall as many words as possible from the just-presented list. In addition, every time a specific, salient word comes to mind, say it aloud, even if you have already recalled it or if it was not presented on the most recent delivery day.\n\nOnly say other words if they come to mind as you are trying to recall items on the most recently presented list. This is not a free-association task.\n\nIf the word you have just said aloud was NOT presented on the most recent list, or if you have already recalled it in this recall period, press the B key after recalling that word, but before recalling the next word.",
                                                       GERMAN_TRANSLATION_NEEDED} },
 
-        { "one btn ecr instructions title", new string[] { "Required Response Cued Recall (RCR) Instructions" } },
+        { "one btn ecr instructions title", new string[] { "Required Response Cued Recall (RCR) Instructions" , GERMAN_TRANSLATION_NEEDED } },
         { "one btn ecr instructions main", new string[] { "Next, stores will be presented on the screen one at a time. For each store, please try and recall, aloud, the item you delivered to it.\n\nWe are interested in your best guess as to the delivered item, so even if you are not sure if the remembered item is correct, please say it aloud into the microphone and press the ‘B’ button after saying the item to indicate that the item you recalled was a guess. \n\nYou’ll do this for all stores visited in the delivery day.",
                                                       GERMAN_TRANSLATION_NEEDED} },
 

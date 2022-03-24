@@ -187,6 +187,10 @@ public class DeliveryExperiment : CoroutineExperiment
     int freeIndex = 0;
     int valueIndex = 0;
 
+    // Stim / No Stim Stores Lists
+    public List<StoreComponent> StimStores = new List<StoreComponent>();
+    public List<StoreComponent> noStimStores = new List<StoreComponent>();
+
     // store points generating algorithms
     double[] RandomStorePoints(int numStores)
     {
@@ -364,6 +368,9 @@ public class DeliveryExperiment : CoroutineExperiment
             ConfigureExperiment(false, false, false, 0, "HospitalCourier");
         }
 
+        // if (DEBUG)
+        //     ConfigureExperiment(false, false, false, 1, "HospitalCourier");
+
         // Session check
         if (sessionNumber == -1)
             throw new UnityException("Please call ConfigureExperiment before beginning the experiment.");
@@ -428,6 +435,32 @@ public class DeliveryExperiment : CoroutineExperiment
         // Setup Environment
         yield return EnableEnvironment();
 
+        // set stim/no_stim stores unique for each subject
+        var reliableRandom = deliveryItems.ReliableRandom();
+        List<StoreComponent> allStores = new List<StoreComponent>(environment.stores);
+        allStores.Shuffle(reliableRandom);
+
+        string storenames = "";
+        foreach (StoreComponent store in allStores)
+            storenames += store.GetStoreName() + "_";
+        Debug.Log(storenames);
+
+        for (int i=0; i < allStores.Count; i++)
+        {
+            if (i % 2 == 1)
+                StimStores.Add(allStores[i]);
+            else
+                noStimStores.Add(allStores[i]);                
+        }
+
+        string stimstorenames = "STIM: ";
+        foreach (StoreComponent store in StimStores)
+        {
+            stimstorenames += store + "_";
+        }  
+        Debug.Log(stimstorenames);
+
+
         // Frame Rate Test
         if (COURIER_ONLINE)
             yield return DoFrameTest();
@@ -451,7 +484,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
             // Setup Elemem
             if (useElemem)
-                elememInterface.BeginNewSession(sessionNumber);
+                yield return elememInterface.BeginNewSession(sessionNumber);
         #endif // !UNITY_WEBGL
 
         // Intros
@@ -858,20 +891,57 @@ public class DeliveryExperiment : CoroutineExperiment
         }
 
         SetRamulatorState("ENCODING", true, new Dictionary<string, object>());
+
+        // LC: TODO: Elemem implementation
+        // if (useElemem)
+        //     elememInterface.SendStateMessage("ENCODING");
+
         messageImageDisplayer.please_find_the_blah_reminder.SetActive(true);
 
-        List<StoreComponent> unvisitedStores = new List<StoreComponent>(environment.stores);
+        int deliveries = practice ? Config.deliveriesPerPracticeTrial : Config.deliveriesPerTrial;
+        int craft_shop_delivery_num = rng.Next(deliveries - 1);
+        List<StoreComponent> unvisitedStores = null;
+        List<StoreComponent> stimStoresToVisit = null;
+        List<StoreComponent> nostimStoresToVisit = null;
+
+        if (HOSPITAL_COURIER && !practice)
+        {
+            // draw 6 from stim / nostim store lists
+            var rnd = new System.Random();
+            stimStoresToVisit = StimStores.OrderBy(r => rnd.Next()).Take(deliveries/2).ToList();
+            string tmp = "Delivery STIM stores: ";
+            foreach(StoreComponent store in stimStoresToVisit)
+                tmp += store.GetStoreName() + "_";
+            Debug.Log(tmp);
+
+            nostimStoresToVisit = noStimStores.OrderBy(r => rnd.Next()).Take(deliveries - deliveries/2).ToList();
+            string tmp2 = "Delivery NO STIM stores: ";
+            foreach(StoreComponent store in nostimStoresToVisit)
+                tmp2 += store.GetStoreName() + "_";
+            Debug.Log(tmp2);
+
+            // now MERGE
+            unvisitedStores = new List<StoreComponent>(stimStoresToVisit.Count + nostimStoresToVisit.Count);
+            unvisitedStores.AddRange(stimStoresToVisit);
+            unvisitedStores.AddRange(nostimStoresToVisit);
+            unvisitedStores.Shuffle();
+        }
+        else
+        {
+            unvisitedStores = new List<StoreComponent>(environment.stores);
+        }
+
         if (skipLastDelivStores)
             foreach (var store in thisTrialPresentedStores)
                 unvisitedStores.Remove(store);
         thisTrialPresentedStores = new List<StoreComponent>();
 
-        int deliveries = practice ? Config.deliveriesPerPracticeTrial : Config.deliveriesPerTrial;
-        int craft_shop_delivery_num = rng.Next(deliveries - 1);
-
         for (int i = 0; i < deliveries; i++)
         {
 
+            // LC: save the lastly visited store for next trial
+            //     there is a bug where the algorithm picks next store to be the one that you just visited on last trial
+            //     manually store & remove the store and add it back after choosing the first store for subsequent trials
             if (i == 0)
             {
                 if (previousTrialStore != null)
@@ -886,10 +956,6 @@ public class DeliveryExperiment : CoroutineExperiment
                 if (previousTrialStore != null)
                     unvisitedStores.Add(previousTrialStore);
             }
-
-            // LC: save the lastly visited store for next trial
-            //     there is a bug where the algorithm picks next store to be the one that you just visited on last trial
-            //     manually store & remove the store and add it back after choosing the first store for subsequent trials
             if (i == deliveries-1)
                 previousTrialStore = nextStore;
                 Debug.Log(previousTrialStore);
@@ -959,6 +1025,9 @@ public class DeliveryExperiment : CoroutineExperiment
                 Debug.Log(storePointType);
                 string deliveredItemNameWithSpace = VALUE_COURIER ? deliveredItemName.Replace('_', ' ') + ", " + roundedPoints.ToString() 
                                                                   : deliveredItemName.Replace('_', ' ');
+                bool isStimStore = StimStores.Contains(nextStore);
+                Debug.Log("is this stim store? " + isStimStore.ToString());
+
                 audioPlayback.clip = deliveredItem;
                 audioPlayback.Play();
                 scriptedEventReporter.ReportScriptedEvent("object presentation begins",
@@ -971,6 +1040,7 @@ public class DeliveryExperiment : CoroutineExperiment
                                                                                              {"store value", roundedPoints},
                                                                                              {"point condition", storePointType},
                                                                                              {"task condition", freeFirst ? "FreeFirst" : "ValueFirst"},
+                                                                                             {"stim condition", isStimStore}
                                                                                             });
                 
                 #if !UNITY_WEBGL // System.IO
@@ -2238,6 +2308,13 @@ public class DeliveryExperiment : CoroutineExperiment
         #endif // !UNITY_WEBG
     }
 
+    // protected override void SetElememState(string stateName, Dictionary<string, object> extraData)
+    // {
+    //     #if !UNITY_WEBGL // Elemem
+    //         if (useElemem)
+    //             elememInterface.Set
+    //     #endif
+    // }
 
 
     private void LogVersions(string expName)

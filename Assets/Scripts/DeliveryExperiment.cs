@@ -191,6 +191,22 @@ public class DeliveryExperiment : CoroutineExperiment
     public List<StoreComponent> StimStores = new List<StoreComponent>();
     public List<StoreComponent> noStimStores = new List<StoreComponent>();
 
+    // Stim Tags
+    List<string> GenerateStimTags(int numTrials)
+    {
+        List<string> result = new List<string>();
+        List<string> stimTags = new List<string>{"3Hz","8Hz"};
+
+        for (int i=0; i < numTrials; i++)
+            result.Add(stimTags[i % 2]);
+
+        var rnd = new System.Random();
+        if (rnd.Next(0,2) == 0)
+            result.Reverse();
+        
+        return result;
+    }
+
     // store points generating algorithms
     double[] RandomStorePoints(int numStores)
     {
@@ -573,6 +589,10 @@ public class DeliveryExperiment : CoroutineExperiment
         textDisplayer.DisplayText("end text", endMessage);
 
         #if !UNITY_WEBGL // WebGL DLL
+            // LC: ELEMEM
+            if (useElemem)
+                elememInterface.SendExitMessage();
+
             // TODO: JPB: (Hokua) Wait for button press to quit
             while (true)
                 yield return null;
@@ -589,6 +609,9 @@ public class DeliveryExperiment : CoroutineExperiment
     {
         BlackScreen();
         
+        if (useElemem)
+            elememInterface.SendSessionMessage(UnityEPL.GetSessionNumber());
+
         // Real trials
         if (Config.efrEnabled)
             if (Config.twoBtnEfrEnabled)
@@ -857,7 +880,7 @@ public class DeliveryExperiment : CoroutineExperiment
     }
 
     private IEnumerator DoDeliveries(int trialNumber, int continuousTrialNum, bool practice = false, bool skipLastDelivStores = false, 
-                                     StorePointType storePointType = StorePointType.Random, bool freeFirst = true)
+                                     StorePointType storePointType = StorePointType.Random, bool freeFirst = true, string stimFreq = null)
     {
         Dictionary<string, object> trialData = new Dictionary<string, object>();
         trialData.Add("trial number", continuousTrialNum);
@@ -867,10 +890,6 @@ public class DeliveryExperiment : CoroutineExperiment
             scriptedEventReporter.ReportScriptedEvent("start deliveries", trialData);
 
         WorldScreen();
-
-        // LC: reset the player position for the actual first delivery day
-        // if (!practice && continuousTrialNum == 0)
-        //     playerMovement.Reset();
 
         // Set store points for the delivery day
         double[] allStoresPoints = null;
@@ -888,6 +907,7 @@ public class DeliveryExperiment : CoroutineExperiment
         }
 
         SetRamulatorState("ENCODING", true, new Dictionary<string, object>());
+        SetElememState("ENCODING");
 
         messageImageDisplayer.please_find_the_blah_reminder.SetActive(true);
 
@@ -1008,14 +1028,14 @@ public class DeliveryExperiment : CoroutineExperiment
                             yield return WaitForClassifier(niclsClassifierTypes[continuousTrialNum]);
                     }
                     // Hospital
-                    if (useElemem && !practice)
-                    {
-                        
-                    }
                     else
                     {
+                        // LC: ELEMEM
+                        if (useElemem && !practice)
+                            elememInterface.SendStimMessage();
+
                         wordDelay = UnityEngine.Random.Range(WORD_PRESENTATION_DELAY - WORD_PRESENTATION_JITTER,
-                                                WORD_PRESENTATION_DELAY + WORD_PRESENTATION_JITTER);
+                                                             WORD_PRESENTATION_DELAY + WORD_PRESENTATION_JITTER);
                         yield return new WaitForSeconds(wordDelay);
                     }
                 #endif
@@ -1049,6 +1069,10 @@ public class DeliveryExperiment : CoroutineExperiment
                 allPresentedObjects.Add(deliveredItemName);
 
                 SetRamulatorState("WORD", true, new Dictionary<string, object>() { { "word", deliveredItemName } });
+
+                // LC: ELEMEM
+                elememInterface.SendWordMessage("WORD", i+1, isStimStore, new Dictionary<string, object>() { { "word", deliveredItemName } });
+
                 //add visuals with sound
                 messageImageDisplayer.deliver_item_visual_dislay.SetActive(true);
                 messageImageDisplayer.SetDeliverItemText(deliveredItemNameWithSpace);
@@ -1132,6 +1156,8 @@ public class DeliveryExperiment : CoroutineExperiment
 
             // Next day message (and trial skip button)
             SetRamulatorState("WAITING", true, new Dictionary<string, object>());
+            // LC: ELEMEM
+            SetElememState("WAITING");
             if (!DeliveryItems.ItemsExhausted())
             {
                 BlackScreen();
@@ -1159,6 +1185,8 @@ public class DeliveryExperiment : CoroutineExperiment
                 // Set ramulator trial start                       
                 if (useRamulator)                                  
                     ramulatorInterface.BeginNewTrial(trialNumber); 
+                if (useElemem)
+                    elememInterface.SendTrialMessage(trialNumber, false);
             #endif                                                 
 
             // Do deliveries
@@ -1209,6 +1237,9 @@ public class DeliveryExperiment : CoroutineExperiment
         List<StorePointType> freeList = Enum.GetValues(typeof(StorePointType)).Cast<StorePointType>().ToList();
         List<StorePointType> valueList = Enum.GetValues(typeof(StorePointType)).Cast<StorePointType>().ToList();
 
+        // LC: ELEMEM stim tag lists
+        List<string> stimTagLists = GenerateStimTags(numTrials);
+
         // create a condition list for each task
         freeList.Shuffle(new System.Random(UnityEPL.GetParticipants()[0].GetHashCode()));
         valueList.Shuffle(new System.Random());
@@ -1230,6 +1261,8 @@ public class DeliveryExperiment : CoroutineExperiment
 
             // Next day message (and trial skip button)
             SetRamulatorState("WAITING", true, new Dictionary<string, object>());
+            // LC: ELEMEM
+            SetElememState("WAITING");
             if (!DeliveryItems.ItemsExhausted())
             {
                 BlackScreen();
@@ -1257,18 +1290,27 @@ public class DeliveryExperiment : CoroutineExperiment
                 // Set ramulator trial start
                 if (useRamulator)
                     ramulatorInterface.BeginNewTrial(continuousTrialNum);
+                if (useElemem)
+                {
+                    elememInterface.SendTrialMessage(continuousTrialNum, true);
+                    elememInterface.SendStimSelectMessage(stimTagLists[trialNumber]);
+                }
             #endif
 
             // LC: order of which the task appears is evenly randomized (3 free / 3 value)
             if (freeTaskFirst[trialNumber])
             {
                 // LC: for each case, all 3 conditions should appear (serial, spatial, random)
-                yield return DoDeliveries(trialNumber, continuousTrialNum, practice: false, storePointType: freeList[freeIndex], freeFirst: true);
+                yield return DoDeliveries(trialNumber, continuousTrialNum, practice: false, 
+                                          storePointType: freeList[freeIndex], freeFirst: true, 
+                                          stimFreq: stimTagLists[trialNumber]);
                 freeIndex += 1;
             }
             else
             {
-                yield return DoDeliveries(trialNumber, continuousTrialNum, practice: false, storePointType: valueList[valueIndex], freeFirst: false);
+                yield return DoDeliveries(trialNumber, continuousTrialNum, practice: false, 
+                                          storePointType: valueList[valueIndex], freeFirst: false,
+                                          stimFreq: stimTagLists[trialNumber]);
                 valueIndex += 1;
             }
             // Delivery Scores
@@ -1285,7 +1327,6 @@ public class DeliveryExperiment : CoroutineExperiment
             if (!COURIER_ONLINE)
                 yield return DoFixation(PAUSE_BEFORE_RETRIEVAL, practice: false);
             yield return DoRecall(trialNumber, continuousTrialNum, practice: false, freeFirst: freeTaskFirst[trialNumber]);
-
 
             // Delivery Progress
             if (VALUE_COURIER)
@@ -1443,6 +1484,8 @@ public class DeliveryExperiment : CoroutineExperiment
     private IEnumerator DoRecall(int trialNumber, int continuousTrialNum, bool practice = false, bool freeFirst = true)
     {
         SetRamulatorState("RETRIEVAL", true, new Dictionary<string, object>());
+        // LC: ELEMEM
+        SetElememState("RETRIEVAL");
 
         if (VALUE_COURIER)
         {
@@ -1643,6 +1686,8 @@ public class DeliveryExperiment : CoroutineExperiment
 
         #if !UNITY_WEBGL // Microphone and System.IO
             SetRamulatorState("RETRIEVAL", true, new Dictionary<string, object>());
+            // LC: ELEMEM
+            SetElememState("RETRIEVAL");
 
             string output_directory = UnityEPL.GetDataPath();
             string output_file_name;

@@ -324,8 +324,6 @@ public class DeliveryExperiment : CoroutineExperiment
         scriptedEventReporter.ReportScriptedEvent("unhandled program exception", exceptionData);
     }
 
-
-
     void Update()
     {
         // Cursor.visible = false;
@@ -351,7 +349,6 @@ public class DeliveryExperiment : CoroutineExperiment
             fpsValueDict.Add("fps value", fpsValue);
             scriptedEventReporter.ReportScriptedEvent("fps value", fpsValueDict);
         }
-
     }
 
     void Start()
@@ -369,7 +366,7 @@ public class DeliveryExperiment : CoroutineExperiment
         }
 
         // if (DEBUG)
-        //     ConfigureExperiment(false, false, false, 1, "HospitalCourier");
+            // ConfigureExperiment(false, false, false, 1, "HospitalCourier");
 
         // Session check
         if (sessionNumber == -1)
@@ -892,10 +889,6 @@ public class DeliveryExperiment : CoroutineExperiment
 
         SetRamulatorState("ENCODING", true, new Dictionary<string, object>());
 
-        // LC: TODO: Elemem implementation
-        // if (useElemem)
-        //     elememInterface.SendStateMessage("ENCODING");
-
         messageImageDisplayer.please_find_the_blah_reminder.SetActive(true);
 
         int deliveries = practice ? Config.deliveriesPerPracticeTrial : Config.deliveriesPerTrial;
@@ -1001,6 +994,9 @@ public class DeliveryExperiment : CoroutineExperiment
                 AudioClip deliveredItem = nextStore.PopItem();
                 float wordDelay = 0f;
 
+                bool isStimStore = StimStores.Contains(nextStore);
+                Debug.Log("is this stim store? " + isStimStore.ToString());
+
                 #if !UNITY_WEBGL 
                     // NICLS
                     if (useNiclServer && !practice)
@@ -1012,6 +1008,10 @@ public class DeliveryExperiment : CoroutineExperiment
                             yield return WaitForClassifier(niclsClassifierTypes[continuousTrialNum]);
                     }
                     // Hospital
+                    if (useElemem && !practice)
+                    {
+                        
+                    }
                     else
                     {
                         wordDelay = UnityEngine.Random.Range(WORD_PRESENTATION_DELAY - WORD_PRESENTATION_JITTER,
@@ -1025,9 +1025,6 @@ public class DeliveryExperiment : CoroutineExperiment
                 Debug.Log(storePointType);
                 string deliveredItemNameWithSpace = VALUE_COURIER ? deliveredItemName.Replace('_', ' ') + ", " + roundedPoints.ToString() 
                                                                   : deliveredItemName.Replace('_', ' ');
-                bool isStimStore = StimStores.Contains(nextStore);
-                Debug.Log("is this stim store? " + isStimStore.ToString());
-
                 audioPlayback.clip = deliveredItem;
                 audioPlayback.Play();
                 scriptedEventReporter.ReportScriptedEvent("object presentation begins",
@@ -1981,7 +1978,7 @@ public class DeliveryExperiment : CoroutineExperiment
     }
 
 
-
+    // LC: TODO: Add Elemem stim here (alternating 3 sec, always starting off with NO_STIM)
     private IEnumerator DoFreeRecallDisplay(string title, float waitTime, bool practice = false, bool efrDisabled = false)
     {
         BlackScreen();
@@ -2308,14 +2305,16 @@ public class DeliveryExperiment : CoroutineExperiment
         #endif // !UNITY_WEBG
     }
 
-    // protected override void SetElememState(string stateName, Dictionary<string, object> extraData)
-    // {
-    //     #if !UNITY_WEBGL // Elemem
-    //         if (useElemem)
-    //             elememInterface.Set
-    //     #endif
-    // }
-
+    protected override void SetElememState(string stateName, Dictionary<string, object> extraData = null)
+    {
+        #if !UNITY_WEBGL // Elemem
+            if (extraData == null)
+                extraData = new Dictionary<string, object>();
+            
+            if (useElemem)
+                elememInterface.SendStateMessage(stateName, extraData);
+        #endif
+    }
 
     private void LogVersions(string expName)
     {

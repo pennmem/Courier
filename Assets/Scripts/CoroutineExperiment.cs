@@ -29,6 +29,8 @@ public abstract class CoroutineExperiment : MonoBehaviour
 
     protected abstract void SetRamulatorState(string stateName, bool state, Dictionary<string, object> extraData);
 
+    protected abstract void SetElememState(string stateName, Dictionary<string, object> extraData = null);
+
     protected IEnumerator DoSubjectSessionQuitPrompt(int sessionNumber, string message)
     {
         yield return null;

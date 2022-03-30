@@ -62,7 +62,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private const bool skipFPS = true;
     
     private const string COURIER_VERSION = COURIER_ONLINE ? "v5.0.0online" : "v5.2.1";
-    private const bool DEBUG = false;
+    private const bool DEBUG = true;
 
     private const string RECALL_TEXT = "*******"; // TODO: JPB: Remove this and use display system
     // Constants moved to the Config File
@@ -84,7 +84,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private const float FAMILIARIZATION_PRESENTATION_LENGTH = 1.5f;
     private const float RECALL_MESSAGE_DISPLAY_LENGTH = 6f;
     private const float RECALL_TEXT_DISPLAY_LENGTH = 1f;
-    private const float FREE_RECALL_LENGTH = DEBUG ? 10f : 90f;
+    private const float FREE_RECALL_LENGTH = DEBUG ? 90f : 90f;
     private const float VALUE_RECALL_LENGTH = 10f;
     private const float PRACTICE_FREE_RECALL_LENGTH = 25f;
     private const float STORE_FINAL_RECALL_LENGTH = 90f;
@@ -191,6 +191,13 @@ public class DeliveryExperiment : CoroutineExperiment
     public List<StoreComponent> StimStores = new List<StoreComponent>();
     public List<StoreComponent> noStimStores = new List<StoreComponent>();
 
+    // Stim boolean
+    private bool retrievalStimOn = false;
+    private const float RETRIEVAL_STIM_DURATION = 30f;
+    private float stimdt = 0.0f;
+    private bool first3Sec = true;
+    private int stimCount = 0;
+
     // Stim Tags
     List<string> GenerateStimTags(int numTrials)
     {
@@ -204,6 +211,11 @@ public class DeliveryExperiment : CoroutineExperiment
         if (rnd.Next(0,2) == 0)
             result.Reverse();
         
+        string tmp = "";
+        foreach (string tag in result)
+            tmp += tag + " ";
+        Debug.Log(tmp);
+
         return result;
     }
 
@@ -365,6 +377,28 @@ public class DeliveryExperiment : CoroutineExperiment
             fpsValueDict.Add("fps value", fpsValue);
             scriptedEventReporter.ReportScriptedEvent("fps value", fpsValueDict);
         }
+
+        #if !UNITY_WEBGL
+        // LC : Elemem retrieval stim here
+        if (retrievalStimOn)
+        {
+            // stim every 3 seconds, skipping first 3 second interval
+            if (stimdt >= 3.0f)
+            {
+                if (stimCount % 2 == 1)
+                {
+                    // Debug.Log(stimCount.ToString() + " block STIM");
+                    if (useElemem)
+                        elememInterface.SendStimMessage();
+                }
+                // else
+                //     Debug.Log(stimCount.ToString() + " block NOSTIM");
+                stimdt = 0.0f;
+                stimCount += 1;
+            }
+            stimdt += Time.unscaledDeltaTime;
+        }
+        #endif
     }
 
     void Start()
@@ -381,8 +415,8 @@ public class DeliveryExperiment : CoroutineExperiment
             ConfigureExperiment(false, false, false, 0, "HospitalCourier");
         }
 
-        // if (DEBUG)
-            // ConfigureExperiment(false, false, false, 1, "HospitalCourier");
+        if (DEBUG)
+            ConfigureExperiment(false, false, false, 1, "HospitalCourier");
 
         // Session check
         if (sessionNumber == -1)
@@ -880,7 +914,7 @@ public class DeliveryExperiment : CoroutineExperiment
     }
 
     private IEnumerator DoDeliveries(int trialNumber, int continuousTrialNum, bool practice = false, bool skipLastDelivStores = false, 
-                                     StorePointType storePointType = StorePointType.Random, bool freeFirst = true, string stimFreq = null)
+                                     StorePointType storePointType = StorePointType.Random, bool freeFirst = true, string stimTag = null)
     {
         Dictionary<string, object> trialData = new Dictionary<string, object>();
         trialData.Add("trial number", continuousTrialNum);
@@ -971,7 +1005,6 @@ public class DeliveryExperiment : CoroutineExperiment
             }
             if (i == deliveries-1)
                 previousTrialStore = nextStore;
-                Debug.Log(previousTrialStore);
 
             playerMovement.Freeze();
             messageImageDisplayer.please_find_the_blah_reminder.SetActive(false);
@@ -1057,7 +1090,8 @@ public class DeliveryExperiment : CoroutineExperiment
                                                                                              {"store value", roundedPoints},
                                                                                              {"point condition", storePointType},
                                                                                              {"task condition", freeFirst ? "FreeFirst" : "ValueFirst"},
-                                                                                             {"stim condition", isStimStore}
+                                                                                             {"stim condition", isStimStore},
+                                                                                             {"stim tag", stimTag}
                                                                                             });
                 
                 #if !UNITY_WEBGL // System.IO
@@ -1084,10 +1118,13 @@ public class DeliveryExperiment : CoroutineExperiment
                 scriptedEventReporter.ReportScriptedEvent("audio presentation finished",
                                                           new Dictionary<string, object>());
 
-                // LC: complete full 3 second interval
-                float restDelay = 3f - wordDelay - AUDIO_TEXT_DISPLAY;
-                yield return new WaitForSeconds(restDelay);
-                playerMovement.Unfreeze();
+                if (HOSPITAL_COURIER)
+                {
+                    // LC: complete full 3 second interval
+                    float restDelay = 3f - wordDelay - AUDIO_TEXT_DISPLAY;
+                    yield return new WaitForSeconds(restDelay);
+                    playerMovement.Unfreeze();
+                }
             }
         }
 
@@ -1303,14 +1340,14 @@ public class DeliveryExperiment : CoroutineExperiment
                 // LC: for each case, all 3 conditions should appear (serial, spatial, random)
                 yield return DoDeliveries(trialNumber, continuousTrialNum, practice: false, 
                                           storePointType: freeList[freeIndex], freeFirst: true, 
-                                          stimFreq: stimTagLists[trialNumber]);
+                                          stimTag: stimTagLists[trialNumber]);
                 freeIndex += 1;
             }
             else
             {
                 yield return DoDeliveries(trialNumber, continuousTrialNum, practice: false, 
                                           storePointType: valueList[valueIndex], freeFirst: false,
-                                          stimFreq: stimTagLists[trialNumber]);
+                                          stimTag: stimTagLists[trialNumber]);
                 valueIndex += 1;
             }
             // Delivery Scores
@@ -1326,7 +1363,8 @@ public class DeliveryExperiment : CoroutineExperiment
             // Do recall
             if (!COURIER_ONLINE)
                 yield return DoFixation(PAUSE_BEFORE_RETRIEVAL, practice: false);
-            yield return DoRecall(trialNumber, continuousTrialNum, practice: false, freeFirst: freeTaskFirst[trialNumber]);
+            yield return DoRecall(trialNumber, continuousTrialNum, 
+                                  practice: false, freeFirst: freeTaskFirst[trialNumber]);
 
             // Delivery Progress
             if (VALUE_COURIER)
@@ -1496,8 +1534,8 @@ public class DeliveryExperiment : CoroutineExperiment
             }
             else
             {
-                yield return DoFreeRecall(trialNumber, continuousTrialNum, practice);
                 yield return DoValueRecall(trialNumber);
+                yield return DoFreeRecall(trialNumber, continuousTrialNum, practice);
             }
         }
         else
@@ -1551,8 +1589,12 @@ public class DeliveryExperiment : CoroutineExperiment
             else if (practice)
                 yield return DoFreeRecallDisplay("", PRACTICE_FREE_RECALL_LENGTH, practice: true);
             else
+            {
+                // LC: turn on the stimulation
+                retrievalStimOn = true;
                 yield return DoFreeRecallDisplay("", FREE_RECALL_LENGTH);
-
+                retrievalStimOn = false;
+            }
             scriptedEventReporter.ReportScriptedEvent("object recall recording stop", recordingData);
             soundRecorder.StopRecording();
         #else

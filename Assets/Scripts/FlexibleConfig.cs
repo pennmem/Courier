@@ -19,7 +19,7 @@ public class Config
     // System Settings
     public static string niclServerIP { get { return (string)Config.GetSetting("niclServerIP"); } }
     public static int niclServerPort { get { return (int)Config.GetSetting("niclServerPort"); } }
-    public static string elememServerIP { get { return (string)Config.GetSetting("elememlServerIP"); } }
+    public static string elememServerIP { get { return (string)Config.GetSetting("elememServerIP"); } }
     public static int elememServerPort { get { return (int)Config.GetSetting("elememServerPort"); } }
 
     // Hardware

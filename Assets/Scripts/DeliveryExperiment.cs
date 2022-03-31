@@ -191,30 +191,39 @@ public class DeliveryExperiment : CoroutineExperiment
     public List<StoreComponent> StimStores = new List<StoreComponent>();
     public List<StoreComponent> noStimStores = new List<StoreComponent>();
 
-    // Stim boolean
+    // Stim variables
+    public List<string> stimTags = new List<string>{"3Hz", "8Hz"};
     private bool retrievalStimOn = false;
+    private bool switchStimOn = false;
+    private bool done = false;   // LC: to ensure that we send 1 SelectStimMessage
     private const float RETRIEVAL_STIM_DURATION = 30f;
     private float stimdt = 0.0f;
-    private bool first3Sec = true;
+    private float totaldt = 0.0f;
+    private int blockCount = 0;
     private int stimCount = 0;
+
+    private void SetStimVariables(bool active, bool switchStim = false)
+    {
+        stimdt = 0.0f;
+        totaldt = 0.0f;
+        blockCount = 0;
+        stimCount = 0;
+        retrievalStimOn = active ? true : false;
+        switchStimOn = active ? switchStim ? true : false : false;
+
+        if (switchStimOn)
+            stimTags.Shuffle();
+    }
 
     // Stim Tags
     List<string> GenerateStimTags(int numTrials)
     {
         List<string> result = new List<string>();
-        List<string> stimTags = new List<string>{"3Hz","8Hz"};
+        stimTags.Shuffle();
 
         for (int i=0; i < numTrials; i++)
             result.Add(stimTags[i % 2]);
-
-        var rnd = new System.Random();
-        if (rnd.Next(0,2) == 0)
-            result.Reverse();
-        
-        string tmp = "";
-        foreach (string tag in result)
-            tmp += tag + " ";
-        Debug.Log(tmp);
+        // Debug.Log("stim tags: " + string.Join(", ", stimTags));
 
         return result;
     }
@@ -382,21 +391,32 @@ public class DeliveryExperiment : CoroutineExperiment
         // LC : Elemem retrieval stim here
         if (retrievalStimOn)
         {
-            // stim every 3 seconds, skipping first 3 second interval
+            stimdt += Time.unscaledDeltaTime;
+            totaldt += Time.unscaledDeltaTime;
+            // for no stim interval...
+            if (stimdt >= 1.0f)
+            {
+                if (switchStimOn && blockCount % 2 == 0 && !done)
+                {
+                    Debug.Log("change STIM to " + stimTags[stimCount % 2].ToString() + " at " + totaldt.ToString());
+                    // elememInterface.SendStimSelectMessage(stimTags[stimCount % 2]);
+                    done = true;
+                }
+            }
+            // for every 3 seconds...
             if (stimdt >= 3.0f)
             {
-                if (stimCount % 2 == 1)
+                blockCount += 1;    // 3 seconds passed at this point (0th block will be always no stim)
+                Debug.Log("Block #" + blockCount.ToString() + " at " + totaldt.ToString());
+                if (blockCount % 2 == 1)   // stim in "odd" intervals
                 {
-                    // Debug.Log(stimCount.ToString() + " block STIM");
-                    if (useElemem)
-                        elememInterface.SendStimMessage();
+                    stimCount += 1;
+                    Debug.Log("STIM #" + stimCount.ToString() + " at " + totaldt.ToString());
+                    // elememInterface.SendStimMessage();
                 }
-                // else
-                //     Debug.Log(stimCount.ToString() + " block NOSTIM");
-                stimdt = 0.0f;
-                stimCount += 1;
+                stimdt = 0.0f;    // reset the timer
+                done = false;
             }
-            stimdt += Time.unscaledDeltaTime;
         }
         #endif
     }
@@ -416,7 +436,7 @@ public class DeliveryExperiment : CoroutineExperiment
         }
 
         if (DEBUG)
-            ConfigureExperiment(false, false, false, 1, "HospitalCourier");
+            ConfigureExperiment(false, false, false, 2, "HospitalCourier");
 
         // Session check
         if (sessionNumber == -1)
@@ -1591,9 +1611,14 @@ public class DeliveryExperiment : CoroutineExperiment
             else
             {
                 // LC: turn on the stimulation
-                retrievalStimOn = true;
+                // if (useElemem)
+                // {
+                SetStimVariables(true);
                 yield return DoFreeRecallDisplay("", FREE_RECALL_LENGTH);
-                retrievalStimOn = false;
+                SetStimVariables(false);
+                // }
+                // else
+                //     yield return DoFreeRecallDisplay("", FREE_RECALL_LENGTH);
             }
             scriptedEventReporter.ReportScriptedEvent("object recall recording stop", recordingData);
             soundRecorder.StopRecording();
@@ -1760,7 +1785,11 @@ public class DeliveryExperiment : CoroutineExperiment
 
                 textDisplayer.ClearText();
                 ClearTitle();
+
+                // LC: TODO: ELEMEM
+                SetStimVariables(true, switchStim:true);
                 yield return DoFreeRecallDisplay("final store recall", STORE_FINAL_RECALL_LENGTH);
+                SetStimVariables(false);
 
                 scriptedEventReporter.ReportScriptedEvent("final store recall recording stop", new Dictionary<string, object>());
                 soundRecorder.StopRecording();
@@ -1796,7 +1825,12 @@ public class DeliveryExperiment : CoroutineExperiment
 
             textDisplayer.ClearText();
             ClearTitle();
+            
+            // LC: TODO: ELEMEM
+            SetStimVariables(true, switchStim:true);
             yield return DoFreeRecallDisplay("all objects recall", OBJECT_FINAL_RECALL_LENGTH);
+            SetStimVariables(false);
+
             scriptedEventReporter.ReportScriptedEvent("final object recall recording stop");
             soundRecorder.StopRecording();
 
@@ -1971,7 +2005,6 @@ public class DeliveryExperiment : CoroutineExperiment
         }
 
         float pointerError = PointerError(nextStore.gameObject);
-        Debug.Log(pointerError);
         if (pointerError < POINTING_CORRECT_THRESHOLD)
         {
             pointerParticleSystem.Play();
@@ -1985,9 +2018,6 @@ public class DeliveryExperiment : CoroutineExperiment
         float wrongness = pointerError / Mathf.PI;
         ColorPointer(new Color(wrongness, 1 - wrongness, .2f));
         bool improvement = starSystem.ReportScore(pointerError, 1 - wrongness);
-
-        Debug.Log(wrongness);
-        Debug.Log(1 - wrongness);
 
         if (STAR_SYSTEM_ACTIVE)
             starSystem.gameObject.SetActive(true);
@@ -2476,21 +2506,21 @@ public class DeliveryExperiment : CoroutineExperiment
 
         if (stores == null || stores.Count == 0)
             throw new ArgumentException("There are no stores in provided list");
-        Debug.Log("Unvisited Stores: " + string.Join(", ", stores));
+        // Debug.Log("Unvisited Stores: " + string.Join(", ", stores));
 
         var tempStores = NonVisibleStores(stores);
         if (tempStores.Count == 0)
             goto PickStore;
         else
             stores = tempStores;
-        Debug.Log("NonVisible Stores: " + string.Join(", ", stores));
+        // Debug.Log("NonVisible Stores: " + string.Join(", ", stores));
 
         tempStores = StoresNotBehindPlayer(stores);
         if (tempStores.Count == 0)
             goto PickStore;
         else
             stores = tempStores;
-        Debug.Log("Not Behind Player Stores: " + string.Join(", ", stores));
+        // Debug.Log("Not Behind Player Stores: " + string.Join(", ", stores));
 
     PickStore:
         stores.Sort((store1, store2) =>
@@ -2502,7 +2532,7 @@ public class DeliveryExperiment : CoroutineExperiment
             else return 1;
         });
 
-        Debug.Log("Sorted Stores: " + string.Join(", ", stores));
+        // Debug.Log("Sorted Stores: " + string.Join(", ", stores));
 
         int numStoresToChooseFrom = Math.Min(NUM_CLOSE_STORES, stores.Count() - 1);
         return stores[rng.Next(numStoresToChooseFrom)];

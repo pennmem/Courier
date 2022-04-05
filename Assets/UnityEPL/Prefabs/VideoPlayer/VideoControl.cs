@@ -31,6 +31,7 @@ public class VideoControl : MonoBehaviour
             // Video finished
             if (videoPlayer.time >= videoPlayer.clip.length)
             {
+                Debug.Log("VideoControl end video");
                 gameObject.SetActive(false);
             }
         #endif

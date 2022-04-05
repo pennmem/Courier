@@ -391,8 +391,6 @@ public class DeliveryExperiment : CoroutineExperiment
         // LC : Elemem retrieval stim here
         if (retrievalStimOn)
         {
-            stimdt += Time.unscaledDeltaTime;
-            totaldt += Time.unscaledDeltaTime;
             // for no stim interval...
             if (stimdt >= 1.0f)
             {
@@ -417,6 +415,8 @@ public class DeliveryExperiment : CoroutineExperiment
                 stimdt = 0.0f;    // reset the timer
                 done = false;
             }
+            stimdt += Time.unscaledDeltaTime;
+            totaldt += Time.unscaledDeltaTime;
         }
         #endif
     }
@@ -436,7 +436,7 @@ public class DeliveryExperiment : CoroutineExperiment
         }
 
         if (DEBUG)
-            ConfigureExperiment(false, false, false, 2, "HospitalCourier");
+            ConfigureExperiment(false, false, false, 0, "HospitalCourier");
 
         // Session check
         if (sessionNumber == -1)
@@ -768,7 +768,7 @@ public class DeliveryExperiment : CoroutineExperiment
             if (sessionNumber == 0)
                 yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
                                     LanguageSource.GetLanguageString("standard intro video"),
-                                    VideoSelector.VideoType.MainIntro);
+                                    VideoSelector.VideoType.townlearningVideo);
             else
                 yield return DoRecapInstructions(recap: true);
             
@@ -833,8 +833,7 @@ public class DeliveryExperiment : CoroutineExperiment
                     messages[currpage].SetActive(false);
                     yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
                                         LanguageSource.GetLanguageString("standard intro video"),
-                                        VideoSelector.VideoType.MainIntro,
-                                        skipPrompt:true);
+                                        VideoSelector.VideoType.efrRecapVideo);
                     messages[currpage].SetActive(true);
                 }
                 messages[prevpage].SetActive(false);
@@ -1165,6 +1164,7 @@ public class DeliveryExperiment : CoroutineExperiment
         scriptedEventReporter.ReportScriptedEvent("start practice trials");
 
         starSystem.ResetSession();
+        BlackScreen();
 
         if (!HOSPITAL_COURIER)
         {
@@ -1172,11 +1172,17 @@ public class DeliveryExperiment : CoroutineExperiment
             messageImageDisplayer.SetGeneralMessageText(mainText: "practice invitation");
             yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
         }
+        // LC: add standard FR instruction video
         else
         {
             messageImageDisplayer.SetGeneralMessageText(mainText: "practice hospital");
             yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
+            yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
+                                 LanguageSource.GetLanguageString("standard intro video"),
+                                 VideoSelector.VideoType.practiceVideo,
+                                 skipPrompt:true);
         }
+        WorldScreen();
 
         for (int trialNumber = 0; trialNumber < numTrials; trialNumber++)
         {
@@ -1193,11 +1199,10 @@ public class DeliveryExperiment : CoroutineExperiment
                 }
                 else // One btn ER
                 {
-                    // TODO: LC: Show instruction videos instead of slides
                     if (Config.efrEnabled)
                         yield return DoVideo(LanguageSource.GetLanguageString("one btn efr intro video"),
                                              LanguageSource.GetLanguageString("standard intro video"),
-                                             VideoSelector.VideoType.EfrIntro);
+                                             VideoSelector.VideoType.efrRecapVideo);
 
                     yield return DoOneBtnErKeypressCheck();
                     yield return DoOneBtnErKeypressPractice();
@@ -1642,6 +1647,14 @@ public class DeliveryExperiment : CoroutineExperiment
         BlackScreen();
         thisTrialPresentedStores.Shuffle(rng);
         Debug.Log(thisTrialPresentedStores);
+
+        if (practice)
+        {
+            scriptedEventReporter.ReportScriptedEvent("ecr cued recall video start");
+            yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
+                                 LanguageSource.GetLanguageString("standard intro video"),
+                                 VideoSelector.VideoType.ecrVideo);
+        }
         
         if (COURIER_ONLINE)
         {

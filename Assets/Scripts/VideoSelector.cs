@@ -16,6 +16,11 @@ public class VideoSelector : MonoBehaviour
     public UnityEngine.Video.VideoClip[] niclsMovie;
     public UnityEngine.Video.VideoClip[] musicVideos;
 
+    public UnityEngine.Video.VideoClip townlearingVideo;
+    public UnityEngine.Video.VideoClip practiceVideo;
+    public UnityEngine.Video.VideoClip ecrVideo;
+    public UnityEngine.Video.VideoClip efrRecapVideo;
+
     void OnEnable()
     {
         if (videoPlayer.clip == null)
@@ -33,7 +38,11 @@ public class VideoSelector : MonoBehaviour
         NiclsMainIntro,
         NiclsMovie,
         MusicVideos,
-        valueIntro
+        valueIntro,
+        townlearningVideo,
+        practiceVideo,
+        ecrVideo,
+        efrRecapVideo
     }
 
     public void SetVideo(VideoType videoType, int videoIndex = 0)
@@ -72,6 +81,18 @@ public class VideoSelector : MonoBehaviour
                 case VideoType.MusicVideos:
                     videoPlayer.clip = musicVideos[videoIndex];
                     break;
+                case VideoType.townlearningVideo:
+                    videoPlayer.clip = townlearingVideo;
+                    break;
+                case VideoType.practiceVideo:
+                    videoPlayer.clip = practiceVideo;
+                    break;
+                case VideoType.ecrVideo:
+                    videoPlayer.clip = ecrVideo;
+                    break;
+                case VideoType.efrRecapVideo:
+                    videoPlayer.clip = efrRecapVideo;
+                    break;
                 default: break;
             }
         #else
@@ -85,7 +106,7 @@ public class VideoSelector : MonoBehaviour
                     videoPlayer.url = System.IO.Path.Combine(path,"instruction_video_updated.mp4");
                     break;
 
-                // LC: could later add onto webGL but not yet
+                // LC: could later add into webGL but not yet
                 // case VideoType.EfrIntro:
                 //     videoPlayer.url = System.IO.Path.Combine(path,
                 //                                              "englishCourierEfrIntro.mp4");
@@ -109,7 +130,7 @@ public class VideoSelector : MonoBehaviour
                 default: break;
 
             }
-#endif // !UNITY_WEBGL
+        #endif // !UNITY_WEBGL
 
         videoPlayer.Prepare();
     }

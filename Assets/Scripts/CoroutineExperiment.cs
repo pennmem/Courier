@@ -35,6 +35,7 @@ public abstract class CoroutineExperiment : MonoBehaviour
     {
         yield return null;
         SetRamulatorState("WAITING", true, new Dictionary<string, object>());
+        SetElememState("WAITING");
         textDisplayer.DisplayText("subject/session confirmation", message);
         while (!InputManager.GetKeyDown(KeyCode.Y) && !InputManager.GetKeyDown(KeyCode.N))
         {
@@ -82,6 +83,7 @@ public abstract class CoroutineExperiment : MonoBehaviour
             textDisplayer.OriginalColor();
 
             SetRamulatorState("WAITING", true, new Dictionary<string, object>());
+            SetElememState("WAITING");
             textDisplayer.DisplayText("microphone test confirmation", confirmation);
             while (!InputManager.GetKeyDown(KeyCode.Y) && !InputManager.GetKeyDown(KeyCode.N) && !InputManager.GetKeyDown(KeyCode.C))
             {
@@ -123,6 +125,7 @@ public abstract class CoroutineExperiment : MonoBehaviour
         {
             //start video player and wait for it to stop playing
             SetRamulatorState("INSTRUCT", true, new Dictionary<string, object>());
+            SetElememState("INSTRUCT");
             videoSelector.SetVideo(videoType, videoIndex);
             scriptedEventReporter.ReportScriptedEvent("start video", new Dictionary<string, object> { { "video number", videoIndex } });
             videoPlayer.StartVideo();
@@ -132,6 +135,7 @@ public abstract class CoroutineExperiment : MonoBehaviour
             SetRamulatorState("INSTRUCT", false, new Dictionary<string, object>());
 
             SetRamulatorState("WAITING", true, new Dictionary<string, object>());
+            SetElememState("WAITING");
             if (repeatPrompt != null)
             {
                 textDisplayer.DisplayText("repeat video prompt", repeatPrompt);
@@ -150,6 +154,7 @@ public abstract class CoroutineExperiment : MonoBehaviour
     protected IEnumerator PressAnyKey(string displayText)
     {
         SetRamulatorState("WAITING", true, new Dictionary<string, object>());
+        SetElememState("WAITING");
         yield return null;
 
         textDisplayer.DisplayText("press any key prompt", displayText);

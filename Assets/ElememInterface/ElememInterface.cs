@@ -447,6 +447,9 @@ public class ElememInterface : MonoBehaviour
         SendMessage("WORD", data);
     }
 
+    // LC: TODO: REPEATING STIM
+    
+
     // EXIT
     public void SendExitMessage()
     {

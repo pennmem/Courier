@@ -30,7 +30,10 @@ public class BeginExperiment : MonoBehaviour
     private const string scene_name = "MainGame";
 
     public const string EXP_NAME_COURIER = "Courier";
+    public const string EXP_NAME_HOSPITAL = "HospitalCourier";
     public const string EXP_NAME_NICLS = "NiclsCourier";
+
+    public const string EXP_VERSION = "v5.2.1";
 
     private void OnEnable() {
         #if UNITY_WEBGL

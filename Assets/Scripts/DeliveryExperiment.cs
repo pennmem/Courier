@@ -387,38 +387,6 @@ public class DeliveryExperiment : CoroutineExperiment
             scriptedEventReporter.ReportScriptedEvent("fps value", fpsValueDict);
         }
 
-        #if !UNITY_WEBGL
-        // LC : Elemem retrieval stim here
-        if (retrievalStimOn)
-        {
-            // for no stim interval...
-            if (stimdt >= 1.0f)
-            {
-                if (switchStimOn && blockCount % 2 == 0 && !done)
-                {
-                    Debug.Log("change STIM to " + stimTags[stimCount % 2].ToString() + " at " + totaldt.ToString());
-                    // elememInterface.SendStimSelectMessage(stimTags[stimCount % 2]);
-                    done = true;
-                }
-            }
-            // for every 3 seconds...
-            if (stimdt >= 3.0f)
-            {
-                blockCount += 1;    // 3 seconds passed at this point (0th block will be always no stim)
-                Debug.Log("Block #" + blockCount.ToString() + " at " + totaldt.ToString());
-                if (blockCount % 2 == 1)   // stim in "odd" intervals
-                {
-                    stimCount += 1;
-                    Debug.Log("STIM #" + stimCount.ToString() + " at " + totaldt.ToString());
-                    // elememInterface.SendStimMessage();
-                }
-                stimdt = 0.0f;    // reset the timer
-                done = false;
-            }
-            stimdt += Time.unscaledDeltaTime;
-            totaldt += Time.unscaledDeltaTime;
-        }
-        #endif
     }
 
     void Start()
@@ -435,8 +403,8 @@ public class DeliveryExperiment : CoroutineExperiment
             ConfigureExperiment(false, false, false, 0, "HospitalCourier");
         }
 
-        if (DEBUG)
-            ConfigureExperiment(false, false, false, 0, "HospitalCourier");
+        // if (DEBUG)
+        ConfigureExperiment(false, false, false, 0, "HospitalCourier");
 
         // Session check
         if (sessionNumber == -1)
@@ -551,7 +519,10 @@ public class DeliveryExperiment : CoroutineExperiment
 
             // Setup Elemem
             if (useElemem)
+            {
+                Debug.Log("ELEMEMEMEM");
                 yield return elememInterface.BeginNewSession(sessionNumber);
+            }
         #endif // !UNITY_WEBGL
 
         // Intros
@@ -1023,7 +994,10 @@ public class DeliveryExperiment : CoroutineExperiment
                     unvisitedStores.Add(previousTrialStore);
             }
             if (i == deliveries-1)
+            {
                 previousTrialStore = nextStore;
+                Debug.Log("Previous Trial Store: " + nextStore.GetStoreName());
+            }
 
             playerMovement.Freeze();
             messageImageDisplayer.please_find_the_blah_reminder.SetActive(false);
@@ -1094,7 +1068,6 @@ public class DeliveryExperiment : CoroutineExperiment
 
                 string deliveredItemName = deliveredItem.name;
                 int roundedPoints = (int)Math.Round(storePoints);
-                Debug.Log(storePointType);
                 string deliveredItemNameWithSpace = VALUE_COURIER ? deliveredItemName.Replace('_', ' ') + ", " + roundedPoints.ToString() 
                                                                   : deliveredItemName.Replace('_', ' ');
                 audioPlayback.clip = deliveredItem;
@@ -1122,9 +1095,20 @@ public class DeliveryExperiment : CoroutineExperiment
                 allPresentedObjects.Add(deliveredItemName);
 
                 SetRamulatorState("WORD", true, new Dictionary<string, object>() { { "word", deliveredItemName } });
-
-                // LC: ELEMEM
-                elememInterface.SendWordMessage("WORD", i+1, isStimStore, new Dictionary<string, object>() { { "word", deliveredItemName } });
+                // LC: ELEMEM : FIX THIS NLLREFERENCE ERROR
+                // elememInterface.SendWordMessage(deliveredItemName, i+1, isStimStore, 
+                //                                 new Dictionary<string, object>() { {"trial number", continuousTrialNum},
+                //                                                                     {"item name", deliveredItemName},
+                //                                                                     {"store name", nextStore.GetStoreName()},
+                //                                                                     {"serial position", i+1},
+                //                                                                     {"player position", playerMovement.transform.position.ToString()},
+                //                                                                     {"store position", nextStore.transform.position.ToString()},
+                //                                                                     {"store value", roundedPoints},
+                //                                                                     {"point condition", storePointType},
+                //                                                                     {"task condition", freeFirst ? "FreeFirst" : "ValueFirst"},
+                //                                                                     {"stim condition", isStimStore},
+                //                                                                     {"stim tag", stimTag}
+                //                                                                  });
 
                 //add visuals with sound
                 messageImageDisplayer.deliver_item_visual_dislay.SetActive(true);
@@ -1179,8 +1163,8 @@ public class DeliveryExperiment : CoroutineExperiment
             yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
             yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
                                  LanguageSource.GetLanguageString("standard intro video"),
-                                 VideoSelector.VideoType.practiceVideo,
-                                 skipPrompt:true);
+                                 VideoSelector.VideoType.practiceVideo);
+                                 //skipPrompt:true);
         }
         WorldScreen();
 
@@ -1422,6 +1406,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private IEnumerator DoFixation(float time, bool practice = false)
     {
         scriptedEventReporter.ReportScriptedEvent("start fixation");
+        SetElememState("ORIENT");
         BlackScreen();
 
         if (practice)
@@ -1603,6 +1588,9 @@ public class DeliveryExperiment : CoroutineExperiment
             Dictionary<string, object> recordingData = new Dictionary<string, object>();
             recordingData.Add("trial number", continuousTrialNum);
             scriptedEventReporter.ReportScriptedEvent("object recall recording start", recordingData);
+
+            SetElememState("RECALL", new Dictionary<string, object>{ {"duration", practice ? PRACTICE_FREE_RECALL_LENGTH : FREE_RECALL_LENGTH } });
+
             string output_directory = UnityEPL.GetDataPath();
             string wavFilePath = practice
                         ? System.IO.Path.Combine(output_directory, "practice-" + continuousTrialNum.ToString()) + ".wav"
@@ -1673,6 +1661,9 @@ public class DeliveryExperiment : CoroutineExperiment
             textDisplayer.ClearText();
         }
 
+        if (HOSPITAL_COURIER)
+            practice = false;
+
         highBeep.Play();
         scriptedEventReporter.ReportScriptedEvent("sound played", new Dictionary<string, object>() { { "sound name", "high beep" }, { "sound duration", highBeep.clip.length.ToString() } });
         textDisplayer.DisplayText("display recall text", RECALL_TEXT);
@@ -1712,6 +1703,7 @@ public class DeliveryExperiment : CoroutineExperiment
             
             #if !UNITY_WEBGL // Microphone
                 scriptedEventReporter.ReportScriptedEvent("cued recall recording start", cuedRecordingData);
+                SetElememState("RECALL", new Dictionary<string, object>{ {"duration", MAX_CUED_RECALL_TIME_PER_STORE} });
                 soundRecorder.StartRecording(wavFilePath);
 
                 if (practice && trialNumber == 0)
@@ -1794,6 +1786,7 @@ public class DeliveryExperiment : CoroutineExperiment
                     AppendWordToLst(lstFilepath, store.GetStoreName());
 
                 scriptedEventReporter.ReportScriptedEvent("final store recall recording start", new Dictionary<string, object>());
+                SetElememState("RECALL", new Dictionary<string, object>{ {"duration", STORE_FINAL_RECALL_LENGTH} });
                 soundRecorder.StartRecording(wavFilePath);
 
                 textDisplayer.ClearText();
@@ -1834,6 +1827,7 @@ public class DeliveryExperiment : CoroutineExperiment
                 AppendWordToLst(lstFilepath, deliveredObject);
 
             scriptedEventReporter.ReportScriptedEvent("final object recall recording start");
+            SetElememState("RECALL", new Dictionary<string, object>{ {"duration", OBJECT_FINAL_RECALL_LENGTH} });
             soundRecorder.StartRecording(wavFilePath);
 
             textDisplayer.ClearText();
@@ -2519,21 +2513,21 @@ public class DeliveryExperiment : CoroutineExperiment
 
         if (stores == null || stores.Count == 0)
             throw new ArgumentException("There are no stores in provided list");
-        // Debug.Log("Unvisited Stores: " + string.Join(", ", stores));
+        Debug.Log("Unvisited Stores: " + string.Join(", ", stores));
 
         var tempStores = NonVisibleStores(stores);
         if (tempStores.Count == 0)
             goto PickStore;
         else
             stores = tempStores;
-        // Debug.Log("NonVisible Stores: " + string.Join(", ", stores));
+        Debug.Log("NonVisible Stores: " + string.Join(", ", stores));
 
         tempStores = StoresNotBehindPlayer(stores);
         if (tempStores.Count == 0)
             goto PickStore;
         else
             stores = tempStores;
-        // Debug.Log("Not Behind Player Stores: " + string.Join(", ", stores));
+        Debug.Log("Not Behind Player Stores: " + string.Join(", ", stores));
 
     PickStore:
         stores.Sort((store1, store2) =>
@@ -2545,7 +2539,7 @@ public class DeliveryExperiment : CoroutineExperiment
             else return 1;
         });
 
-        // Debug.Log("Sorted Stores: " + string.Join(", ", stores));
+        Debug.Log("Sorted Stores: " + string.Join(", ", stores));
 
         int numStoresToChooseFrom = Math.Min(NUM_CLOSE_STORES, stores.Count() - 1);
         return stores[rng.Next(numStoresToChooseFrom)];
@@ -2567,6 +2561,7 @@ public class DeliveryExperiment : CoroutineExperiment
     protected IEnumerator DisplayMessageAndWait(string description, string message)
     {
         SetRamulatorState("WAITING", true, new Dictionary<string, object>());
+        SetElememState("WAITING");
 
         BlackScreen();
         textDisplayer.DisplayText(description, message + "\r\nPress (x) to continue");

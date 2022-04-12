@@ -15,12 +15,15 @@ public class Config
     public static string experimentConfigName = "EXPERIMENT_CONFIG_NAME_NOT_SET";
     public static string onlineSystemConfigText = null;
     public static string onlineExperimentConfigText = null;
+    // LC: TODO: COME UP WITH A BETTER WAY
+    public static bool elememStimMode = false;
 
     // System Settings
     public static string niclServerIP { get { return (string)Config.GetSetting("niclServerIP"); } }
     public static int niclServerPort { get { return (int)Config.GetSetting("niclServerPort"); } }
     public static string elememServerIP { get { return (string)Config.GetSetting("elememServerIP"); } }
     public static int elememServerPort { get { return (int)Config.GetSetting("elememServerPort"); } }
+    public static bool elememOn { get { return (bool)Config.GetSetting("elememOn"); } }
 
     // Hardware
     public static bool noSyncbox { get { return (bool)Config.GetSetting("noSyncbox"); } }

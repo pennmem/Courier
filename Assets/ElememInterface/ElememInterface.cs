@@ -181,7 +181,7 @@ public class ElememInterfaceHelper : IHostPC
         WaitForMessage("CONNECTED_OK", messageTimeout);
 
         Dictionary<string, object> configDict = new Dictionary<string, object>();
-        configDict.Add("stim_mode", "None");
+        configDict.Add("stim_mode", Config.elememStimMode ? "open" : "none");
         configDict.Add("experiment", UnityEPL.GetExperimentName());
         configDict.Add("subject", UnityEPL.GetParticipants()[0]);
         configDict.Add("session", UnityEPL.GetSessionNumber().ToString());
@@ -314,6 +314,9 @@ public class ElememInterfaceHelper : IHostPC
     protected override void SendMessageInternal(string type, Dictionary<string, object> data = null) {
         if (interfaceDisabled) return;
 
+        if (data == null)
+            data = new Dictionary<string, object>();
+
         ElememDataPoint point = new ElememDataPoint(type, System.DateTime.UtcNow, data);
         string message = point.ToJSON();
 
@@ -422,6 +425,7 @@ public class ElememInterface : MonoBehaviour
     // RAMULATOR: ENCODING, RETRIEVAL
     public void SendStateMessage(string state, Dictionary<string, object> extraData = null)
     {
+
         SendMessage(state, extraData);
     }
 

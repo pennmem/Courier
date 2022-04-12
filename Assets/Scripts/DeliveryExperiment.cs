@@ -62,7 +62,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private const bool skipFPS = true;
     
     private const string COURIER_VERSION = COURIER_ONLINE ? "v5.0.0online" : "v5.2.1";
-    private const bool DEBUG = true;
+    private const bool DEBUG = false;
 
     private const string RECALL_TEXT = "*******"; // TODO: JPB: Remove this and use display system
     // Constants moved to the Config File
@@ -341,6 +341,7 @@ public class DeliveryExperiment : CoroutineExperiment
             useRamulator = newUseRamulator;
             useNiclServer = newUseNiclServer;
             useElemem = newUseElemem;
+            Config.elememStimMode = useElemem;
         #endif // !UNITY_WEBGL
         sessionNumber = newSessionNumber;
         continuousSessionNumber = useNiclServer ? NICLS_READ_ONLY_SESSIONS + sessionNumber :
@@ -404,7 +405,7 @@ public class DeliveryExperiment : CoroutineExperiment
         }
 
         // if (DEBUG)
-        ConfigureExperiment(false, false, false, 0, "HospitalCourier");
+        // ConfigureExperiment(false, false, false, 0, "HospitalCourier");
 
         // Session check
         if (sessionNumber == -1)
@@ -443,7 +444,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
         Dictionary<string, object> sceneData = new Dictionary<string, object>();
         sceneData.Add("sceneName", "MainGame");
-        scriptedEventReporter.ReportScriptedEvent("loadScene", sceneData);
+        // scriptedEventReporter.ReportScriptedEvent("loadScene");
 
         StartCoroutine(ExperimentCoroutine());
     }
@@ -456,6 +457,31 @@ public class DeliveryExperiment : CoroutineExperiment
 
         foreach (string name in UnityEPL.GetParticipants())
             Debug.Log(name);
+
+        #if !UNITY_WEBGL // NICLS
+            // Setup Ramulator
+            if (useRamulator)
+                yield return ramulatorInterface.BeginNewSession(sessionNumber);
+
+            // Setup NiclServer
+            if (useNiclServer)
+            {
+                yield return niclsInterface.BeginNewSession(sessionNumber);
+                SetupNiclsClassifier();
+                niclsInterface.SendReadOnlyState(1);
+            }
+            else
+            {
+                yield return niclsInterface.BeginNewSession(sessionNumber, true);
+            }
+
+            // Setup up for new hospital courier
+            if (Config.elememOn)
+            {
+                yield return elememInterface.BeginNewSession(sessionNumber);
+                Debug.Log("Elemem in place");
+            }
+        #endif // !UNITY_WEBGL
 
         // Write versions to logfile
         LogVersions(expName);
@@ -500,30 +526,6 @@ public class DeliveryExperiment : CoroutineExperiment
         if (COURIER_ONLINE)
             yield return DoFrameTest();
 
-        #if !UNITY_WEBGL // NICLS
-            // Setup Ramulator
-            if (useRamulator)
-                yield return ramulatorInterface.BeginNewSession(sessionNumber);
-
-            // Setup NiclServer
-            if (useNiclServer)
-            {
-                yield return niclsInterface.BeginNewSession(sessionNumber);
-                SetupNiclsClassifier();
-                niclsInterface.SendReadOnlyState(1);
-            }
-            else
-            {
-                yield return niclsInterface.BeginNewSession(sessionNumber, true);
-            }
-
-            // Setup Elemem
-            if (useElemem)
-            {
-                Debug.Log("ELEMEMEMEM");
-                yield return elememInterface.BeginNewSession(sessionNumber);
-            }
-        #endif // !UNITY_WEBGL
 
         // Intros
         yield return DoIntros();
@@ -615,7 +617,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
         #if !UNITY_WEBGL // WebGL DLL
             // LC: ELEMEM
-            if (useElemem)
+            if (HOSPITAL_COURIER)
                 elememInterface.SendExitMessage();
 
             // TODO: JPB: (Hokua) Wait for button press to quit
@@ -634,7 +636,7 @@ public class DeliveryExperiment : CoroutineExperiment
     {
         BlackScreen();
         
-        if (useElemem)
+        if (Config.elememOn)
             elememInterface.SendSessionMessage(UnityEPL.GetSessionNumber());
 
         // Real trials
@@ -1231,7 +1233,7 @@ public class DeliveryExperiment : CoroutineExperiment
                 // Set ramulator trial start                       
                 if (useRamulator)                                  
                     ramulatorInterface.BeginNewTrial(trialNumber); 
-                if (useElemem)
+                if (Config.elememOn)
                     elememInterface.SendTrialMessage(trialNumber, false);
             #endif                                                 
 
@@ -1336,10 +1338,10 @@ public class DeliveryExperiment : CoroutineExperiment
                 // Set ramulator trial start
                 if (useRamulator)
                     ramulatorInterface.BeginNewTrial(continuousTrialNum);
-                if (useElemem)
+                if (Config.elememOn)
                 {
-                    elememInterface.SendTrialMessage(continuousTrialNum, true);
-                    elememInterface.SendStimSelectMessage(stimTagLists[trialNumber]);
+                    elememInterface.SendTrialMessage(continuousTrialNum, useElemem ? true : false);
+                    // elememInterface.SendStimSelectMessage(stimTagLists[trialNumber]);
                 }
             #endif
 
@@ -1661,6 +1663,8 @@ public class DeliveryExperiment : CoroutineExperiment
             textDisplayer.ClearText();
         }
 
+        // LC: make standard cued recall ECR here
+        // This is done to match the instruction video shown before.
         if (HOSPITAL_COURIER)
             practice = false;
 
@@ -2435,7 +2439,7 @@ public class DeliveryExperiment : CoroutineExperiment
             if (extraData == null)
                 extraData = new Dictionary<string, object>();
             
-            if (useElemem)
+            if (Config.elememOn)
                 elememInterface.SendStateMessage(stateName, extraData);
         #endif
     }

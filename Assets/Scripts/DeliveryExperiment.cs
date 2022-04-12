@@ -475,12 +475,8 @@ public class DeliveryExperiment : CoroutineExperiment
                 yield return niclsInterface.BeginNewSession(sessionNumber, true);
             }
 
-            // Setup up for new hospital courier
-            if (Config.elememOn)
-            {
-                yield return elememInterface.BeginNewSession(sessionNumber);
-                Debug.Log("Elemem in place");
-            }
+            // Setup Elemem
+            yield return elememInterface.BeginNewSession(sessionNumber, !Config.elememOn);
         #endif // !UNITY_WEBGL
 
         // Write versions to logfile

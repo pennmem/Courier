@@ -233,7 +233,7 @@ public class ElememInterfaceHelper : IHostPC
         dict.Add("accuracy", acc);
 
         //im.Do(new EventBase<string, Dictionary<string, object>>(im.ReportEvent, "latency check", dict));
-        scriptedEventReporter.ReportScriptedEvent("latency check", dict);
+        scriptedEventReporter.ReportScriptedEvent("latency check", dict, true);
     }
 
     public override JObject WaitForMessage(string type, int timeout)
@@ -373,9 +373,11 @@ public class ElememInterface : MonoBehaviour
     public IEnumerator BeginNewSession(int sessionNum, bool disableInterface = false)
     {
         yield return new WaitForSeconds(1);
-        elememInterfaceHelper = new ElememInterfaceHelper(scriptedEventReporter, disableInterface);
         if (disableInterface)
-            UnityEngine.Debug.Log("Started Elemem Interface");
+            yield break;
+
+        elememInterfaceHelper = new ElememInterfaceHelper(scriptedEventReporter, disableInterface);
+        UnityEngine.Debug.Log("Started Elemem Interface");
     }
 
     // MATH

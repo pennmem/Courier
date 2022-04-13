@@ -1080,7 +1080,7 @@ public class DeliveryExperiment : CoroutineExperiment
                                                                                              {"store value", roundedPoints},
                                                                                              {"point condition", storePointType},
                                                                                              {"task condition", freeFirst ? "FreeFirst" : "ValueFirst"},
-                                                                                             {"stim condition", isStimStore},
+                                                                                             {"stim condition", useElemem ? isStimStore : false},
                                                                                              {"stim tag", stimTag}
                                                                                             });
                 
@@ -1093,20 +1093,6 @@ public class DeliveryExperiment : CoroutineExperiment
                 allPresentedObjects.Add(deliveredItemName);
 
                 SetRamulatorState("WORD", true, new Dictionary<string, object>() { { "word", deliveredItemName } });
-                // LC: ELEMEM : FIX THIS NLLREFERENCE ERROR
-                // elememInterface.SendWordMessage(deliveredItemName, i+1, isStimStore, 
-                //                                 new Dictionary<string, object>() { {"trial number", continuousTrialNum},
-                //                                                                     {"item name", deliveredItemName},
-                //                                                                     {"store name", nextStore.GetStoreName()},
-                //                                                                     {"serial position", i+1},
-                //                                                                     {"player position", playerMovement.transform.position.ToString()},
-                //                                                                     {"store position", nextStore.transform.position.ToString()},
-                //                                                                     {"store value", roundedPoints},
-                //                                                                     {"point condition", storePointType},
-                //                                                                     {"task condition", freeFirst ? "FreeFirst" : "ValueFirst"},
-                //                                                                     {"stim condition", isStimStore},
-                //                                                                     {"stim tag", stimTag}
-                //                                                                  });
 
                 //add visuals with sound
                 messageImageDisplayer.deliver_item_visual_dislay.SetActive(true);

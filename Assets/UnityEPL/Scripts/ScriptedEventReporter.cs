@@ -24,19 +24,33 @@ public class ScriptedEventReporter : DataReporter
             //    elememInterface = GameObject.Find("MainCoroutine").GetComponent<ElememInterface>();
             //    Debug.Log(GameObject.Find("MainCoroutine"));
             //}
+            if (type == "object presentation begins")
+            {
+                string word = (string)dataDict["item name"];
+                int serialPos = (int)dataDict["serial position"];
+                bool stim = (bool)dataDict["stim condition"];
 
-            string elemem_type = type.ToUpper();
-            elemem_type = elemem_type.Replace(' ', '_');
+                Debug.Log(elememInterface != null);
+                Debug.Log(dataDict != null);
 
-            if (dataDict == null)
-                dataDict = new Dictionary<string, object>();
+                if (!noNetwork)
+                    elememInterface.SendWordMessage(word, serialPos, stim, dataDict);
+            }
+            else
+            {
+                string elemem_type = type.ToUpper();
+                elemem_type = elemem_type.Replace(' ', '_');
 
-            Debug.Log(elememInterface != null);
-            Debug.Log(elemem_type != null);
-            Debug.Log(dataDict != null);
+                if (dataDict == null)
+                    dataDict = new Dictionary<string, object>();
 
-            if (!noNetwork)
-                elememInterface.SendStateMessage(elemem_type, dataDict);
+                Debug.Log(elememInterface != null);
+                Debug.Log(elemem_type != null);
+                Debug.Log(dataDict != null);
+
+                if (!noNetwork)
+                    elememInterface.SendStateMessage(elemem_type, dataDict);
+            }
         }
         #endif
 

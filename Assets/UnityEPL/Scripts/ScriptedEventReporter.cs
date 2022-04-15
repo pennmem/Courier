@@ -8,49 +8,27 @@ using System.Threading;
 public class ScriptedEventReporter : DataReporter
 {
     // TODO: JPB: This is a hack and should be removed
-    public ElememInterface elememInterface;
+    private ElememInterface elememInterface;
 
     public void ReportScriptedEvent(string type, Dictionary<string, object> dataDict = null, bool noNetwork = false)
     {
         if (dataDict == null)
             dataDict = new Dictionary<string, object>();
 
-        // TODO: change type to all caps
         #if !UNITY_WEBGL
         if (Config.elememOn)
         {
-            //if (elememInterface == null)
-            //{
-            //    elememInterface = GameObject.Find("MainCoroutine").GetComponent<ElememInterface>();
-            //    Debug.Log(GameObject.Find("MainCoroutine"));
-            //}
-            if (type == "object presentation begins")
-            {
-                string word = (string)dataDict["item name"];
-                int serialPos = (int)dataDict["serial position"];
-                bool stim = (bool)dataDict["stim condition"];
+            if (elememInterface == null)
+                elememInterface = GameObject.Find("ElememInterface").GetComponent<ElememInterface>();
 
-                Debug.Log(elememInterface != null);
-                Debug.Log(dataDict != null);
+            string elemem_type = type.ToUpper();
+            elemem_type = elemem_type.Replace(' ', '_');
 
-                if (!noNetwork)
-                    elememInterface.SendWordMessage(word, serialPos, stim, dataDict);
-            }
-            else
-            {
-                string elemem_type = type.ToUpper();
-                elemem_type = elemem_type.Replace(' ', '_');
+            if (dataDict == null)
+                dataDict = new Dictionary<string, object>();
 
-                if (dataDict == null)
-                    dataDict = new Dictionary<string, object>();
-
-                Debug.Log(elememInterface != null);
-                Debug.Log(elemem_type != null);
-                Debug.Log(dataDict != null);
-
-                if (!noNetwork)
-                    elememInterface.SendStateMessage(elemem_type, dataDict);
-            }
+            if (!noNetwork)
+                elememInterface.SendStateMessage(elemem_type, dataDict);
         }
         #endif
 

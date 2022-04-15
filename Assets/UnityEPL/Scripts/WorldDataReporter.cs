@@ -16,6 +16,9 @@ public class WorldDataReporter : DataReporter
     private int offset;
     BoxCollider objectCollider;
 
+    // TODO: JPB: This is a hack and should be removed
+    private ElememInterface elememInterface;
+
     void Awake() {
         offset = (int)Random.Range(0, framesPerReport / 2);
     }
@@ -65,6 +68,23 @@ public class WorldDataReporter : DataReporter
         transformDict.Add("reportID", reportingID);
         transformDict.Add("objectName", gameObject.name);
         eventQueue.Enqueue(new DataPoint(gameObject.name + "Transform", RealWorldFrameDisplayTime(), transformDict));
+
+        #if !UNITY_WEBGL
+        if (Config.elememOn)
+        {
+            if (elememInterface == null)
+                elememInterface = GameObject.Find("ElememInterface").GetComponent<ElememInterface>();
+
+            string type = gameObject.name + "Transform";
+            string elemem_type = type.ToUpper();
+            elemem_type = elemem_type.Replace(' ', '_');
+
+            if (transformDict == null)
+                transformDict = new Dictionary<string, object>();
+
+            elememInterface.SendStateMessage(elemem_type, transformDict);
+        }
+        #endif
     }
 
     public void DoTransformReport()
@@ -81,6 +101,23 @@ public class WorldDataReporter : DataReporter
         transformDict.Add("reportID", reportingID);
         transformDict.Add("objectName", gameObject.name);
         eventQueue.Enqueue(new DataPoint(gameObject.name + "Transform", RealWorldFrameDisplayTime(), transformDict));
+
+        #if !UNITY_WEBGL
+        if (Config.elememOn)
+        {
+            if (elememInterface == null)
+                elememInterface = GameObject.Find("ElememInterface").GetComponent<ElememInterface>();
+
+            string type = gameObject.name + "Transform";
+            string elemem_type = type.ToUpper();
+            elemem_type = elemem_type.Replace(' ', '_');
+
+            if (transformDict == null)
+                transformDict = new Dictionary<string, object>();
+
+            elememInterface.SendStateMessage(elemem_type, transformDict);
+        }
+        #endif
     }
 
     private void CheckTransformReport()
@@ -104,6 +141,23 @@ public class WorldDataReporter : DataReporter
         transformDict.Add("reportID", reportingID);
         transformDict.Add("objectName", gameObject.name);
         eventQueue.Enqueue(new DataPoint(gameObject.name + "Spawn", RealWorldFrameDisplayTime(), transformDict));
+
+        #if !UNITY_WEBGL
+        if (Config.elememOn)
+        {
+            if (elememInterface == null)
+                elememInterface = GameObject.Find("ElememInterface").GetComponent<ElememInterface>();
+
+            string type = gameObject.name + "Spawn";
+            string elemem_type = type.ToUpper();
+            elemem_type = elemem_type.Replace(' ', '_');
+
+            if (transformDict == null)
+                transformDict = new Dictionary<string, object>();
+
+            elememInterface.SendStateMessage(elemem_type, transformDict);
+        }
+        #endif
     }
     
     private void DoDespawnReport() {
@@ -111,5 +165,22 @@ public class WorldDataReporter : DataReporter
         transformDict.Add("reportID", reportingID);
         transformDict.Add("objectName", gameObject.name);
         eventQueue.Enqueue(new DataPoint(gameObject.name + "Despawn", RealWorldFrameDisplayTime(), transformDict));
+
+        #if !UNITY_WEBGL
+        if (Config.elememOn)
+        {
+            if (elememInterface == null)
+                elememInterface = GameObject.Find("ElememInterface").GetComponent<ElememInterface>();
+
+            string type = gameObject.name + "Despawn";
+            string elemem_type = type.ToUpper();
+            elemem_type = elemem_type.Replace(' ', '_');
+
+            if (transformDict == null)
+                transformDict = new Dictionary<string, object>();
+
+            elememInterface.SendStateMessage(elemem_type, transformDict);
+        }
+        #endif
     }
 }

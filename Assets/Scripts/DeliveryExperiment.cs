@@ -1068,22 +1068,18 @@ public class DeliveryExperiment : CoroutineExperiment
                 int roundedPoints = (int)Math.Round(storePoints);
                 string deliveredItemNameWithSpace = VALUE_COURIER ? deliveredItemName.Replace('_', ' ') + ", " + roundedPoints.ToString() 
                                                                   : deliveredItemName.Replace('_', ' ');
-                audioPlayback.clip = deliveredItem;
-                audioPlayback.Play();
-                scriptedEventReporter.ReportScriptedEvent("object presentation begins",
-                                                          new Dictionary<string, object>() { {"trial number", continuousTrialNum},
-                                                                                             {"item name", deliveredItemName},
-                                                                                             {"store name", nextStore.GetStoreName()},
-                                                                                             {"serial position", i+1},
-                                                                                             {"player position", playerMovement.transform.position.ToString()},
-                                                                                             {"store position", nextStore.transform.position.ToString()},
-                                                                                             {"store value", roundedPoints},
-                                                                                             {"point condition", storePointType},
-                                                                                             {"task condition", freeFirst ? "FreeFirst" : "ValueFirst"},
-                                                                                             {"stim condition", useElemem ? isStimStore : false},
-                                                                                             {"stim tag", stimTag}
-                                                                                            });
-                
+                var itemPresentationInfo = new Dictionary<string, object>() { {"trial number", continuousTrialNum},
+                                                                            {"item name", deliveredItemName},
+                                                                            {"store name", nextStore.GetStoreName()},
+                                                                            {"serial position", i+1},
+                                                                            {"player position", playerMovement.transform.position.ToString()},
+                                                                            {"store position", nextStore.transform.position.ToString()},
+                                                                            {"store value", roundedPoints},
+                                                                            {"point condition", (int)storePointType},
+                                                                            {"task condition", freeFirst ? "FreeFirst" : "ValueFirst"},
+                                                                            {"stim condition", useElemem ? isStimStore : false},
+                                                                            {"stim tag", stimTag} };
+
                 #if !UNITY_WEBGL // System.IO
                     string lstFilepath = practice
                                 ? System.IO.Path.Combine(UnityEPL.GetDataPath(), "practice-" + continuousTrialNum.ToString() + ".lst")
@@ -1092,7 +1088,13 @@ public class DeliveryExperiment : CoroutineExperiment
                 #endif
                 allPresentedObjects.Add(deliveredItemName);
 
+                audioPlayback.clip = deliveredItem;
+                audioPlayback.Play();
+                
+
+                scriptedEventReporter.ReportScriptedEvent("object presentation begins", itemPresentationInfo);
                 SetRamulatorState("WORD", true, new Dictionary<string, object>() { { "word", deliveredItemName } });
+                elememInterface.SendWordMessage(deliveredItemName, i+1, isStimStore, itemPresentationInfo);
 
                 //add visuals with sound
                 messageImageDisplayer.deliver_item_visual_dislay.SetActive(true);

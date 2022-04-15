@@ -373,9 +373,6 @@ public class ElememInterface : MonoBehaviour
     public IEnumerator BeginNewSession(int sessionNum, bool disableInterface = false)
     {
         yield return new WaitForSeconds(1);
-        if (disableInterface)
-            yield break;
-
         elememInterfaceHelper = new ElememInterfaceHelper(scriptedEventReporter, disableInterface);
         UnityEngine.Debug.Log("Started Elemem Interface");
     }
@@ -427,7 +424,6 @@ public class ElememInterface : MonoBehaviour
     // RAMULATOR: ENCODING, RETRIEVAL
     public void SendStateMessage(string state, Dictionary<string, object> extraData = null)
     {
-
         SendMessage(state, extraData);
     }
 
@@ -441,15 +437,16 @@ public class ElememInterface : MonoBehaviour
     }
 
     // WORD
-    public void SendWordMessage(string word, int serialPos, bool stim, Dictionary<string, object> extraData)
+    public void SendWordMessage(string word, int serialPos, bool stim, Dictionary<string, object> extraData = null)
     {
         var data = new Dictionary<string, object>();
         data.Add("word", word);
         data.Add("serialPos", serialPos);
         data.Add("stim", stim);
-        foreach (string key in extraData.Keys)
-            if (!data.ContainsKey(key))
-                data.Add(key, extraData[key]);
+        if (extraData != null)
+            foreach (string key in extraData.Keys)
+                if (!data.ContainsKey(key))
+                    data.Add(key, extraData[key]);
         SendMessage("WORD", data);
     }
 
@@ -464,7 +461,8 @@ public class ElememInterface : MonoBehaviour
 
     private void SendMessage(string type, Dictionary<string, object> data = null)
     {
-        elememInterfaceHelper.SendMessage(type, data);
+        if (elememInterfaceHelper != null)
+            elememInterfaceHelper.SendMessage(type, data);
     }
 }
 #endif // !UNITY_WEBGL

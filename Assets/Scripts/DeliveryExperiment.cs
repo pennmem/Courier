@@ -1619,6 +1619,7 @@ public class DeliveryExperiment : CoroutineExperiment
     {
         scriptedEventReporter.ReportScriptedEvent("start cued recall");
         BlackScreen();
+        thisTrialPresentedStores.RemoveAt(thisTrialPresentedStores.Count -1); // LC: remove lastly visited stores where we don't delivery item
         thisTrialPresentedStores.Shuffle(rng);
         Debug.Log(thisTrialPresentedStores);
 

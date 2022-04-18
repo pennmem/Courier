@@ -1619,8 +1619,8 @@ public class DeliveryExperiment : CoroutineExperiment
     {
         scriptedEventReporter.ReportScriptedEvent("start cued recall");
         BlackScreen();
-        thisTrialPresentedStores.RemoveAt(thisTrialPresentedStores.Count -1);
         thisTrialPresentedStores.Shuffle(rng);
+        Debug.Log(thisTrialPresentedStores);
 
         if (practice)
         {

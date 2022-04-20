@@ -741,7 +741,7 @@ public class DeliveryExperiment : CoroutineExperiment
             else
                 yield return DoRecapInstructions(recap: true);
             
-            yield return DoSubjectSessionQuitPrompt(sessionNumber, LanguageSource.GetLanguageString("running participant"));
+            // yield return DoSubjectSessionQuitPrompt(sessionNumber, LanguageSource.GetLanguageString("running participant"));
         }
         else
         {
@@ -786,18 +786,18 @@ public class DeliveryExperiment : CoroutineExperiment
                 if (InputManager.GetButtonDown("Secret"))
                     break;
 
-                if (InputManager.GetButtonDown("UI_Left"))
+                if (InputManager.GetButtonDown("UI_Left") || InputManager.GetButtonDown("EfrLeft"))
                 {
                     prevpage = currpage;
                     currpage = Math.Max(currpage-1, 0);
                 }
-                if (InputManager.GetButtonDown("UI_Right"))
+                if (InputManager.GetButtonDown("UI_Right") || InputManager.GetButtonDown("EfrRight"))
                 {
                     prevpage = currpage;
                     currpage = Math.Min(currpage+1, lastpage);
                 }
 
-                if ((currpage == lastpage) && Input.GetKeyDown(KeyCode.N))
+                if ((currpage == lastpage) && InputManager.GetButton("EfrReject"))
                 {
                     messages[currpage].SetActive(false);
                     yield return DoVideo(LanguageSource.GetLanguageString("play movie"),

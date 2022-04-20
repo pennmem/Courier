@@ -85,7 +85,8 @@ public abstract class CoroutineExperiment : MonoBehaviour
             SetRamulatorState("WAITING", true, new Dictionary<string, object>());
             SetElememState("WAITING");
             textDisplayer.DisplayText("microphone test confirmation", confirmation);
-            while (!InputManager.GetKeyDown(KeyCode.Y) && !InputManager.GetKeyDown(KeyCode.N) && !InputManager.GetKeyDown(KeyCode.C))
+            while (!InputManager.GetKeyDown(KeyCode.Y) && !InputManager.GetKeyDown(KeyCode.N) && !InputManager.GetKeyDown(KeyCode.C) && 
+                   !InputManager.GetButtonDown("Continue"))
             {
                 yield return null;
             }

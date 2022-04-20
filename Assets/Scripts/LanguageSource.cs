@@ -50,7 +50,7 @@ public static class LanguageSource
         { "next practice day", new string[] { "Press (X) to proceed to the next practice delivery day.",
                                               "Drücken Sie (X) um die nächste trainier Auslieferungsrunde zu starten." } },
 
-        { "one btn efr intro video", new string[] { "Intro for EFR instruction video", GERMAN_TRANSLATION_NEEDED } },
+        { "one btn efr intro video", new string[] { "Intro for EFR instruction video. \n\nPress any key to play.", GERMAN_TRANSLATION_NEEDED } },
 
         { "first day main", new string [] { "Let’s start the first delivery day!", GERMAN_TRANSLATION_NEEDED } },
         { "two btn er first day description", new string [] { "Don’t forget to continue pressing the left/right buttons when recalling items at the end of each delivery day.",

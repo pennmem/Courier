@@ -405,7 +405,7 @@ public class DeliveryExperiment : CoroutineExperiment
         }
 
         // if (DEBUG)
-        // ConfigureExperiment(false, false, false, 0, "HospitalCourier");
+        // ConfigureExperiment(false, false, false, 1, "HospitalCourier");
 
         // Session check
         if (sessionNumber == -1)
@@ -797,7 +797,7 @@ public class DeliveryExperiment : CoroutineExperiment
                     currpage = Math.Min(currpage+1, lastpage);
                 }
 
-                if ((currpage == lastpage) && Input.GetKeyDown(KeyCode.R))
+                if ((currpage == lastpage) && Input.GetKeyDown(KeyCode.N))
                 {
                     messages[currpage].SetActive(false);
                     yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
@@ -1145,12 +1145,11 @@ public class DeliveryExperiment : CoroutineExperiment
         // LC: add standard FR instruction video
         else
         {
-            messageImageDisplayer.SetGeneralMessageText(mainText: "practice hospital");
-            yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
             yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
                                  LanguageSource.GetLanguageString("standard intro video"),
                                  VideoSelector.VideoType.practiceVideo);
-                                 //skipPrompt:true);
+            messageImageDisplayer.SetGeneralMessageText(mainText: "practice hospital");
+            yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
         }
         WorldScreen();
 
@@ -1170,7 +1169,7 @@ public class DeliveryExperiment : CoroutineExperiment
                 else // One btn ER
                 {
                     if (Config.efrEnabled)
-                        yield return DoVideo(LanguageSource.GetLanguageString("one btn efr intro video"),
+                        yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
                                              LanguageSource.GetLanguageString("standard intro video"),
                                              VideoSelector.VideoType.efrRecapVideo);
 

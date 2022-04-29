@@ -992,10 +992,7 @@ public class DeliveryExperiment : CoroutineExperiment
                     unvisitedStores.Add(previousTrialStore);
             }
             if (i == deliveries-1)
-            {
                 previousTrialStore = nextStore;
-                Debug.Log("Previous Trial Store: " + nextStore.GetStoreName());
-            }
 
             playerMovement.Freeze();
             messageImageDisplayer.please_find_the_blah_reminder.SetActive(false);

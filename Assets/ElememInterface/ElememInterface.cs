@@ -367,7 +367,7 @@ public class ElememInterface : MonoBehaviour
     //This will be used to log messages
     public ScriptedEventReporter scriptedEventReporter;
 
-    private ElememInterfaceHelper elememInterfaceHelper = null;
+    public ElememInterfaceHelper elememInterfaceHelper = null;
 
     // CONNECTED, CONFIGURE, READY, and HEARTBEAT
     public IEnumerator BeginNewSession(int sessionNum, bool disableInterface = false)

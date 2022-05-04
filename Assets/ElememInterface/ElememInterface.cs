@@ -478,7 +478,7 @@ public class ElememInterface : MonoBehaviour
     {
         string currStimTag = stimTags[switchCount];
         var data = new Dictionary<string, object>();
-        data.Add("tag", tag);
+        data.Add("tag", currStimTag);
         elememInterfaceHelper.SendMessageInternal("STIMSELECT", data);
         switchCount++;
 

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Luminosity.IO;
+using UnityEngine.Video;
 
 public class VideoControl : MonoBehaviour
 {
@@ -41,9 +42,7 @@ public class VideoControl : MonoBehaviour
     public void StartVideo()
     {
         Debug.Log("VideoControl start video");
-        // #if UNITY_WEBGL
-        //     videoPlayer.loopPointReached += (VideoPlayer vp) => gameObject.SetActive(false);
-        // #endif
+        videoPlayer.loopPointReached += (VideoPlayer vp) => gameObject.SetActive(false);
         gameObject.SetActive(true);
     }
 

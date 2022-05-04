@@ -369,6 +369,9 @@ public class ElememInterface : MonoBehaviour
 
     public ElememInterfaceHelper elememInterfaceHelper = null;
 
+    private int switchCount = 0;
+    public List<string> stimTags = null;
+
     // CONNECTED, CONFIGURE, READY, and HEARTBEAT
     public IEnumerator BeginNewSession(int sessionNum, bool disableInterface = false)
     {
@@ -392,6 +395,7 @@ public class ElememInterface : MonoBehaviour
     public void SendStimMessage()
     {
         SendMessage("STIM");
+        UnityEngine.Debug.Log("ZZZAPPPPPP");
     }
 
     // CLSTIM, CLSHAM, CLNORMALIZE
@@ -450,8 +454,29 @@ public class ElememInterface : MonoBehaviour
         SendMessage("WORD", data);
     }
 
-    // LC: TODO: REPEATING STIM
-    
+    // LC: Repeating Stimulation for U01 Courier
+    public void DoRepeatingStim(int iterations, int delay, int interval)
+    {
+        elememInterfaceHelper.DoRepeating(new RepeatingEvent(new EventBase(SendStimMessage), iterations, delay, interval));
+    }
+
+    // LC: Alternating the stimulation frequency for U01 Courier
+    public void DoRepeatingSwitch(int iterations, int delay, int interval)
+    {
+        elememInterfaceHelper.DoRepeating(new RepeatingEvent(new EventBase(SwitchStimFreq), iterations, delay, interval));
+    }
+
+    public void SwitchStimFreq()
+    {
+        string currStimTag = stimTags[switchCount];
+        SendStimSelectMessage(currStimTag);
+        switchCount++;
+
+        UnityEngine.Debug.Log("SWTICH STIM FREQUENCY TO " + currStimTag);
+
+        if (stimTags.Count == switchCount)
+            switchCount = 0;
+    }
 
     // EXIT
     public void SendExitMessage()

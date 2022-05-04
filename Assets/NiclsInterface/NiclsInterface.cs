@@ -294,7 +294,7 @@ public class NiclsInterfaceHelper : IHostPC
         // }
     }
 
-    protected override void SendMessageInternal(string type, Dictionary<string, object> data = null) {
+    public override void SendMessageInternal(string type, Dictionary<string, object> data = null) {
         if (data == null)
             data = new Dictionary<string, object>();
         DataPoint point = new DataPoint(type, System.DateTime.UtcNow, data);

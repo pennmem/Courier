@@ -16,7 +16,7 @@ public abstract class IHostPC : EventLoop {
     public abstract void Connect();
     public abstract void HandleMessage(string message, DateTime time);
     public abstract void SendMessage(string type, Dictionary<string, object> data);
-    protected abstract void SendMessageInternal(string type, Dictionary<string, object> data);
+    public abstract void SendMessageInternal(string type, Dictionary<string, object> data);
 }
 
 public class ElememListener {
@@ -311,7 +311,7 @@ public class ElememInterfaceHelper : IHostPC
     }
 
 
-    protected override void SendMessageInternal(string type, Dictionary<string, object> data = null) {
+    public override void SendMessageInternal(string type, Dictionary<string, object> data = null) {
         if (interfaceDisabled) return;
 
         if (data == null)
@@ -356,6 +356,12 @@ public class ElememInterfaceHelper : IHostPC
         //                        messageDataDict, System.DateTime.UtcNow));
 
     }
+
+    // LC: Repeating Stimulation for U01 Courier
+    public void DoRepeatingStim(int iterations, int delay, int interval)
+    {
+        DoRepeating(new RepeatingEvent(new EventBase<string, Dictionary<string, object>>(SendMessageInternal, "STIM", null), iterations, delay, interval));
+    }
 }
 
 public class ElememInterface : MonoBehaviour
@@ -395,7 +401,6 @@ public class ElememInterface : MonoBehaviour
     public void SendStimMessage()
     {
         SendMessage("STIM");
-        UnityEngine.Debug.Log("ZZZAPPPPPP");
     }
 
     // CLSTIM, CLSHAM, CLNORMALIZE
@@ -457,19 +462,24 @@ public class ElememInterface : MonoBehaviour
     // LC: Repeating Stimulation for U01 Courier
     public void DoRepeatingStim(int iterations, int delay, int interval)
     {
-        elememInterfaceHelper.DoRepeating(new RepeatingEvent(new EventBase(SendStimMessage), iterations, delay, interval));
+        if (elememInterfaceHelper != null)
+            elememInterfaceHelper.DoRepeatingStim(iterations, delay, interval);
     }
 
     // LC: Alternating the stimulation frequency for U01 Courier
+    //     Note that this happens 1.5 seconds prior to DoRepeatingStim() call
     public void DoRepeatingSwitch(int iterations, int delay, int interval)
     {
-        elememInterfaceHelper.DoRepeating(new RepeatingEvent(new EventBase(SwitchStimFreq), iterations, delay, interval));
+        if (elememInterfaceHelper != null)
+            elememInterfaceHelper.DoRepeating(new RepeatingEvent(new EventBase(SwitchStimFreq), iterations, delay, interval));
     }
 
-    public void SwitchStimFreq()
+    protected void SwitchStimFreq()
     {
         string currStimTag = stimTags[switchCount];
-        SendStimSelectMessage(currStimTag);
+        var data = new Dictionary<string, object>();
+        data.Add("tag", tag);
+        elememInterfaceHelper.SendMessageInternal("STIMSELECT", data);
         switchCount++;
 
         UnityEngine.Debug.Log("SWTICH STIM FREQUENCY TO " + currStimTag);

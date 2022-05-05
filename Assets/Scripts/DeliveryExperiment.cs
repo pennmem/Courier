@@ -386,7 +386,7 @@ public class DeliveryExperiment : CoroutineExperiment
         }
 
         // if (DEBUG)
-        ConfigureExperiment(false, false, true, 1, "HospitalCourier");
+        // ConfigureExperiment(false, false, true, 1, "HospitalCourier");
 
         // Session check
         if (sessionNumber == -1)

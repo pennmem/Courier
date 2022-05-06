@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using System;
 using UnityEngine;
 
@@ -61,11 +62,11 @@ public class ElememDataPoint
     public string ValueToString(dynamic value) {
         if(value.GetType().IsArray || value is IList)
         { 
-            string json = "[";
-            foreach (object val in (IEnumerable)value) { 
-                json = json + ValueToString(val);
+            var stringValues = new List<string>();
+            foreach (object val in (IEnumerable)value) {
+                stringValues.Add(ValueToString(val));
             }
-            return json + "]";
+            return "[" + String.Join(",", stringValues) + "]";
         }
         else if (IsNumeric(value)) 
         {

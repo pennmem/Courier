@@ -117,6 +117,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private const int MUSIC_VIDEO_PROMPT_TIME = 5;
     private const int MUSIC_VIDEO_RECALL_TIME = 175;
 
+
     public Camera regularCamera;
     public Camera blackScreenCamera;
     public Familiarizer familiarizer;
@@ -195,6 +196,9 @@ public class DeliveryExperiment : CoroutineExperiment
     // Stim variables
     public List<string> stimTags = new List<string>{"3Hz", "8Hz"};
     public const float STIM_DURATION = 3f;
+    private const int ELEMEM_REP_STIM_INTERVAL = 6000; // ms, 2*STIM_DURATION
+    private const int ELEMEM_REP_STIM_DELAY = 1500; // ms
+    private const int ELEMEM_REP_SWITCH_DELAY = 3000; // ms
 
     // Stim Tags
     List<string> GenerateStimTags(int numTrials)
@@ -457,7 +461,7 @@ public class DeliveryExperiment : CoroutineExperiment
             }
 
             // Setup Elemem
-            yield return elememInterface.BeginNewSession(sessionNumber, !Config.elememOn);
+            yield return elememInterface.BeginNewSession(sessionNumber, !Config.elememOn, stimTags.ToArray());
         #endif // !UNITY_WEBGL
 
         // Write versions to logfile
@@ -929,7 +933,7 @@ public class DeliveryExperiment : CoroutineExperiment
         thisTrialPresentedStores = new List<StoreComponent>();
 
         // LC: Set the Stim freq
-        if (useElemem)
+        if (useElemem && (stimTag != null))
             elememInterface.SendStimSelectMessage(stimTag);
             Debug.Log("This Trial is using " + stimTag + " as stim frequency");
 
@@ -1552,16 +1556,16 @@ public class DeliveryExperiment : CoroutineExperiment
                 yield return DoFreeRecallDisplay("", PRACTICE_FREE_RECALL_LENGTH, practice: true);
             else
             {
-                // LC: turn on the stimulation
                 if (useElemem)
                 {
+                    // Elemem testing code
                     // if (elememInterface == null)
                     //     elememInterface = GameObject.Find("ElememInterface").GetComponent<ElememInterface>();
                     //     elememInterface.elememInterfaceHelper.Start();
                     //     elememInterface.elememInterfaceHelper.StartLoop();
                     
                     int iterations = (int)Math.Round(FREE_RECALL_LENGTH / (STIM_DURATION * 2));
-                    elememInterface.DoRepeatingStim(iterations, 3000, 6000);
+                    elememInterface.DoRepeatingStim(iterations, ELEMEM_REP_SWITCH_DELAY, ELEMEM_REP_STIM_INTERVAL);
                 }
                 yield return DoFreeRecallDisplay("", FREE_RECALL_LENGTH);
             }
@@ -1747,9 +1751,9 @@ public class DeliveryExperiment : CoroutineExperiment
                 textDisplayer.ClearText();
                 ClearTitle();
 
-                // LC: TODO: ELEMEM
                 if (useElemem)
                 {
+                    // Elemem testing code
                     // if (elememInterface == null)
                     //     elememInterface = GameObject.Find("ElememInterface").GetComponent<ElememInterface>();
                     //     elememInterface.elememInterfaceHelper.Start();
@@ -1758,8 +1762,8 @@ public class DeliveryExperiment : CoroutineExperiment
                     int iterations = (int)Math.Round(STORE_FINAL_RECALL_LENGTH / (STIM_DURATION * 2));
                     // LC: we need to alternate the stim frequency. also we need to give some time buffer
                     elememInterface.stimTags = GenerateStimTags(iterations);
-                    elememInterface.DoRepeatingSwitch(iterations, 1500, 6000);
-                    elememInterface.DoRepeatingStim(iterations, 3000, 6000);
+                    elememInterface.DoRepeatingSwitch(iterations, ELEMEM_REP_STIM_DELAY, ELEMEM_REP_STIM_INTERVAL);
+                    elememInterface.DoRepeatingStim(iterations, ELEMEM_REP_SWITCH_DELAY, ELEMEM_REP_STIM_INTERVAL);
                 }
                 yield return DoFreeRecallDisplay("final store recall", STORE_FINAL_RECALL_LENGTH);
 
@@ -1799,10 +1803,9 @@ public class DeliveryExperiment : CoroutineExperiment
             textDisplayer.ClearText();
             ClearTitle();
             
-            // LC: TODO: ELEMEM
-            // LC: turn on the stimulation
             if (useElemem)
             {
+                // Elemem testing code
                 // if (elememInterface == null)
                 //     elememInterface = GameObject.Find("ElememInterface").GetComponent<ElememInterface>();
                 //     elememInterface.elememInterfaceHelper.Start();
@@ -1810,9 +1813,8 @@ public class DeliveryExperiment : CoroutineExperiment
                 
                 int iterations = (int)Math.Round(OBJECT_FINAL_RECALL_LENGTH / (STIM_DURATION * 2));
                 elememInterface.stimTags = GenerateStimTags(iterations);
-                elememInterface.DoRepeatingSwitch(iterations, 1500, 6000);
-                elememInterface.DoRepeatingStim(iterations, 3000, 6000);
-
+                elememInterface.DoRepeatingSwitch(iterations, ELEMEM_REP_STIM_DELAY, ELEMEM_REP_STIM_INTERVAL);
+                elememInterface.DoRepeatingStim(iterations, ELEMEM_REP_SWITCH_DELAY, ELEMEM_REP_STIM_INTERVAL);
             }
             yield return DoFreeRecallDisplay("all objects recall", OBJECT_FINAL_RECALL_LENGTH);
 

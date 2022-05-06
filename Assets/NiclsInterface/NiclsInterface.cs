@@ -154,7 +154,7 @@ public class NiclsInterfaceHelper : IHostPC
         return niclServer.GetStream();
     }
 
-    public override void Connect() {
+    public override void Connect(string[] stimtags = null) {
         niclServer = new TcpClient();
 
         //try {

@@ -13,7 +13,7 @@ using Newtonsoft.Json.Linq;
 public abstract class IHostPC : EventLoop {
     public abstract JObject WaitForMessage(string type, int timeout);
     public abstract JObject WaitForMessages(string[] types, int timeout);
-    public abstract void Connect();
+    public abstract void Connect(string[] stimtags = null);
     public abstract void HandleMessage(string message, DateTime time);
     public abstract void SendMessage(string type, Dictionary<string, object> data);
     public abstract void SendMessageInternal(string type, Dictionary<string, object> data);
@@ -121,7 +121,7 @@ public class ElememInterfaceHelper : IHostPC
 
     private bool interfaceDisabled = true;
 
-    public ElememInterfaceHelper(ScriptedEventReporter _scriptedEventReporter, bool _interfaceDisabled) { //InterfaceManager _im) {
+    public ElememInterfaceHelper(ScriptedEventReporter _scriptedEventReporter, bool _interfaceDisabled, string[] stimTags = null) { //InterfaceManager _im) {
         //im = _im;
 
         interfaceDisabled = _interfaceDisabled;
@@ -131,7 +131,7 @@ public class ElememInterfaceHelper : IHostPC
         listener = new ElememListener(this);
         Start();
         StartLoop();
-        Connect();
+        Connect(stimTags);
         //Do(new EventBase(Connect));
     }
 
@@ -159,7 +159,7 @@ public class ElememInterfaceHelper : IHostPC
         return elememServer.GetStream();
     }
 
-    public override void Connect() {
+    public override void Connect(string[] stimTags = null) {
         if (interfaceDisabled) return;
 
         elememServer = new TcpClient();
@@ -185,6 +185,8 @@ public class ElememInterfaceHelper : IHostPC
         configDict.Add("experiment", UnityEPL.GetExperimentName());
         configDict.Add("subject", UnityEPL.GetParticipants()[0]);
         configDict.Add("session", UnityEPL.GetSessionNumber().ToString());
+        if (stimTags != null)
+            configDict.Add("stimtags", stimTags);
         SendMessageInternal("CONFIGURE", configDict);
         var ElememConfig = WaitForMessage("CONFIGURE_OK", messageTimeout);
         var ElememerverConfigPath = System.IO.Path.Combine(UnityEPL.GetDataPath(), "elememServer_config.json");
@@ -379,10 +381,10 @@ public class ElememInterface : MonoBehaviour
     public List<string> stimTags = null;
 
     // CONNECTED, CONFIGURE, READY, and HEARTBEAT
-    public IEnumerator BeginNewSession(int sessionNum, bool disableInterface = false)
+    public IEnumerator BeginNewSession(int sessionNum, bool disableInterface = false, string[] uniqueStimTags = null)
     {
         yield return new WaitForSeconds(1);
-        elememInterfaceHelper = new ElememInterfaceHelper(scriptedEventReporter, disableInterface);
+        elememInterfaceHelper = new ElememInterfaceHelper(scriptedEventReporter, disableInterface, uniqueStimTags);
         UnityEngine.Debug.Log("Started Elemem Interface");
     }
 
@@ -416,7 +418,7 @@ public class ElememInterface : MonoBehaviour
     public void SendStimSelectMessage(string tag)
     {
         var data = new Dictionary<string, object>();
-        data.Add("tag", tag);
+        data.Add("stimtag", tag);
         SendMessage("STIMSELECT", data);
     }
 
@@ -478,7 +480,7 @@ public class ElememInterface : MonoBehaviour
     {
         string currStimTag = stimTags[switchCount];
         var data = new Dictionary<string, object>();
-        data.Add("tag", currStimTag);
+        data.Add("stimtag", currStimTag);
         elememInterfaceHelper.SendMessageInternal("STIMSELECT", data);
         switchCount++;
 

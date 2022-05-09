@@ -12,10 +12,12 @@ public class FpsDisplayer : MonoBehaviour
 
     protected bool showFps = false;
 
+    #if !UNITY_WEBGL
     private void Start()
     {
         Config.Get(() => Config.showFps, false);
     }
+    #endif
 
     void Update () {
         deltaTime += (Time.unscaledDeltaTime - deltaTime) * 0.1f;

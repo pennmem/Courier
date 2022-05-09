@@ -10,9 +10,9 @@ using UnityEngine.Networking;
 public abstract class CoroutineExperiment : MonoBehaviour
 {
     private const int MICROPHONE_TEST_LENGTH = 5;
-
-    public SoundRecorder soundRecorder;
-    
+    #if !UNITY_WEBGL
+        public SoundRecorder soundRecorder;
+    #endif
     public TextDisplayer textDisplayer;
     public VideoControl videoPlayer;
     public VideoSelector videoSelector;
@@ -29,10 +29,13 @@ public abstract class CoroutineExperiment : MonoBehaviour
 
     protected abstract void SetRamulatorState(string stateName, bool state, Dictionary<string, object> extraData);
 
+    protected abstract void SetElememState(string stateName, Dictionary<string, object> extraData = null);
+
     protected IEnumerator DoSubjectSessionQuitPrompt(int sessionNumber, string message)
     {
         yield return null;
         SetRamulatorState("WAITING", true, new Dictionary<string, object>());
+        SetElememState("WAITING");
         textDisplayer.DisplayText("subject/session confirmation", message);
         while (!InputManager.GetKeyDown(KeyCode.Y) && !InputManager.GetKeyDown(KeyCode.N))
         {
@@ -44,6 +47,7 @@ public abstract class CoroutineExperiment : MonoBehaviour
             Quit();
     }
 
+    #if !UNITY_WEBGL
     protected IEnumerator DoMicrophoneTest(string title, string press_any_key, string recording, string playing, string confirmation)
     {
         DisplayTitle(title);
@@ -79,8 +83,10 @@ public abstract class CoroutineExperiment : MonoBehaviour
             textDisplayer.OriginalColor();
 
             SetRamulatorState("WAITING", true, new Dictionary<string, object>());
+            SetElememState("WAITING");
             textDisplayer.DisplayText("microphone test confirmation", confirmation);
-            while (!InputManager.GetKeyDown(KeyCode.Y) && !InputManager.GetKeyDown(KeyCode.N) && !InputManager.GetKeyDown(KeyCode.C))
+            while (!InputManager.GetKeyDown(KeyCode.Y) && !InputManager.GetKeyDown(KeyCode.N) && !InputManager.GetKeyDown(KeyCode.C) && 
+                   !InputManager.GetButtonDown("Continue"))
             {
                 yield return null;
             }
@@ -97,6 +103,7 @@ public abstract class CoroutineExperiment : MonoBehaviour
 
         ClearTitle();
     }
+    #endif
 
     protected void DisplayTitle(string title)
     {
@@ -109,15 +116,17 @@ public abstract class CoroutineExperiment : MonoBehaviour
         titleMessage.SetActive(false);
     }
 
-    protected IEnumerator DoVideo(string playPrompt, string repeatPrompt, VideoSelector.VideoType videoType, int videoIndex = -1)
+    protected IEnumerator DoVideo(string playPrompt, string repeatPrompt, VideoSelector.VideoType videoType, int videoIndex = -1, bool skipPrompt=false)
     {
-        yield return PressAnyKey(playPrompt);
+        if (!skipPrompt)
+            yield return PressAnyKey(playPrompt);
 
         bool replay = false;
         do
         {
             //start video player and wait for it to stop playing
             SetRamulatorState("INSTRUCT", true, new Dictionary<string, object>());
+            SetElememState("INSTRUCT");
             videoSelector.SetVideo(videoType, videoIndex);
             scriptedEventReporter.ReportScriptedEvent("start video", new Dictionary<string, object> { { "video number", videoIndex } });
             videoPlayer.StartVideo();
@@ -127,6 +136,7 @@ public abstract class CoroutineExperiment : MonoBehaviour
             SetRamulatorState("INSTRUCT", false, new Dictionary<string, object>());
 
             SetRamulatorState("WAITING", true, new Dictionary<string, object>());
+            SetElememState("WAITING");
             if (repeatPrompt != null)
             {
                 textDisplayer.DisplayText("repeat video prompt", repeatPrompt);
@@ -145,6 +155,7 @@ public abstract class CoroutineExperiment : MonoBehaviour
     protected IEnumerator PressAnyKey(string displayText)
     {
         SetRamulatorState("WAITING", true, new Dictionary<string, object>());
+        SetElememState("WAITING");
         yield return null;
 
         textDisplayer.DisplayText("press any key prompt", displayText);
@@ -153,54 +164,6 @@ public abstract class CoroutineExperiment : MonoBehaviour
 
         textDisplayer.ClearText();
         SetRamulatorState("WAITING", false, new Dictionary<string, object>());
-    }
-
-    class ReadOnlineFile
-    {
-        ReadOnlineFile(string filePath)
-        {
-
-        }
-    }
-
-
-    // TODO: LC: This should later be refactored into FlexibleConfig.cs
-    protected IEnumerator GetOnlineConfig()
-    {
-        Debug.Log("setting web request");
-        // string systemConfigPath = System.IO.Path.Combine(Application.streamingAssetsPath, "config.json");
-        string systemConfigPath = "http://psiturk.sas.upenn.edu:22371/static/js/Unity/build/StreamingAssets/config.json";
-        UnityWebRequest systemWWW = UnityWebRequest.Get(systemConfigPath);
-        yield return systemWWW.SendWebRequest();
-
-        // TODO: LC: if (systemWWW.result != UnityWebRequest.Result.Success) for later Unity versions
-        if (systemWWW.isNetworkError || systemWWW.isHttpError)
-        {
-            Debug.Log("Network error " + systemWWW.error);
-        }
-        else
-        {
-            Config.onlineSystemConfigText = systemWWW.downloadHandler.text;
-            Debug.Log("Online System Config fetched!!");
-            Debug.Log(Config.onlineSystemConfigText);
-        }
-
-        // string experimentConfigPath = System.IO.Path.Combine(Application.streamingAssetsPath, "CourierOnline.json");
-        string experimentConfigPath = "http://psiturk.sas.upenn.edu:22371/static/js/Unity/build/StreamingAssets/CourierOnline.json";
-        UnityWebRequest experimentWWW = UnityWebRequest.Get(experimentConfigPath);
-        yield return experimentWWW.SendWebRequest();
-
-        // TODO: LC: if (experimentWWW.result != UnityWebRequest.Result.Success) for later Unity versions
-        if (experimentWWW.isNetworkError || experimentWWW.isHttpError)
-        {
-            Debug.Log("Network error " + experimentWWW.error);
-        }
-        else
-        {
-            Config.onlineExperimentConfigText = experimentWWW.downloadHandler.text;
-            Debug.Log("Online Experiment Config fetched!!");
-            Debug.Log(Config.onlineExperimentConfigText);
-        }
     }
 
     protected void Quit()

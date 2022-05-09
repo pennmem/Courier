@@ -11,4 +11,8 @@ mergeInto(LibraryManager.library, {
     EndTask: function() {
         Questionnaire(psiturk);
     },
+
+    NoRefresh: function() {
+        psiturk.finishInstructions();
+    },
 });

@@ -149,6 +149,8 @@ TextureImporter:
   isReadable: 0
   streamingMipmaps: 0
   streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMasterTextureLimit: 0
   grayScaleToAlpha: 0
   generateCubemap: 6
   cubemapConvolution: 0
@@ -157,9 +159,9 @@ TextureImporter:
   maxTextureSize: 1024
   textureSettings:
     serializedVersion: 2
-    filterMode: -1
+    filterMode: 1
     aniso: 16
-    mipBias: -100
+    mipBias: 0
     wrapU: 1
     wrapV: 1
     wrapW: 1
@@ -180,9 +182,12 @@ TextureImporter:
   textureType: 8
   textureShape: 1
   singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
   maxTextureSizeSet: 0
   compressionQualitySet: 0
   textureFormatSet: 0
+  ignorePngGamma: 0
   applyGammaDecoding: 1
   platformSettings:
   - serializedVersion: 3
@@ -1092,6 +1097,49 @@ TextureImporter:
     edges: []
     weights: []
     secondaryTextures: []
+    nameFileIdTable:
+      grey_assets_31: 21300062
+      grey_assets_0: 21300000
+      grey_assets_32: 21300064
+      grey_assets_24: 21300048
+      grey_assets_12: 21300024
+      grey_assets_29: 21300058
+      grey_button_up_01: 21300066
+      grey_assets_21: 21300042
+      grey_assets_8: 21300016
+      grey_assets_37: 21300074
+      grey_assets_38: 21300076
+      grey_assets_14: 21300028
+      grey_assets_39: 21300078
+      grey_assets_41: 21300082
+      grey_assets_23: 21300046
+      grey_assets_30: 21300060
+      grey_assets_3: 21300006
+      grey_assets_1: 21300002
+      grey_assets_11: 21300022
+      grey_assets_15: 21300030
+      grey_assets_26: 21300052
+      grey_assets_9: 21300018
+      grey_assets_34: 21300068
+      grey_assets_28: 21300056
+      grey_assets_5: 21300010
+      grey_assets_22: 21300044
+      grey_assets_17: 21300034
+      grey_panel: 21300080
+      grey_button_down_01: 21300054
+      grey_assets_6: 21300012
+      grey_assets_13: 21300026
+      grey_assets_36: 21300072
+      grey_assets_19: 21300038
+      grey_assets_7: 21300014
+      grey_assets_18: 21300036
+      grey_assets_4: 21300008
+      grey_assets_35: 21300070
+      grey_assets_20: 21300040
+      grey_assets_2: 21300004
+      grey_assets_10: 21300020
+      grey_assets_16: 21300032
+      grey_assets_25: 21300050
   spritePackingTag: 
   pSDRemoveMatte: 0
   pSDShowRemoveMatteOption: 0

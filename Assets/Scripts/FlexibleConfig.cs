@@ -15,10 +15,15 @@ public class Config
     public static string experimentConfigName = "EXPERIMENT_CONFIG_NAME_NOT_SET";
     public static string onlineSystemConfigText = null;
     public static string onlineExperimentConfigText = null;
+    // LC: TODO: COME UP WITH A BETTER WAY
+    public static bool elememStimMode = false;
 
     // System Settings
     public static string niclServerIP { get { return (string)Config.GetSetting("niclServerIP"); } }
     public static int niclServerPort { get { return (int)Config.GetSetting("niclServerPort"); } }
+    public static string elememServerIP { get { return (string)Config.GetSetting("elememServerIP"); } }
+    public static int elememServerPort { get { return (int)Config.GetSetting("elememServerPort"); } }
+    public static bool elememOn { get { return (bool)Config.GetSetting("elememOn"); } }
 
     // Hardware
     public static bool noSyncbox { get { return (bool)Config.GetSetting("noSyncbox"); } }
@@ -30,7 +35,6 @@ public class Config
     public static bool showFps { get { return (bool)Config.GetSetting("showFps"); } }
 
     // Game Section Skips
-    public static bool skipFPS { get { return (bool)Config.GetSetting("skipFPS"); } }
     public static bool skipIntros { get { return (bool)Config.GetSetting("skipIntros"); } }
     public static bool skipTownLearning { get { return (bool)Config.GetSetting("skipTownLearning"); } }
     public static bool skipNewEfrKeypressCheck { get { return (bool)Config.GetSetting("skipNewEfrKeypressCheck"); } }
@@ -41,8 +45,8 @@ public class Config
     public static bool ecrEnabled { get { return (bool)Config.GetSetting("ecrEnabled"); } }
     public static bool twoBtnEfrEnabled { get { return (bool)Config.GetSetting("twoBtnEfrEnabled"); } }
     public static bool twoBtnEcrEnabled { get { return (bool)Config.GetSetting("twoBtnEcrEnabled"); } }
-    public static bool niclsCourier { get { return (bool)Config.GetSetting("niclsCourier"); } }
     public static bool counterBalanceCorrectIncorrectButton { get { return (bool)Config.GetSetting("counterBalanceCorrectIncorrectButton"); } }
+
     public static bool temporallySmoothedTurning { get { return (bool)Config.GetSetting("temporallySmoothedTurning"); } }
     public static bool sinSmoothedTurning { get { return (bool)Config.GetSetting("sinSmoothedTurning"); } }
     public static bool cubicSmoothedTurning { get { return (bool)Config.GetSetting("cubicSmoothedTurning"); } }
@@ -67,8 +71,8 @@ public class Config
 
     private const string SYSTEM_CONFIG_NAME = "config.json";
 
-    private static object systemConfig = null;
-    private static object experimentConfig = null;
+    private static IDictionary<string, object> systemConfig = null;
+    private static IDictionary<string, object> experimentConfig = null;
 
 
     public static T Get<T>(Func<T> getProp, T defaultValue)
@@ -89,18 +93,18 @@ public class Config
     private static object GetSetting(string setting)
     {
         object value;
-        var experimentConfig = (IDictionary<string, object>)GetExperimentConfig();
+        var experimentConfig = GetExperimentConfig();
         if (experimentConfig.TryGetValue(setting, out value))
             return value;
 
-        var systemConfig = (IDictionary<string, object>)GetSystemConfig();
+        var systemConfig = GetSystemConfig();
         if (systemConfig.TryGetValue(setting, out value))
             return value;
 
         throw new MissingFieldException("Missing Config Setting " + setting + ".");
     }
 
-    private static object GetSystemConfig()
+    private static IDictionary<string, object> GetSystemConfig()
     {
         if (systemConfig == null)
         {
@@ -118,12 +122,12 @@ public class Config
                     systemConfig = FlexibleConfig.LoadFromText(onlineSystemConfigText);
             #endif
         }
-        return systemConfig;
+        return (IDictionary<string, object>)systemConfig;
     }
 
-    private static object GetExperimentConfig()
+    private static IDictionary<string, object> GetExperimentConfig()
     {
-        if(experimentConfig == null)
+        if (experimentConfig == null)
         {
             // Setup config file
             #if !UNITY_WEBGL // System.IO
@@ -139,13 +143,75 @@ public class Config
                     experimentConfig = FlexibleConfig.LoadFromText(onlineExperimentConfigText);
             #endif
         }
-        return experimentConfig;
+        return (IDictionary<string, object>)experimentConfig;
+    }
+
+    public static void SaveConfigs(ScriptedEventReporter scriptedEventReporter, string path)
+    {
+        if (experimentConfig != null)
+        {
+            if (scriptedEventReporter != null)
+                scriptedEventReporter.ReportScriptedEvent("experimentConfig", new Dictionary<string, object>(experimentConfig));
+            #if !UNITY_WEBGL // System.IO
+                FlexibleConfig.WriteToText(systemConfig, Path.Combine(path, experimentConfigName + ".json"));
+            #endif // !UNITY_WEBGL
+        }
+
+        if (systemConfig != null)
+        {
+            if (scriptedEventReporter != null)
+                scriptedEventReporter.ReportScriptedEvent("systemConfig", new Dictionary<string, object>(systemConfig));
+            #if !UNITY_WEBGL // System.IO
+                FlexibleConfig.WriteToText(systemConfig, Path.Combine(path, SYSTEM_CONFIG_NAME));
+            #endif // !UNITY_WEBGL
+        }
+    }
+
+    // TODO: JPB: Refactor this to be of the singleton form (likely needs to use the new threading system)
+    public static IEnumerator GetOnlineConfig()
+    {
+        Debug.Log("setting web request");
+        string systemConfigPath = System.IO.Path.Combine(Application.streamingAssetsPath, "config.json");
+        // string systemConfigPath = "http://psiturk.sas.upenn.edu:22371/static/js/Unity/build/StreamingAssets/config.json";
+        UnityWebRequest systemWWW = UnityWebRequest.Get(systemConfigPath);
+        yield return systemWWW.SendWebRequest();
+
+        // TODO: LC: 
+        if (systemWWW.result != UnityWebRequest.Result.Success)
+        // if (systemWWW.isNetworkError || systemWWW.isHttpError)
+        {
+            Debug.Log("Network error " + systemWWW.error);
+        }
+        else
+        {
+            onlineSystemConfigText = systemWWW.downloadHandler.text;
+            Debug.Log("Online System Config fetched!!");
+            Debug.Log(onlineSystemConfigText);
+        }
+
+        string experimentConfigPath = System.IO.Path.Combine(Application.streamingAssetsPath, "CourierOnline.json");
+        // string experimentConfigPath = "http://psiturk.sas.upenn.edu:22371/static/js/Unity/build/StreamingAssets/CourierOnline.json";
+        UnityWebRequest experimentWWW = UnityWebRequest.Get(experimentConfigPath);
+        yield return experimentWWW.SendWebRequest();
+
+        // TODO: LC: 
+        if (experimentWWW.result != UnityWebRequest.Result.Success)
+        // if (experimentWWW.isNetworkError || experimentWWW.isHttpError)
+        {
+            Debug.Log("Network error " + experimentWWW.error);
+        }
+        else
+        {
+            onlineExperimentConfigText = experimentWWW.downloadHandler.text;
+            Debug.Log("Online Experiment Config fetched!!");
+            Debug.Log(Config.onlineExperimentConfigText);
+        }
     }
 }
 
 public class FlexibleConfig {
 
-    public static object LoadFromText(string json) {
+    public static IDictionary<string, object> LoadFromText(string json) {
         JObject cfg = JObject.Parse(json);
         return CastToStatic(cfg);
     }
@@ -160,7 +226,7 @@ public class FlexibleConfig {
       }
     }
 
-    public static object CastToStatic(JObject cfg) {
+    public static IDictionary<string, object> CastToStatic(JObject cfg) {
         // casts a JObject consisting of simple types (int, bool, string,
         // float, and single dimensional arrays) to a C# expando object, obviating
         // the need for casts to work in C# native types
@@ -217,7 +283,7 @@ public class FlexibleConfig {
                 }
             }
         }
-        return settings;
+        return (IDictionary<string, object>)settings;
     }
 
     public static Type JTypeConversion(int t) {

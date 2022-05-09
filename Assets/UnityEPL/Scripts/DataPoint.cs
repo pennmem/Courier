@@ -50,6 +50,10 @@ public class DataPoint
         if (dataDict.Count > 0) // Remove the last comma
             JSONString = JSONString.Substring(0, JSONString.Length - 1);
         JSONString = JSONString + "},\"time\":" + unixTimestamp.ToString() + "}";
+
+        if (type == "mouse position")
+            Debug.Log(JSONString);
+
         return JSONString;
 
         // string JSONString = "{\"type\":\"" + type + "\",\"data\":";

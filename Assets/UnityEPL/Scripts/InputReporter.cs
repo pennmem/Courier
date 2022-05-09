@@ -17,6 +17,9 @@ public class InputReporter : DataReporter
 
     private int lastMousePositionReportFrame;
 
+    // TODO: JPB: This is a hack and should be removed
+    private ElememInterface elememInterface;
+
     void Update()
     {
         if (reportMouseClicks)
@@ -29,21 +32,21 @@ public class InputReporter : DataReporter
 
     void CollectMouseEvents()
     {
-        #if !UNITY_WEBGL // Mac Application
-            if (IsMacOS())
-            {
-                int eventCount = UnityEPL.CountMouseEvents();
-                if (eventCount >= 1)
-                {
-                    int mouseButton = UnityEPL.PopMouseButton();
-                    double timestamp = UnityEPL.PopMouseTimestamp();
-                    bool downState;
-                    mouseDownStates.TryGetValue(mouseButton, out downState);
-                    mouseDownStates[mouseButton] = !downState;
-                    ReportMouse(mouseButton, mouseDownStates[mouseButton], OSXTimestampToTimestamp(timestamp));
-                }
-            }
-        #endif
+        // #if !UNITY_WEBGL // Mac Application
+        //     if (IsMacOS())
+        //     {
+        //         int eventCount = UnityEPL.CountMouseEvents();
+        //         if (eventCount >= 1)
+        //         {
+        //             int mouseButton = UnityEPL.PopMouseButton();
+        //             double timestamp = UnityEPL.PopMouseTimestamp();
+        //             bool downState;
+        //             mouseDownStates.TryGetValue(mouseButton, out downState);
+        //             mouseDownStates[mouseButton] = !downState;
+        //             ReportMouse(mouseButton, mouseDownStates[mouseButton], OSXTimestampToTimestamp(timestamp));
+        //         }
+        //     }
+        // #endif
     }
 
     private void ReportMouse(int mouseButton, bool pressed, System.DateTime timestamp)
@@ -56,33 +59,33 @@ public class InputReporter : DataReporter
 
     void CollectKeyEvents() // do we really need to separate out MacOS?
     {
-        if (IsMacOS())
+        // if (IsMacOS())
+        // {
+        //     int eventCount = UnityEPL.CountKeyEvents();
+        //     if (eventCount >= 1)
+        //     {
+        //         int keyCode = UnityEPL.PopKeyKeycode();
+        //         double timestamp = UnityEPL.PopKeyTimestamp();
+        //         bool downState;
+        //         keyDownStates.TryGetValue(keyCode, out downState);
+        //         keyDownStates[keyCode] = !downState;
+        //         ReportKey(keyCode, keyDownStates[keyCode], OSXTimestampToTimestamp(timestamp));
+        //     }
+        // }
+        // else
+        // {
+        foreach (KeyCode keyCode in System.Enum.GetValues(typeof(KeyCode)))
         {
-            int eventCount = UnityEPL.CountKeyEvents();
-            if (eventCount >= 1)
+            if (InputManager.GetKeyDown(keyCode))
             {
-                int keyCode = UnityEPL.PopKeyKeycode();
-                double timestamp = UnityEPL.PopKeyTimestamp();
-                bool downState;
-                keyDownStates.TryGetValue(keyCode, out downState);
-                keyDownStates[keyCode] = !downState;
-                ReportKey(keyCode, keyDownStates[keyCode], OSXTimestampToTimestamp(timestamp));
+                ReportKey((int)keyCode, true, DataReporter.RealWorldTime());
+            }
+            if (InputManager.GetKeyUp(keyCode))
+            {
+                ReportKey((int)keyCode, false, DataReporter.RealWorldTime());
             }
         }
-        else
-        {
-            foreach (KeyCode keyCode in System.Enum.GetValues(typeof(KeyCode)))
-            {
-                if (InputManager.GetKeyDown(keyCode))
-                {
-                    ReportKey((int)keyCode, true, DataReporter.RealWorldTime());
-                }
-                if (InputManager.GetKeyUp(keyCode))
-                {
-                    ReportKey((int)keyCode, false, DataReporter.RealWorldTime());
-                }
-            }
-        }
+        // }
     }
 
     private void ReportKey(int keyCode, bool pressed, System.DateTime timestamp)
@@ -91,8 +94,8 @@ public class InputReporter : DataReporter
         dataDict.Add("key code", keyCode);
         dataDict.Add("is pressed", pressed);
         string label = "key press/release";
-        if (!IsMacOS())
-            label = "key/mouse press/release";
+        // if (!IsMacOS())
+        //     label = "key/mouse press/release";
         eventQueue.Enqueue(new DataPoint(label, timestamp, dataDict));
     }
 

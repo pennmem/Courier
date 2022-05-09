@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Luminosity.IO;
+using UnityEngine.Video;
 
 public class VideoControl : MonoBehaviour
 {
@@ -27,21 +28,21 @@ public class VideoControl : MonoBehaviour
                 videoPlayer.Stop();
                 gameObject.SetActive(false);
             }
-        #endif
 
-        // Video finished
-        if (videoPlayer.time >= videoPlayer.clip.length)
-        {
-            gameObject.SetActive(false);
-        }
+            // Video finished
+            if (videoPlayer.time >= videoPlayer.clip.length)
+            {
+                Debug.Log("VideoControl end video");
+                gameObject.SetActive(false);
+            }
+        #endif
     }
+
 
     public void StartVideo()
     {
         Debug.Log("VideoControl start video");
-        #if UNITY_WEBGL
-            videoPlayer.loopPointReached += (VideoPlayer vp) => gameObject.SetActive(false);
-        #endif
+        videoPlayer.loopPointReached += (VideoPlayer vp) => gameObject.SetActive(false);
         gameObject.SetActive(true);
     }
 

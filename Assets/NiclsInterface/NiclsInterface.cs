@@ -10,13 +10,13 @@ using UnityEngine;
 using System.Net.Sockets;
 using Newtonsoft.Json.Linq;
 
-public abstract class IHostPC : EventLoop {
-    public abstract JObject WaitForMessage(string type, int timeout);
-    public abstract JObject WaitForMessages(string[] types, int timeout);
-    public abstract void Connect();
-    public abstract void HandleMessage(string message, DateTime time);
-    public abstract void SendMessage(string type, Dictionary<string, object> data);
-}
+// public abstract class IHostPC : EventLoop {
+//     public abstract JObject WaitForMessage(string type, int timeout);
+//     public abstract JObject WaitForMessages(string[] types, int timeout);
+//     public abstract void Connect();
+//     public abstract void HandleMessage(string message, DateTime time);
+//     public abstract void SendMessage(string type, Dictionary<string, object> data);
+// }
 
 public class NiclsListener {
     NiclsInterfaceHelper niclsInterfaceHelper;
@@ -154,7 +154,7 @@ public class NiclsInterfaceHelper : IHostPC
         return niclServer.GetStream();
     }
 
-    public override void Connect() {
+    public override void Connect(string[] stimtags = null) {
         niclServer = new TcpClient();
 
         //try {
@@ -294,7 +294,7 @@ public class NiclsInterfaceHelper : IHostPC
         // }
     }
 
-    public override void SendMessage(string type, Dictionary<string, object> data = null) {
+    public override void SendMessageInternal(string type, Dictionary<string, object> data = null) {
         if (data == null)
             data = new Dictionary<string, object>();
         DataPoint point = new DataPoint(type, System.DateTime.UtcNow, data);
@@ -308,6 +308,10 @@ public class NiclsInterfaceHelper : IHostPC
         NetworkStream stream = GetWriteStream();
         stream.Write(bytes, 0, bytes.Length);
         ReportMessage(message, true);
+    }
+
+    public override void SendMessage(string type, Dictionary<string, object> data = null) {
+        SendMessageInternal(type, data);
     }
 
     private void Heartbeat()

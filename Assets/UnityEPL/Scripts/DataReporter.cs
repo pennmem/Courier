@@ -20,6 +20,9 @@ public abstract class DataReporter : MonoBehaviour
     public DataHandler reportTo;
     protected Transform xform;
 
+    // TODO: JPB: This is a hack and should be removed
+    private ElememInterface elememInterface;
+
     protected bool IsMacOS()
     {
         return Application.platform == RuntimePlatform.OSXEditor || Application.platform == RuntimePlatform.OSXPlayer;
@@ -119,6 +122,23 @@ public abstract class DataReporter : MonoBehaviour
         transformDict.Add("rotationZ", xform.rotation.eulerAngles.z);
         transformDict.Add("object reporting id", reportingID);
         eventQueue.Enqueue(new DataPoint(gameObject.name + " transform", RealWorldFrameDisplayTime(), transformDict));
+
+        #if !UNITY_WEBGL
+        if (Config.elememOn)
+        {
+            if (elememInterface == null)
+                elememInterface = GameObject.Find("ElememInterface").GetComponent<ElememInterface>();
+
+            string type = gameObject.name + " transform";
+            string elemem_type = type.ToUpper();
+            elemem_type = elemem_type.Replace(' ', '_');
+
+            if (transformDict == null)
+                transformDict = new Dictionary<string, object>();
+
+            elememInterface.SendStateMessage(elemem_type, transformDict);
+        }
+        #endif
     }
 
     protected System.DateTime RealWorldFrameDisplayTime()

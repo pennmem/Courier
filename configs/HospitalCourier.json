@@ -11,7 +11,6 @@
     "ecrEnabled": true,
     "twoBtnEfrEnabled": false,
     "twoBtnEcrEnabled": false,
-    "niclsCourier": true,
     "counterBalanceCorrectIncorrectButton": false,
 
     "trialsPerSession": 5,

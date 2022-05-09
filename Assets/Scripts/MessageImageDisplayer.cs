@@ -16,6 +16,10 @@ public class MessageImageDisplayer : MonoBehaviour
     public GameObject[] recap_instruction_messages_efr_2btn_en; // TODO: JPB: Make this work for german
     public GameObject[] recap_instruction_messages_efr_en;
     public GameObject[] recap_instruction_messages_fr_en;
+    public GameObject[] hospital_recap_instruction_messages_en;
+
+    public GameObject[] online_hospital_instruction_messages_en;
+    public GameObject[] online_value_instruction_messages_en;
 
     public GameObject[] music_video_prompts;
 
@@ -28,6 +32,8 @@ public class MessageImageDisplayer : MonoBehaviour
     public GameObject free_recall_display;
     public GameObject efr_display;
     public GameObject cued_recall_message;
+    public GameObject cued_recall_title;
+    public GameObject cued_recall_continue;
     public GameObject sliding_scale_display;
     public GameObject sliding_scale_2_display;
     public GameObject general_message_display;
@@ -69,6 +75,9 @@ public class MessageImageDisplayer : MonoBehaviour
         yield return null;
         if (buttonName == "")
             while (!InputManager.anyKeyDown)
+                yield return null;
+        else if (buttonName == "No Continue")
+            while (true)
                 yield return null;
         else
             while (!InputManager.GetButtonDown(buttonName) && !InputManager.GetButtonDown("Secret"))
@@ -337,9 +346,9 @@ public class MessageImageDisplayer : MonoBehaviour
         while (!InputManager.GetButtonDown(buttonName) && !InputManager.GetButtonDown("Secret"))
         {
             yield return null;
-            if (InputManager.GetButtonDown("EfrLeft"))
+            if (InputManager.GetButtonDown("EfrLeft") || InputManager.GetButtonDown("UI_Left"))
                 message.transform.Find("sliding scale").GetComponent<Slider>().value -= 1;
-            else if (InputManager.GetButtonDown("EfrRight"))
+            else if (InputManager.GetButtonDown("EfrRight") || InputManager.GetButtonDown("UI_Right"))
                 message.transform.Find("sliding scale").GetComponent<Slider>().value += 1;
         }
         scriptedEventReporter.ReportScriptedEvent("instruction message cleared", messageData);
@@ -379,9 +388,22 @@ public class MessageImageDisplayer : MonoBehaviour
     }
 
     // Display message for cued recall
-    public void SetCuedRecallMessage(string bottomText)
+    public void SetCuedRecallMessage(string bottomText, bool hospital=false, bool ecrEnabled=false)
     {
-        cued_recall_message.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString(bottomText);
+        if (hospital)
+        {
+            if (ecrEnabled)
+            {
+                cued_recall_title.transform.Find("title text").GetComponent<Text>().text = LanguageSource.GetLanguageString(bottomText);
+                cued_recall_continue.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString("speak now");
+            }
+            else
+            {
+                cued_recall_continue.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString(bottomText);
+            }
+        }
+        else
+            cued_recall_continue.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString(bottomText);
     }
 
     public void SetReminderText(string store_name)
@@ -450,8 +472,10 @@ public class MessageImageDisplayer : MonoBehaviour
             general_big_message_display.transform.Find("title text").GetComponent<Text>().text = LanguageSource.GetLanguageString("frame test end title") + fpsValue;
         if (mainText != null)
             general_big_message_display.transform.Find("main text").GetComponent<Text>().text = LanguageSource.GetLanguageString(mainText);
-        if (continueText != null)
+        if (continueText != "no continue")
             general_big_message_display.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString(continueText);
+        else
+            general_big_message_display.transform.Find("continue text").GetComponent<Text>().text = "";
     }
 
     public void SetGeneralMessageText(string titleText = "", string mainText = "", string descriptiveText = "", string continueText = "continue",
@@ -474,7 +498,12 @@ public class MessageImageDisplayer : MonoBehaviour
                 general_message_display.transform.Find("descriptive text").GetComponent<Text>().text = LanguageSource.GetFormattableLanguageString(descriptiveText, dtFormatVals);
         if (continueText != null)
             if (ctFormatVals == null)
-                general_message_display.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString(continueText);
+            {
+                if (continueText == "")
+                    general_message_display.transform.Find("continue text").GetComponent<Text>().text = "";
+                else
+                    general_message_display.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString(continueText);
+            }
             else
                 general_message_display.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetFormattableLanguageString(continueText, ctFormatVals);
     }
@@ -524,7 +553,7 @@ public class MessageImageDisplayer : MonoBehaviour
         sliding_scale_display.transform.Find("sliding scale").GetComponent<Slider>().value = 2;
 
         if (mainText != null)
-            sliding_scale_display.transform.Find("main text").GetComponent<Text>().text = LanguageSource.GetLanguageString(mainText);
+            sliding_scale_display.transform.Find("title text").GetComponent<Text>().text = LanguageSource.GetLanguageString(mainText);
 
         int numRatings = sliding_scale_display.transform.Find("ratings").childCount;
         if (ratings != null)
@@ -543,7 +572,7 @@ public class MessageImageDisplayer : MonoBehaviour
         sliding_scale_2_display.transform.Find("sliding scale").GetComponent<Slider>().value = 1;
 
         if (mainText != null)
-            sliding_scale_display.transform.Find("main text").GetComponent<Text>().text = LanguageSource.GetLanguageString(mainText);
+            sliding_scale_display.transform.Find("title text").GetComponent<Text>().text = LanguageSource.GetLanguageString(mainText);
 
         int numRatings = sliding_scale_2_display.transform.Find("ratings").childCount;
         if (ratings != null)
@@ -557,7 +586,7 @@ public class MessageImageDisplayer : MonoBehaviour
             sliding_scale_2_display.transform.Find("continue text").GetComponent<Text>().text = LanguageSource.GetLanguageString(continueText);
     }
 
-    private IEnumerator DoTextBoldTimedOrButton(string buttonName, Text displayText, float waitTime)
+    public IEnumerator DoTextBoldTimedOrButton(string buttonName, Text displayText, float waitTime)
     {
         string buttonText = displayText.text;
         Vector2 anchorMin = displayText.GetComponentInParent<RectTransform>().anchorMin;

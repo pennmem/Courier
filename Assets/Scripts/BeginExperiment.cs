@@ -15,10 +15,13 @@ public class BeginExperiment : MonoBehaviour
     public UnityEngine.UI.Text beginButtonText;
     public UnityEngine.UI.InputField sessionInput;
 
+    // LC: Add UseElemem toggle
+    public UnityEngine.UI.Toggle useElememToggle;
+
     // TODO: JPB: Make these configuration variables
     private const bool HOSPITAL_COURIER = true;
     private const bool NICLS_COURIER = false;
-    private const bool GRANT_VERSION = false;
+    private const bool VALUE_COURIER = false;
 
     string experiment_name = HOSPITAL_COURIER ? "HospitalCourier" :
                              NICLS_COURIER ? "NiclsCourier" :
@@ -27,9 +30,14 @@ public class BeginExperiment : MonoBehaviour
     private const string scene_name = "MainGame";
 
     public const string EXP_NAME_COURIER = "Courier";
+    public const string EXP_NAME_HOSPITAL = "HospitalCourier";
     public const string EXP_NAME_NICLS = "NiclsCourier";
 
     private void OnEnable() {
+        #if UNITY_WEBGL
+            SceneManager.LoadScene(scene_name);
+        #endif // UNITY_WEBGL
+
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
     }
@@ -135,9 +143,12 @@ public class BeginExperiment : MonoBehaviour
 
         LockLanguage();
         // TODO: JPB: Use NextSessionNumber()
-        DeliveryExperiment.ConfigureExperiment(useRamulatorToggle.isOn, useNiclsToggle.isOn, UnityEPL.GetSessionNumber(), experiment_name);
+        // LC: added in Elemem 
+        DeliveryExperiment.ConfigureExperiment(useRamulatorToggle.isOn, useNiclsToggle.isOn, useElememToggle.isOn,
+                                               UnityEPL.GetSessionNumber(), experiment_name);
         Debug.Log("Ram On: " + useRamulatorToggle.isOn);
         Debug.Log("Nicls On: " + useNiclsToggle.isOn);
+        Debug.Log("Elemem On: " + useElememToggle.isOn);
         SceneManager.LoadScene(scene_name);
     }
 

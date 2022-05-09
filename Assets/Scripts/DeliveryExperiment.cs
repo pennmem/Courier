@@ -7,12 +7,14 @@ using Luminosity.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using UnityEngine.Networking;
+using UnityEngine.UI;
 
 using Accord.Math;
 using Accord.Statistics.Distributions.Multivariate;
 using Accord.Statistics.Distributions.Univariate;
 
 using static MessageImageDisplayer;
+using static EventLoop;
 
 [System.Serializable]
 public struct Environment
@@ -23,7 +25,7 @@ public struct Environment
 
 public enum StorePointType 
 {
-    SpacialPosition,
+    SpatialPosition,
     SerialPosition,
     Random,
 }
@@ -33,6 +35,9 @@ public class DeliveryExperiment : CoroutineExperiment
     #if UNITY_WEBGL
         [DllImport("__Internal")]
         private static extern void EndTask();
+
+        // [DllImport("__Internal")]
+        // private static extern void NoRefresh();
     #endif
 
     public delegate void StateChange(string stateName, bool on);
@@ -47,14 +52,18 @@ public class DeliveryExperiment : CoroutineExperiment
     // Experiment type
     private const bool HOSPITAL_COURIER = true;
     private const bool NICLS_COURIER = false;
-    private const bool GRANT_VERSION = false;
+    private const bool VALUE_COURIER = false;
     #if !UNITY_WEBGL
         private const bool COURIER_ONLINE = false;
     #else
         private const bool COURIER_ONLINE = true;
     #endif // !UNITY_WEBGL
+
+    // debug
+    private const bool skipFPS = true;
     
-    private const string COURIER_VERSION = COURIER_ONLINE ? "v5.0.0online" : "v5.2.0";
+    private const string COURIER_VERSION = "v6.0.0";
+    private const bool DEBUG = false;
 
     private const string RECALL_TEXT = "*******"; // TODO: JPB: Remove this and use display system
     // Constants moved to the Config File
@@ -76,12 +85,13 @@ public class DeliveryExperiment : CoroutineExperiment
     private const float FAMILIARIZATION_PRESENTATION_LENGTH = 1.5f;
     private const float RECALL_MESSAGE_DISPLAY_LENGTH = 6f;
     private const float RECALL_TEXT_DISPLAY_LENGTH = 1f;
-    private const float FREE_RECALL_LENGTH = 90f;
+    private const float FREE_RECALL_LENGTH = DEBUG ? 90f : 90f;
+    private const float VALUE_RECALL_LENGTH = 10f;
     private const float PRACTICE_FREE_RECALL_LENGTH = 25f;
     private const float STORE_FINAL_RECALL_LENGTH = 90f;
     private const float OBJECT_FINAL_RECALL_LENGTH = NICLS_COURIER ? 120f : COURIER_ONLINE ? 240f : 180f;
     private const float TIME_BETWEEN_DIFFERENT_RECALL_PHASES = 2f;
-    private const float CUED_RECALL_TIME_PER_STORE = 10f;
+    // private const float CUED_RECALL_TIME_PER_STORE = 10f;
     private const float MIN_CUED_RECALL_TIME_PER_STORE = 2f;
     private const float MAX_CUED_RECALL_TIME_PER_STORE = NICLS_COURIER ? 6f : 7.5f;
     private const float POINTING_CORRECT_THRESHOLD = Mathf.PI / 12; // 15°
@@ -90,13 +100,13 @@ public class DeliveryExperiment : CoroutineExperiment
     private const float PAUSE_BEFORE_RETRIEVAL = 10f;
     private const float DISPLAY_ITEM_PAUSE = 5f;
     private const float AUDIO_TEXT_DISPLAY = 1.6f;
-    private const float WORD_PRESENTATION_DELAY = NICLS_COURIER ? 1f : 1.25f; // TODO: JPB: Fix this is NICLS
+    private const float WORD_PRESENTATION_DELAY = 1f; //NICLS_COURIER ? 1f : 1.25f; // TODO: JPB: Fix this is NICLS
     private const float WORD_PRESENTATION_JITTER = 0.25f;
     private const float EFR_KEYPRESS_PRACTICE_DELAY = 2.25f;
     private const float EFR_KEYPRESS_PRACTICE_JITTER = 0.25f;
 
     // Keep as hardcoded values
-    private const bool STAR_SYSTEM_ACTIVE = true;
+    private const bool STAR_SYSTEM_ACTIVE = false;
 
     private const int NICLS_READ_ONLY_SESSIONS = 8;
     private const int NICLS_CLOSED_LOOP_SESSIONS = 4;
@@ -107,6 +117,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private const int MUSIC_VIDEO_PROMPT_TIME = 5;
     private const int MUSIC_VIDEO_RECALL_TIME = 175;
 
+
     public Camera regularCamera;
     public Camera blackScreenCamera;
     public Familiarizer familiarizer;
@@ -114,10 +125,12 @@ public class DeliveryExperiment : CoroutineExperiment
 
     private static bool useRamulator = false;
     private static bool useNiclServer = false;
+    private static bool useElemem = false;
     #if !UNITY_WEBGL // Syncbox, Ramulator, and NICLS
         private Syncbox syncs;
         public RamulatorInterface ramulatorInterface;
         public NiclsInterface niclsInterface;
+        public ElememInterface elememInterface;
     #endif // !UNITY_WEBGL
 
     public PlayerMovement playerMovement;
@@ -125,6 +138,8 @@ public class DeliveryExperiment : CoroutineExperiment
     public ParticleSystem pointerParticleSystem;
     public GameObject pointerMessage;
     public UnityEngine.UI.Text pointerText;
+    public GameObject navigationMessage;
+    public UnityEngine.UI.Text navigationText;
     public StarSystem starSystem;
     public DeliveryItems deliveryItems;
     public Pauser pauser;
@@ -143,6 +158,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private string efrRightLogMsg = "correct";
 
     private List<StoreComponent> thisTrialPresentedStores = new List<StoreComponent>();
+    private StoreComponent previousTrialStore = null;
     private List<string> allPresentedObjects = new List<string>();
 
     List<NiclsClassifierType> niclsClassifierTypes = null;
@@ -155,8 +171,11 @@ public class DeliveryExperiment : CoroutineExperiment
     public GameObject cuedInputField;
     public UnityEngine.UI.InputField cuedResponse;
 
+    public GameObject freeRecallWrongType;
+    public GameObject valueGuessWrongType;
 
     // Frame testing variables
+    private static int FPScutoff = 30;
     private static bool isFrameTesting = false;
     private static int fpsValue = 0;
     private static float updateRateSeconds = 4.0f;
@@ -165,10 +184,132 @@ public class DeliveryExperiment : CoroutineExperiment
     private float fps = 0.0f;
     private List<int> fpsList = new List<int>();
 
-    // Temporal/Distance store points
-    // private StorePointType storePointType = StorePointType.Random;
-    // private int free_index = 0;
-    // private int value_index = 0;
+    // Store Generation variables
+    public bool[] freeTaskFirst;
+    int freeIndex = 0;
+    int valueIndex = 0;
+
+    // Stim / No Stim Stores Lists
+    public List<StoreComponent> StimStores = new List<StoreComponent>();
+    public List<StoreComponent> noStimStores = new List<StoreComponent>();
+
+    // Stim variables
+    public List<string> stimTags = new List<string>{"3Hz", "8Hz"};
+    public const float STIM_DURATION = 3f;
+    private const int ELEMEM_REP_STIM_INTERVAL = 6000; // ms, 2*STIM_DURATION
+    private const int ELEMEM_REP_STIM_DELAY = 1500; // ms
+    private const int ELEMEM_REP_SWITCH_DELAY = 3000; // ms
+
+    // Stim Tags
+    List<string> GenerateStimTags(int numTrials)
+    {
+        List<string> result = new List<string>();
+        stimTags.Shuffle();
+
+        for (int i=0; i < numTrials; i++)
+            result.Add(stimTags[i % 2]);
+        // Debug.Log("stim tags: " + string.Join(", ", stimTags));
+
+        return result;
+    }
+
+    // store points generating algorithms
+    double[] RandomStorePoints(int numStores)
+    {
+        // Same as temporal algorithm but shuffled
+        double[] storePoints = TemporalStorePoints(numStores);
+        storePoints.Shuffle(new System.Random());
+
+        return storePoints;
+    }
+
+    double[] StandardizeStorePoints(double[] storePoints)
+    {
+        // std = sqrt(mean(x)), where x = abs(a - a.mean())**2
+        double[] storePoints2 = Vector.Zeros(storePoints.Length);
+        for (int i = 0; i < storePoints.Length; i++)
+            storePoints2[i] = Math.Pow(Math.Abs(storePoints[i] - storePoints.Average()), 2);
+        double std = Math.Sqrt(storePoints2.Average());
+
+        // points_standardized = (points - mean(points)) / std(points)
+        storePoints = Elementwise.Subtract(storePoints, storePoints.Average());
+        storePoints = Elementwise.Divide(storePoints, std);
+
+        return storePoints;
+    }
+
+    double[] TemporalStorePoints(int numStores)
+    {
+        // Setup covariance matrix variables
+        double[] serialPositions = Vector.Range(new Accord.DoubleRange(0, numStores), 1);
+        int N = serialPositions.Length;
+        double[] mu = Vector.Zeros(N);
+        double[,] K = Matrix.Zeros(N, N);
+        int rhoSq = numStores;
+
+        // Create covariance matrix
+        for (int i = 0; i < N-1; i++)
+        {
+            K[i, i] = 1;
+            for (int j = i+1; j < N; j++)
+            {
+                K[i, j] = Math.Exp(-(1d / (2d * rhoSq)) * Math.Pow(serialPositions[i] - serialPositions[j], 2));
+                K[j, i] = K[i, j];
+            }
+        }
+        K[(N - 1), (N - 1)] = 1;
+
+        // Generate point values
+        double[] storePoints = new MultivariateNormalDistribution(mu, K).Generate();
+        // standardize point values
+        storePoints = StandardizeStorePoints(storePoints);
+
+        // sample points from gaussian process
+        double pointMean = new UniformContinuousDistribution(30, 70).Generate();
+        double pointVar = new UniformContinuousDistribution(13, 17).Generate();
+        storePoints = Elementwise.Multiply(storePoints, pointVar);
+        storePoints = Elementwise.Add(storePoints, pointMean);
+
+        return storePoints;
+    }
+
+    void SpatialStorePoints(StoreComponent[] stores)
+    {
+        // Setup covariance matrix variables
+        int N = stores.Length;
+        double[] mu = Vector.Zeros(N);
+        double[,] K = Matrix.Zeros(N, N);
+        double rhoSq = N;
+        
+        // Create covariance matrix
+        for (int i = 0; i < N - 1; i++)
+        {
+            K[i, i] = 1;
+            for (int j = i + 1; j < N; j++)
+            {
+                var a = new double[2] { stores[i].transform.position.x, stores[i].transform.position.y };
+                var b = new double[2] { stores[j].transform.position.x, stores[j].transform.position.y };
+                K[i, j] = Math.Exp(-(1d / (2d * rhoSq)) * Distance.Euclidean(a, b));
+                K[j, i] = K[i, j];
+            }
+        }
+        K[(N - 1), (N - 1)] = 1;
+
+        // Generate point values
+        double[] storePoints = new MultivariateNormalDistribution(mu, K).Generate();
+        // standardize point values
+        storePoints = StandardizeStorePoints(storePoints);
+
+        // sample points from gaussian process
+        double pointMean = new UniformContinuousDistribution(30, 70).Generate();
+        double pointVar = new UniformContinuousDistribution(13, 17).Generate();
+        storePoints = Elementwise.Multiply(storePoints, pointVar);
+        storePoints = Elementwise.Add(storePoints, pointMean);
+
+        // Set store object point values
+        for (int i = 0; i < N; i++)
+            stores[i].points = storePoints[i];
+    }
 
     // These names are used in for what is sent to the log
     // If you change them, then you have to change the event processing (or the logging code)
@@ -179,11 +320,13 @@ public class DeliveryExperiment : CoroutineExperiment
         Sham
     }
     
-    public static void ConfigureExperiment(bool newUseRamulator, bool newUseNiclServer, int newSessionNumber, string newExpName)
+    public static void ConfigureExperiment(bool newUseRamulator, bool newUseNiclServer, bool newUseElemem, int newSessionNumber, string newExpName)
     {
         #if !UNITY_WEBGL // Ramulator and NICLS
             useRamulator = newUseRamulator;
             useNiclServer = newUseNiclServer;
+            useElemem = newUseElemem;
+            Config.elememStimMode = useElemem;
         #endif // !UNITY_WEBGL
         sessionNumber = newSessionNumber;
         continuousSessionNumber = useNiclServer ? NICLS_READ_ONLY_SESSIONS + sessionNumber :
@@ -206,8 +349,8 @@ public class DeliveryExperiment : CoroutineExperiment
 
     void Update()
     {
-        Cursor.visible = false;
-        Cursor.lockState = CursorLockMode.Locked;
+        // Cursor.visible = false;
+        // Cursor.lockState = CursorLockMode.Locked;
         
         // Courier Online Frame testing
         if (COURIER_ONLINE && isFrameTesting) {
@@ -243,8 +386,11 @@ public class DeliveryExperiment : CoroutineExperiment
             UnityEPL.AddParticipant(System.Guid.NewGuid().ToString());
             UnityEPL.SetExperimentName("COURIER_ONLINE");
             UnityEPL.SetSessionNumber(0);
-            ConfigureExperiment(false, false, 0, "CourierOnline");
+            ConfigureExperiment(false, false, false, 0, "HospitalCourier");
         }
+
+        // if (DEBUG)
+        // ConfigureExperiment(false, false, true, 1, "HospitalCourier");
 
         // Session check
         if (sessionNumber == -1)
@@ -258,43 +404,6 @@ public class DeliveryExperiment : CoroutineExperiment
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.SetCursor(new Texture2D(0, 0), new Vector2(0, 0), CursorMode.ForceSoftware);
-
-        // Player controls
-        string controlName = "DrivingControls.xml";
-        if (HOSPITAL_COURIER)
-            controlName = "SingleStick" + controlName;
-        else
-            controlName = "Split" + controlName;
-
-        if (Config.Get(() => Config.ps4Controller, false))
-            controlName = "Ps4" + controlName;
-
-        #if !UNITY_WEBGL // System.IO
-            string configPath = System.IO.Path.Combine(
-                Directory.GetParent(Directory.GetParent(UnityEPL.GetParticipantFolder()).FullName).FullName,
-                "configs");
-            InputManager.Load(Path.Combine(configPath, controlName));
-        #else
-            // string experimentConfigPath = System.IO.Path.Combine(Application.streamingAssetsPath, controlName);
-            string systemConfigPath = "http://psiturk.sas.upenn.edu:22371/static/js/Unity/build/StreamingAssets/" + controlName;
-            UnityWebRequest systemWWW = UnityWebRequest.Get(systemConfigPath);
-            yield return systemWWW.SendWebRequest();
-
-            // TODO: LC: if (systemWWW.result != UnityWebRequest.Result.Success) for later Unity versions
-            if (systemWWW.isNetworkError || systemWWW.isHttpError)
-            {
-                Debug.Log("Network error " + systemWWW.error);
-            }
-            else
-            {
-                using (TextReader reader = new StringReader(systemWWW.downloadHandler.text))
-                {
-                    InputLoaderXML loader = new InputLoaderXML(reader);
-                    InputManager.Load(loader);
-                }
-            }
-        #endif // !UNITY_WEBGL
-
 
         // Turn player particles and falling leaves off for Nicls Courier
         if (NICLS_COURIER)
@@ -318,20 +427,14 @@ public class DeliveryExperiment : CoroutineExperiment
             }
         #endif
 
-        // Randomize efr correct/incorrect button sides
-        if (Config.efrEnabled && Config.counterBalanceCorrectIncorrectButton)
-        {
-            // We want randomness for different people, but consistency between sessions
-            System.Random reliableRandom = deliveryItems.ReliableRandom();
-            efrCorrectButtonSide = (ActionButton)reliableRandom.Next(0, 2);
-        }
-
         Dictionary<string, object> sceneData = new Dictionary<string, object>();
         sceneData.Add("sceneName", "MainGame");
-        scriptedEventReporter.ReportScriptedEvent("loadScene", sceneData);
+        // scriptedEventReporter.ReportScriptedEvent("loadScene");
 
         StartCoroutine(ExperimentCoroutine());
     }
+
+
 
     private IEnumerator ExperimentCoroutine()
     {
@@ -339,19 +442,6 @@ public class DeliveryExperiment : CoroutineExperiment
 
         foreach (string name in UnityEPL.GetParticipants())
             Debug.Log(name);
-
-        // Write versions to logfile
-        LogVersions(expName);
-
-        if (COURIER_ONLINE)
-            yield return GetOnlineConfig();
-
-        // Setup Environment
-        yield return EnableEnvironment();
-
-        // Frame Rate Test
-        if (COURIER_ONLINE)
-            yield return DoFrameTest();
 
         #if !UNITY_WEBGL // NICLS
             // Setup Ramulator
@@ -369,7 +459,40 @@ public class DeliveryExperiment : CoroutineExperiment
             {
                 yield return niclsInterface.BeginNewSession(sessionNumber, true);
             }
+
+            // Setup Elemem
+            yield return elememInterface.BeginNewSession(sessionNumber, !Config.elememOn, stimTags.ToArray());
         #endif // !UNITY_WEBGL
+
+        // Write versions to logfile
+        LogVersions(expName);
+
+        // Set Config for Courier Online
+        if (COURIER_ONLINE)
+            yield return Config.GetOnlineConfig();
+
+        // Save Config
+        Config.SaveConfigs(scriptedEventReporter, UnityEPL.GetDataPath());
+
+        // Setup Environment
+        yield return EnableEnvironment();
+
+        // set stim/no_stim stores unique for each subject
+        var reliableRandom = deliveryItems.ReliableRandom();
+        List<StoreComponent> allStores = new List<StoreComponent>(environment.stores);
+        allStores.Shuffle(reliableRandom);
+        for (int i=0; i < allStores.Count; i++)
+        {
+            if (i % 2 == 1)
+                StimStores.Add(allStores[i]);
+            else
+                noStimStores.Add(allStores[i]);                
+        }
+
+        // Frame Rate Test
+        if (COURIER_ONLINE)
+            yield return DoFrameTest();
+
 
         // Intros
         yield return DoIntros();
@@ -410,7 +533,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
         // Task Recap Instructions and Practice Trials
         // Using useNiclsServer to skip practices on closed loop sessions
-        if (sessionNumber == 0 && !useNiclServer)
+        if (sessionNumber == 0 && !useNiclServer && !COURIER_ONLINE)
             yield return DoPracticeTrials(2);
 
         // Delay note
@@ -452,12 +575,18 @@ public class DeliveryExperiment : CoroutineExperiment
         }
 
         // Ending Message
-        string endMessage = NICLS_COURIER
-            ? LanguageSource.GetLanguageString("end message")
-            : LanguageSource.GetLanguageString("end message scored") + starSystem.CumulativeRating().ToString("+#.##;-#.##");
+        string endMessage = LanguageSource.GetLanguageString("end message");
+        
+        // NICLS_COURIER
+        //     ? LanguageSource.GetLanguageString("end message")
+        //     : LanguageSource.GetLanguageString("end message scored") + "\n\n" + starSystem.CumulativeRating().ToString("+#.##;-#.##");
         textDisplayer.DisplayText("end text", endMessage);
 
         #if !UNITY_WEBGL // WebGL DLL
+            // LC: ELEMEM
+            if (HOSPITAL_COURIER)
+                elememInterface.SendExitMessage();
+
             // TODO: JPB: (Hokua) Wait for button press to quit
             while (true)
                 yield return null;
@@ -474,6 +603,9 @@ public class DeliveryExperiment : CoroutineExperiment
     {
         BlackScreen();
         
+        if (Config.elememOn)
+            elememInterface.SendSessionMessage(UnityEPL.GetSessionNumber());
+
         // Real trials
         if (Config.efrEnabled)
             if (Config.twoBtnEfrEnabled)
@@ -487,20 +619,18 @@ public class DeliveryExperiment : CoroutineExperiment
 
         // Final Recalls
         BlackScreen();
-        if (NICLS_COURIER)
-            yield return messageImageDisplayer.DisplayLanguageMessage(messageImageDisplayer.nicls_final_recall_messages);
-        else
-            yield return messageImageDisplayer.DisplayLanguageMessage(messageImageDisplayer.final_recall_messages);
-        yield return DoFinalRecall(subSessionNum);
+        if (!VALUE_COURIER)
+        {
+            yield return DoFinalRecall(subSessionNum);
+        }
     }
 
     private IEnumerator DoFrameTest()
     {
-        Debug.Log("Frame Testing");
-        if (Config.skipFPS)
+        if (skipFPS)
             yield break;
 
-        Debug.Log("config works");
+        Debug.Log("Frame Testing");
 
         messageImageDisplayer.SetGeneralBigMessageText(titleText: "frame test start title", mainText: "frame test start main");
         yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
@@ -530,42 +660,66 @@ public class DeliveryExperiment : CoroutineExperiment
         playerMovement.Reset();
 
 
-        messageImageDisplayer.SetFPSDisplayText(fpsValue: averageFps.ToString(), mainText: "frame test end main");
-        yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
+        // TODO: LC: add hard cutoff at 30 FPS : DONE
+        if (averageFps < FPScutoff)
+        {
+            Debug.Log("FPS CHECK FAILED");
+            scriptedEventReporter.ReportScriptedEvent("fps check failed");
+            messageImageDisplayer.SetFPSDisplayText(fpsValue: averageFps.ToString(), mainText: "frame test end fail", continueText: "no continue");
+            yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display, "No Continue");
+        }
+        else
+        {
+            Debug.Log("FPS CHECK PASSED");
+            scriptedEventReporter.ReportScriptedEvent("fps check passed");
+            messageImageDisplayer.SetFPSDisplayText(fpsValue: averageFps.ToString(), mainText: "frame test end pass");
+            yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
 
-        yield return new WaitForSeconds(1.5f);
+            yield return new WaitForSeconds(1.5f);
 
-        messageImageDisplayer.SetGeneralBigMessageText(mainText: "frame test continue main");
-        yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
+            messageImageDisplayer.SetGeneralBigMessageText(mainText: "frame test continue main");
+            yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
+        }
     }
 
     private IEnumerator DoIntros()
-    {   
+    {                                                                                                 
+        if (Config.skipIntros)
+            yield break;
+        
         Debug.Log("DoIntros");
-        if (Config.skipIntros)                                                                                          
-            yield break;                                                                                                
 
         BlackScreen();
 
+        // firts session of NICLS_COURIER
         if (NICLS_COURIER && sessionNumber == 0 && !useNiclServer)
         {
             yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
                                  LanguageSource.GetLanguageString("standard intro video"),
                                  VideoSelector.VideoType.NiclsMainIntro);
         }
+        // not the first session, no need for intro video
         else if (NICLS_COURIER) // sessionNumber >= 1 || useNiclServer                                              
         {
             yield return DoRecapInstructions();
         }
+        else if (HOSPITAL_COURIER)
+        {
+            if (sessionNumber == 0)
+                yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
+                                    LanguageSource.GetLanguageString("standard intro video"),
+                                    VideoSelector.VideoType.townlearningVideo);
+            else
+                yield return DoRecapInstructions(recap: true);
+            
+            // yield return DoSubjectSessionQuitPrompt(sessionNumber, LanguageSource.GetLanguageString("running participant"));
+        }
         else
         {
             yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
-                                 LanguageSource.GetLanguageString("standard intro video"),
-                                 VideoSelector.VideoType.MainIntro);
+                                LanguageSource.GetLanguageString("standard intro video"),
+                                VideoSelector.VideoType.valueIntro);
         }
-
-        if (HOSPITAL_COURIER && !COURIER_ONLINE)
-            yield return DoSubjectSessionQuitPrompt(sessionNumber, LanguageSource.GetLanguageString("running participant"));
 
         #if !UNITY_WEBGL // Microphone
             yield return DoMicrophoneTest(LanguageSource.GetLanguageString("microphone test"),
@@ -576,19 +730,66 @@ public class DeliveryExperiment : CoroutineExperiment
         #endif // !UNITY_WEBGL
     }
 
-    private IEnumerator DoRecapInstructions(bool forceFR = false)
+    private IEnumerator DoRecapInstructions(bool forceFR = false, bool recap = false)
     {
         GameObject[] messages;
-        if (Config.efrEnabled && !forceFR) // TODO: JPB: Hospital handle ECR case
+
+        if (Config.efrEnabled && !forceFR) // TODO: JPB: Hospital handle ECR case  
             if (Config.twoBtnEfrEnabled)
                 messages = messageImageDisplayer.recap_instruction_messages_efr_2btn_en;
             else
-                messages = messageImageDisplayer.recap_instruction_messages_efr_en;
+                messages = HOSPITAL_COURIER ? messageImageDisplayer.hospital_recap_instruction_messages_en
+                                            : messageImageDisplayer.recap_instruction_messages_efr_en;
         else
             messages = messageImageDisplayer.recap_instruction_messages_fr_en;
 
-        foreach (var message in messages)
-            yield return messageImageDisplayer.DisplayMessage(message);
+        // LC: if you want them to go back and forth...?
+        if (recap)
+        {
+            // LC: prevent left and right arrow key from actually moving the player in the background
+            playerMovement.Freeze();
+            int lastpage = messages.Length-1;
+            int currpage = 0;
+            int prevpage = 0;
+
+            while ((currpage != lastpage) || !InputManager.GetButtonDown("Continue"))
+            {
+                if (InputManager.GetButtonDown("Secret"))
+                    break;
+
+                if (InputManager.GetButtonDown("UI_Left") || InputManager.GetButtonDown("EfrLeft"))
+                {
+                    prevpage = currpage;
+                    currpage = Math.Max(currpage-1, 0);
+                }
+                if (InputManager.GetButtonDown("UI_Right") || InputManager.GetButtonDown("EfrRight"))
+                {
+                    prevpage = currpage;
+                    currpage = Math.Min(currpage+1, lastpage);
+                }
+
+                if ((currpage == lastpage) && InputManager.GetButton("EfrReject"))
+                {
+                    messages[currpage].SetActive(false);
+                    yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
+                                        LanguageSource.GetLanguageString("standard intro video"),
+                                        VideoSelector.VideoType.efrRecapVideo);
+                    messages[currpage].SetActive(true);
+                }
+                messages[prevpage].SetActive(false);
+                messages[currpage].SetActive(true);
+
+                yield return null;
+            }
+            messages[currpage].SetActive(false);
+
+            playerMovement.Unfreeze();
+        }
+        else
+        {
+            foreach (var message in messages)
+                yield return messageImageDisplayer.DisplayMessage(message);
+        }
     }
 
     private IEnumerator DoFamiliarization()
@@ -603,21 +804,49 @@ public class DeliveryExperiment : CoroutineExperiment
             yield break;                                                                                                
 
         scriptedEventReporter.ReportScriptedEvent("start town learning");
-        messageImageDisplayer.please_find_the_blah_reminder.SetActive(true);
 
         thisTrialPresentedStores = new List<StoreComponent>();
         List<StoreComponent> unvisitedStores = new List<StoreComponent>(environment.stores);
 
         for (int i = 0; i < numDeliveries; i++)
         {
+            messageImageDisplayer.please_find_the_blah_reminder.SetActive(false);
+
             StoreComponent nextStore = PickNextStore(unvisitedStores);
             unvisitedStores.Remove(nextStore);
             thisTrialPresentedStores.Add(nextStore);
 
             playerMovement.Freeze();
-            messageImageDisplayer.SetReminderText(nextStore.GetStoreName());
-            yield return new WaitForSeconds(0.5f);
+            pointerParticleSystem.Play();
+            yield return new WaitForSeconds(.2f);
+            pointerParticleSystem.Stop();
+
+            if (HOSPITAL_COURIER)
+            {
+                yield return DoPointingTask(nextStore, townlearning:true);
+            }
+            else
+            {
+                navigationMessage.SetActive(true);
+                if (i != 0)
+                    navigationText.text = LanguageSource.GetLanguageString("correct pointing");
+                else
+                    navigationText.text = "";
+                navigationText.text += LanguageSource.GetLanguageString("town learning prompt 1") +
+                                       LanguageSource.GetLanguageString(nextStore.GetStoreName()) + ".\n" + 
+                                       LanguageSource.GetLanguageString("town learning prompt 2") + 
+                                       LanguageSource.GetLanguageString(nextStore.GetStoreName()) + ".\n\n" +
+                                       LanguageSource.GetLanguageString("continue");
+
+                while (!InputManager.GetButtonDown("Continue"))
+                    yield return null;
+                navigationMessage.SetActive(false);
+            }
+
             playerMovement.Unfreeze();
+
+            messageImageDisplayer.please_find_the_blah_reminder.SetActive(true);
+            messageImageDisplayer.SetReminderText(nextStore.GetStoreName());
 
             float startTime = Time.time;
             while (!nextStore.PlayerInDeliveryPosition())
@@ -643,7 +872,8 @@ public class DeliveryExperiment : CoroutineExperiment
         scriptedEventReporter.ReportScriptedEvent("stop town learning");
     }
 
-    private IEnumerator DoDeliveries(int trialNumber, int continuousTrialNum, bool practice = false, bool skipLastDelivStores = false)
+    private IEnumerator DoDeliveries(int trialNumber, int continuousTrialNum, bool practice = false, bool skipLastDelivStores = false, 
+                                     StorePointType storePointType = StorePointType.Random, bool freeFirst = true, string stimTag = null)
     {
         Dictionary<string, object> trialData = new Dictionary<string, object>();
         trialData.Add("trial number", continuousTrialNum);
@@ -654,23 +884,82 @@ public class DeliveryExperiment : CoroutineExperiment
 
         WorldScreen();
 
-        SetRamulatorState("ENCODING", true, new Dictionary<string, object>());
-        messageImageDisplayer.please_find_the_blah_reminder.SetActive(true);
+        // Set store points for the delivery day
+        double[] allStoresPoints = null;
+        switch(storePointType)
+        {
+            case StorePointType.Random:
+                allStoresPoints = RandomStorePoints(environment.stores.Length);
+                break;
+            case StorePointType.SerialPosition:
+                allStoresPoints = TemporalStorePoints(environment.stores.Length);
+                break;
+            case StorePointType.SpatialPosition:
+                SpatialStorePoints(environment.stores);
+                break;
+        }
 
-        List<StoreComponent> unvisitedStores = new List<StoreComponent>(environment.stores);
-        if (skipLastDelivStores)
-            foreach (var store in thisTrialPresentedStores)
-                unvisitedStores.Remove(store);
-        thisTrialPresentedStores = new List<StoreComponent>();
+        SetRamulatorState("ENCODING", true, new Dictionary<string, object>());
+        SetElememState("ENCODING");
+
+        messageImageDisplayer.please_find_the_blah_reminder.SetActive(true);
 
         int deliveries = practice ? Config.deliveriesPerPracticeTrial : Config.deliveriesPerTrial;
         int craft_shop_delivery_num = rng.Next(deliveries - 1);
+        List<StoreComponent> unvisitedStores = null;
+        List<StoreComponent> stimStoresToVisit = null;
+        List<StoreComponent> nostimStoresToVisit = null;
+
+        if (HOSPITAL_COURIER && !practice)
+        {
+            // draw 6 from stim / nostim store lists
+            var rnd = new System.Random();
+            stimStoresToVisit = StimStores.OrderBy(r => rnd.Next()).Take(deliveries/2).ToList();
+            nostimStoresToVisit = noStimStores.OrderBy(r => rnd.Next()).Take(deliveries - deliveries/2).ToList();
+
+            // now MERGE
+            unvisitedStores = new List<StoreComponent>(stimStoresToVisit.Count + nostimStoresToVisit.Count);
+            unvisitedStores.AddRange(stimStoresToVisit);
+            unvisitedStores.AddRange(nostimStoresToVisit);
+            unvisitedStores.Shuffle();
+        }
+        else
+            unvisitedStores = new List<StoreComponent>(environment.stores);
+
+        if (skipLastDelivStores)
+            foreach (var store in thisTrialPresentedStores)
+                unvisitedStores.Remove(store);
+
+        thisTrialPresentedStores = new List<StoreComponent>();
+
+        // LC: Set the Stim freq
+        if (useElemem && (stimTag != null))
+            elememInterface.SendStimSelectMessage(stimTag);
+            Debug.Log("This Trial is using " + stimTag + " as stim frequency");
 
         for (int i = 0; i < deliveries; i++)
         {
+
+            // LC: save the lastly visited store for next trial
+            //     there is a bug where the algorithm picks next store to be the one that you just visited on last trial
+            //     manually store & remove the store and add it back after choosing the first store for subsequent trials
+            if (i == 0)
+            {
+                if (previousTrialStore != null)
+                    unvisitedStores.Remove(previousTrialStore);
+            }
             StoreComponent nextStore = PickNextStore(unvisitedStores);
             unvisitedStores.Remove(nextStore);
             thisTrialPresentedStores.Add(nextStore);
+            if (i == 0)
+            {
+                if (previousTrialStore != null)
+                    unvisitedStores.Add(previousTrialStore);
+            }
+
+            // LC: keep the lastly visited store for next delivery day
+            if (i == deliveries-1)
+                previousTrialStore = nextStore;
 
             playerMovement.Freeze();
             messageImageDisplayer.please_find_the_blah_reminder.SetActive(false);
@@ -691,15 +980,33 @@ public class DeliveryExperiment : CoroutineExperiment
             }
             yield return DisplayPointingIndicator(nextStore, false);
 
+            // Get points for this store, default value being -1
+            double storePoints = 0.0;
+            switch (storePointType)
+            {
+                case StorePointType.Random:
+                case StorePointType.SerialPosition:
+                    storePoints = allStoresPoints[i];
+                    break;
+                case StorePointType.SpatialPosition:
+                    storePoints = nextStore.points;
+                    break;
+            }
+            storePoints = VALUE_COURIER ? storePoints : -1.0;
+
             ///AUDIO PRESENTATION OF OBJECT///
             if (i != deliveries - 1)
             {
                 playerMovement.Freeze();
-                AudioClip deliveredItem = (practice && trialNumber == 0 && i == craft_shop_delivery_num)
-                    ? nextStore.PopPracticeItem(LanguageSource.GetLanguageString("confetti"))
-                    : nextStore.PopItem();
+                Debug.Log(trialNumber);
+                AudioClip deliveredItem = nextStore.PopItem();
+                float wordDelay = 0f;
 
-                #if !UNITY_WEBGL // NICLS
+                bool isStimStore = StimStores.Contains(nextStore);
+                Debug.Log("is this stim store? " + isStimStore.ToString());
+
+                #if !UNITY_WEBGL 
+                    // NICLS
                     if (useNiclServer && !practice)
                     {
                         yield return new WaitForSeconds(WORD_PRESENTATION_DELAY);
@@ -708,26 +1015,39 @@ public class DeliveryExperiment : CoroutineExperiment
                         else
                             yield return WaitForClassifier(niclsClassifierTypes[continuousTrialNum]);
                     }
+                    // Hospital
                     else
                     {
-                        float wordDelay = UnityEngine.Random.Range(WORD_PRESENTATION_DELAY - WORD_PRESENTATION_JITTER,
-                                                WORD_PRESENTATION_DELAY + WORD_PRESENTATION_JITTER);
+                        // LC: ELEMEM
+                        // ZAP it when they deliver items to stim store
+                        if (useElemem && !practice && isStimStore)
+                        {
+                            elememInterface.SendStimMessage();
+                            Debug.Log("ZZZAPPP THIS STORE");
+                        }
+
+                        wordDelay = UnityEngine.Random.Range(WORD_PRESENTATION_DELAY - WORD_PRESENTATION_JITTER,
+                                                             WORD_PRESENTATION_DELAY + WORD_PRESENTATION_JITTER);
                         yield return new WaitForSeconds(wordDelay);
                     }
                 #endif
 
                 string deliveredItemName = deliveredItem.name;
-                string deliveredItemNameWithSpace = deliveredItemName.Replace('_', ' ');
-                audioPlayback.clip = deliveredItem;
-                audioPlayback.Play();
-                scriptedEventReporter.ReportScriptedEvent("object presentation begins",
-                                                          new Dictionary<string, object>() { {"trial number", continuousTrialNum},
-                                                                                             {"item name", deliveredItemName},
-                                                                                             {"store name", nextStore.GetStoreName()},
-                                                                                             {"serial position", i+1},
-                                                                                             {"player position", playerMovement.transform.position.ToString()},
-                                                                                             {"store position", nextStore.transform.position.ToString()}});
-                
+                int roundedPoints = (int)Math.Round(storePoints);
+                string deliveredItemNameWithSpace = VALUE_COURIER ? deliveredItemName.Replace('_', ' ') + ", " + roundedPoints.ToString() 
+                                                                  : deliveredItemName.Replace('_', ' ');
+                var itemPresentationInfo = new Dictionary<string, object>() { {"trial number", continuousTrialNum},
+                                                                            {"item name", deliveredItemName},
+                                                                            {"store name", nextStore.GetStoreName()},
+                                                                            {"serial position", i+1},
+                                                                            {"player position", playerMovement.transform.position.ToString()},
+                                                                            {"store position", nextStore.transform.position.ToString()},
+                                                                            {"store value", roundedPoints},
+                                                                            {"point condition", (int)storePointType},
+                                                                            {"task condition", freeFirst ? "FreeFirst" : "ValueFirst"},
+                                                                            {"stim condition", useElemem ? isStimStore : false},
+                                                                            {"stim tag", stimTag} };
+
                 #if !UNITY_WEBGL // System.IO
                     string lstFilepath = practice
                                 ? System.IO.Path.Combine(UnityEPL.GetDataPath(), "practice-" + continuousTrialNum.ToString() + ".lst")
@@ -736,7 +1056,14 @@ public class DeliveryExperiment : CoroutineExperiment
                 #endif
                 allPresentedObjects.Add(deliveredItemName);
 
+                audioPlayback.clip = deliveredItem;
+                audioPlayback.Play();
+                
+
+                scriptedEventReporter.ReportScriptedEvent("object presentation begins", itemPresentationInfo);
                 SetRamulatorState("WORD", true, new Dictionary<string, object>() { { "word", deliveredItemName } });
+                elememInterface.SendWordMessage(deliveredItemName, i+1, isStimStore, itemPresentationInfo);
+
                 //add visuals with sound
                 messageImageDisplayer.deliver_item_visual_dislay.SetActive(true);
                 messageImageDisplayer.SetDeliverItemText(deliveredItemNameWithSpace);
@@ -747,7 +1074,14 @@ public class DeliveryExperiment : CoroutineExperiment
 
                 scriptedEventReporter.ReportScriptedEvent("audio presentation finished",
                                                           new Dictionary<string, object>());
-                playerMovement.Unfreeze();
+
+                if (HOSPITAL_COURIER)
+                {
+                    // LC: complete full 3 second interval
+                    float restDelay = 3f - wordDelay - AUDIO_TEXT_DISPLAY;
+                    yield return new WaitForSeconds(restDelay);
+                    playerMovement.Unfreeze();
+                }
             }
         }
 
@@ -768,11 +1102,24 @@ public class DeliveryExperiment : CoroutineExperiment
         scriptedEventReporter.ReportScriptedEvent("start practice trials");
 
         starSystem.ResetSession();
+        BlackScreen();
 
-        yield return DoRecapInstructions(forceFR: true);
-
-        messageImageDisplayer.SetGeneralMessageText(mainText: "practice invitation");
-        yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
+        if (!HOSPITAL_COURIER)
+        {
+            yield return DoRecapInstructions(forceFR: true);
+            messageImageDisplayer.SetGeneralMessageText(mainText: "practice invitation");
+            yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
+        }
+        // LC: add standard FR instruction video
+        else
+        {
+            yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
+                                 LanguageSource.GetLanguageString("standard intro video"),
+                                 VideoSelector.VideoType.practiceVideo);
+            messageImageDisplayer.SetGeneralMessageText(mainText: "practice hospital");
+            yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
+        }
+        WorldScreen();
 
         for (int trialNumber = 0; trialNumber < numTrials; trialNumber++)
         {
@@ -790,26 +1137,26 @@ public class DeliveryExperiment : CoroutineExperiment
                 else // One btn ER
                 {
                     if (Config.efrEnabled)
-                        messageImageDisplayer.SetGeneralBigMessageText(titleText: "one btn efr instructions title",
-                                                                       mainText: "one btn efr instructions main");
-                    if (Config.ecrEnabled) // TODO: JPB: Hospital add ecr instructions
-                        messageImageDisplayer.SetGeneralBigMessageText(titleText: "one btn ecr instructions title",
-                                                                       mainText: "one btn ecr instructions main");
-                    yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
+                        yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
+                                             LanguageSource.GetLanguageString("standard intro video"),
+                                             VideoSelector.VideoType.efrRecapVideo);
+
                     yield return DoOneBtnErKeypressCheck();
                     yield return DoOneBtnErKeypressPractice();
                 }
 
                 if (HOSPITAL_COURIER) // Skip the second ER practice deliv day (have it be a real deliv day)
                     break;
-
+  
                 messageImageDisplayer.SetGeneralMessageText(titleText: "er check understanding title",
-                                                            mainText: "er check understanding main");
+                                                                mainText: "er check understanding main");
                 yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
             }
 
             // Next day message (and trial skip button)
             SetRamulatorState("WAITING", true, new Dictionary<string, object>());
+            // LC: ELEMEM
+            SetElememState("WAITING");
             if (!DeliveryItems.ItemsExhausted())
             {
                 BlackScreen();
@@ -837,31 +1184,38 @@ public class DeliveryExperiment : CoroutineExperiment
                 // Set ramulator trial start                       
                 if (useRamulator)                                  
                     ramulatorInterface.BeginNewTrial(trialNumber); 
+                if (Config.elememOn)
+                    elememInterface.SendTrialMessage(trialNumber, false);
             #endif                                                 
 
-            // Do deliveries and recall
+            // Do deliveries
             if (HOSPITAL_COURIER && trialNumber == 0) // Skip town learning stores in first pratice deliv days
                 yield return DoDeliveries(trialNumber, trialNumber, practice: true, skipLastDelivStores: true);
             else
                 yield return DoDeliveries(trialNumber, trialNumber, practice: true);
-            if (!COURIER_ONLINE)
-                yield return DoFixation(PAUSE_BEFORE_RETRIEVAL, practice: true);
-            yield return DoRecall(trialNumber, trialNumber, practice: true);
-
-            // Delivery Scores
+            // Delivery Scores : LC : now pointing feedback comes right after the delivery day
             if (HOSPITAL_COURIER)
             {
-                var mtFormatValues = new string[] { starSystem.NumCorrectInSession(c => c < POINTING_CORRECT_THRESHOLD / Mathf.PI).ToString(),
+                var mtFormatValues = new string[] { starSystem.NumCorrectInSession(c => c < POINTING_CORRECT_THRESHOLD).ToString(),
                                                     starSystem.NumInSession().ToString() };
                 messageImageDisplayer.SetGeneralBigMessageText(titleText: "deliv day pointing accuracy title",
                                                                mainText: "deliv day pointing accuracy main",
                                                                mtFormatVals: mtFormatValues);
                 yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
             }
+            // Do recalls
+            if (!COURIER_ONLINE)
+                yield return DoFixation(PAUSE_BEFORE_RETRIEVAL, practice: true);
+            yield return DoRecall(trialNumber, trialNumber, practice: true);
+
         }
 
-        messageImageDisplayer.SetGeneralMessageText(titleText: "er check understanding title",
-                                                    mainText: "er check understanding main");
+        if (HOSPITAL_COURIER)
+            messageImageDisplayer.SetGeneralMessageText(mainText: "er check understanding main hospital",
+                                                        continueText: "");
+        else
+            messageImageDisplayer.SetGeneralMessageText(titleText: "er check understanding title",
+                                                        mainText: "er check understanding main");
         yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
 
         scriptedEventReporter.ReportScriptedEvent("stop practice trials");
@@ -871,8 +1225,28 @@ public class DeliveryExperiment : CoroutineExperiment
     {
         Debug.Log("Real trials");
         scriptedEventReporter.ReportScriptedEvent("start trials");
+
+        // randomize the order of free recall & value guess task
+        freeTaskFirst = new bool[numTrials];
+        for (int i = 0; i < numTrials/2; i++) {
+            freeTaskFirst[i] = true;
+        }
+        freeTaskFirst.Shuffle(new System.Random());
+
+        List<StorePointType> freeList = Enum.GetValues(typeof(StorePointType)).Cast<StorePointType>().ToList();
+        List<StorePointType> valueList = Enum.GetValues(typeof(StorePointType)).Cast<StorePointType>().ToList();
+
+        // LC: ELEMEM stim tag lists
+        List<string> stimTagLists = GenerateStimTags(numTrials);
+
+        // create a condition list for each task
+        freeList.Shuffle(new System.Random(UnityEPL.GetParticipants()[0].GetHashCode()));
+        valueList.Shuffle(new System.Random());
+
         for (int trialNumber = 0; trialNumber < numTrials; trialNumber++)
         {
+            starSystem.ResetSession();
+            
             int continuousTrialNum = trialNumber + trialNumOffset;
 
             #if !UNITY_WEBGL // NICLS
@@ -886,6 +1260,8 @@ public class DeliveryExperiment : CoroutineExperiment
 
             // Next day message (and trial skip button)
             SetRamulatorState("WAITING", true, new Dictionary<string, object>());
+            // LC: ELEMEM
+            SetElememState("WAITING");
             if (!DeliveryItems.ItemsExhausted())
             {
                 BlackScreen();
@@ -913,24 +1289,56 @@ public class DeliveryExperiment : CoroutineExperiment
                 // Set ramulator trial start
                 if (useRamulator)
                     ramulatorInterface.BeginNewTrial(continuousTrialNum);
+                if (Config.elememOn)
+                {
+                    elememInterface.SendTrialMessage(continuousTrialNum, useElemem ? true : false);
+                    // elememInterface.SendStimSelectMessage(stimTagLists[trialNumber]);
+                }
             #endif
 
-            // Do deliveries and recall
-            yield return DoDeliveries(trialNumber, continuousTrialNum, practice: false);
-            if (!COURIER_ONLINE)
-                yield return DoFixation(PAUSE_BEFORE_RETRIEVAL, practice: false);
-            yield return DoRecall(trialNumber, continuousTrialNum, practice: false);
-
+            // LC: order of which the task appears is evenly randomized (3 free / 3 value)
+            if (freeTaskFirst[trialNumber])
+            {
+                // LC: for each case, all 3 conditions should appear (serial, spatial, random)
+                yield return DoDeliveries(trialNumber, continuousTrialNum, practice: false, 
+                                          storePointType: freeList[freeIndex], freeFirst: true, 
+                                          stimTag: stimTagLists[trialNumber]);
+                freeIndex += 1;
+            }
+            else
+            {
+                yield return DoDeliveries(trialNumber, continuousTrialNum, practice: false, 
+                                          storePointType: valueList[valueIndex], freeFirst: false,
+                                          stimTag: stimTagLists[trialNumber]);
+                valueIndex += 1;
+            }
             // Delivery Scores
             if (HOSPITAL_COURIER)
             {
-                var mtFormatValues = new string[] { starSystem.NumCorrectInSession(c => c < POINTING_CORRECT_THRESHOLD / Mathf.PI).ToString(),
+                var mtFormatValues = new string[] { starSystem.NumCorrectInSession(c => c < POINTING_CORRECT_THRESHOLD).ToString(),
                                                     starSystem.NumInSession().ToString() };
                 messageImageDisplayer.SetGeneralBigMessageText(titleText: "deliv day pointing accuracy title",
                                                                mainText: "deliv day pointing accuracy main",
                                                                mtFormatVals: mtFormatValues);
                 yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
             }
+            // Do recall
+            if (!COURIER_ONLINE)
+                yield return DoFixation(PAUSE_BEFORE_RETRIEVAL, practice: false);
+            yield return DoRecall(trialNumber, continuousTrialNum, 
+                                  practice: false, freeFirst: freeTaskFirst[trialNumber]);
+
+            // Delivery Progress
+            if (VALUE_COURIER)
+            {
+                int currTrial = trialNumber + 1;
+                var mtFormatValues = new string[] { currTrial.ToString(), numTrials.ToString() };
+                messageImageDisplayer.SetGeneralBigMessageText(titleText: "deliv day progress title",
+                                                            mainText: "deliv day progress main", 
+                                                            mtFormatVals: mtFormatValues);
+                yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
+            }
+
         }
         scriptedEventReporter.ReportScriptedEvent("stop trials");
     }
@@ -951,6 +1359,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private IEnumerator DoFixation(float time, bool practice = false)
     {
         scriptedEventReporter.ReportScriptedEvent("start fixation");
+        SetElememState("ORIENT");
         BlackScreen();
 
         if (practice)
@@ -965,7 +1374,6 @@ public class DeliveryExperiment : CoroutineExperiment
         scriptedEventReporter.ReportScriptedEvent("stop fixation");
     }
 
-    // LC: no warning field implemented yet
     private IEnumerator DoTypedResponses(int trialNumber, string taskType, float taskLength, GameObject inputObject,
                                          UnityEngine.UI.InputField inputField, string storeName = "")
     {
@@ -1005,7 +1413,7 @@ public class DeliveryExperiment : CoroutineExperiment
                 {
                     if (taskType == "value recall")
                     {
-                        // valueGuessWrongType.SetActive(false);
+                        valueGuessWrongType.SetActive(false);
 
                         // save & report the response
                         Dictionary<string, object> typedData = new Dictionary<string, object>();
@@ -1022,7 +1430,7 @@ public class DeliveryExperiment : CoroutineExperiment
                     // tasks other than value guess should have word response
                     else
                     {
-                        // freeRecallWrongType.SetActive(true);
+                        freeRecallWrongType.SetActive(true);
                     }
                 }
                 // if typed response is not numeric value...
@@ -1031,11 +1439,11 @@ public class DeliveryExperiment : CoroutineExperiment
                     // value guess should have numeric response
                     if (taskType == "value recall")
                     {
-                        // valueGuessWrongType.SetActive(true);
+                        valueGuessWrongType.SetActive(true);
                     }
                     else
                     {
-                        // freeRecallWrongType.SetActive(false);
+                        freeRecallWrongType.SetActive(false);
 
                         // save & report the response
                         Dictionary<string, object> typedData = new Dictionary<string, object>();
@@ -1070,17 +1478,34 @@ public class DeliveryExperiment : CoroutineExperiment
         inputField.Select();
         inputField.text = "";
         inputObject.SetActive(false);
-        // freeRecallWrongType.SetActive(false);
-        // valueGuessWrongType.SetActive(false);
+        freeRecallWrongType.SetActive(false);
+        valueGuessWrongType.SetActive(false);
     }
 
-    private IEnumerator DoRecall(int trialNumber, int continuousTrialNum, bool practice = false)
+    private IEnumerator DoRecall(int trialNumber, int continuousTrialNum, bool practice = false, bool freeFirst = true)
     {
         SetRamulatorState("RETRIEVAL", true, new Dictionary<string, object>());
+        // LC: ELEMEM
+        SetElememState("RETRIEVAL");
 
-        yield return DoFreeRecall(trialNumber, continuousTrialNum, practice);
-
-        yield return DoCuedRecall(trialNumber, continuousTrialNum, practice);
+        if (VALUE_COURIER)
+        {
+            if (freeFirst)
+            {
+                yield return DoFreeRecall(trialNumber, continuousTrialNum, practice);
+                yield return DoValueRecall(trialNumber);
+            }
+            else
+            {
+                yield return DoValueRecall(trialNumber);
+                yield return DoFreeRecall(trialNumber, continuousTrialNum, practice);
+            }
+        }
+        else
+        {
+            yield return DoFreeRecall(trialNumber, continuousTrialNum, practice);
+            yield return DoCuedRecall(trialNumber, continuousTrialNum, practice);
+        }
 
         SetRamulatorState("RETRIEVAL", false, new Dictionary<string, object>());
     }
@@ -1092,6 +1517,15 @@ public class DeliveryExperiment : CoroutineExperiment
             messageImageDisplayer.SetGeneralBigMessageText("free recall title", "free recall main");
             yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
         }
+
+        // if (HOSPITAL_COURIER && !practice)
+        // {
+        //     // LC: add reminder instructions at the beginning of every recall task
+        //     if (Config.efrEnabled)
+        //         messageImageDisplayer.SetGeneralBigMessageText(titleText: "one btn efr instructions title",
+        //                                                         mainText: "one btn efr instructions main");
+        //     yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
+        // }
         
         scriptedEventReporter.ReportScriptedEvent("start free recall");
         BlackScreen();
@@ -1107,6 +1541,9 @@ public class DeliveryExperiment : CoroutineExperiment
             Dictionary<string, object> recordingData = new Dictionary<string, object>();
             recordingData.Add("trial number", continuousTrialNum);
             scriptedEventReporter.ReportScriptedEvent("object recall recording start", recordingData);
+
+            SetElememState("RECALL", new Dictionary<string, object>{ {"duration", practice ? PRACTICE_FREE_RECALL_LENGTH : FREE_RECALL_LENGTH } });
+
             string output_directory = UnityEPL.GetDataPath();
             string wavFilePath = practice
                         ? System.IO.Path.Combine(output_directory, "practice-" + continuousTrialNum.ToString()) + ".wav"
@@ -1118,8 +1555,20 @@ public class DeliveryExperiment : CoroutineExperiment
             else if (practice)
                 yield return DoFreeRecallDisplay("", PRACTICE_FREE_RECALL_LENGTH, practice: true);
             else
+            {
+                if (useElemem)
+                {
+                    // Elemem testing code
+                    // if (elememInterface == null)
+                    //     elememInterface = GameObject.Find("ElememInterface").GetComponent<ElememInterface>();
+                    //     elememInterface.elememInterfaceHelper.Start();
+                    //     elememInterface.elememInterfaceHelper.StartLoop();
+                    
+                    int iterations = (int)Math.Round(FREE_RECALL_LENGTH / (STIM_DURATION * 2));
+                    elememInterface.DoRepeatingStim(iterations, ELEMEM_REP_SWITCH_DELAY, ELEMEM_REP_STIM_INTERVAL);
+                }
                 yield return DoFreeRecallDisplay("", FREE_RECALL_LENGTH);
-
+            }
             scriptedEventReporter.ReportScriptedEvent("object recall recording stop", recordingData);
             soundRecorder.StopRecording();
         #else
@@ -1140,8 +1589,17 @@ public class DeliveryExperiment : CoroutineExperiment
     {
         scriptedEventReporter.ReportScriptedEvent("start cued recall");
         BlackScreen();
+        thisTrialPresentedStores.RemoveAt(thisTrialPresentedStores.Count -1); // LC: remove lastly visited stores where we don't delivery item
         thisTrialPresentedStores.Shuffle(rng);
         Debug.Log(thisTrialPresentedStores);
+
+        if (practice)
+        {
+            scriptedEventReporter.ReportScriptedEvent("ecr cued recall video start");
+            yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
+                                 LanguageSource.GetLanguageString("standard intro video"),
+                                 VideoSelector.VideoType.ecrVideo);
+        }
         
         if (COURIER_ONLINE)
         {
@@ -1159,6 +1617,11 @@ public class DeliveryExperiment : CoroutineExperiment
             yield return SkippableWait(RECALL_MESSAGE_DISPLAY_LENGTH);
             textDisplayer.ClearText();
         }
+
+        // LC: make standard cued recall ECR here
+        // This is done to match the instruction video shown before.
+        if (HOSPITAL_COURIER)
+            practice = false;
 
         highBeep.Play();
         scriptedEventReporter.ReportScriptedEvent("sound played", new Dictionary<string, object>() { { "sound name", "high beep" }, { "sound duration", highBeep.clip.length.ToString() } });
@@ -1179,9 +1642,7 @@ public class DeliveryExperiment : CoroutineExperiment
                                                                WORD_PRESENTATION_DELAY + WORD_PRESENTATION_JITTER);
                     yield return new WaitForSeconds(wordDelay);
                 }
-            #endif
 
-            #if !UNITY_WEBGL //  System.IO
                 string output_file_name = practice
                             ? "practice-" + continuousTrialNum.ToString() + "-" + cueStore.GetStoreName()
                             : continuousTrialNum.ToString() + "-" + cueStore.GetStoreName();
@@ -1191,6 +1652,8 @@ public class DeliveryExperiment : CoroutineExperiment
                 AppendWordToLst(lstFilepath, cueStore.GetLastPoppedItemName());
             #endif
 
+            cueStore.familiarization_object.SetActive(true);
+
             Dictionary<string, object> cuedRecordingData = new Dictionary<string, object>();
             cuedRecordingData.Add("trial number", COURIER_ONLINE ? trialNumber : continuousTrialNum);
             cuedRecordingData.Add("store", cueStore.GetStoreName());
@@ -1199,6 +1662,7 @@ public class DeliveryExperiment : CoroutineExperiment
             
             #if !UNITY_WEBGL // Microphone
                 scriptedEventReporter.ReportScriptedEvent("cued recall recording start", cuedRecordingData);
+                SetElememState("RECALL", new Dictionary<string, object>{ {"duration", MAX_CUED_RECALL_TIME_PER_STORE} });
                 soundRecorder.StartRecording(wavFilePath);
 
                 if (practice && trialNumber == 0)
@@ -1225,6 +1689,27 @@ public class DeliveryExperiment : CoroutineExperiment
         scriptedEventReporter.ReportScriptedEvent("stop cued recall");
     }
 
+    // LC: not implemented for double session, only for single session
+    private IEnumerator DoValueRecall(int trialNumber)
+    {
+        scriptedEventReporter.ReportScriptedEvent("start value recall");
+        BlackScreen();
+
+        if (COURIER_ONLINE)
+        {
+            messageImageDisplayer.SetGeneralBigMessageText("value recall title", "value recall main");
+            yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
+        }
+
+        #if !UNITY_WEBGL
+            // TODO: implement for UNITY standalone version
+        #else
+            yield return DoTypedResponses(trialNumber, "value recall", VALUE_RECALL_LENGTH, freeInputField, freeResponse);
+        #endif
+
+        scriptedEventReporter.ReportScriptedEvent("stop value recall");
+    }
+
     private IEnumerator DoFinalRecall(int subSessionNum)
     {
         Debug.Log("Final Recalls");
@@ -1232,6 +1717,8 @@ public class DeliveryExperiment : CoroutineExperiment
 
         #if !UNITY_WEBGL // Microphone and System.IO
             SetRamulatorState("RETRIEVAL", true, new Dictionary<string, object>());
+            // LC: ELEMEM
+            SetElememState("RETRIEVAL");
 
             string output_directory = UnityEPL.GetDataPath();
             string output_file_name;
@@ -1240,6 +1727,11 @@ public class DeliveryExperiment : CoroutineExperiment
             
             if (!NICLS_COURIER)
             {
+                yield return messageImageDisplayer.DisplayLanguageMessage(messageImageDisplayer.final_recall_messages);
+                // LC: final store recall reminder slide
+                messageImageDisplayer.SetGeneralBigMessageText("final store recall title", "final store recall main", "start");
+                yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
+
                 highBeep.Play();
                 scriptedEventReporter.ReportScriptedEvent("sound played", new Dictionary<string, object>() { { "sound name", "high beep" }, { "sound duration", highBeep.clip.length.ToString() } });
                 textDisplayer.DisplayText("display recall text", RECALL_TEXT);
@@ -1253,11 +1745,27 @@ public class DeliveryExperiment : CoroutineExperiment
                     AppendWordToLst(lstFilepath, store.GetStoreName());
 
                 scriptedEventReporter.ReportScriptedEvent("final store recall recording start", new Dictionary<string, object>());
+                SetElememState("RECALL", new Dictionary<string, object>{ {"duration", STORE_FINAL_RECALL_LENGTH} });
                 soundRecorder.StartRecording(wavFilePath);
 
                 textDisplayer.ClearText();
                 ClearTitle();
-                yield return DoFreeRecallDisplay("all stores recall", STORE_FINAL_RECALL_LENGTH);
+
+                if (useElemem)
+                {
+                    // Elemem testing code
+                    // if (elememInterface == null)
+                    //     elememInterface = GameObject.Find("ElememInterface").GetComponent<ElememInterface>();
+                    //     elememInterface.elememInterfaceHelper.Start();
+                    //     elememInterface.elememInterfaceHelper.StartLoop();
+                    
+                    int iterations = (int)Math.Round(STORE_FINAL_RECALL_LENGTH / (STIM_DURATION * 2));
+                    // LC: we need to alternate the stim frequency. also we need to give some time buffer
+                    elememInterface.stimTags = GenerateStimTags(iterations);
+                    elememInterface.DoRepeatingSwitch(iterations, ELEMEM_REP_STIM_DELAY, ELEMEM_REP_STIM_INTERVAL);
+                    elememInterface.DoRepeatingStim(iterations, ELEMEM_REP_SWITCH_DELAY, ELEMEM_REP_STIM_INTERVAL);
+                }
+                yield return DoFreeRecallDisplay("final store recall", STORE_FINAL_RECALL_LENGTH);
 
                 scriptedEventReporter.ReportScriptedEvent("final store recall recording stop", new Dictionary<string, object>());
                 soundRecorder.StopRecording();
@@ -1267,6 +1775,14 @@ public class DeliveryExperiment : CoroutineExperiment
 
                 yield return SkippableWait(TIME_BETWEEN_DIFFERENT_RECALL_PHASES);
             }
+
+            // LC: moved this message from DoSubsession to here
+            if (NICLS_COURIER)
+                yield return messageImageDisplayer.DisplayLanguageMessage(messageImageDisplayer.nicls_final_recall_messages);
+            else
+                // LC: final object recall reminder slide
+                messageImageDisplayer.SetGeneralBigMessageText("final object recall title", "final object recall main", "start");
+                yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
 
             highBeep.Play();
             scriptedEventReporter.ReportScriptedEvent("sound played", new Dictionary<string, object>() { { "sound name", "high beep" }, { "sound duration", highBeep.clip.length.ToString() } });
@@ -1281,11 +1797,27 @@ public class DeliveryExperiment : CoroutineExperiment
                 AppendWordToLst(lstFilepath, deliveredObject);
 
             scriptedEventReporter.ReportScriptedEvent("final object recall recording start");
+            SetElememState("RECALL", new Dictionary<string, object>{ {"duration", OBJECT_FINAL_RECALL_LENGTH} });
             soundRecorder.StartRecording(wavFilePath);
 
             textDisplayer.ClearText();
             ClearTitle();
+            
+            if (useElemem)
+            {
+                // Elemem testing code
+                // if (elememInterface == null)
+                //     elememInterface = GameObject.Find("ElememInterface").GetComponent<ElememInterface>();
+                //     elememInterface.elememInterfaceHelper.Start();
+                //     elememInterface.elememInterfaceHelper.StartLoop();
+                
+                int iterations = (int)Math.Round(OBJECT_FINAL_RECALL_LENGTH / (STIM_DURATION * 2));
+                elememInterface.stimTags = GenerateStimTags(iterations);
+                elememInterface.DoRepeatingSwitch(iterations, ELEMEM_REP_STIM_DELAY, ELEMEM_REP_STIM_INTERVAL);
+                elememInterface.DoRepeatingStim(iterations, ELEMEM_REP_SWITCH_DELAY, ELEMEM_REP_STIM_INTERVAL);
+            }
             yield return DoFreeRecallDisplay("all objects recall", OBJECT_FINAL_RECALL_LENGTH);
+
             scriptedEventReporter.ReportScriptedEvent("final object recall recording stop");
             soundRecorder.StopRecording();
 
@@ -1406,12 +1938,16 @@ public class DeliveryExperiment : CoroutineExperiment
             Dictionary<string, object> recordingData = new Dictionary<string, object>();
             recordingData.Add("video number", videoIndex);
             scriptedEventReporter.ReportScriptedEvent("music video recall recording start", recordingData);
-            soundRecorder.StartRecording(wavFilePath);
+            #if !UNITY_WEBGL
+                soundRecorder.StartRecording(wavFilePath);
+            #endif
 
             yield return DoFreeRecallDisplay("music video " + videoIndex + " recall", MUSIC_VIDEO_RECALL_TIME, efrDisabled: true);
 
             scriptedEventReporter.ReportScriptedEvent("music video recall recording stop", recordingData);
-            soundRecorder.StopRecording();
+            #if !UNITY_WEBGL
+                soundRecorder.StopRecording();
+            #endif
 
             lowBeep.Play();
             scriptedEventReporter.ReportScriptedEvent("sound played", new Dictionary<string, object>() { { "sound name", "low beep" }, { "sound duration", lowBeep.clip.length.ToString() } });
@@ -1421,7 +1957,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
 
 
-    private IEnumerator DoPointingTask(StoreComponent nextStore)
+    private IEnumerator DoPointingTask(StoreComponent nextStore, bool townlearning=false)
     {
         pointer.SetActive(true);
         ColorPointer(new Color(0.5f, 0.5f, 1f));
@@ -1434,6 +1970,13 @@ public class DeliveryExperiment : CoroutineExperiment
                            LanguageSource.GetLanguageString("please point") +
                            LanguageSource.GetLanguageString(nextStore.GetStoreName()) + "." + "\n\n" +
                            LanguageSource.GetLanguageString("keyboard")
+                           :
+                           townlearning ?
+                           LanguageSource.GetLanguageString("next store prompt") + "<b>" +
+                           LanguageSource.GetLanguageString(nextStore.GetStoreName()) + "</b>" + ". " +
+                           LanguageSource.GetLanguageString("please point") +
+                           LanguageSource.GetLanguageString(nextStore.GetStoreName()) + "." + "\n\n" +
+                           LanguageSource.GetLanguageString("joystick")
                            :
                            LanguageSource.GetLanguageString("next package prompt") + "<b>" +
                            LanguageSource.GetLanguageString(nextStore.GetStoreName()) + "</b>" + ". " +
@@ -1461,16 +2004,22 @@ public class DeliveryExperiment : CoroutineExperiment
 
         float wrongness = pointerError / Mathf.PI;
         ColorPointer(new Color(wrongness, 1 - wrongness, .2f));
-        bool improvement = starSystem.ReportScore(1 - wrongness);
+        bool improvement = starSystem.ReportScore(pointerError, 1 - wrongness);
 
         if (STAR_SYSTEM_ACTIVE)
             starSystem.gameObject.SetActive(true);
             yield return starSystem.ShowDifference();
 
-        if (improvement)
-            pointerText.text = pointerText.text + "\n" + LanguageSource.GetLanguageString("rating improved");
+        if (STAR_SYSTEM_ACTIVE)
+        {
+            starSystem.gameObject.SetActive(true);
+            yield return starSystem.ShowDifference();
+            if (improvement)
+                pointerText.text = pointerText.text + "\n" + LanguageSource.GetLanguageString("rating improved");
+        }
 
-        pointerText.text = pointerText.text + "\n" + LanguageSource.GetLanguageString("continue");
+        // pointerText.text = pointerText.text + "\n" + LanguageSource.GetLanguageString("continue");
+        pointerText.text = LanguageSource.GetLanguageString("continue");
 
         while (!InputManager.GetButtonDown("Continue"))
             yield return null;
@@ -1533,7 +2082,7 @@ public class DeliveryExperiment : CoroutineExperiment
     }
 
 
-
+    // LC: TODO: Add Elemem stim here (alternating 3 sec, always starting off with NO_STIM)
     private IEnumerator DoFreeRecallDisplay(string title, float waitTime, bool practice = false, bool efrDisabled = false)
     {
         BlackScreen();
@@ -1559,8 +2108,12 @@ public class DeliveryExperiment : CoroutineExperiment
                 }
                 else
                 {
-                    messageImageDisplayer.SetGeneralBiggerMessageText(titleText: "one btn er message",
-                                                                      continueText: "speak now");
+                    if (title == "final store recall")
+                        messageImageDisplayer.SetGeneralBiggerMessageText(titleText: "one btn er message store",
+                                                                        continueText: "speak now");
+                    else
+                        messageImageDisplayer.SetGeneralBiggerMessageText(titleText: "one btn er message",
+                                                                        continueText: "speak now");
                     yield return messageImageDisplayer.DisplayMessageTimedKeypressBold(
                         messageImageDisplayer.general_bigger_message_display, waitTime, ActionButton.RejectButton, "title text", "reject button");
                 }
@@ -1594,10 +2147,12 @@ public class DeliveryExperiment : CoroutineExperiment
             }
             else // One btn ECR
             {
-                messageImageDisplayer.SetCuedRecallMessage("one btn er message");
+                messageImageDisplayer.SetCuedRecallMessage("one btn ecr message", HOSPITAL_COURIER, Config.ecrEnabled);
                 Func<IEnumerator> func = () => { return messageImageDisplayer.DisplayMessageTimedKeypressBold(
-                    messageImageDisplayer.cued_recall_message, waitTime, ActionButton.RejectButton, "continue text", "reject button"); };
+                    messageImageDisplayer.cued_recall_title, waitTime, ActionButton.RejectButton, HOSPITAL_COURIER ? "title text" : "continue text", "reject button"); };
+                messageImageDisplayer.cued_recall_message.SetActive(true);
                 yield return messageImageDisplayer.DisplayMessageFunction(store.familiarization_object, func);
+                messageImageDisplayer.cued_recall_message.SetActive(false);
             }
         }
         else
@@ -1611,14 +2166,15 @@ public class DeliveryExperiment : CoroutineExperiment
             }
             else
             {
-                yield return messageImageDisplayer.DisplayMessageTimed(store.familiarization_object, waitTime);
+                messageImageDisplayer.cued_recall_title.SetActive(false);
+                messageImageDisplayer.SetCuedRecallMessage("speak now", HOSPITAL_COURIER);
+                Func<IEnumerator> func = () => { return messageImageDisplayer.DisplayMessageTimed(messageImageDisplayer.cued_recall_message, waitTime); };
+                yield return messageImageDisplayer.DisplayMessageFunction(store.familiarization_object, func);
             }
         }
 
         yield return null;
     }
-
-
 
     private IEnumerator DoTwoBtnErKeypressCheck()
     {
@@ -1714,14 +2270,21 @@ public class DeliveryExperiment : CoroutineExperiment
         BlackScreen();
 
         // Display intro message
+        // TODO: LC: missing text here
         messageImageDisplayer.SetGeneralMessageText(mainText: "er check main");
         yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
 
         // Ask for reject button press
-        messageImageDisplayer.SetGeneralBiggerMessageText(titleText: "one btn er message",
-                                                          continueText: "");
-        yield return messageImageDisplayer.DisplayMessage(
-            messageImageDisplayer.general_bigger_message_display, "EfrReject");
+        messageImageDisplayer.SetGeneralBiggerMessageText(titleText: "one btn er message", continueText: "");
+        messageImageDisplayer.general_bigger_message_display.SetActive(true);
+
+        Text toggleText = messageImageDisplayer.general_bigger_message_display.transform.Find("title text").GetComponent<Text>();
+
+        while (!InputManager.GetButton("EfrReject"))
+            yield return null;
+        yield return messageImageDisplayer.DoTextBoldTimedOrButton("EfrReject", toggleText, 0.5f);
+        yield return new WaitForSeconds(1.5f);
+        messageImageDisplayer.general_bigger_message_display.SetActive(false);
 
         scriptedEventReporter.ReportScriptedEvent("stop efr keypress check");
     }
@@ -1846,7 +2409,16 @@ public class DeliveryExperiment : CoroutineExperiment
         #endif // !UNITY_WEBG
     }
 
-
+    protected override void SetElememState(string stateName, Dictionary<string, object> extraData = null)
+    {
+        #if !UNITY_WEBGL // Elemem
+            if (extraData == null)
+                extraData = new Dictionary<string, object>();
+            
+            if (Config.elememOn)
+                elememInterface.SendStateMessage(stateName, extraData);
+        #endif
+    }
 
     private void LogVersions(string expName)
     {
@@ -1921,21 +2493,21 @@ public class DeliveryExperiment : CoroutineExperiment
 
         if (stores == null || stores.Count == 0)
             throw new ArgumentException("There are no stores in provided list");
-        Debug.Log("Unvisited Stores: " + string.Join(", ", stores));
+        // Debug.Log("Unvisited Stores: " + string.Join(", ", stores));
 
         var tempStores = NonVisibleStores(stores);
         if (tempStores.Count == 0)
             goto PickStore;
         else
             stores = tempStores;
-        Debug.Log("NonVisible Stores: " + string.Join(", ", stores));
+        // Debug.Log("NonVisible Stores: " + string.Join(", ", stores));
 
         tempStores = StoresNotBehindPlayer(stores);
         if (tempStores.Count == 0)
             goto PickStore;
         else
             stores = tempStores;
-        Debug.Log("Not Behind Player Stores: " + string.Join(", ", stores));
+        // Debug.Log("Not Behind Player Stores: " + string.Join(", ", stores));
 
     PickStore:
         stores.Sort((store1, store2) =>
@@ -1947,7 +2519,7 @@ public class DeliveryExperiment : CoroutineExperiment
             else return 1;
         });
 
-        Debug.Log("Sorted Stores: " + string.Join(", ", stores));
+        // Debug.Log("Sorted Stores: " + string.Join(", ", stores));
 
         int numStoresToChooseFrom = Math.Min(NUM_CLOSE_STORES, stores.Count() - 1);
         return stores[rng.Next(numStoresToChooseFrom)];
@@ -1969,6 +2541,7 @@ public class DeliveryExperiment : CoroutineExperiment
     protected IEnumerator DisplayMessageAndWait(string description, string message)
     {
         SetRamulatorState("WAITING", true, new Dictionary<string, object>());
+        SetElememState("WAITING");
 
         BlackScreen();
         textDisplayer.DisplayText(description, message + "\r\nPress (x) to continue");

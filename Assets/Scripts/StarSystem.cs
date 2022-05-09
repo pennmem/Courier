@@ -20,10 +20,10 @@ public class StarSystem : MonoBehaviour
     private float previousAverage = 0f;
     private float currentAverage = 0f;
 
-    public bool ReportScore(float goodness)
+    public bool ReportScore(float error, float goodness)
     {
         scores.Add(goodness * MAX_SCORE);
-        sessionGoodnesses.Add(goodness);
+        sessionGoodnesses.Add(error);
         currentAverage = RecentAverage();
 
         UpdateCover(currentAverage / MAX_SCORE);

@@ -406,6 +406,23 @@ public class DeliveryExperiment : CoroutineExperiment
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.SetCursor(new Texture2D(0, 0), new Vector2(0, 0), CursorMode.ForceSoftware);
 
+        // Player controls
+        string controlName = "DrivingControls.xml";
+        if (Config.Get(() => Config.singleStickController, false))
+            controlName = "SingleStick" + controlName;
+        else
+            controlName = "Split" + controlName;
+
+        if (Config.Get(() => Config.ps4Controller, false))
+            controlName = "Ps4" + controlName;
+
+        #if !UNITY_WEBGL // System.IO
+            string configPath = System.IO.Path.Combine(
+                Directory.GetParent(Directory.GetParent(UnityEPL.GetParticipantFolder()).FullName).FullName,
+                "configs");
+            InputManager.Load(Path.Combine(configPath, controlName));
+        #endif // !UNITY_WEBGL
+
         // Turn player particles and falling leaves off for Nicls Courier
         if (NICLS_COURIER)
         {

@@ -51,6 +51,8 @@ public class Config
     public static bool sinSmoothedTurning { get { return (bool)Config.GetSetting("sinSmoothedTurning"); } }
     public static bool cubicSmoothedTurning { get { return (bool)Config.GetSetting("cubicSmoothedTurning"); } }
 
+    public static bool singleStickController { get { return (bool)Config.GetSetting("singleStickContoller"); } }
+
     // Constants
     public static int trialsPerSession { get {
             if (lessTrials) return 2;

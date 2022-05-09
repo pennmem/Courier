@@ -100,6 +100,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private const float PAUSE_BEFORE_RETRIEVAL = 10f;
     private const float DISPLAY_ITEM_PAUSE = 5f;
     private const float AUDIO_TEXT_DISPLAY = 1.6f;
+    private const float WORD_PRESENTATION_TOTAL_TIME = 3f;
     private const float WORD_PRESENTATION_DELAY = 1f; //NICLS_COURIER ? 1f : 1.25f; // TODO: JPB: Fix this is NICLS
     private const float WORD_PRESENTATION_JITTER = 0.25f;
     private const float EFR_KEYPRESS_PRACTICE_DELAY = 2.25f;
@@ -1078,7 +1079,7 @@ public class DeliveryExperiment : CoroutineExperiment
                 if (HOSPITAL_COURIER)
                 {
                     // LC: complete full 3 second interval
-                    float restDelay = 3f - wordDelay - AUDIO_TEXT_DISPLAY;
+                    float restDelay = WORD_PRESENTATION_TOTAL_TIME - wordDelay - AUDIO_TEXT_DISPLAY;
                     yield return new WaitForSeconds(restDelay);
                     playerMovement.Unfreeze();
                 }

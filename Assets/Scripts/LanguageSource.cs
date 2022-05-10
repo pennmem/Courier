@@ -41,8 +41,8 @@ public static class LanguageSource
 
         { "standard intro video", new string[] { "Press (Y) to continue, \n Press (N) to replay instructional video.",
                                                  "Drücken Sie (Y) um fortzufahren, \n Drücken Sie (N) um das Video noch einmal zu sehen." } },
-        { "two btn efr intro video", new string[] { "Press (Y) to continue to the next practice delivery day, \n Press (N) to replay instructional video.",
-                                                    "Drücken Sie (Y) um die nächste trainier Auslieferungsrunde zu starten, \n Drücken Sie (N) um das Video noch einmal zu sehen." } },
+        { "two btn efr intro video", new string[] { "Press (Y) to continue to the next delivery day, \n Press (N) to replay instructional video.",
+                                                    "Drücken Sie (Y) um die nächste Auslieferungsrunde zu starten, \n Drücken Sie (N) um das Video noch einmal zu sehen." } },
 
         { "nicls movie", new string[] { "Now we will return to the memory task.\nPress (Y) to continue.", GERMAN_TRANSLATION_NEEDED } },
 
@@ -50,7 +50,8 @@ public static class LanguageSource
         { "next practice day", new string[] { "Press (X) to proceed to the next practice delivery day.",
                                               "Drücken Sie (X) um die nächste trainier Auslieferungsrunde zu starten." } },
 
-        { "one btn efr intro video", new string[] { "Intro for EFR instruction video. \n\nPress any key to play.", GERMAN_TRANSLATION_NEEDED } },
+        { "one btn efr intro video", new string[] { "Press (Y) to continue to the next delivery day, \n Press (N) to replay instructional video.",
+                                                    "Drücken Sie (Y) um die nächste Auslieferungsrunde zu starten, \n Drücken Sie (N) um das Video noch einmal zu sehen." } },
 
         { "first day main", new string [] { "Let’s start the first delivery day!", GERMAN_TRANSLATION_NEEDED } },
         { "two btn er first day description", new string [] { "Don’t forget to continue pressing the left/right buttons when recalling items at the end of each delivery day.",

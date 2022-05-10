@@ -511,6 +511,7 @@ public class DeliveryExperiment : CoroutineExperiment
         if (COURIER_ONLINE)
             yield return DoFrameTest();
 
+        BlackScreen();
 
         // Intros
         yield return DoIntros();
@@ -1142,32 +1143,39 @@ public class DeliveryExperiment : CoroutineExperiment
         for (int trialNumber = 0; trialNumber < numTrials; trialNumber++)
         {
             // ER instructions
+            // TODO: JPB: Cleanup all the if statements in this section!
             if ((Config.efrEnabled || Config.ecrEnabled) && trialNumber == EFR_PRACTICE_TRIAL_NUM)
             {
                 if (Config.twoBtnEfrEnabled || Config.twoBtnEcrEnabled)
                 {
                     yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
-                                         LanguageSource.GetLanguageString("efr intro video"),
+                                         LanguageSource.GetLanguageString("two btn efr intro video"),
                                          VideoSelector.VideoType.EfrIntro);
-                    yield return DoTwoBtnErKeypressCheck();
-                    yield return DoTwoBtnErKeypressPractice();
+                    if (!HOSPITAL_COURIER)
+                    {
+                        yield return DoTwoBtnErKeypressCheck();
+                        yield return DoTwoBtnErKeypressPractice();
+                    }
                 }
                 else // One btn ER
                 {
                     if (Config.efrEnabled)
                         yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
-                                             LanguageSource.GetLanguageString("standard intro video"),
+                                             LanguageSource.GetLanguageString("one btn efr intro video"),
                                              VideoSelector.VideoType.efrRecapVideo);
-
-                    yield return DoOneBtnErKeypressCheck();
-                    yield return DoOneBtnErKeypressPractice();
+                    if (!HOSPITAL_COURIER)
+                    {
+                        yield return DoOneBtnErKeypressCheck();
+                        yield return DoOneBtnErKeypressPractice();
+                    }
+                    
                 }
 
                 if (HOSPITAL_COURIER) // Skip the second ER practice deliv day (have it be a real deliv day)
                     break;
   
                 messageImageDisplayer.SetGeneralMessageText(titleText: "er check understanding title",
-                                                                mainText: "er check understanding main");
+                                                            mainText: "er check understanding main");
                 yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
             }
 
@@ -1611,12 +1619,14 @@ public class DeliveryExperiment : CoroutineExperiment
         thisTrialPresentedStores.Shuffle(rng);
         Debug.Log(thisTrialPresentedStores);
 
-        if (practice)
+        // TODO: JPB: Handle case for multiple practice days
+        if (practice && HOSPITAL_COURIER)
         {
             scriptedEventReporter.ReportScriptedEvent("ecr cued recall video start");
             yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
                                  LanguageSource.GetLanguageString("standard intro video"),
                                  VideoSelector.VideoType.ecrVideo);
+            yield return DoOneBtnErKeypressCheck();
         }
         
         if (COURIER_ONLINE)

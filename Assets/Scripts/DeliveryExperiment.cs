@@ -1085,7 +1085,6 @@ public class DeliveryExperiment : CoroutineExperiment
                 }
             }
         }
-        // playerMovement.Freeze();
 
     SkipRemainingDeliveries:
         messageImageDisplayer.please_find_the_blah_reminder.SetActive(false);

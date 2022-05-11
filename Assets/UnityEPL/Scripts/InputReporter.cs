@@ -54,7 +54,22 @@ public class InputReporter : DataReporter
         Dictionary<string, object> dataDict = new Dictionary<string, object>();
         dataDict.Add("key code", mouseButton);
         dataDict.Add("is pressed", pressed);
-        eventQueue.Enqueue(new DataPoint("mouse press/release", timestamp, dataDict));
+        string label = "mouse press/release";
+        eventQueue.Enqueue(new DataPoint(label, timestamp, dataDict));
+
+        #if !UNITY_WEBGL
+        if (Config.elememOn)
+        {
+            if (elememInterface == null)
+                elememInterface = GameObject.Find("ElememInterface").GetComponent<ElememInterface>();
+
+            string type = label;
+            string elemem_type = type.ToUpper();
+            elemem_type = elemem_type.Replace(' ', '_');
+
+            elememInterface.SendStateMessage(elemem_type, dataDict);
+        }
+        #endif
     }
 
     void CollectKeyEvents() // do we really need to separate out MacOS?
@@ -97,13 +112,42 @@ public class InputReporter : DataReporter
         // if (!IsMacOS())
         //     label = "key/mouse press/release";
         eventQueue.Enqueue(new DataPoint(label, timestamp, dataDict));
+
+        #if !UNITY_WEBGL
+        if (Config.elememOn)
+        {
+            if (elememInterface == null)
+                elememInterface = GameObject.Find("ElememInterface").GetComponent<ElememInterface>();
+
+            string type = label;
+            string elemem_type = type.ToUpper();
+            elemem_type = elemem_type.Replace(' ', '_');
+
+            elememInterface.SendStateMessage(elemem_type, dataDict);
+        }
+        #endif
     }
 
     void CollectMousePosition()
     {
         Dictionary<string, object> dataDict = new Dictionary<string, object>();
         dataDict.Add("position", InputManager.mousePosition);
-        eventQueue.Enqueue(new DataPoint("mouse position", DataReporter.RealWorldTime(), dataDict));
+        string label = "mouse position";
+        eventQueue.Enqueue(new DataPoint(label, DataReporter.RealWorldTime(), dataDict));
         lastMousePositionReportFrame = Time.frameCount;
+
+        #if !UNITY_WEBGL
+        if (Config.elememOn)
+        {
+            if (elememInterface == null)
+                elememInterface = GameObject.Find("ElememInterface").GetComponent<ElememInterface>();
+
+            string type = label;
+            string elemem_type = type.ToUpper();
+            elemem_type = elemem_type.Replace(' ', '_');
+
+            elememInterface.SendStateMessage(elemem_type, dataDict);
+        }
+        #endif
     }
 }

@@ -479,7 +479,9 @@ public class DeliveryExperiment : CoroutineExperiment
             }
 
             // Setup Elemem
-            yield return elememInterface.BeginNewSession(sessionNumber, !Config.elememOn, stimTags.ToArray());
+            yield return elememInterface.BeginNewSession(sessionNumber,
+                disableInterface: !Config.elememOn,
+                uniqueStimTags: useElemem ? stimTags.ToArray() : null);
         #endif // !UNITY_WEBGL
 
         // Write versions to logfile
@@ -1627,6 +1629,7 @@ public class DeliveryExperiment : CoroutineExperiment
                                  LanguageSource.GetLanguageString("standard intro video"),
                                  VideoSelector.VideoType.ecrVideo);
             yield return DoOneBtnErKeypressCheck();
+            scriptedEventReporter.ReportScriptedEvent("ecr cued recall video stop");
         }
         
         if (COURIER_ONLINE)

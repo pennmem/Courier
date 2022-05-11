@@ -60,15 +60,19 @@ public class ElememDataPoint
     }
 
     public string ValueToString(dynamic value) {
-        if(value.GetType().IsArray || value is IList)
-        { 
+        if (value == null)
+        {
+            return "{}";
+        }
+        else if (value.GetType().IsArray || value is IList)
+        {
             var stringValues = new List<string>();
             foreach (object val in (IEnumerable)value) {
                 stringValues.Add(ValueToString(val));
             }
             return "[" + String.Join(",", stringValues) + "]";
         }
-        else if (IsNumeric(value)) 
+        else if (IsNumeric(value))
         {
             return value.ToString();
         }
@@ -76,10 +80,10 @@ public class ElememDataPoint
         {
             return value.ToString().ToLower();
         }
-        else if (value is string) 
+        else if (value is string)
         {
             string valueString = (string)value.ToString().Replace("\n", " "); // clean newlines for writing to jsonl
-            if(valueString.Length > 2 && valueString[0] == '{' && valueString[valueString.Length - 1] == '}') {
+            if (valueString.Length > 2 && valueString[0] == '{' && valueString[valueString.Length - 1] == '}') {
                 return valueString; // treat as embedded JSON
             }
             else {

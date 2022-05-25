@@ -94,7 +94,7 @@ public class DeliveryExperiment : CoroutineExperiment
     // private const float CUED_RECALL_TIME_PER_STORE = 10f;
     private const float MIN_CUED_RECALL_TIME_PER_STORE = 2f;
     private const float MAX_CUED_RECALL_TIME_PER_STORE = NICLS_COURIER ? 6f : 7.5f;
-    private const float POINTING_CORRECT_THRESHOLD = Mathf.PI / 12; // 15°
+    private const float POINTING_CORRECT_THRESHOLD = Mathf.PI / 6; // 30°
     private const float ARROW_CORRECTION_TIME = 3f;
     private const float ARROW_ROTATION_SPEED = 1f;
     private const float PAUSE_BEFORE_RETRIEVAL = 10f;
@@ -904,6 +904,12 @@ public class DeliveryExperiment : CoroutineExperiment
             scriptedEventReporter.ReportScriptedEvent("start deliveries", trialData);
 
         WorldScreen();
+
+        // LC: add slight delay before calculating PickNextStore
+        //     for some reason, before the camera is initialized, PickNextStore calculates the nonvisible stores, 
+        //     in this case, every store in the town
+        //     so, we need to add slight delay for the camera to "see" the stores in town
+        yield return new WaitForSeconds(0.1f);
 
         // Set store points for the delivery day
         double[] allStoresPoints = null;

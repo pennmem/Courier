@@ -961,8 +961,10 @@ public class DeliveryExperiment : CoroutineExperiment
 
         // LC: Set the Stim freq
         if (useElemem && (stimTag != null))
+        {
             elememInterface.SendStimSelectMessage(stimTag);
             Debug.Log("This Trial is using " + stimTag + " as stim frequency");
+        }
 
         for (int i = 0; i < deliveries; i++)
         {

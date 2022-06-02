@@ -1089,7 +1089,6 @@ public class DeliveryExperiment : CoroutineExperiment
 
                 scriptedEventReporter.ReportScriptedEvent("object presentation begins", itemPresentationInfo);
                 SetRamulatorState("WORD", true, new Dictionary<string, object>() { { "word", deliveredItemName } });
-                elememInterface.SendWordMessage(deliveredItemName, i+1, isStimStore, itemPresentationInfo);
 
                 //add visuals with sound
                 messageImageDisplayer.deliver_item_visual_dislay.SetActive(true);

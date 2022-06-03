@@ -23,14 +23,14 @@ public class BeginExperiment : MonoBehaviour
     private const bool NICLS_COURIER = false;
     private const bool VALUE_COURIER = false;
 
-    string experiment_name = HOSPITAL_COURIER ? "HospitalCourier" :
+    string experiment_name = HOSPITAL_COURIER ? "StandardCourier" :
                              NICLS_COURIER ? "NiclsCourier" :
                              "StandardCourier";
 
     private const string scene_name = "MainGame";
 
     public const string EXP_NAME_COURIER = "Courier";
-    public const string EXP_NAME_HOSPITAL = "HospitalCourier";
+    public const string EXP_NAME_HOSPITAL = "StandardCourier";
     public const string EXP_NAME_NICLS = "NiclsCourier";
 
     private void OnEnable() {

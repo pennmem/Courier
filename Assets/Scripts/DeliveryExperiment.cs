@@ -387,11 +387,11 @@ public class DeliveryExperiment : CoroutineExperiment
             UnityEPL.AddParticipant(System.Guid.NewGuid().ToString());
             UnityEPL.SetExperimentName("COURIER_ONLINE");
             UnityEPL.SetSessionNumber(0);
-            ConfigureExperiment(false, false, false, 0, "HospitalCourier");
+            ConfigureExperiment(false, false, false, 0, "StandardCourier");
         }
 
         // if (DEBUG)
-        // ConfigureExperiment(false, false, true, 1, "HospitalCourier");
+        // ConfigureExperiment(false, false, true, 1, "StandardCourier");
 
         // Session check
         if (sessionNumber == -1)
@@ -2460,9 +2460,10 @@ public class DeliveryExperiment : CoroutineExperiment
 
     private void LogVersions(string expName)
     {
+        string stimModeLabel = Config.elememStimMode ? "openloop" : "readonly";
         Dictionary<string, object> versionsData = new Dictionary<string, object>();
         versionsData.Add("UnityEPL version", Application.version);
-        versionsData.Add("Experiment version", expName + COURIER_VERSION);
+        versionsData.Add("Experiment version", expName + "_" + COURIER_VERSION + "_" + stimModeLabel);
         versionsData.Add("Logfile version", "2.0.0");
         scriptedEventReporter.ReportScriptedEvent("versions", versionsData);
     }

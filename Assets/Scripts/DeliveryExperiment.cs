@@ -8,6 +8,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using UnityEngine.Networking;
 using UnityEngine.UI;
+using UnityEngine.AI;
 
 using Accord.Math;
 using Accord.Statistics.Distributions.Multivariate;
@@ -77,7 +78,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private const int HOSPTIAL_TOWN_LEARNING_NUM_STORES = 8;
     private const int SINGLE_TOWN_LEARNING_SESSIONS = 1;
     private const int DOUBLE_TOWN_LEARNING_SESSIONS = 0;
-    private const int POINTING_INDICATOR_DELAY = NICLS_COURIER ? 12 : 48;
+    private const int POINTING_INDICATOR_DELAY = 0; //NICLS_COURIER ? 12 : 48;
     private const int EFR_KEYPRESS_PRACTICES = 10;
     private const float FRAME_TEST_LENGTH = 20f;
     private const float MIN_FAMILIARIZATION_ISI = 0.4f;
@@ -452,8 +453,6 @@ public class DeliveryExperiment : CoroutineExperiment
         StartCoroutine(ExperimentCoroutine());
     }
 
-
-
     private IEnumerator ExperimentCoroutine()
     {
         Debug.Log(UnityEPL.GetDataPath());
@@ -516,7 +515,7 @@ public class DeliveryExperiment : CoroutineExperiment
         BlackScreen();
 
         // Intros
-        yield return DoIntros();
+        //yield return DoIntros();
 
         // Town Learning
         int trialsForFirstSubSession = Config.trialsPerSession;
@@ -993,8 +992,8 @@ public class DeliveryExperiment : CoroutineExperiment
             playerMovement.Freeze();
             messageImageDisplayer.please_find_the_blah_reminder.SetActive(false);
             messageImageDisplayer.SetReminderText(nextStore.GetStoreName());
-            if (!NICLS_COURIER)
-                yield return DoPointingTask(nextStore);
+            //if (!NICLS_COURIER)
+            //    yield return DoPointingTask(nextStore);
             messageImageDisplayer.please_find_the_blah_reminder.SetActive(true);
             playerMovement.Unfreeze();
 
@@ -2086,16 +2085,13 @@ public class DeliveryExperiment : CoroutineExperiment
 
     private IEnumerator PointArrowToStore(GameObject pointToStore, float arrowRotationSpeed = 0f, float arrowCorrectionTime = 0f)
     {
-        float rotationSpeed = arrowRotationSpeed == 0 ? 1f : arrowRotationSpeed * Time.deltaTime;
-        float startTime = Time.time;
-        
-        do {
-            yield return null;
-            UnityEngine.Vector3 lookDirection = pointToStore.transform.position - pointer.transform.position;
-            pointer.transform.rotation = Quaternion.Slerp(pointer.transform.rotation,
-                                                          Quaternion.LookRotation(lookDirection),
-                                                          rotationSpeed);
-        } while (Time.time < startTime + arrowCorrectionTime) ;
+        //float rotationSpeed = arrowRotationSpeed == 0 ? 1f : arrowRotationSpeed * Time.deltaTime;
+        //float startTime = Time.time;
+
+        //do {
+        yield return null;
+        pointer.GetComponent<Navigation>().target = pointToStore.transform;
+        //} while (Time.time < startTime + arrowCorrectionTime) ;
     }
 
     private float PointerError(GameObject toStore)

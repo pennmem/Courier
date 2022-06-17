@@ -2090,7 +2090,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
         //do {
         yield return null;
-        pointer.GetComponent<Navigation>().target = pointToStore.transform;
+        pointer.GetComponent<Navigation>().target = pointToStore.transform.Find("DeliveryZone");
         //} while (Time.time < startTime + arrowCorrectionTime) ;
     }
 

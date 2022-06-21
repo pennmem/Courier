@@ -137,6 +137,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
     public PlayerMovement playerMovement;
     public GameObject pointer;
+    public GameObject truePointer;
     public ParticleSystem pointerParticleSystem;
     public GameObject pointerMessage;
     public UnityEngine.UI.Text pointerText;
@@ -2090,7 +2091,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
         //do {
         yield return null;
-        pointer.GetComponent<Navigation>().target = pointToStore.transform.Find("DeliveryZone");
+        truePointer.GetComponent<Navigation>().target = pointToStore.transform.Find("DeliveryZone");
         //} while (Time.time < startTime + arrowCorrectionTime) ;
     }
 

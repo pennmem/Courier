@@ -26,6 +26,7 @@ public class Navigation : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        pointer.ResetPath();
         pointer.destination = target.position;
         pos.position = new Vector3(truePos.position.x , truePos.position.y, truePos.position.z);
         arrow.rotation = pos.rotation;

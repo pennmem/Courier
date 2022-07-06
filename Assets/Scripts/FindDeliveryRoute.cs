@@ -10,9 +10,9 @@ public class FindDeliveryRoute : MonoBehaviour
     private List<Transform> sequence;
     private List<Transform> allStores;
     private List<Transform[]> storeSets;
-    private List<Transform[]> nodeSets = new List<Transform[]>();
-    private List<float> setTimes = new List<float>();
-    private List<float> nodeTimes = new List<float>();
+    private List<Transform[]> nodeSets;
+    private List<float> setTimes;
+    private List<float> nodeTimes;
 
     private float speed = 10f;
     private float angularSpeed = 45f;
@@ -23,6 +23,7 @@ public class FindDeliveryRoute : MonoBehaviour
         NavMeshPath path;
         List<Vector3> segments;
         storeSets = new List<Transform[]>();
+        setTimes = new List<float>();
 
         for (int i = 0; i < allStores.Count - 1; i++)
         
@@ -38,7 +39,7 @@ public class FindDeliveryRoute : MonoBehaviour
                 float angles = 0;
 
                 if (NavMesh.CalculatePath(store1.Find("DeliveryZone").position, store2.Find("DeliveryZone").position, NavMesh.AllAreas, path))
-                {                
+                {
                     storeSets.Add(new Transform[] { store1, store2 });
                     segments.Add(path.corners[0] - store1.position);
 
@@ -63,6 +64,7 @@ public class FindDeliveryRoute : MonoBehaviour
                     setTimes.Add(distance / speed + angles / angularSpeed);
 
                 }
+                //else Debug.Log(store1.name + " " + store2.name);
 
             }
         
@@ -72,6 +74,8 @@ public class FindDeliveryRoute : MonoBehaviour
     {
         NavMeshPath path1;
         NavMeshPath path2;
+        nodeSets = new List<Transform[]>();
+        nodeTimes = new List<float>();
 
         for (int i = 0; i < allStores.Count; i++)
         {
@@ -88,17 +92,17 @@ public class FindDeliveryRoute : MonoBehaviour
                     Transform node = allStores[i];
                     Transform last = allStores[j];
                     Transform next = allStores[k];
-                    nodeSets.Add(new Transform[] { node, last, next });
-
+                    
                     path1 = new NavMeshPath();
                     path2 = new NavMeshPath();
 
                     if (NavMesh.CalculatePath(node.Find("DeliveryZone").position, last.Find("DeliveryZone").position, NavMesh.AllAreas, path1) && NavMesh.CalculatePath(node.Find("DeliveryZone").position, next.Find("DeliveryZone").position, NavMesh.AllAreas, path2))
                     {
+                        nodeSets.Add(new Transform[] { node, last, next });
                         float angle = Vector3.Angle(node.position - path1.corners[0], path2.corners[0] - node.position);
                         nodeTimes.Add(angle / angularSpeed);
                     }
-                    else Debug.Log("Error: could not compute path");
+                    //else Debug.Log("Error: could not compute path");
                 }
             }
         }
@@ -109,16 +113,16 @@ public class FindDeliveryRoute : MonoBehaviour
         allStores = new List<Transform>();
         foreach (StoreComponent location in locations) allStores.Add(location.gameObject.transform);
         allStores.Shuffle(new System.Random());
-        Debug.Log("Doing Shortest Path");
         FindSetTimes();
+        Debug.Log("Sets: " + storeSets.Count.ToString() + "\tTimes: " + setTimes.Count.ToString());
         FindNodeTimes();
+        Debug.Log("Nodes: " + nodeSets.Count.ToString() + "\tTimes: " + nodeTimes.Count.ToString());
 
         float minRunTime = 0f;
 
         for (int n = 0; n < runs; n++)
         {
             sequence = new List<Transform>();
-            Debug.Log(sequence);
 
             List<Transform> stores = new List<Transform>(allStores.ToArray());
 
@@ -134,7 +138,6 @@ public class FindDeliveryRoute : MonoBehaviour
 
             while (stores.Count > 0)
             {
-                Debug.Log(stores.Count);
                 int minIndex = 0;
                 float minTime = 0f;
 
@@ -154,8 +157,6 @@ public class FindDeliveryRoute : MonoBehaviour
 
                 else
                 {
-                    if (currentStore.name != stores[0].name) stores.Remove(stores[0]);
-
                     for (int i = 0; i < sets.Count; i++)
                     {
                         if (sets[i].Contains(currentStore) && sets[i].Contains(sequence[0]))
@@ -183,8 +184,6 @@ public class FindDeliveryRoute : MonoBehaviour
             }
 
             sequence.Add(currentStore);
-
-            
 
             for (int i = 0; i < sequence.Count - 2; i++)
             {
@@ -216,6 +215,12 @@ public class FindDeliveryRoute : MonoBehaviour
             }
 
         }
+
+        string outputTxt = "";
+        foreach (Transform store in route) outputTxt += store.name + "\n";
+        Debug.Log(outputTxt);
+
+        Debug.Log("Number of Destinations: " + route.Count.ToString());
         
         return route;
     }

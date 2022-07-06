@@ -111,6 +111,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private const bool STAR_SYSTEM_ACTIVE = false;
     private const bool CHOOSE_NONVISIBLE_STORES = false;
     private const bool RANDOM_STORE_ORDER = false;
+    private const bool FASTEST_ROUTE = true;
 
     private const int NICLS_READ_ONLY_SESSIONS = 8;
     private const int NICLS_CLOSED_LOOP_SESSIONS = 4;
@@ -976,29 +977,29 @@ public class DeliveryExperiment : CoroutineExperiment
             Debug.Log("This Trial is using " + stimTag + " as stim frequency");
         }
 
-        for (int i = 0; i < deliveries; i++)
+        for (int i = 0; i < deliveries + 1; i++)
         {
 
             // LC: save the lastly visited store for next trial
             //     there is a bug where the algorithm picks next store to be the one that you just visited on last trial
             //     manually store & remove the store and add it back after choosing the first store for subsequent trials
-            if (i == 0)
-            {
-                if (previousTrialStore != null)
-                    unvisitedStores.Remove(previousTrialStore);
-            }
+            //if (i == 0)
+            //{
+            //    if (previousTrialStore != null)
+            //        unvisitedStores.Remove(previousTrialStore);
+            //}
             StoreComponent nextStore = PickNextStore(unvisitedStores);
             unvisitedStores.Remove(nextStore);
             thisTrialPresentedStores.Add(nextStore);
-            if (i == 0)
-            {
-                if (previousTrialStore != null)
-                    unvisitedStores.Add(previousTrialStore);
-            }
+            //if (i == 0)
+            //{
+            //    if (previousTrialStore != null)
+            //        unvisitedStores.Add(previousTrialStore);
+            //}
 
             // LC: keep the lastly visited store for next delivery day
-            if (i == deliveries-1)
-                previousTrialStore = nextStore;
+            //if (i == deliveries)
+            //    previousTrialStore = nextStore;
 
             playerMovement.Freeze();
             messageImageDisplayer.please_find_the_blah_reminder.SetActive(false);
@@ -1034,7 +1035,7 @@ public class DeliveryExperiment : CoroutineExperiment
             storePoints = VALUE_COURIER ? storePoints : -1.0;
 
             ///AUDIO PRESENTATION OF OBJECT///
-            if (i != deliveries - 1)
+            if (i != deliveries)
             {
                 playerMovement.Freeze();
                 Debug.Log(trialNumber);

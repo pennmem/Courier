@@ -64,7 +64,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private const bool skipFPS = true;
     
     private const string COURIER_VERSION = "v6.0.0";
-    private const bool DEBUG = false;
+    private const bool DEBUG = true;
 
     private const string RECALL_TEXT = "*******"; // TODO: JPB: Remove this and use display system
     // Constants moved to the Config File
@@ -109,6 +109,8 @@ public class DeliveryExperiment : CoroutineExperiment
 
     // Keep as hardcoded values
     private const bool STAR_SYSTEM_ACTIVE = false;
+    private const bool CHOOSE_NONVISIBLE_STORES = false;
+    private const bool RANDOM_STORE_ORDER = false;
 
     private const int NICLS_READ_ONLY_SESSIONS = 8;
     private const int NICLS_CLOSED_LOOP_SESSIONS = 4;
@@ -145,6 +147,7 @@ public class DeliveryExperiment : CoroutineExperiment
     public UnityEngine.UI.Text navigationText;
     public StarSystem starSystem;
     public DeliveryItems deliveryItems;
+    public GameObject storesObject;
     public Pauser pauser;
 
     public float pointerRotationSpeed = 10f;
@@ -500,7 +503,11 @@ public class DeliveryExperiment : CoroutineExperiment
         // set stim/no_stim stores unique for each subject
         var reliableRandom = deliveryItems.ReliableRandom();
         List<StoreComponent> allStores = new List<StoreComponent>(environment.stores);
-        allStores.Shuffle(reliableRandom);
+        //allStores.Shuffle(reliableRandom);
+        //for (int i = 0; i < allStores.Count; i++)
+        //{
+        //    Debug.Log(allStores[i]);
+        //}
         for (int i=0; i < allStores.Count; i++)
         {
             if (i % 2 == 1)
@@ -932,12 +939,15 @@ public class DeliveryExperiment : CoroutineExperiment
         messageImageDisplayer.please_find_the_blah_reminder.SetActive(true);
 
         int deliveries = practice ? Config.deliveriesPerPracticeTrial : Config.deliveriesPerTrial;
+        deliveries = RANDOM_STORE_ORDER ? deliveries : 12;
         int craft_shop_delivery_num = rng.Next(deliveries - 1);
         List<StoreComponent> unvisitedStores = null;
         List<StoreComponent> stimStoresToVisit = null;
         List<StoreComponent> nostimStoresToVisit = null;
 
-        if (HOSPITAL_COURIER && !practice)
+        
+
+        if (HOSPITAL_COURIER && !practice && RANDOM_STORE_ORDER)
         {
             // draw 6 from stim / nostim store lists
             var rnd = new System.Random();
@@ -951,7 +961,7 @@ public class DeliveryExperiment : CoroutineExperiment
             unvisitedStores.Shuffle();
         }
         else
-            unvisitedStores = new List<StoreComponent>(environment.stores);
+            unvisitedStores = new List<StoreComponent>(GetDeliveryRoute(deliveries));
 
         if (skipLastDelivStores)
             foreach (var store in thisTrialPresentedStores)
@@ -1097,7 +1107,7 @@ public class DeliveryExperiment : CoroutineExperiment
                 messageImageDisplayer.SetDeliverItemText(deliveredItemNameWithSpace);
                 yield return SkippableWait(AUDIO_TEXT_DISPLAY);
                 messageImageDisplayer.deliver_item_visual_dislay.SetActive(false);
-
+                
                 SetRamulatorState("WORD", false, new Dictionary<string, object>() { { "word", deliveredItemName } });
 
                 scriptedEventReporter.ReportScriptedEvent("audio presentation finished",
@@ -2525,40 +2535,48 @@ public class DeliveryExperiment : CoroutineExperiment
 
     private StoreComponent PickNextStore(List<StoreComponent> stores)
     {
-        int NUM_CLOSE_STORES = 3;
-
-        if (stores == null || stores.Count == 0)
-            throw new ArgumentException("There are no stores in provided list");
-        // Debug.Log("Unvisited Stores: " + string.Join(", ", stores));
-
-        var tempStores = NonVisibleStores(stores);
-        if (tempStores.Count == 0)
-            goto PickStore;
-        else
-            stores = tempStores;
-        // Debug.Log("NonVisible Stores: " + string.Join(", ", stores));
-
-        tempStores = StoresNotBehindPlayer(stores);
-        if (tempStores.Count == 0)
-            goto PickStore;
-        else
-            stores = tempStores;
-        // Debug.Log("Not Behind Player Stores: " + string.Join(", ", stores));
-
-    PickStore:
-        stores.Sort((store1, store2) =>
+        if (CHOOSE_NONVISIBLE_STORES)
         {
-            float dist1 = UnityEngine.Vector3.Distance(playerMovement.gameObject.transform.position, store1.transform.position);
-            float dist2 = UnityEngine.Vector3.Distance(playerMovement.gameObject.transform.position, store2.transform.position);
-            if (dist1 == dist2) return 0;
-            else if (dist1 < dist2) return -1;
-            else return 1;
-        });
+            int NUM_CLOSE_STORES = 3;
 
-        // Debug.Log("Sorted Stores: " + string.Join(", ", stores));
+            if (stores == null || stores.Count == 0)
+                throw new ArgumentException("There are no stores in provided list");
+            // Debug.Log("Unvisited Stores: " + string.Join(", ", stores));
 
-        int numStoresToChooseFrom = Math.Min(NUM_CLOSE_STORES, stores.Count() - 1);
-        return stores[rng.Next(numStoresToChooseFrom)];
+            var tempStores = NonVisibleStores(stores);
+            if (tempStores.Count == 0)
+                goto PickStore;
+            else
+                stores = tempStores;
+            // Debug.Log("NonVisible Stores: " + string.Join(", ", stores));
+
+            tempStores = StoresNotBehindPlayer(stores);
+            if (tempStores.Count == 0)
+                goto PickStore;
+            else
+                stores = tempStores;
+            // Debug.Log("Not Behind Player Stores: " + string.Join(", ", stores));
+
+            PickStore:
+            stores.Sort((store1, store2) =>
+            {
+                float dist1 = UnityEngine.Vector3.Distance(playerMovement.gameObject.transform.position, store1.transform.position);
+                float dist2 = UnityEngine.Vector3.Distance(playerMovement.gameObject.transform.position, store2.transform.position);
+                if (dist1 == dist2) return 0;
+                else if (dist1 < dist2) return -1;
+                else return 1;
+            });
+
+            // Debug.Log("Sorted Stores: " + string.Join(", ", stores));
+
+            int numStoresToChooseFrom = Math.Min(NUM_CLOSE_STORES, stores.Count() - 1);
+            return stores[rng.Next(numStoresToChooseFrom)];
+        }
+        else
+        {
+            //return stores[rng.Next(stores.Count() - 1)];
+            return stores[0];
+        }
     }
 
 
@@ -2613,6 +2631,22 @@ public class DeliveryExperiment : CoroutineExperiment
             if (store.gameObject.name.Equals(gameObjectName))
                 return store.GetStoreName();
         throw new UnityException("That store game object doesn't exist in the stores list.");
+    }
+
+    private StoreComponent[] GetDeliveryRoute(int deliveries)
+    {
+        List<StoreComponent> stores = new List<StoreComponent>(environment.stores);
+        stores.Shuffle();
+        
+        List<Transform> routeList = storesObject.GetComponent<FindDeliveryRoute>().FindRoute(stores.GetRange(0, deliveries), 100);
+
+        List<StoreComponent> route = new List<StoreComponent>();
+
+        foreach (Transform location in routeList) route.Add(location.gameObject.GetComponent<StoreComponent>());
+
+        StoreComponent[] routeArray = route.ToArray();
+
+        return routeArray;
     }
 }
 

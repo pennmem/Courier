@@ -64,10 +64,7 @@ public class FindDeliveryRoute : MonoBehaviour
                     setTimes.Add(distance / speed + angles / angularSpeed);
 
                 }
-                //else Debug.Log(store1.name + " " + store2.name);
-
             }
-        
     }
 
     private void FindNodeTimes()
@@ -102,10 +99,22 @@ public class FindDeliveryRoute : MonoBehaviour
                         float angle = Vector3.Angle(node.position - path1.corners[0], path2.corners[0] - node.position);
                         nodeTimes.Add(angle / angularSpeed);
                     }
-                    //else Debug.Log("Error: could not compute path");
                 }
             }
         }
+    }
+
+    private float FindNodeTime(Transform last, Transform node, Transform next)
+    {
+        for (int i = 0; i < nodeSets.Count; i++)
+        {
+            if (nodeSets[i].Contains(last) && nodeSets[i].Contains(node) && nodeSets[i].Contains(next))
+            {
+                return nodeTimes[i];
+            }
+        }
+
+        return 0f;
     }
 
     public List<Transform> FindRoute(List<StoreComponent> locations, int runs)
@@ -134,7 +143,9 @@ public class FindDeliveryRoute : MonoBehaviour
             
             List<float> times = new List<float>(setTimes.ToArray());
 
-            Transform currentStore = stores[0];
+            Transform currentStore = stores.First();
+
+            int nStores = stores.Count;
 
             while (stores.Count > 0)
             {
@@ -146,10 +157,10 @@ public class FindDeliveryRoute : MonoBehaviour
                     {
                         if (sets[i].Contains(currentStore) && sets[i].IsValid(currentStore, stores))
                         {
-
-                            if (times[i] < minTime || minTime == 0f)
+                            float setTime = times[i] + ((stores.Count != nStores) ? FindNodeTime(sequence.Last(), sets[i][0], sets[i][1]) : 0f);
+                            if (setTime < minTime || minTime == 0f)
                             {
-                                minTime = times[i];
+                                minTime = setTime;
                                 minIndex = i;
                             }
                         }
@@ -159,16 +170,17 @@ public class FindDeliveryRoute : MonoBehaviour
                 {
                     for (int i = 0; i < sets.Count; i++)
                     {
-                        if (sets[i].Contains(currentStore) && sets[i].Contains(sequence[0]))
+                        if (sets[i].Contains(currentStore) && sets[i].Contains(sequence.First()))
                         {
-                            minTime = times[i];
+                            float setTime = times[i] + FindNodeTime(sequence.Last(), currentStore, sequence.First());
+                            minTime = setTime;
                             minIndex = i;
                             break;
 
                         }
                     }
-                    
                 }
+
                 sequence.Add(currentStore);
                 stores.Remove(currentStore);
 
@@ -184,36 +196,12 @@ public class FindDeliveryRoute : MonoBehaviour
             }
 
             sequence.Add(currentStore);
-
-            for (int i = 0; i < sequence.Count - 2; i++)
-            {
-                Transform[] subset = sequence.GetRange(i, 3).ToArray();
-
-                for (int j = 0; j < nodeSets.Count; j++)
-                {
-                    bool isEqual = true;
-                    foreach (Transform node in nodeSets[j])
-                    {
-                        if (!subset.Contains(node))
-                        {
-                            isEqual = false;
-                            break;
-                        }
-                    }
-                    if (isEqual)
-                    {
-                        runTime += nodeTimes[j];
-                        break;
-                    }
-                }
-            }
-
+            
             if (runTime < minRunTime || minRunTime == 0f)
             {
                 minRunTime = runTime;
                 route = sequence;
             }
-
         }
 
         string outputTxt = "";
@@ -224,9 +212,6 @@ public class FindDeliveryRoute : MonoBehaviour
         
         return route;
     }
-
-
-
 }
 
 public static class IEnumerableExtensions

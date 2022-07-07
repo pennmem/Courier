@@ -1013,7 +1013,7 @@ public class DeliveryExperiment : CoroutineExperiment
             while (!nextStore.PlayerInDeliveryPosition())
             {
                 yield return null;
-                if (Time.time > startTime + POINTING_INDICATOR_DELAY)
+                if (Time.time > startTime + POINTING_INDICATOR_DELAY && i != deliveries)
                     yield return DisplayPointingIndicator(nextStore, true);
                 if (InputManager.GetButton("Secret"))
                     goto SkipRemainingDeliveries;

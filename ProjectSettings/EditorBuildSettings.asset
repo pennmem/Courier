@@ -9,8 +9,9 @@ EditorBuildSettings:
     path: Assets/Scenes/MainMenu.unity
     guid: 14d439591ba594dd884fd722e012b291
   - enabled: 1
-    path: Assets/Scenes/MainGame.unity
+    path: Assets/Scenes/NewTown.unity
     guid: 581c46afc8b0449c3a16a125db6d3047
   - enabled: 0
     path: 
     guid: 00000000000000000000000000000000
+  m_configObjects: {}

@@ -17,6 +17,7 @@ public class FindDeliveryRoute : MonoBehaviour
     private float speed = 10f;
     private float angularSpeed = 45f;
     public float cutoffAngle;
+    public float turnPenalty = 1f;
 
     private void FindSetTimes()
     {
@@ -61,7 +62,7 @@ public class FindDeliveryRoute : MonoBehaviour
                         }
                     }
 
-                    setTimes.Add(distance / speed + angles / angularSpeed);
+                    setTimes.Add(distance / speed + angles * turnPenalty / angularSpeed);
 
                 }
             }
@@ -97,7 +98,7 @@ public class FindDeliveryRoute : MonoBehaviour
                     {
                         nodeSets.Add(new Transform[] { node, last, next });
                         float angle = Vector3.Angle(node.position - path1.corners[0], path2.corners[0] - node.position);
-                        nodeTimes.Add(angle / angularSpeed);
+                        nodeTimes.Add(angle * turnPenalty / angularSpeed);
                     }
                 }
             }

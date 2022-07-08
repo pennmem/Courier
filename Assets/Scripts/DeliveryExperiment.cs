@@ -53,7 +53,7 @@ public class DeliveryExperiment : CoroutineExperiment
     // Experiment type
     private const bool HOSPITAL_COURIER = true;
     private const bool NICLS_COURIER = false;
-    private const bool VALUE_COURIER = false;
+    private const bool VALUE_COURIER = true;
     #if !UNITY_WEBGL
         private const bool COURIER_ONLINE = false;
     #else
@@ -1550,7 +1550,7 @@ public class DeliveryExperiment : CoroutineExperiment
         else
         {
             yield return DoFreeRecall(trialNumber, continuousTrialNum, practice);
-            yield return DoCuedRecall(trialNumber, continuousTrialNum, practice);
+            //yield return DoCuedRecall(trialNumber, continuousTrialNum, practice);
         }
 
         SetRamulatorState("RETRIEVAL", false, new Dictionary<string, object>());

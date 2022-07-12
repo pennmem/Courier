@@ -11,7 +11,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/NewTown.unity
     guid: 581c46afc8b0449c3a16a125db6d3047
-  - enabled: 0
-    path: 
-    guid: 00000000000000000000000000000000
+  - enabled: 1
+    path: Assets/Scenes/MainGame.unity
+    guid: fd4820927b71f480daa93e4b805ca170
   m_configObjects: {}

@@ -122,7 +122,7 @@ public class FindDeliveryRoute : MonoBehaviour
     {
         allStores = new List<Transform>();
         foreach (StoreComponent location in locations) allStores.Add(location.gameObject.transform);
-        allStores.Shuffle(new System.Random());
+        //allStores.Shuffle(new System.Random());
         FindSetTimes();
         Debug.Log("Sets: " + storeSets.Count.ToString() + "\tTimes: " + setTimes.Count.ToString());
         FindNodeTimes();
@@ -136,7 +136,7 @@ public class FindDeliveryRoute : MonoBehaviour
 
             List<Transform> stores = new List<Transform>(allStores.ToArray());
 
-            stores.Shuffle(new System.Random());
+            //stores.Shuffle(new System.Random());
 
             float runTime = 0f;
 
@@ -204,6 +204,8 @@ public class FindDeliveryRoute : MonoBehaviour
                 route = sequence;
             }
         }
+
+        route.RemoveAt(0);
 
         string outputTxt = "";
         foreach (Transform store in route) outputTxt += store.name + "\n";

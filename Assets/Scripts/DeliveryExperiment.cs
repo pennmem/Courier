@@ -149,6 +149,7 @@ public class DeliveryExperiment : CoroutineExperiment
     public StarSystem starSystem;
     public DeliveryItems deliveryItems;
     public GameObject storesObject;
+    public StoreComponent startLocation;
     public Pauser pauser;
 
     public float pointerRotationSpeed = 10f;
@@ -2637,9 +2638,12 @@ public class DeliveryExperiment : CoroutineExperiment
     private StoreComponent[] GetDeliveryRoute(int deliveries)
     {
         List<StoreComponent> stores = new List<StoreComponent>(environment.stores);
+
         stores.Shuffle();
+        stores.Remove(startLocation);
+        stores.Insert(0, startLocation);
         
-        List<Transform> routeList = storesObject.GetComponent<FindDeliveryRoute>().FindRoute(stores.GetRange(0, deliveries), 100);
+        List<Transform> routeList = storesObject.GetComponent<FindDeliveryRoute>().FindRoute(stores.GetRange(0, deliveries+1), 1);
 
         List<StoreComponent> route = new List<StoreComponent>();
 

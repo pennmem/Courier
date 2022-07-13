@@ -16,6 +16,7 @@ public class PlayerMovement : MonoBehaviour
     protected float maxTurnSpeed = NICLS_COURIER ? 50f : COURIER_ONLINE ? 120f : 45f; //45f;
     protected const float maxForwardSpeed = COURIER_ONLINE ? 18f : 10f;//10f;
     protected const float maxBackwardSpeed = COURIER_ONLINE ? 13f : 4f; //4f;
+    private float forwardSpeed;
 
     protected const float rotDampingTime = 0.05f;
 
@@ -32,7 +33,7 @@ public class PlayerMovement : MonoBehaviour
     public GameObject handlebars;
     protected const float maxHandlebarRotationX = 20f;
     protected const float maxHandlebarRotationY = 15f;
-
+    
     private bool temporallySmoothedTurning = false;
     private bool sinSmoothedTurning = false;
     private bool cubicSmoothedTurning = true;
@@ -114,6 +115,10 @@ public class PlayerMovement : MonoBehaviour
     {
         if (!temporallySmoothedTurning)
         {
+            if (InputManager.GetKey(KeyCode.Z)) forwardSpeed = maxForwardSpeed * 0.5f;
+            else if (InputManager.GetKey(KeyCode.R)) forwardSpeed = maxForwardSpeed * 1.5f;
+            else forwardSpeed = maxForwardSpeed;
+
             horizontalInput = InputManager.GetAxis("Horizontal");
             if (sinSmoothedTurning)
                 horizontalInput = SinCurve(horizontalInput);
@@ -137,7 +142,7 @@ public class PlayerMovement : MonoBehaviour
 
                 // Move the player
                 if (verticalInput > joystickDeadZone)
-                    playerBody.velocity = Vector3.ClampMagnitude(playerBody.transform.forward * verticalInput * maxForwardSpeed, maxForwardSpeed);
+                    playerBody.velocity = Vector3.ClampMagnitude(playerBody.transform.forward * verticalInput * forwardSpeed, forwardSpeed);
                 else if (verticalInput < -joystickDeadZone)
                     playerBody.velocity = Vector3.ClampMagnitude(playerBody.transform.forward * verticalInput * maxBackwardSpeed, maxBackwardSpeed);
                 else

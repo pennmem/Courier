@@ -115,8 +115,8 @@ public class PlayerMovement : MonoBehaviour
     {
         if (!temporallySmoothedTurning)
         {
-            if (InputManager.GetKey(KeyCode.Z)) forwardSpeed = maxForwardSpeed * 0.5f;
-            else if (InputManager.GetKey(KeyCode.R)) forwardSpeed = maxForwardSpeed * 1.5f;
+            if (InputManager.GetKey(KeyCode.Z) || InputManager.GetKey(KeyCode.LeftShift)) forwardSpeed = maxForwardSpeed * 0.5f;
+            else if (InputManager.GetKey(KeyCode.R) || InputManager.GetKey(KeyCode.LeftCommand)) forwardSpeed = maxForwardSpeed * 1.5f;
             else forwardSpeed = maxForwardSpeed;
 
             horizontalInput = InputManager.GetAxis("Horizontal");

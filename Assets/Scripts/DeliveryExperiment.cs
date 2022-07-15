@@ -150,6 +150,7 @@ public class DeliveryExperiment : CoroutineExperiment
     public DeliveryItems deliveryItems;
     public GameObject storesObject;
     public StoreComponent startLocation;
+    public GameObject items;
     public Pauser pauser;
 
     public float pointerRotationSpeed = 10f;
@@ -947,7 +948,11 @@ public class DeliveryExperiment : CoroutineExperiment
         List<StoreComponent> stimStoresToVisit = null;
         List<StoreComponent> nostimStoresToVisit = null;
 
-        
+        List<string> deliveryItems = GetItemsList(deliveries);
+
+        string outputText = "";
+        foreach (string item in deliveryItems) outputText += item + "\n";
+        Debug.Log(outputText);
 
         if (HOSPITAL_COURIER && !practice && RANDOM_STORE_ORDER)
         {
@@ -992,6 +997,7 @@ public class DeliveryExperiment : CoroutineExperiment
             StoreComponent nextStore = PickNextStore(unvisitedStores);
             unvisitedStores.Remove(nextStore);
             thisTrialPresentedStores.Add(nextStore);
+
             //if (i == 0)
             //{
             //    if (previousTrialStore != null)
@@ -1038,6 +1044,7 @@ public class DeliveryExperiment : CoroutineExperiment
             ///AUDIO PRESENTATION OF OBJECT///
             if (i != deliveries)
             {
+                string nextItem = deliveryItems[i];
                 playerMovement.Freeze();
                 Debug.Log(trialNumber);
                 AudioClip deliveredItem = nextStore.PopItem();
@@ -1075,10 +1082,10 @@ public class DeliveryExperiment : CoroutineExperiment
 
                 string deliveredItemName = deliveredItem.name;
                 int roundedPoints = (int)Math.Round(storePoints);
-                string deliveredItemNameWithSpace = VALUE_COURIER ? deliveredItemName.Replace('_', ' ') + ", " + roundedPoints.ToString() 
-                                                                  : deliveredItemName.Replace('_', ' ');
+                string deliveredItemNameWithSpace = VALUE_COURIER ? nextItem.Replace('_', ' ') + ", " + roundedPoints.ToString() 
+                                                                  : nextItem.Replace('_', ' ');
                 var itemPresentationInfo = new Dictionary<string, object>() { {"trial number", continuousTrialNum},
-                                                                            {"item name", deliveredItemName},
+                                                                            {"item name", nextItem},
                                                                             {"store name", nextStore.GetStoreName()},
                                                                             {"serial position", i+1},
                                                                             {"player position", playerMovement.transform.position.ToString()},
@@ -1095,14 +1102,14 @@ public class DeliveryExperiment : CoroutineExperiment
                                 : System.IO.Path.Combine(UnityEPL.GetDataPath(), continuousTrialNum.ToString() + ".lst");
                     AppendWordToLst(lstFilepath, deliveredItemName);
                 #endif
-                allPresentedObjects.Add(deliveredItemName);
+                allPresentedObjects.Add(nextItem);
 
                 audioPlayback.clip = deliveredItem;
                 audioPlayback.Play();
                 
 
                 scriptedEventReporter.ReportScriptedEvent("object presentation begins", itemPresentationInfo);
-                SetRamulatorState("WORD", true, new Dictionary<string, object>() { { "word", deliveredItemName } });
+                SetRamulatorState("WORD", true, new Dictionary<string, object>() { { "word", nextItem } });
 
                 //add visuals with sound
                 messageImageDisplayer.deliver_item_visual_dislay.SetActive(true);
@@ -1110,7 +1117,7 @@ public class DeliveryExperiment : CoroutineExperiment
                 yield return SkippableWait(AUDIO_TEXT_DISPLAY);
                 messageImageDisplayer.deliver_item_visual_dislay.SetActive(false);
                 
-                SetRamulatorState("WORD", false, new Dictionary<string, object>() { { "word", deliveredItemName } });
+                SetRamulatorState("WORD", false, new Dictionary<string, object>() { { "word", nextItem} });
 
                 scriptedEventReporter.ReportScriptedEvent("audio presentation finished",
                                                           new Dictionary<string, object>());
@@ -1124,6 +1131,8 @@ public class DeliveryExperiment : CoroutineExperiment
                 }
             }
         }
+
+        BlackScreen();
 
     SkipRemainingDeliveries:
         messageImageDisplayer.please_find_the_blah_reminder.SetActive(false);
@@ -2652,6 +2661,29 @@ public class DeliveryExperiment : CoroutineExperiment
         StoreComponent[] routeArray = route.ToArray();
 
         return routeArray;
+    }
+
+    private List<string> GetItemsList(int deliveries)
+    {
+        List<string> deliveryItems = new List<string>();
+        List<Transform> categories = new List<Transform>();
+
+        foreach (Transform category in items.transform)
+        {
+            categories.Add(category);
+        }
+
+        categories.Shuffle(new System.Random());
+
+        for (int i = 0; i < deliveries; i++)
+        {
+            List<string> list = categories[i].GetComponent<ItemsList>().itemsList;
+            list.Shuffle(new System.Random());
+            deliveryItems.Add(list.First());
+            list.RemoveAt(0);
+        }
+
+        return deliveryItems;
     }
 }
 

@@ -1,0 +1,16 @@
+{
+    "name": "KrisDevelopment.EasyRoadsMeshGen",
+    "references": [
+        "GUID:b9546d4d49807e94e9908760613aa72e",
+        "GUID:d9c3ff278b39d9646a7cbe5f26fd402b"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

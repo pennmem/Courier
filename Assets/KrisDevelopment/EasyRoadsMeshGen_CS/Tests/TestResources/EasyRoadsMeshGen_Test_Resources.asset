@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0adcb1888fa15fe4eb5b767bea97cd61, type: 3}
+  m_Name: EasyRoadsMeshGen_Test_Resources
+  m_EditorClassIdentifier: 
+  resources:
+  - resourceName: ermg_test_prefab
+    obj: {fileID: 1718007834494078100, guid: 40ebe69664e81ef4fb4e1b3fdbc70299, type: 3}
+  - resourceName: ermg_test_prefab_manual
+    obj: {fileID: 1712530876167250583, guid: 4be42632a3d59d94cba4c47527edb058, type: 3}
+  - resourceName: ermg_test_scene
+    obj: {fileID: 102900000, guid: 5f57a426e5ce4574092395ad458bba46, type: 3}

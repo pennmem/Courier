@@ -1,0 +1,15 @@
+{
+    "name": "KrisDevelopment.DistributedInternalUtilities",
+    "references": [
+        "GUID:b9546d4d49807e94e9908760613aa72e"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

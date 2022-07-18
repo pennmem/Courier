@@ -1,0 +1,10 @@
+fileFormatVersion: 2
+guid: a43aeed8407e678459223e560881e22c
+labels:
+- Prop
+- Road
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: easy roads mesh gen
+  assetBundleVariant: mg

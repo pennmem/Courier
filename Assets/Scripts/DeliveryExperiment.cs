@@ -1047,7 +1047,11 @@ public class DeliveryExperiment : CoroutineExperiment
                 string nextItem = deliveryItems[i];
                 playerMovement.Freeze();
                 Debug.Log(trialNumber);
-                AudioClip deliveredItem = nextStore.PopItem();
+                //AudioClip deliveredItem = nextStore.PopItem();
+
+                AudioClip deliveredItem = items.transform.Find("Audio").GetComponent<AudioFiles>().audioFiles.Find(clip => clip.name.Equals("jump"));
+                
+
                 float wordDelay = 0f;
 
                 bool isStimStore = StimStores.Contains(nextStore);
@@ -2668,7 +2672,7 @@ public class DeliveryExperiment : CoroutineExperiment
         List<string> deliveryItems = new List<string>();
         List<Transform> categories = new List<Transform>();
 
-        foreach (Transform category in items.transform)
+        foreach (Transform category in items.transform.Find("Categories"))
         {
             categories.Add(category);
         }

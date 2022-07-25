@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: 009eb90f4a146aa4a9afe03b08e86953
+labels:
+- mailbox
+- trash
+- litter
+- bin
+- rubbish
+- garbage
+- hydrant
+- firehydrant
+- residential
+- suburb
+timeCreated: 1438205126
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

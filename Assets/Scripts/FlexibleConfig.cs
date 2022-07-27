@@ -219,13 +219,13 @@ public class FlexibleConfig {
     }
 
     public static void WriteToText(object data, string filename) {
-    JsonSerializer serializer = new JsonSerializer();
+        JsonSerializer serializer = new JsonSerializer();
 
-    using (StreamWriter sw = new StreamWriter(filename))
-      using (JsonWriter writer = new JsonTextWriter(sw))
-      {
-        serializer.Serialize(writer, data);
-      }
+        using (StreamWriter sw = new StreamWriter(filename))
+        using (JsonWriter writer = new JsonTextWriter(sw))
+        {
+            serializer.Serialize(writer, data);
+        }
     }
 
     public static IDictionary<string, object> CastToStatic(JObject cfg) {

@@ -27,9 +27,15 @@ public class Navigation : MonoBehaviour
     void Update()
     {
         pointer.ResetPath();  // Resets path to recompute shortest path to destination
-        pointer.destination = target.position;
-        pos.localPosition = new Vector3(0, 0, 0);  // Sets pointer to default location - prevents it from moving towards destination, only rotates in its direction
-        arrow.rotation = pos.rotation;  // sets rotation of visible pointer to the true pointer
+        NavMeshPath path = new NavMeshPath();
+        if (NavMesh.CalculatePath(pointer.transform.position, target.position, NavMesh.AllAreas, path))
+        {
+            pointer.SetPath(path);
+            pos.localPosition = new Vector3(0, 0, 0);  // Sets pointer to default location - prevents it from moving towards destination, only rotates in its direction
+            arrow.rotation = pos.rotation;  // sets rotation of visible pointer to the true pointer
+        }
+        else Debug.Log("Error: cannot find path");
+        
 
     }
 }

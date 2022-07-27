@@ -254,4 +254,6 @@ public class DeliveryItems : MonoBehaviour
         string[] codeParts = participantCode.Split('_');
         return new System.Random(codeParts[0].GetHashCode());
     }
+
+    
 }

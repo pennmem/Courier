@@ -148,8 +148,9 @@ public class DeliveryExperiment : CoroutineExperiment
     public UnityEngine.UI.Text navigationText;
     public StarSystem starSystem;
     public DeliveryItems deliveryItems;
-    public GameObject storesObject;
-    public StoreComponent startLocation;
+    public GameObject deliveryZones;
+    private List<Transform> allZones;
+    public Transform startLocation;
     public GameObject items;
     public Pauser pauser;
 
@@ -166,7 +167,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private string efrLeftLogMsg = "incorrect";
     private string efrRightLogMsg = "correct";
 
-    private List<StoreComponent> thisTrialPresentedStores = new List<StoreComponent>();
+    private List<Transform> thisTrialPresentedStores = new List<Transform>();
     private StoreComponent previousTrialStore = null;
     private List<string> allPresentedObjects = new List<string>();
 
@@ -199,8 +200,8 @@ public class DeliveryExperiment : CoroutineExperiment
     int valueIndex = 0;
 
     // Stim / No Stim Stores Lists
-    public List<StoreComponent> StimStores = new List<StoreComponent>();
-    public List<StoreComponent> noStimStores = new List<StoreComponent>();
+    public List<Transform> StimStores = new List<Transform>();
+    public List<Transform> noStimStores = new List<Transform>();
 
     // Stim variables
     public List<string> stimTags = new List<string>{"3Hz", "8Hz"};
@@ -386,6 +387,13 @@ public class DeliveryExperiment : CoroutineExperiment
 
     void Start()
     {
+        allZones = new List<Transform>();
+        foreach (Transform zone in deliveryZones.transform)
+        {
+            allZones.Add(zone);
+            zone.GetComponent<DeliveryZone>().Hide();
+        }
+
         if (UnityEPL.viewCheck)
             return;
 
@@ -501,11 +509,11 @@ public class DeliveryExperiment : CoroutineExperiment
         Config.SaveConfigs(scriptedEventReporter, UnityEPL.GetDataPath());
 
         // Setup Environment
-        yield return EnableEnvironment();
+        yield return EnableEnvironment();  // TODO: JPB: there is a race condition between saving config and generating session folder probably (remove enable environment to test)
 
         // set stim/no_stim stores unique for each subject
         var reliableRandom = deliveryItems.ReliableRandom();
-        List<StoreComponent> allStores = new List<StoreComponent>(environment.stores);
+        List<Transform> allStores = new List<Transform>(allZones.ToArray());
         //allStores.Shuffle(reliableRandom);
         //for (int i = 0; i < allStores.Count; i++)
         //{
@@ -836,14 +844,14 @@ public class DeliveryExperiment : CoroutineExperiment
 
         scriptedEventReporter.ReportScriptedEvent("start town learning");
 
-        thisTrialPresentedStores = new List<StoreComponent>();
-        List<StoreComponent> unvisitedStores = new List<StoreComponent>(environment.stores);
+        thisTrialPresentedStores = new List<Transform>();
+        List<Transform> unvisitedStores = GetDeliveryRoute(numDeliveries);
 
         for (int i = 0; i < numDeliveries; i++)
         {
             messageImageDisplayer.please_find_the_blah_reminder.SetActive(false);
 
-            StoreComponent nextStore = PickNextStore(unvisitedStores);
+            Transform nextStore = unvisitedStores[0];
             unvisitedStores.Remove(nextStore);
             thisTrialPresentedStores.Add(nextStore);
 
@@ -852,35 +860,35 @@ public class DeliveryExperiment : CoroutineExperiment
             yield return new WaitForSeconds(.2f);
             pointerParticleSystem.Stop();
 
-            if (HOSPITAL_COURIER)
-            {
-                yield return DoPointingTask(nextStore, townlearning:true);
-            }
-            else
-            {
-                navigationMessage.SetActive(true);
-                if (i != 0)
-                    navigationText.text = LanguageSource.GetLanguageString("correct pointing");
-                else
-                    navigationText.text = "";
-                navigationText.text += LanguageSource.GetLanguageString("town learning prompt 1") +
-                                       LanguageSource.GetLanguageString(nextStore.GetStoreName()) + ".\n" + 
-                                       LanguageSource.GetLanguageString("town learning prompt 2") + 
-                                       LanguageSource.GetLanguageString(nextStore.GetStoreName()) + ".\n\n" +
-                                       LanguageSource.GetLanguageString("continue");
+            //if (HOSPITAL_COURIER)
+            //{
+            //    yield return DoPointingTask(nextStore, townlearning:true);
+            //}
+            //else
+            //{
+            //    navigationMessage.SetActive(true);
+            //    if (i != 0)
+            //        navigationText.text = LanguageSource.GetLanguageString("correct pointing");
+            //    else
+            //        navigationText.text = "";
+            //    navigationText.text += LanguageSource.GetLanguageString("town learning prompt 1") +
+            //                           LanguageSource.GetLanguageString(nextStore.GetStoreName()) + ".\n" + 
+            //                           LanguageSource.GetLanguageString("town learning prompt 2") + 
+            //                           LanguageSource.GetLanguageString(nextStore.GetStoreName()) + ".\n\n" +
+            //                           LanguageSource.GetLanguageString("continue");
 
-                while (!InputManager.GetButtonDown("Continue"))
-                    yield return null;
-                navigationMessage.SetActive(false);
-            }
+            //    while (!InputManager.GetButtonDown("Continue"))
+            //        yield return null;
+            //    navigationMessage.SetActive(false);
+            //}
 
             playerMovement.Unfreeze();
 
             messageImageDisplayer.please_find_the_blah_reminder.SetActive(true);
-            messageImageDisplayer.SetReminderText(nextStore.GetStoreName());
+            messageImageDisplayer.SetReminderText(nextStore.name);
 
             float startTime = Time.time;
-            while (!nextStore.PlayerInDeliveryPosition())
+            while (!nextStore.GetComponent<DeliveryZone>().PlayerInDeliveryZone())
             {
                 yield return null;
                 if (Time.time > startTime + POINTING_INDICATOR_DELAY)
@@ -892,7 +900,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
             scriptedEventReporter.ReportScriptedEvent("store visited",
                 new Dictionary<string, object>() { {"trial number", trialNumber},
-                                                   {"store name", nextStore.GetStoreName()},
+                                                   {"store name", nextStore.name},
                                                    {"serial position", i+1},
                                                    {"player position", playerMovement.transform.position.ToString()},
                                                    {"store position", nextStore.transform.position.ToString()}});
@@ -922,19 +930,19 @@ public class DeliveryExperiment : CoroutineExperiment
         yield return new WaitForSeconds(0.1f);
 
         // Set store points for the delivery day
-        double[] allStoresPoints = null;
-        switch(storePointType)
-        {
-            case StorePointType.Random:
-                allStoresPoints = RandomStorePoints(environment.stores.Length);
-                break;
-            case StorePointType.SerialPosition:
-                allStoresPoints = TemporalStorePoints(environment.stores.Length);
-                break;
-            case StorePointType.SpatialPosition:
-                SpatialStorePoints(environment.stores);
-                break;
-        }
+        //double[] allStoresPoints = null;  TODO integrate value courier
+        //switch(storePointType)
+        //{
+        //    case StorePointType.Random:
+        //        allStoresPoints = RandomStorePoints(environment.stores.Length);
+        //        break;
+        //    case StorePointType.SerialPosition:
+        //        allStoresPoints = TemporalStorePoints(environment.stores.Length);
+        //        break;
+        //    case StorePointType.SpatialPosition:
+        //        SpatialStorePoints(environment.stores);
+        //        break;
+        //}
 
         SetRamulatorState("ENCODING", true, new Dictionary<string, object>());
         SetElememState("ENCODING");
@@ -944,9 +952,9 @@ public class DeliveryExperiment : CoroutineExperiment
         int deliveries = practice ? Config.deliveriesPerPracticeTrial : Config.deliveriesPerTrial;
         deliveries = RANDOM_STORE_ORDER ? deliveries : 12;
         int craft_shop_delivery_num = rng.Next(deliveries - 1);
-        List<StoreComponent> unvisitedStores = null;
-        List<StoreComponent> stimStoresToVisit = null;
-        List<StoreComponent> nostimStoresToVisit = null;
+        List<Transform> unvisitedStores = null;
+        List<Transform> stimStoresToVisit = null;
+        List<Transform> nostimStoresToVisit = null;
 
         List<string> deliveryItems = GetItemsList(deliveries);
 
@@ -958,23 +966,23 @@ public class DeliveryExperiment : CoroutineExperiment
         {
             // draw 6 from stim / nostim store lists
             var rnd = new System.Random();
-            stimStoresToVisit = StimStores.OrderBy(r => rnd.Next()).Take(deliveries/2).ToList();
-            nostimStoresToVisit = noStimStores.OrderBy(r => rnd.Next()).Take(deliveries - deliveries/2).ToList();
+            stimStoresToVisit = StimStores.OrderBy(r => rnd.Next()).Take(deliveries / 2).ToList();
+            nostimStoresToVisit = noStimStores.OrderBy(r => rnd.Next()).Take(deliveries - deliveries / 2).ToList();
 
             // now MERGE
-            unvisitedStores = new List<StoreComponent>(stimStoresToVisit.Count + nostimStoresToVisit.Count);
+            unvisitedStores = new List<Transform>(stimStoresToVisit.Count + nostimStoresToVisit.Count);
             unvisitedStores.AddRange(stimStoresToVisit);
             unvisitedStores.AddRange(nostimStoresToVisit);
             unvisitedStores.Shuffle();
         }
         else
-            unvisitedStores = new List<StoreComponent>(GetDeliveryRoute(deliveries));
+            unvisitedStores = GetDeliveryRoute(deliveries);
 
-        if (skipLastDelivStores)
-            foreach (var store in thisTrialPresentedStores)
-                unvisitedStores.Remove(store);
+        //if (skipLastDelivStores)
+        //    foreach (var store in thisTrialPresentedStores)
+        //        unvisitedStores.Remove(store);
 
-        thisTrialPresentedStores = new List<StoreComponent>();
+        //thisTrialPresentedStores = new List<StoreComponent>();
 
         // LC: Set the Stim freq
         if (useElemem && (stimTag != null))
@@ -994,9 +1002,10 @@ public class DeliveryExperiment : CoroutineExperiment
             //    if (previousTrialStore != null)
             //        unvisitedStores.Remove(previousTrialStore);
             //}
-            StoreComponent nextStore = PickNextStore(unvisitedStores);
+            Transform nextStore = unvisitedStores[0];
+            nextStore.GetComponent<DeliveryZone>().Reveal();
             unvisitedStores.Remove(nextStore);
-            thisTrialPresentedStores.Add(nextStore);
+            //thisTrialPresentedStores.Add(nextStore);
 
             //if (i == 0)
             //{
@@ -1010,14 +1019,14 @@ public class DeliveryExperiment : CoroutineExperiment
 
             playerMovement.Freeze();
             messageImageDisplayer.please_find_the_blah_reminder.SetActive(false);
-            messageImageDisplayer.SetReminderText(nextStore.GetStoreName());
+            //messageImageDisplayer.SetReminderText(nextStore.name);
             //if (!NICLS_COURIER)
             //    yield return DoPointingTask(nextStore);
             messageImageDisplayer.please_find_the_blah_reminder.SetActive(true);
             playerMovement.Unfreeze();
 
             float startTime = Time.time;
-            while (!nextStore.PlayerInDeliveryPosition())
+            while (!nextStore.GetComponent<DeliveryZone>().PlayerInDeliveryZone())
             {
                 yield return null;
                 if (Time.time > startTime + POINTING_INDICATOR_DELAY && i != deliveries)
@@ -1027,16 +1036,18 @@ public class DeliveryExperiment : CoroutineExperiment
             }
             yield return DisplayPointingIndicator(nextStore, false);
 
+            nextStore.GetComponent<DeliveryZone>().Hide();
+
             // Get points for this store, default value being -1
             double storePoints = 0.0;
             switch (storePointType)
             {
                 case StorePointType.Random:
                 case StorePointType.SerialPosition:
-                    storePoints = allStoresPoints[i];
+                    //storePoints = allStoresPoints[i];
                     break;
                 case StorePointType.SpatialPosition:
-                    storePoints = nextStore.points;
+                    //storePoints = nextStore.points;
                     break;
             }
             storePoints = VALUE_COURIER ? storePoints : -1.0;
@@ -1070,15 +1081,15 @@ public class DeliveryExperiment : CoroutineExperiment
                     // Hospital
                     else
                     {
-                        // LC: ELEMEM
-                        // ZAP it when they deliver items to stim store
+                    // LC: ELEMEM
+                    //ZAP it when they deliver items to stim store
                         if (useElemem && !practice && isStimStore)
-                        {
-                            elememInterface.SendStimMessage();
-                            Debug.Log("ZZZAPPP THIS STORE");
-                        }
+                    {
+                        elememInterface.SendStimMessage();
+                        Debug.Log("ZZZAPPP THIS STORE");
+                    }
 
-                        wordDelay = UnityEngine.Random.Range(WORD_PRESENTATION_DELAY - WORD_PRESENTATION_JITTER,
+                    wordDelay = UnityEngine.Random.Range(WORD_PRESENTATION_DELAY - WORD_PRESENTATION_JITTER,
                                                              WORD_PRESENTATION_DELAY + WORD_PRESENTATION_JITTER);
                         yield return new WaitForSeconds(wordDelay);
                     }
@@ -1090,7 +1101,7 @@ public class DeliveryExperiment : CoroutineExperiment
                                                                   : nextItem.Replace('_', ' ');
                 var itemPresentationInfo = new Dictionary<string, object>() { {"trial number", continuousTrialNum},
                                                                             {"item name", nextItem},
-                                                                            {"store name", nextStore.GetStoreName()},
+                                                                            {"store name", nextStore.name},
                                                                             {"serial position", i+1},
                                                                             {"player position", playerMovement.transform.position.ToString()},
                                                                             {"store position", nextStore.transform.position.ToString()},
@@ -1691,7 +1702,7 @@ public class DeliveryExperiment : CoroutineExperiment
         textDisplayer.DisplayText("display recall text", RECALL_TEXT);
         yield return SkippableWait(RECALL_TEXT_DISPLAY_LENGTH);
         textDisplayer.ClearText();
-        foreach (StoreComponent cueStore in thisTrialPresentedStores)
+        foreach (Transform cueStore in thisTrialPresentedStores)
         {   
             #if !UNITY_WEBGL // NICLS
                 if (useNiclServer && (trialNumber >= NUM_CLASSIFIER_NORMALIZATION_TRIALS))
@@ -1707,33 +1718,34 @@ public class DeliveryExperiment : CoroutineExperiment
                 }
 
                 string output_file_name = practice
-                            ? "practice-" + continuousTrialNum.ToString() + "-" + cueStore.GetStoreName()
-                            : continuousTrialNum.ToString() + "-" + cueStore.GetStoreName();
+                            ? "practice-" + continuousTrialNum.ToString() + "-" + cueStore.name
+                            : continuousTrialNum.ToString() + "-" + cueStore.name;
                 string output_directory = UnityEPL.GetDataPath();
                 string wavFilePath = System.IO.Path.Combine(output_directory, output_file_name) + ".wav";
                 string lstFilepath = System.IO.Path.Combine(output_directory, output_file_name) + ".lst";
-                AppendWordToLst(lstFilepath, cueStore.GetLastPoppedItemName());
+                //AppendWordToLst(lstFilepath, cueStore.GetLastPoppedItemName()); TODO integrate new item system
             #endif
 
-            cueStore.familiarization_object.SetActive(true);
+            //cueStore.familiarization_object.SetActive(true);
 
             Dictionary<string, object> cuedRecordingData = new Dictionary<string, object>();
             cuedRecordingData.Add("trial number", COURIER_ONLINE ? trialNumber : continuousTrialNum);
-            cuedRecordingData.Add("store", cueStore.GetStoreName());
-            cuedRecordingData.Add("item", cueStore.GetLastPoppedItemName());
-            cuedRecordingData.Add("store position", cueStore.transform.position.ToString());
+            cuedRecordingData.Add("store", cueStore.name);
+            //cuedRecordingData.Add("item", cueStore.GetLastPoppedItemName());
+            cuedRecordingData.Add("store position", cueStore.position.ToString());
             
             #if !UNITY_WEBGL // Microphone
                 scriptedEventReporter.ReportScriptedEvent("cued recall recording start", cuedRecordingData);
                 SetElememState("RECALL", new Dictionary<string, object>{ {"duration", MAX_CUED_RECALL_TIME_PER_STORE} });
                 soundRecorder.StartRecording(wavFilePath);
 
-                if (practice && trialNumber == 0)
-                    yield return DoCuedRecallDisplay(cueStore, "", MAX_CUED_RECALL_TIME_PER_STORE, practice: true, ecrDisabled: true, minWaitTime: MIN_CUED_RECALL_TIME_PER_STORE);
-                else if (practice)
-                    yield return DoCuedRecallDisplay(cueStore, "", MAX_CUED_RECALL_TIME_PER_STORE, practice: true, minWaitTime: MIN_CUED_RECALL_TIME_PER_STORE);
-                else
-                    yield return DoCuedRecallDisplay(cueStore, "", MAX_CUED_RECALL_TIME_PER_STORE, minWaitTime: MIN_CUED_RECALL_TIME_PER_STORE);
+                // Pointless - not in new courier
+                //if (practice && trialNumber == 0)
+                //    yield return DoCuedRecallDisplay(cueStore, "", MAX_CUED_RECALL_TIME_PER_STORE, practice: true, ecrDisabled: true, minWaitTime: MIN_CUED_RECALL_TIME_PER_STORE);
+                //else if (practice)
+                //    yield return DoCuedRecallDisplay(cueStore, "", MAX_CUED_RECALL_TIME_PER_STORE, practice: true, minWaitTime: MIN_CUED_RECALL_TIME_PER_STORE);
+                //else
+                //    yield return DoCuedRecallDisplay(cueStore, "", MAX_CUED_RECALL_TIME_PER_STORE, minWaitTime: MIN_CUED_RECALL_TIME_PER_STORE);
 
                 scriptedEventReporter.ReportScriptedEvent("cued recall recording stop", cuedRecordingData);
                 soundRecorder.StopRecording();
@@ -2094,14 +2106,14 @@ public class DeliveryExperiment : CoroutineExperiment
     }
 
     private bool lastPointingIndicatorState = false;
-    private IEnumerator DisplayPointingIndicator(StoreComponent nextStore, bool enable = false)
+    private IEnumerator DisplayPointingIndicator(Transform nextStore, bool enable = false)
     {
         if (enable) {
             if (lastPointingIndicatorState != enable)
                 scriptedEventReporter.ReportScriptedEvent("continuous pointer");
             pointer.SetActive(true);
             ColorPointer(new Color(0.5f, 0.5f, 1f));
-            yield return PointArrowToStore(nextStore.gameObject);
+            yield return PointArrowToStore(nextStore);
         } else {
             pointer.SetActive(false);
             yield return null;
@@ -2109,14 +2121,14 @@ public class DeliveryExperiment : CoroutineExperiment
         lastPointingIndicatorState = enable;
     }
 
-    private IEnumerator PointArrowToStore(GameObject pointToStore, float arrowRotationSpeed = 0f, float arrowCorrectionTime = 0f)
+    private IEnumerator PointArrowToStore(Transform pointToZone, float arrowRotationSpeed = 0f, float arrowCorrectionTime = 0f)
     {
         //float rotationSpeed = arrowRotationSpeed == 0 ? 1f : arrowRotationSpeed * Time.deltaTime;
         //float startTime = Time.time;
 
         //do {
         yield return null;
-        truePointer.GetComponent<Navigation>().target = pointToStore.transform.Find("DeliveryZone");
+        truePointer.GetComponent<Navigation>().target = pointToZone;
         //} while (Time.time < startTime + arrowCorrectionTime) ;
     }
 
@@ -2648,23 +2660,15 @@ public class DeliveryExperiment : CoroutineExperiment
         throw new UnityException("That store game object doesn't exist in the stores list.");
     }
 
-    private StoreComponent[] GetDeliveryRoute(int deliveries)
+    private List<Transform> GetDeliveryRoute(int deliveries)
     {
-        List<StoreComponent> stores = new List<StoreComponent>(environment.stores);
+        allZones.Shuffle(new System.Random());
+        List<Transform> currentZones = allZones.GetRange(0, deliveries);
+        currentZones.Insert(0, startLocation);
 
-        stores.Shuffle();
-        stores.Remove(startLocation);
-        stores.Insert(0, startLocation);
-        
-        List<Transform> routeList = storesObject.GetComponent<FindDeliveryRoute>().FindRoute(stores.GetRange(0, deliveries+1), 1);
+        List<Transform> routeList = deliveryZones.GetComponent<FindDeliveryRoute>().FindRoute(currentZones, 1);
 
-        List<StoreComponent> route = new List<StoreComponent>();
-
-        foreach (Transform location in routeList) route.Add(location.gameObject.GetComponent<StoreComponent>());
-
-        StoreComponent[] routeArray = route.ToArray();
-
-        return routeArray;
+        return routeList;
     }
 
     private List<string> GetItemsList(int deliveries)

@@ -23,4 +23,14 @@ public class DeliveryZone : MonoBehaviour
         if (other.tag.Equals("Player"))
             playerInDeliveryZone = false;
     }
+
+    public void Hide()
+    {
+        transform.Find("GreenBaseCircle").gameObject.SetActive(false);
+    }
+
+    public void Reveal()
+    {
+        transform.Find("GreenBaseCircle").gameObject.SetActive(true);
+    }
 }

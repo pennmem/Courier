@@ -6,6 +6,7 @@ public class DeliveryZone : MonoBehaviour
 {
     private bool playerInDeliveryZone = false;
     public GameObject pointerCircle;
+    public double points;
 
     public bool PlayerInDeliveryZone()
     {

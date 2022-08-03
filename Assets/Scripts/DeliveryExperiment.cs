@@ -78,7 +78,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private const int HOSPTIAL_TOWN_LEARNING_NUM_STORES = 8;
     private const int SINGLE_TOWN_LEARNING_SESSIONS = 1;
     private const int DOUBLE_TOWN_LEARNING_SESSIONS = 0;
-    private const int POINTING_INDICATOR_DELAY = 0; //NICLS_COURIER ? 12 : 48;
+    private const int POINTING_INDICATOR_DELAY = NICLS_COURIER ? 12 : 48;
     private const int EFR_KEYPRESS_PRACTICES = 10;
     private const float FRAME_TEST_LENGTH = 20f;
     private const float MIN_FAMILIARIZATION_ISI = 0.4f;
@@ -111,7 +111,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private const bool STAR_SYSTEM_ACTIVE = false;
     private const bool CHOOSE_NONVISIBLE_STORES = false;
     private const bool RANDOM_STORE_ORDER = false;
-    private const bool FASTEST_ROUTE = true;
+    private const bool DO_REPEATS = true;
 
     private const int NICLS_READ_ONLY_SESSIONS = 8;
     private const int NICLS_CLOSED_LOOP_SESSIONS = 4;
@@ -150,6 +150,8 @@ public class DeliveryExperiment : CoroutineExperiment
     public DeliveryItems deliveryItems;
     public GameObject deliveryZones;
     private List<Transform> allZones;
+    private List<Transform> distanceZonePair;
+    private List<string> distanceItemPair;
     public Transform startLocation;
     public GameObject items;
     public Pauser pauser;
@@ -283,7 +285,7 @@ public class DeliveryExperiment : CoroutineExperiment
         return storePoints;
     }
 
-    void SpatialStorePoints(StoreComponent[] stores)
+    void SpatialStorePoints(Transform[] stores)
     {
         // Setup covariance matrix variables
         int N = stores.Length;
@@ -297,8 +299,8 @@ public class DeliveryExperiment : CoroutineExperiment
             K[i, i] = 1;
             for (int j = i + 1; j < N; j++)
             {
-                var a = new double[2] { stores[i].transform.position.x, stores[i].transform.position.y };
-                var b = new double[2] { stores[j].transform.position.x, stores[j].transform.position.y };
+                var a = new double[2] { stores[i].position.x, stores[i].position.y };
+                var b = new double[2] { stores[j].position.x, stores[j].position.y };
                 K[i, j] = Math.Exp(-(1d / (2d * rhoSq)) * Distance.Euclidean(a, b));
                 K[j, i] = K[i, j];
             }
@@ -318,7 +320,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
         // Set store object point values
         for (int i = 0; i < N; i++)
-            stores[i].points = storePoints[i];
+            stores[i].GetComponent<DeliveryZone>().points = storePoints[i];
     }
 
     // These names are used in for what is sent to the log
@@ -929,20 +931,7 @@ public class DeliveryExperiment : CoroutineExperiment
         //     so, we need to add slight delay for the camera to "see" the stores in town
         yield return new WaitForSeconds(0.1f);
 
-        // Set store points for the delivery day
-        //double[] allStoresPoints = null;  TODO integrate value courier
-        //switch(storePointType)
-        //{
-        //    case StorePointType.Random:
-        //        allStoresPoints = RandomStorePoints(environment.stores.Length);
-        //        break;
-        //    case StorePointType.SerialPosition:
-        //        allStoresPoints = TemporalStorePoints(environment.stores.Length);
-        //        break;
-        //    case StorePointType.SpatialPosition:
-        //        SpatialStorePoints(environment.stores);
-        //        break;
-        //}
+        
 
         SetRamulatorState("ENCODING", true, new Dictionary<string, object>());
         SetElememState("ENCODING");
@@ -952,7 +941,10 @@ public class DeliveryExperiment : CoroutineExperiment
         int deliveries = practice ? Config.deliveriesPerPracticeTrial : Config.deliveriesPerTrial;
         deliveries = RANDOM_STORE_ORDER ? deliveries : 12;
         int craft_shop_delivery_num = rng.Next(deliveries - 1);
+        int numLocationRepeats = 2;
         List<Transform> unvisitedStores = null;
+        List<Transform> visitedStores = new List<Transform>();
+        List<Transform> repeatStores = new List<Transform>();
         List<Transform> stimStoresToVisit = null;
         List<Transform> nostimStoresToVisit = null;
 
@@ -962,21 +954,55 @@ public class DeliveryExperiment : CoroutineExperiment
         foreach (string item in deliveryItems) outputText += item + "\n";
         Debug.Log(outputText);
 
-        if (HOSPITAL_COURIER && !practice && RANDOM_STORE_ORDER)
-        {
-            // draw 6 from stim / nostim store lists
-            var rnd = new System.Random();
-            stimStoresToVisit = StimStores.OrderBy(r => rnd.Next()).Take(deliveries / 2).ToList();
-            nostimStoresToVisit = noStimStores.OrderBy(r => rnd.Next()).Take(deliveries - deliveries / 2).ToList();
+        //if (HOSPITAL_COURIER && !practice && RANDOM_STORE_ORDER)
+        //{
+        //    // draw 6 from stim / nostim store lists
+        //    var rnd = new System.Random();
+        //    stimStoresToVisit = StimStores.OrderBy(r => rnd.Next()).Take(deliveries / 2).ToList();
+        //    nostimStoresToVisit = noStimStores.OrderBy(r => rnd.Next()).Take(deliveries - deliveries / 2).ToList();
 
-            // now MERGE
-            unvisitedStores = new List<Transform>(stimStoresToVisit.Count + nostimStoresToVisit.Count);
-            unvisitedStores.AddRange(stimStoresToVisit);
-            unvisitedStores.AddRange(nostimStoresToVisit);
-            unvisitedStores.Shuffle();
-        }
-        else
+        //    // now MERGE
+        //    unvisitedStores = new List<Transform>(stimStoresToVisit.Count + nostimStoresToVisit.Count);
+        //    unvisitedStores.AddRange(stimStoresToVisit);
+        //    unvisitedStores.AddRange(nostimStoresToVisit);
+        //    unvisitedStores.Shuffle();
+        //}
+        //else
             unvisitedStores = GetDeliveryRoute(deliveries);
+
+        // Set store points for the delivery day
+        double[] allStoresPoints = null;
+        switch (storePointType)
+        {
+            case StorePointType.Random:
+                allStoresPoints = RandomStorePoints(unvisitedStores.Count);
+                break;
+            case StorePointType.SerialPosition:
+                allStoresPoints = TemporalStorePoints(unvisitedStores.Count);
+                break;
+            case StorePointType.SpatialPosition:
+                SpatialStorePoints(unvisitedStores.ToArray());
+                break;
+        }
+
+        while (repeatStores.Count < numLocationRepeats || !DO_REPEATS)
+        {
+            repeatStores.Add(unvisitedStores[rng.Next(deliveries / 2, deliveries - 1)]);
+        }
+
+        distanceZonePair = new List<Transform>();
+        distanceItemPair = new List<string>();
+
+        while (distanceZonePair.Count < 2)
+        {
+            int n = rng.Next(deliveries);
+
+            if (!distanceZonePair.Contains(unvisitedStores[n]))
+            {
+                distanceZonePair.Add(unvisitedStores[n]);
+                distanceItemPair.Add(deliveryItems[n]);
+            }
+        }
 
         //if (skipLastDelivStores)
         //    foreach (var store in thisTrialPresentedStores)
@@ -991,7 +1017,7 @@ public class DeliveryExperiment : CoroutineExperiment
             Debug.Log("This Trial is using " + stimTag + " as stim frequency");
         }
 
-        for (int i = 0; i < deliveries + 1; i++)
+        for (int i = 0; i <= deliveries; i++)
         {
 
             // LC: save the lastly visited store for next trial
@@ -1017,19 +1043,19 @@ public class DeliveryExperiment : CoroutineExperiment
             //if (i == deliveries)
             //    previousTrialStore = nextStore;
 
-            playerMovement.Freeze();
-            messageImageDisplayer.please_find_the_blah_reminder.SetActive(false);
+            //playerMovement.Freeze();
+            //messageImageDisplayer.please_find_the_blah_reminder.SetActive(false);
             //messageImageDisplayer.SetReminderText(nextStore.name);
             //if (!NICLS_COURIER)
             //    yield return DoPointingTask(nextStore);
-            messageImageDisplayer.please_find_the_blah_reminder.SetActive(true);
-            playerMovement.Unfreeze();
+            //messageImageDisplayer.please_find_the_blah_reminder.SetActive(true);
+            //playerMovement.Unfreeze();
 
             float startTime = Time.time;
             while (!nextStore.GetComponent<DeliveryZone>().PlayerInDeliveryZone())
             {
                 yield return null;
-                if (Time.time > startTime + POINTING_INDICATOR_DELAY && i != deliveries)
+                if ((i != deliveries) ? true : Time.time > startTime + POINTING_INDICATOR_DELAY)
                     yield return DisplayPointingIndicator(nextStore, true);
                 if (InputManager.GetButton("Secret"))
                     goto SkipRemainingDeliveries;
@@ -1044,10 +1070,10 @@ public class DeliveryExperiment : CoroutineExperiment
             {
                 case StorePointType.Random:
                 case StorePointType.SerialPosition:
-                    //storePoints = allStoresPoints[i];
+                    storePoints = allStoresPoints[i];
                     break;
                 case StorePointType.SpatialPosition:
-                    //storePoints = nextStore.points;
+                    storePoints = nextStore.GetComponent<DeliveryZone>().points;
                     break;
             }
             storePoints = VALUE_COURIER ? storePoints : -1.0;
@@ -1097,6 +1123,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
                 string deliveredItemName = deliveredItem.name;
                 int roundedPoints = (int)Math.Round(storePoints);
+                Debug.Log(roundedPoints);
                 string deliveredItemNameWithSpace = VALUE_COURIER ? nextItem.Replace('_', ' ') + ", " + roundedPoints.ToString() 
                                                                   : nextItem.Replace('_', ' ');
                 var itemPresentationInfo = new Dictionary<string, object>() { {"trial number", continuousTrialNum},
@@ -1128,6 +1155,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
                 //add visuals with sound
                 messageImageDisplayer.deliver_item_visual_dislay.SetActive(true);
+                Debug.Log(deliveredItemNameWithSpace);
                 messageImageDisplayer.SetDeliverItemText(deliveredItemNameWithSpace);
                 yield return SkippableWait(AUDIO_TEXT_DISPLAY);
                 messageImageDisplayer.deliver_item_visual_dislay.SetActive(false);
@@ -1145,6 +1173,14 @@ public class DeliveryExperiment : CoroutineExperiment
                     playerMovement.Unfreeze();
                 }
             }
+
+            if (repeatStores.Contains(nextStore))
+            {
+                yield return revisitStore(visitedStores, nextStore, unvisitedStores[0]);
+            }
+
+            visitedStores.Add(nextStore);
+
         }
 
         BlackScreen();
@@ -1265,16 +1301,16 @@ public class DeliveryExperiment : CoroutineExperiment
             else
                 yield return DoDeliveries(trialNumber, trialNumber, practice: true);
             // Delivery Scores : LC : now pointing feedback comes right after the delivery day
-            if (HOSPITAL_COURIER)
-            {
-                var mtFormatValues = new string[] { starSystem.NumCorrectInSession(c => c < POINTING_CORRECT_THRESHOLD).ToString(),
-                                                    starSystem.NumInSession().ToString() };
-                messageImageDisplayer.SetGeneralBigMessageText(titleText: "deliv day pointing accuracy title",
-                                                               mainText: "deliv day pointing accuracy main",
-                                                               mtFormatVals: mtFormatValues);
-                yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
-            }
-            // Do recalls
+            //if (HOSPITAL_COURIER)
+            //{
+            //    var mtFormatValues = new string[] { starSystem.NumCorrectInSession(c => c < POINTING_CORRECT_THRESHOLD).ToString(),
+            //                                        starSystem.NumInSession().ToString() };
+            //    messageImageDisplayer.SetGeneralBigMessageText(titleText: "deliv day pointing accuracy title",
+            //                                                   mainText: "deliv day pointing accuracy main",
+            //                                                   mtFormatVals: mtFormatValues);
+            //    yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
+            //}
+            //// Do recalls
             if (!COURIER_ONLINE)
                 yield return DoFixation(PAUSE_BEFORE_RETRIEVAL, practice: true);
             yield return DoRecall(trialNumber, trialNumber, practice: true);
@@ -1384,15 +1420,15 @@ public class DeliveryExperiment : CoroutineExperiment
                 valueIndex += 1;
             }
             // Delivery Scores
-            if (HOSPITAL_COURIER)
-            {
-                var mtFormatValues = new string[] { starSystem.NumCorrectInSession(c => c < POINTING_CORRECT_THRESHOLD).ToString(),
-                                                    starSystem.NumInSession().ToString() };
-                messageImageDisplayer.SetGeneralBigMessageText(titleText: "deliv day pointing accuracy title",
-                                                               mainText: "deliv day pointing accuracy main",
-                                                               mtFormatVals: mtFormatValues);
-                yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
-            }
+            //if (HOSPITAL_COURIER)
+            //{
+            //    var mtFormatValues = new string[] { starSystem.NumCorrectInSession(c => c < POINTING_CORRECT_THRESHOLD).ToString(),
+            //                                        starSystem.NumInSession().ToString() };
+            //    messageImageDisplayer.SetGeneralBigMessageText(titleText: "deliv day pointing accuracy title",
+            //                                                   mainText: "deliv day pointing accuracy main",
+            //                                                   mtFormatVals: mtFormatValues);
+            //    yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
+            //}
             // Do recall
             if (!COURIER_ONLINE)
                 yield return DoFixation(PAUSE_BEFORE_RETRIEVAL, practice: false);
@@ -1458,7 +1494,7 @@ public class DeliveryExperiment : CoroutineExperiment
         scriptedEventReporter.ReportScriptedEvent("start " + taskType + " typing", taskTypeData);
 
         // during the duration of the task...
-        while (Time.time < taskStart + taskLength)
+        while (Time.time < taskStart + taskLength || taskType == "value recall")
         {
             yield return null;
 
@@ -1723,7 +1759,7 @@ public class DeliveryExperiment : CoroutineExperiment
                 string output_directory = UnityEPL.GetDataPath();
                 string wavFilePath = System.IO.Path.Combine(output_directory, output_file_name) + ".wav";
                 string lstFilepath = System.IO.Path.Combine(output_directory, output_file_name) + ".lst";
-                //AppendWordToLst(lstFilepath, cueStore.GetLastPoppedItemName()); TODO integrate new item system
+                //AppendWordToLst(lstFilepath, cueStore.GetLastPoppedItemName()); TODO: CRB: integrate new item system
             #endif
 
             //cueStore.familiarization_object.SetActive(true);
@@ -1764,6 +1800,17 @@ public class DeliveryExperiment : CoroutineExperiment
         scriptedEventReporter.ReportScriptedEvent("stop cued recall");
     }
 
+    private IEnumerator DoDistanceJudgment(int trialNumber, int continuousTrialNum, bool practice = false)
+    {
+        scriptedEventReporter.ReportScriptedEvent("start relative distance judgment task");
+        BlackScreen();
+        textDisplayer.ClearText();
+
+
+
+        yield return null;
+    }
+
     // LC: not implemented for double session, only for single session
     private IEnumerator DoValueRecall(int trialNumber)
     {
@@ -1777,7 +1824,7 @@ public class DeliveryExperiment : CoroutineExperiment
         }
 
         #if !UNITY_WEBGL
-            // TODO: implement for UNITY standalone version
+            yield return DoTypedResponses(trialNumber, "value recall", VALUE_RECALL_LENGTH, freeInputField, freeResponse);
         #else
             yield return DoTypedResponses(trialNumber, "value recall", VALUE_RECALL_LENGTH, freeInputField, freeResponse);
         #endif
@@ -2127,8 +2174,7 @@ public class DeliveryExperiment : CoroutineExperiment
         //float startTime = Time.time;
 
         //do {
-        yield return null;
-        truePointer.GetComponent<Navigation>().target = pointToZone;
+        yield return truePointer.GetComponent<Navigation>().target = pointToZone;
         //} while (Time.time < startTime + arrowCorrectionTime) ;
     }
 
@@ -2664,17 +2710,25 @@ public class DeliveryExperiment : CoroutineExperiment
     {
         allZones.Shuffle(new System.Random());
         List<Transform> currentZones = allZones.GetRange(0, deliveries);
-        currentZones.Insert(0, startLocation);
 
-        List<Transform> routeList = deliveryZones.GetComponent<FindDeliveryRoute>().FindRoute(currentZones, 1);
+        if (!RANDOM_STORE_ORDER)
+        {
+            currentZones.Insert(0, startLocation);
+            return deliveryZones.GetComponent<FindDeliveryRoute>().FindRoute(currentZones, 1);
+        }
+        else
+        {
+            currentZones.Add(startLocation);
+            return currentZones;
+        }
 
-        return routeList;
     }
 
     private List<string> GetItemsList(int deliveries)
     {
         List<string> deliveryItems = new List<string>();
         List<Transform> categories = new List<Transform>();
+        int numReps = 1;
 
         foreach (Transform category in items.transform.Find("Categories"))
         {
@@ -2683,7 +2737,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
         categories.Shuffle(new System.Random());
 
-        for (int i = 0; i < deliveries; i++)
+        for (int i = 0; i < deliveries - (DO_REPEATS ? numReps : 0); i++)
         {
             List<string> list = categories[i].GetComponent<ItemsList>().itemsList;
             list.Shuffle(new System.Random());
@@ -2691,8 +2745,49 @@ public class DeliveryExperiment : CoroutineExperiment
             list.RemoveAt(0);
         }
 
+        if (DO_REPEATS)
+        {
+            while (deliveryItems.Count < deliveries)
+            {
+                deliveryItems.Add(deliveryItems[0]);
+            }
+            deliveryItems.Shuffle(new System.Random());
+
+            bool sorted = false;
+            while (!sorted)
+            {
+                sorted = true;
+                for (int i = 0; i < deliveryItems.Count - 1; i++)
+                {
+                    if (deliveryItems[i] == deliveryItems[i + 1])
+                    {
+                        Debug.Log("Eyy theres a match");
+                        sorted = false;
+                        deliveryItems.Shuffle(new System.Random());
+                        break;
+                    }
+                }
+            }
+
+        }
+
+        string outputText = "";
+        foreach (string item in deliveryItems) outputText += item + "\n";
+        Debug.Log(outputText);
+
         return deliveryItems;
     }
+
+    private IEnumerator revisitStore(List<Transform> visited, Transform last, Transform next)
+    {
+        Transform middle = deliveryZones.GetComponent<FindDeliveryRoute>().FindMiddle(visited, last, next);
+        while (UnityEngine.Vector3.Distance(middle.position, pointer.transform.position) > 5f)
+        {
+            yield return DisplayPointingIndicator(middle, true);
+        }
+
+    }
+
 }
 
 public static class IListExtensions

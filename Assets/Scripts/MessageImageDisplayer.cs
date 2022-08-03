@@ -414,18 +414,20 @@ public class MessageImageDisplayer : MonoBehaviour
 
     public void SetDeliverItemText(string name)
     {
-        string prompt_string = name;
-        string update_name = "";
-        foreach (char c in prompt_string)
-        {
-            if(char.IsLetter(c)||c == '\'')
-                update_name += char.ToLower(c);
-            else
-                update_name += " ";
-            
-        }
+        //string prompt_string = name;
+        //string update_name = "";
+        //foreach (char c in prompt_string)
+        //{
+        //    if(char.IsLetter(c)||c == '\'')
+        //        update_name += char.ToLower(c);
+        //    else
+        //        update_name += " ";
+
+        //}
+        //Button btn = deliver_item_visual_dislay.GetComponent<Button>();
+        //deliver_item_display_text.text = update_name;
         Button btn = deliver_item_visual_dislay.GetComponent<Button>();
-        deliver_item_display_text.text = update_name;
+        deliver_item_display_text.text = name;
     }
 
     public void SetEfrText(string titleText = "", string descriptiveText = "", string leftButton = null, string rightButton = null)

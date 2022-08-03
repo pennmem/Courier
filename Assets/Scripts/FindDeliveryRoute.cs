@@ -214,6 +214,45 @@ public class FindDeliveryRoute : MonoBehaviour
         
         return route;
     }
+
+    public Transform FindMiddle(List<Transform> visitedZones, Transform last, Transform next)
+    {
+        float minTime = 0f;
+        Transform middle = null;
+
+        foreach (Transform location in visitedZones)
+        {
+            float midTime = 0f;
+            for (int i = 0; i < zoneSets.Count; i++)
+            {
+                if (zoneSets[i].Contains(last) && zoneSets[i].Contains(location))
+                {
+                    midTime += setTimes[i];
+                }
+                else if (zoneSets[i].Contains(next) && zoneSets[i].Contains(location))
+                {
+                    midTime += setTimes[i];
+                }
+            }
+            for (int i = 0; i < nodeSets.Count; i++)
+            {
+                if (nodeSets[i].Contains(last) && nodeSets[i].Contains(location) && nodeSets[i].Contains(next))
+                {
+                    midTime += nodeTimes[i];
+                    break;
+                }
+            }
+
+            if (midTime < minTime || minTime == 0)
+            {
+                minTime = midTime;
+                middle = location;
+            }
+
+        }
+
+        return middle;
+    }
 }
 
 public static class IEnumerableExtensions

@@ -30,6 +30,7 @@ public class MessageImageDisplayer : MonoBehaviour
     public GameObject deliver_item_visual_dislay;
     public Text deliver_item_display_text;
     public GameObject free_recall_display;
+    public GameObject distance_judgment_display;
     public GameObject efr_display;
     public GameObject cued_recall_message;
     public GameObject cued_recall_title;
@@ -380,6 +381,29 @@ public class MessageImageDisplayer : MonoBehaviour
                 message.transform.Find("sliding scale").GetComponent<Slider>().value += 1;
         }
         Debug.Log(slider.value);
+        scriptedEventReporter.ReportScriptedEvent("instruction message cleared", messageData);
+        message.SetActive(false);
+
+        scriptedEventReporter.ReportScriptedEvent("sliding scale value",
+            new Dictionary<string, object>() { { "value", message.transform.Find("sliding scale").GetComponent<Slider>().value } });
+    }
+
+    public IEnumerator DisplayDistanceJudgmentMessage(GameObject message, List<string> items, string buttonName = "Continue")
+    {
+        Dictionary<string, object> messageData = new Dictionary<string, object>();
+        messageData.Add("message name", message.name);
+        // TODO: JPB: (Hokua) Change this so that it takes a logging name (the message titleText or all text)
+        scriptedEventReporter.ReportScriptedEvent("instruction message displayed", messageData);
+
+        message.transform.Find("ratings").Find("item 1 text").GetComponent<Text>().text = items[0];
+        message.transform.Find("ratings").Find("item 2 text").GetComponent<Text>().text = items[1];
+        message.SetActive(true);
+        yield return null;
+        while (!InputManager.GetButtonDown(buttonName) && !InputManager.GetButtonDown("Secret"))
+        {
+            yield return null;
+            message.transform.Find("sliding scale").GetComponent<Slider>().value += InputManager.GetAxis("Horizontal")/10;
+        }
         scriptedEventReporter.ReportScriptedEvent("instruction message cleared", messageData);
         message.SetActive(false);
 

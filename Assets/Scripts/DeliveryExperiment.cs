@@ -53,7 +53,7 @@ public class DeliveryExperiment : CoroutineExperiment
     // Experiment type
     private const bool HOSPITAL_COURIER = true;
     private const bool NICLS_COURIER = false;
-    private const bool VALUE_COURIER = true;
+    private const bool VALUE_COURIER = false;
     #if !UNITY_WEBGL
         private const bool COURIER_ONLINE = false;
     #else
@@ -110,8 +110,8 @@ public class DeliveryExperiment : CoroutineExperiment
     // Keep as hardcoded values
     private const bool STAR_SYSTEM_ACTIVE = false;
     private const bool CHOOSE_NONVISIBLE_STORES = false;
-    private const bool RANDOM_STORE_ORDER = false;
-    private const bool DO_REPEATS = true;
+    private const bool DO_REPEATS = false;
+    private const bool RANDOM_STORE_ORDER = DO_REPEATS ? true : false;
 
     private const int NICLS_READ_ONLY_SESSIONS = 8;
     private const int NICLS_CLOSED_LOOP_SESSIONS = 4;
@@ -155,6 +155,9 @@ public class DeliveryExperiment : CoroutineExperiment
     public Transform startLocation;
     public GameObject items;
     public Pauser pauser;
+
+    public GameObject cityEnvironment;
+    public GameObject terrain;
 
     public float pointerRotationSpeed = 10f;
 
@@ -941,7 +944,7 @@ public class DeliveryExperiment : CoroutineExperiment
         int deliveries = practice ? Config.deliveriesPerPracticeTrial : Config.deliveriesPerTrial;
         deliveries = RANDOM_STORE_ORDER ? deliveries : 12;
         int craft_shop_delivery_num = rng.Next(deliveries - 1);
-        int numLocationRepeats = 2;
+        int numLocationRepeats = deliveries/4;
         List<Transform> unvisitedStores = null;
         List<Transform> visitedStores = new List<Transform>();
         List<Transform> repeatStores = new List<Transform>();
@@ -985,9 +988,10 @@ public class DeliveryExperiment : CoroutineExperiment
                 break;
         }
 
-        while (repeatStores.Count < numLocationRepeats || !DO_REPEATS)
+        while (repeatStores.Count < numLocationRepeats && DO_REPEATS)
         {
-            repeatStores.Add(unvisitedStores[rng.Next(deliveries / 2, deliveries - 1)]);
+            Transform repStore = unvisitedStores[rng.Next(1, deliveries - 1)];
+            if (!repeatStores.Contains(repStore)) repeatStores.Add(repStore);
         }
 
         distanceZonePair = new List<Transform>();
@@ -1003,6 +1007,8 @@ public class DeliveryExperiment : CoroutineExperiment
                 distanceItemPair.Add(deliveryItems[n]);
             }
         }
+
+        foreach (string item in deliveryItems) Debug.Log(item);
 
         //if (skipLastDelivStores)
         //    foreach (var store in thisTrialPresentedStores)
@@ -1403,6 +1409,9 @@ public class DeliveryExperiment : CoroutineExperiment
                 }
             #endif
 
+            cityEnvironment.SetActive(true);
+            terrain.SetActive(true);
+
             // LC: order of which the task appears is evenly randomized (3 free / 3 value)
             if (freeTaskFirst[trialNumber])
             {
@@ -1614,6 +1623,8 @@ public class DeliveryExperiment : CoroutineExperiment
             //yield return DoCuedRecall(trialNumber, continuousTrialNum, practice);
         }
 
+        yield return DoDistanceJudgment(trialNumber, continuousTrialNum, practice);
+
         SetRamulatorState("RETRIEVAL", false, new Dictionary<string, object>());
     }
 
@@ -1806,9 +1817,15 @@ public class DeliveryExperiment : CoroutineExperiment
         BlackScreen();
         textDisplayer.ClearText();
 
+        highBeep.Play();
+        scriptedEventReporter.ReportScriptedEvent("sound played", new Dictionary<string, object>() { { "sound name", "high beep" }, { "sound duration", highBeep.clip.length.ToString() } });
+        textDisplayer.DisplayText("display recall text", RECALL_TEXT);
+        yield return SkippableWait(RECALL_TEXT_DISPLAY_LENGTH);
+        textDisplayer.ClearText();
 
 
-        yield return null;
+
+        yield return DoDistanceJudgmentDisplay();
     }
 
     // LC: not implemented for double session, only for single session
@@ -2294,6 +2311,53 @@ public class DeliveryExperiment : CoroutineExperiment
         yield return null;
     }
 
+    private IEnumerator DoDistanceJudgmentDisplay(bool efrDisabled = false)
+    {
+        BlackScreen();
+        //if (Config.efrEnabled && !efrDisabled)
+        //{
+        //    if (Config.twoBtnEfrEnabled)
+        //    {
+        //        SetTwoBtnErDisplay();
+        //        messageImageDisplayer.SetEfrText(titleText: title);
+        //        messageImageDisplayer.SetEfrElementsActive(speakNowText: true);
+        //        yield return messageImageDisplayer.DisplayMessageTimedLRKeypressBold(
+        //            messageImageDisplayer.efr_display, waitTime,
+        //            efrLeftLogMsg, efrRightLogMsg, practice);
+        //    }
+        //    else // One btn EFR
+        //    {
+        //        if (NICLS_COURIER)
+        //        {
+        //            messageImageDisplayer.SetGeneralBiggerMessageText(titleText: "one btn er message",
+        //                                                              continueText: "speak now");
+        //            yield return messageImageDisplayer.DisplayMessageTimed(
+        //                messageImageDisplayer.general_bigger_message_display, waitTime);
+        //        }
+        //        else
+        //        {
+        //            if (title == "final store recall")
+        //                messageImageDisplayer.SetGeneralBiggerMessageText(titleText: "one btn er message store",
+        //                                                                continueText: "speak now");
+        //            else
+        //                messageImageDisplayer.SetGeneralBiggerMessageText(titleText: "one btn er message",
+        //                                                                continueText: "speak now");
+        //            yield return messageImageDisplayer.DisplayMessageTimedKeypressBold(
+        //                messageImageDisplayer.general_bigger_message_display, waitTime, ActionButton.RejectButton, "title text", "reject button");
+        //        }
+        //    }
+        //}
+        //else
+        //{
+        //    messageImageDisplayer.SetGeneralBiggerMessageText(continueText: "speak now");
+        //    yield return messageImageDisplayer.DisplayMessageTimed(
+        //        messageImageDisplayer.general_bigger_message_display, waitTime);
+        //}
+
+
+        yield return messageImageDisplayer.DisplayDistanceJudgmentMessage(messageImageDisplayer.distance_judgment_display, distanceItemPair);
+    }
+
     private IEnumerator DoTwoBtnErKeypressCheck()
     {
         if (InputManager.GetButton("Secret"))
@@ -2569,6 +2633,8 @@ public class DeliveryExperiment : CoroutineExperiment
 
     private void BlackScreen()
     {
+        cityEnvironment.SetActive(false);
+        terrain.SetActive(false);
         pauser.ForbidPausing();
         memoryWordCanvas.SetActive(true);
         regularCamera.enabled = false;
@@ -2718,6 +2784,7 @@ public class DeliveryExperiment : CoroutineExperiment
         }
         else
         {
+            deliveryZones.GetComponent<FindDeliveryRoute>().FindRoute(currentZones, 1);
             currentZones.Add(startLocation);
             return currentZones;
         }
@@ -2728,7 +2795,8 @@ public class DeliveryExperiment : CoroutineExperiment
     {
         List<string> deliveryItems = new List<string>();
         List<Transform> categories = new List<Transform>();
-        int numReps = 1;
+        List<string> repItems = new List<string>();
+        int numReps = deliveries/4;
 
         foreach (Transform category in items.transform.Find("Categories"))
         {
@@ -2747,11 +2815,22 @@ public class DeliveryExperiment : CoroutineExperiment
 
         if (DO_REPEATS)
         {
-            while (deliveryItems.Count < deliveries)
+            int n = numReps;
+            while (n > 0)
             {
-                deliveryItems.Add(deliveryItems[0]);
+                String repItem = deliveryItems[rng.Next(deliveries - numReps)];
+                if (!repItems.Contains(repItem))
+                {
+                    repItems.Add(repItem);
+                    deliveryItems.Add(repItem);
+                    n -= 1;
+                }
+
             }
+
             deliveryItems.Shuffle(new System.Random());
+            
+            foreach (string item in repItems) Debug.Log(item);
 
             bool sorted = false;
             while (!sorted)
@@ -2759,16 +2838,14 @@ public class DeliveryExperiment : CoroutineExperiment
                 sorted = true;
                 for (int i = 0; i < deliveryItems.Count - 1; i++)
                 {
-                    if (deliveryItems[i] == deliveryItems[i + 1])
+                    if (deliveryItems[i] == deliveryItems[i + 1] || (repItems.Contains(deliveryItems[i]) && repItems.Contains(deliveryItems[i + 1])))
                     {
-                        Debug.Log("Eyy theres a match");
                         sorted = false;
                         deliveryItems.Shuffle(new System.Random());
                         break;
                     }
                 }
             }
-
         }
 
         string outputText = "";

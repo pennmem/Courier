@@ -27,6 +27,7 @@ public class MessageImageDisplayer : MonoBehaviour
     public Text please_find_the_blah_text;
     public GameObject please_find_the_blah_reminder;
     public Text please_find_the_blah_reminder_text;
+    public GameObject cue_return;
     public GameObject deliver_item_visual_dislay;
     public Text deliver_item_display_text;
     public GameObject free_recall_display;
@@ -46,6 +47,7 @@ public class MessageImageDisplayer : MonoBehaviour
 
     private const float BUTTON_MSG_DISPLAY_WAIT = 0.3f;
     private const int REQUIRED_VALID_BUTTON_PRESSES = 1;
+    public float value = 0.5f;
 
     public enum ActionButton
     {
@@ -402,7 +404,8 @@ public class MessageImageDisplayer : MonoBehaviour
         while (!InputManager.GetButtonDown(buttonName) && !InputManager.GetButtonDown("Secret"))
         {
             yield return null;
-            message.transform.Find("sliding scale").GetComponent<Slider>().value += InputManager.GetAxis("Horizontal")/10;
+            value = InputManager.GetAxis("Horizontal");
+            message.transform.Find("sliding scale").GetComponent<Slider>().value += value * Math.Abs(value)/100f;
         }
         scriptedEventReporter.ReportScriptedEvent("instruction message cleared", messageData);
         message.SetActive(false);

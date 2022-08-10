@@ -111,7 +111,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private const bool STAR_SYSTEM_ACTIVE = false;
     private const bool CHOOSE_NONVISIBLE_STORES = false;
     private const bool DO_REPEATS = false;
-    private const bool RANDOM_STORE_ORDER = DO_REPEATS ? true : false;
+    private const bool RANDOM_STORE_ORDER = DO_REPEATS;
 
     private const int NICLS_READ_ONLY_SESSIONS = 8;
     private const int NICLS_CLOSED_LOOP_SESSIONS = 4;
@@ -302,13 +302,15 @@ public class DeliveryExperiment : CoroutineExperiment
             K[i, i] = 1;
             for (int j = i + 1; j < N; j++)
             {
-                var a = new double[2] { stores[i].position.x, stores[i].position.y };
-                var b = new double[2] { stores[j].position.x, stores[j].position.y };
-                K[i, j] = Math.Exp(-(1d / (2d * rhoSq)) * Distance.Euclidean(a, b));
+                var a = new double[2] { stores[i].position.x, stores[i].position.z };
+                var b = new double[2] { stores[j].position.x, stores[j].position.z };
+                K[i, j] = Math.Exp(-(1d / (2d * rhoSq)) * Math.Abs(Distance.Euclidean(a, b)));
                 K[j, i] = K[i, j];
             }
         }
         K[(N - 1), (N - 1)] = 1;
+
+        //foreach (Transform store in stores) outputText += 
 
         // Generate point values
         double[] storePoints = new MultivariateNormalDistribution(mu, K).Generate();
@@ -393,10 +395,13 @@ public class DeliveryExperiment : CoroutineExperiment
     void Start()
     {
         allZones = new List<Transform>();
-        foreach (Transform zone in deliveryZones.transform)
+        foreach (Transform area in deliveryZones.transform)
         {
-            allZones.Add(zone);
-            zone.GetComponent<DeliveryZone>().Hide();
+            foreach (Transform zone in area)
+            {
+                allZones.Add(zone);
+                zone.GetComponent<DeliveryZone>().Hide();
+            }
         }
 
         if (UnityEPL.viewCheck)
@@ -539,46 +544,46 @@ public class DeliveryExperiment : CoroutineExperiment
         BlackScreen();
 
         // Intros
-        //yield return DoIntros();
+        yield return DoIntros();
 
         // Town Learning
         int trialsForFirstSubSession = Config.trialsPerSession;
-        if (sessionNumber < SINGLE_TOWN_LEARNING_SESSIONS + DOUBLE_TOWN_LEARNING_SESSIONS)
-        {
-            if (NICLS_COURIER && !useNiclServer)
-            {
-                Debug.Log("Town Learning Phase");
-                trialsForFirstSubSession = Config.trialsPerSessionSingleTownLearning;
-                messageImageDisplayer.SetGeneralMessageText("town learning title", "town learning main 1");
-                yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
-                WorldScreen();
-                yield return DoTownLearning(0, environment.stores.Length);
+        //if (sessionNumber < SINGLE_TOWN_LEARNING_SESSIONS + DOUBLE_TOWN_LEARNING_SESSIONS)
+        //{
+        //    if (NICLS_COURIER && !useNiclServer)
+        //    {
+        //        Debug.Log("Town Learning Phase");
+        //        trialsForFirstSubSession = Config.trialsPerSessionSingleTownLearning;
+        //        messageImageDisplayer.SetGeneralMessageText("town learning title", "town learning main 1");
+        //        yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
+        //        WorldScreen();
+        //        yield return DoTownLearning(0, environment.stores.Length);
 
-                if (sessionNumber < DOUBLE_TOWN_LEARNING_SESSIONS)
-                {
-                    trialsForFirstSubSession = Config.trialsPerSessionDoubleTownLearning;
-                    messageImageDisplayer.SetGeneralMessageText("town learning title", "town learning main 2");
-                    yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
-                    WorldScreen();
-                    yield return DoTownLearning(1, environment.stores.Length);
-                }
-            }
-            else if (HOSPITAL_COURIER)
-            {
-                Debug.Log("Town Learning Phase");
-                trialsForFirstSubSession = Config.trialsPerSessionSingleTownLearning;
-                messageImageDisplayer.SetGeneralMessageText("town learning title", "town learning main 1");
-                yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
-                WorldScreen();
-                yield return DoTownLearning(0, environment.stores.Length / 2);
-            }
-        }
+        //        if (sessionNumber < DOUBLE_TOWN_LEARNING_SESSIONS)
+        //        {
+        //            trialsForFirstSubSession = Config.trialsPerSessionDoubleTownLearning;
+        //            messageImageDisplayer.SetGeneralMessageText("town learning title", "town learning main 2");
+        //            yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
+        //            WorldScreen();
+        //            yield return DoTownLearning(1, environment.stores.Length);
+        //        }
+        //    }
+        //    else if (HOSPITAL_COURIER)
+        //    {
+        //        Debug.Log("Town Learning Phase");
+        //        trialsForFirstSubSession = Config.trialsPerSessionSingleTownLearning;
+        //        messageImageDisplayer.SetGeneralMessageText("town learning title", "town learning main 1");
+        //        yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
+        //        WorldScreen();
+        //        yield return DoTownLearning(0, environment.stores.Length / 2);
+        //    }
+        //}
 
 
         // Task Recap Instructions and Practice Trials
         // Using useNiclsServer to skip practices on closed loop sessions
-        if (sessionNumber == 0 && !useNiclServer && !COURIER_ONLINE)
-            yield return DoPracticeTrials(2);
+        //if (sessionNumber == 0 && !useNiclServer && !COURIER_ONLINE)
+        //    yield return DoPracticeTrials(2);
 
         // Delay note
         if (useNiclServer)
@@ -939,10 +944,32 @@ public class DeliveryExperiment : CoroutineExperiment
         SetRamulatorState("ENCODING", true, new Dictionary<string, object>());
         SetElememState("ENCODING");
 
-        messageImageDisplayer.please_find_the_blah_reminder.SetActive(true);
+        //messageImageDisplayer.please_find_the_blah_reminder.SetActive(true);
 
-        int deliveries = practice ? Config.deliveriesPerPracticeTrial : Config.deliveriesPerTrial;
-        deliveries = RANDOM_STORE_ORDER ? deliveries : 12;
+        if (RANDOM_STORE_ORDER)
+        {
+            int enabledArea = rng.Next(3);
+            foreach (Transform area in deliveryZones.transform)
+            {
+                area.gameObject.SetActive(false);
+            }
+            deliveryZones.transform.GetChild(enabledArea).gameObject.SetActive(true);
+        }
+
+
+        allZones = new List<Transform>();
+        foreach (Transform area in deliveryZones.transform)
+        {
+            if (area.gameObject.activeSelf)
+                foreach (Transform zone in area)
+                {
+                    allZones.Add(zone);
+                    zone.GetComponent<DeliveryZone>().Hide();
+                }
+        }
+
+        int deliveries = practice ? 8 : 12; // Config.deliveriesPerPracticeTrial : Config.deliveriesPerTrial;
+        
         int craft_shop_delivery_num = rng.Next(deliveries - 1);
         int numLocationRepeats = deliveries/4;
         List<Transform> unvisitedStores = null;
@@ -1008,8 +1035,6 @@ public class DeliveryExperiment : CoroutineExperiment
             }
         }
 
-        foreach (string item in deliveryItems) Debug.Log(item);
-
         //if (skipLastDelivStores)
         //    foreach (var store in thisTrialPresentedStores)
         //        unvisitedStores.Remove(store);
@@ -1057,6 +1082,8 @@ public class DeliveryExperiment : CoroutineExperiment
             //messageImageDisplayer.please_find_the_blah_reminder.SetActive(true);
             //playerMovement.Unfreeze();
 
+            if (i == deliveries) messageImageDisplayer.cue_return.SetActive(true);
+
             float startTime = Time.time;
             while (!nextStore.GetComponent<DeliveryZone>().PlayerInDeliveryZone())
             {
@@ -1067,6 +1094,7 @@ public class DeliveryExperiment : CoroutineExperiment
                     goto SkipRemainingDeliveries;
             }
             yield return DisplayPointingIndicator(nextStore, false);
+            if (i == deliveries) messageImageDisplayer.cue_return.SetActive(false);
 
             nextStore.GetComponent<DeliveryZone>().Hide();
 
@@ -1299,7 +1327,10 @@ public class DeliveryExperiment : CoroutineExperiment
                     ramulatorInterface.BeginNewTrial(trialNumber); 
                 if (Config.elememOn)
                     elememInterface.SendTrialMessage(trialNumber, false);
-            #endif                                                 
+            #endif
+
+            cityEnvironment.SetActive(true);
+            terrain.SetActive(true);
 
             // Do deliveries
             if (HOSPITAL_COURIER && trialNumber == 0) // Skip town learning stores in first pratice deliv days
@@ -2864,6 +2895,8 @@ public class DeliveryExperiment : CoroutineExperiment
         }
 
     }
+
+    
 
 }
 

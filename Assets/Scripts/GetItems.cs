@@ -8,7 +8,7 @@ public class GetItems : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        using (var reader = new StreamReader("APEM_courier_items.csv"))
+        using (var reader = new StreamReader("data/APEM_courier_items.csv"))
         {
             while (!reader.EndOfStream)
             {

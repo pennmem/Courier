@@ -132,7 +132,7 @@ public static class LanguageSource
         { "er check understanding main hospital", new string[] { "Please call the researcher now.", GERMAN_TRANSLATION_NEEDED } },
 
         { "navigation note title", new string[] { "Quick Note!", GERMAN_TRANSLATION_NEEDED } },
-        { "navigation note main", new string[] { "Please navigate from store to store as quickly and efficiently as you can.", GERMAN_TRANSLATION_NEEDED } },
+        { "navigation note main", new string[] { "Please follow the directional arrow to each delivery location as quickly and efficiently as you can.", GERMAN_TRANSLATION_NEEDED } },
 
         { "classifier delay note title", new string[] { "Quick Note!", GERMAN_TRANSLATION_NEEDED } },
         { "classifier delay note main", new string[] { "For the remaining sessions, you may notice a slight lag once you arrive at each store. Please note that this is purposeful and not an error in the experiment.", GERMAN_TRANSLATION_NEEDED } },

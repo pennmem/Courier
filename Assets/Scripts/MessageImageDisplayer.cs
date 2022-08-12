@@ -390,7 +390,7 @@ public class MessageImageDisplayer : MonoBehaviour
             new Dictionary<string, object>() { { "value", message.transform.Find("sliding scale").GetComponent<Slider>().value } });
     }
 
-    public IEnumerator DisplayDistanceJudgmentMessage(GameObject message, List<string> items, string buttonName = "Continue")
+    public IEnumerator DisplayDistanceJudgmentMessage(GameObject message, List<string> items, List<Transform> locations, string buttonName = "Continue")
     {
         Dictionary<string, object> messageData = new Dictionary<string, object>();
         messageData.Add("message name", message.name);
@@ -414,7 +414,7 @@ public class MessageImageDisplayer : MonoBehaviour
         message.SetActive(false);
 
         scriptedEventReporter.ReportScriptedEvent("sliding scale value",
-            new Dictionary<string, object>() { { "value", slider.value } });
+            new Dictionary<string, object>() { { "value", slider.value }, { "items", items }, {"zones", locations}});
     }
 
     // Display message for cued recall

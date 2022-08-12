@@ -2389,7 +2389,7 @@ public class DeliveryExperiment : CoroutineExperiment
         //}
 
 
-        yield return messageImageDisplayer.DisplayDistanceJudgmentMessage(messageImageDisplayer.distance_judgment_display, distanceItemPair);
+        yield return messageImageDisplayer.DisplayDistanceJudgmentMessage(messageImageDisplayer.distance_judgment_display, distanceItemPair, distanceZonePair);
     }
 
     private IEnumerator DoTwoBtnErKeypressCheck()

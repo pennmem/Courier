@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Audio;
 using Luminosity.IO;
 
 using System;
@@ -24,6 +25,7 @@ public abstract class CoroutineExperiment : MonoBehaviour
     public AudioSource highBeep;
     public AudioSource lowBeep;
     public AudioSource lowerBeep;
+    public AudioMixer volume;
 
     public ScriptedEventReporter scriptedEventReporter;
 

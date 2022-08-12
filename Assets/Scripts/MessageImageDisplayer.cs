@@ -397,21 +397,24 @@ public class MessageImageDisplayer : MonoBehaviour
         // TODO: JPB: (Hokua) Change this so that it takes a logging name (the message titleText or all text)
         scriptedEventReporter.ReportScriptedEvent("instruction message displayed", messageData);
 
+        Slider slider = message.transform.Find("sliding scale").GetComponent<Slider>();
+
         message.transform.Find("ratings").Find("item 1 text").GetComponent<Text>().text = items[0];
         message.transform.Find("ratings").Find("item 2 text").GetComponent<Text>().text = items[1];
+        slider.value = 0.5f;
         message.SetActive(true);
         yield return null;
         while (!InputManager.GetButtonDown(buttonName) && !InputManager.GetButtonDown("Secret"))
         {
             yield return null;
             value = InputManager.GetAxis("Horizontal");
-            message.transform.Find("sliding scale").GetComponent<Slider>().value += value * Math.Abs(value)/100f;
+            slider.value += value * Math.Abs(value)/100f;
         }
         scriptedEventReporter.ReportScriptedEvent("instruction message cleared", messageData);
         message.SetActive(false);
 
         scriptedEventReporter.ReportScriptedEvent("sliding scale value",
-            new Dictionary<string, object>() { { "value", message.transform.Find("sliding scale").GetComponent<Slider>().value } });
+            new Dictionary<string, object>() { { "value", slider.value } });
     }
 
     // Display message for cued recall

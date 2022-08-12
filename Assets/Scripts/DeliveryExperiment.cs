@@ -310,8 +310,6 @@ public class DeliveryExperiment : CoroutineExperiment
         }
         K[(N - 1), (N - 1)] = 1;
 
-        //foreach (Transform store in stores) outputText += 
-
         // Generate point values
         double[] storePoints = new MultivariateNormalDistribution(mu, K).Generate();
         // standardize point values
@@ -943,6 +941,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
         SetRamulatorState("ENCODING", true, new Dictionary<string, object>());
         SetElememState("ENCODING");
+        volume.SetFloat("MasterVolume", 20);
 
         //messageImageDisplayer.please_find_the_blah_reminder.SetActive(true);
 
@@ -1120,7 +1119,8 @@ public class DeliveryExperiment : CoroutineExperiment
                 Debug.Log(trialNumber);
                 //AudioClip deliveredItem = nextStore.PopItem();
 
-                AudioClip deliveredItem = items.transform.Find("Audio").GetComponent<AudioFiles>().audioFiles.Find(clip => clip.name.Equals("jump"));
+
+                AudioClip deliveredItem = items.transform.Find("Audio").GetComponent<AudioFiles>().audioFiles.Find(clip => clip.name.Equals("item_"+nextItem));
                 
 
                 float wordDelay = 0f;
@@ -1165,7 +1165,7 @@ public class DeliveryExperiment : CoroutineExperiment
                                                                             {"store name", nextStore.name},
                                                                             {"serial position", i+1},
                                                                             {"player position", playerMovement.transform.position.ToString()},
-                                                                            {"store position", nextStore.transform.position.ToString()},
+                                                                            {"store position", nextStore.position.ToString()},
                                                                             {"store value", roundedPoints},
                                                                             {"point condition", (int)storePointType},
                                                                             {"task condition", freeFirst ? "FreeFirst" : "ValueFirst"},
@@ -1180,9 +1180,10 @@ public class DeliveryExperiment : CoroutineExperiment
                 #endif
                 allPresentedObjects.Add(nextItem);
 
+                
                 audioPlayback.clip = deliveredItem;
                 audioPlayback.Play();
-                
+
 
                 scriptedEventReporter.ReportScriptedEvent("object presentation begins", itemPresentationInfo);
                 SetRamulatorState("WORD", true, new Dictionary<string, object>() { { "word", nextItem } });
@@ -1216,7 +1217,7 @@ public class DeliveryExperiment : CoroutineExperiment
             visitedStores.Add(nextStore);
 
         }
-
+        volume.SetFloat("MasterVolume", 0);
         BlackScreen();
 
     SkipRemainingDeliveries:
@@ -1332,6 +1333,7 @@ public class DeliveryExperiment : CoroutineExperiment
             cityEnvironment.SetActive(true);
             terrain.SetActive(true);
 
+            
             // Do deliveries
             if (HOSPITAL_COURIER && trialNumber == 0) // Skip town learning stores in first pratice deliv days
                 yield return DoDeliveries(trialNumber, trialNumber, practice: true, skipLastDelivStores: true);
@@ -1351,6 +1353,7 @@ public class DeliveryExperiment : CoroutineExperiment
             if (!COURIER_ONLINE)
                 yield return DoFixation(PAUSE_BEFORE_RETRIEVAL, practice: true);
             yield return DoRecall(trialNumber, trialNumber, practice: true);
+            
 
         }
 
@@ -2860,7 +2863,9 @@ public class DeliveryExperiment : CoroutineExperiment
             }
 
             deliveryItems.Shuffle(new System.Random());
-            
+
+            var repeatItemInfo = new Dictionary<string, object>() { {"repeated items list", repItems} };
+
             foreach (string item in repItems) Debug.Log(item);
 
             bool sorted = false;
@@ -2894,6 +2899,9 @@ public class DeliveryExperiment : CoroutineExperiment
             yield return DisplayPointingIndicator(middle, true);
         }
 
+        var repeatLocationInfo = new Dictionary<string, object>() { { "name", middle.name }, { "position", middle.position } };
+
+        scriptedEventReporter.ReportScriptedEvent("Revisited prior delivery location", repeatLocationInfo);
     }
 
     

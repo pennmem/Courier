@@ -2834,7 +2834,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
         foreach (Transform category in items.transform.Find("Categories"))
         {
-            categories.Add(category);
+            if (category.gameObject.activeSelf) categories.Add(category);
         }
 
         categories.Shuffle(new System.Random());

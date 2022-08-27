@@ -2830,16 +2830,16 @@ public class DeliveryExperiment : CoroutineExperiment
         List<string> deliveryItems = new List<string>();
         List<Transform> categories = new List<Transform>();
         List<string> repItems = new List<string>();
-        int numReps = deliveries/4;
+        int numReps = deliveries/4;  // 1/4 of locations are repeated
 
         foreach (Transform category in items.transform.Find("Categories"))
         {
-            if (category.gameObject.activeSelf) categories.Add(category);
+            if (category.gameObject.activeSelf) categories.Add(category);  // Adds categories to list if activated - deactivate to prevent use
         }
 
         categories.Shuffle(new System.Random());
 
-        for (int i = 0; i < deliveries - (DO_REPEATS ? numReps : 0); i++)
+        for (int i = 0; i < deliveries - (DO_REPEATS ? numReps : 0); i++)  // Builds up item list either to number of deliveries or leaving room for repeats
         {
             List<string> list = categories[i].GetComponent<ItemsList>().itemsList;
             list.Shuffle(new System.Random());
@@ -2850,7 +2850,7 @@ public class DeliveryExperiment : CoroutineExperiment
         if (DO_REPEATS)
         {
             int n = numReps;
-            while (n > 0)
+            while (n > 0)  // Selects random items to repeat
             {
                 String repItem = deliveryItems[rng.Next(deliveries - numReps)];
                 if (!repItems.Contains(repItem))
@@ -2866,10 +2866,8 @@ public class DeliveryExperiment : CoroutineExperiment
 
             var repeatItemInfo = new Dictionary<string, object>() { {"repeated items list", repItems} };
 
-            foreach (string item in repItems) Debug.Log(item);
-
             bool sorted = false;
-            while (!sorted)
+            while (!sorted)  // Sorts item list so repeated items are not located next to one another
             {
                 sorted = true;
                 for (int i = 0; i < deliveryItems.Count - 1; i++)
@@ -2893,8 +2891,10 @@ public class DeliveryExperiment : CoroutineExperiment
 
     private IEnumerator revisitStore(List<Transform> visited, Transform last, Transform next)
     {
+        float proximity = 5f;  // Distance required for the revisit sequence to end 
+        
         Transform middle = deliveryZones.GetComponent<FindDeliveryRoute>().FindMiddle(visited, last, next);
-        while (UnityEngine.Vector3.Distance(middle.position, pointer.transform.position) > 5f)
+        while (UnityEngine.Vector3.Distance(middle.position, pointer.transform.position) > proximity)  
         {
             yield return DisplayPointingIndicator(middle, true);
         }

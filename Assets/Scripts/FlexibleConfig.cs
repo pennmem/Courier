@@ -12,7 +12,7 @@ using UnityEngine.Networking;
 
 public class Config
 {   
-    public static string experimentConfigName = "EXPERIMENT_CONFIG_NAME_NOT_SET";
+    public static string experimentConfigName = "ValueCourierReadOnly";
     public static string onlineSystemConfigText = null;
     public static string onlineExperimentConfigText = null;
     // LC: TODO: COME UP WITH A BETTER WAY
@@ -23,7 +23,8 @@ public class Config
     public static int niclServerPort { get { return (int)Config.GetSetting("niclServerPort"); } }
     public static string elememServerIP { get { return (string)Config.GetSetting("elememServerIP"); } }
     public static int elememServerPort { get { return (int)Config.GetSetting("elememServerPort"); } }
-    public static bool elememOn { get { return (bool)Config.GetSetting("elememOn"); } }
+    // public static bool elememOn { get { return (bool)Config.GetSetting("elememOn"); } }
+    public static bool elememOn { get { return false; } }
 
     // Hardware
     public static bool noSyncbox { get { return (bool)Config.GetSetting("noSyncbox"); } }
@@ -53,10 +54,25 @@ public class Config
 
     public static bool singleStickController { get { return (bool)Config.GetSetting("singleStickController"); } }
 
+    // public static bool valueAlwaysFirst { get { return (bool)Config.GetSetting("valueAlwaysFirst"); } }
+    // public static bool enableTemporal { get { return (bool)Config.GetSetting("enableTemporal"); } }
+    // public static bool enableSpatial { get { return (bool)Config.GetSetting("enableSpatial"); } }
+    // public static bool enableRandom { get { return (bool)Config.GetSetting("enableRandom"); } }
+    
+    public static bool valueAlwaysFirst { get { return true; } }
+    public static bool enableTemporal { get { return true; } }
+    public static bool enableSpatial { get { return false; } }
+    public static bool enableRandom { get { return true; } }
+
     // Constants
-    public static int trialsPerSession { get {
+    public static int trialsPerSession
+    {
+        get
+        {
             if (lessTrials) return 2;
-            else return (int)Config.GetSetting("trialsPerSession"); } }
+            else return (int)Config.GetSetting("trialsPerSession");
+        }
+    }
     public static int trialsPerSessionSingleTownLearning { get {
             if (lessTrials) return 2;
             else return (int)Config.GetSetting("trialsPerSessionSingleTownLearning"); } }
@@ -95,14 +111,31 @@ public class Config
     private static object GetSetting(string setting)
     {
         object value;
-        var experimentConfig = GetExperimentConfig();
-        if (experimentConfig.TryGetValue(setting, out value))
-            return value;
+        Debug.Log("[Config] GetSetting requested: '" + setting + "'");
 
-        var systemConfig = GetSystemConfig();
-        if (systemConfig.TryGetValue(setting, out value))
-            return value;
+        var expCfg = GetExperimentConfig();
+        if (expCfg != null)
+        {
+            if (expCfg.TryGetValue(setting, out value))
+                return value;
+            try {
+                var d = (IDictionary<string, object>)expCfg;
+                Debug.Log("[Config] experimentConfig present, entries=" + d.Count + ", sample keys=" + string.Join(",", new List<string>(d.Keys).GetRange(0, Math.Min(10, d.Keys.Count))));
+            } catch { /* ignore */ }
+        }
 
+        var sysCfg = GetSystemConfig();
+        if (sysCfg != null)
+        {
+            if (sysCfg.TryGetValue(setting, out value))
+                return value;
+            try {
+                var d = (IDictionary<string, object>)sysCfg;
+                Debug.Log("[Config] systemConfig present, entries=" + d.Count + ", sample keys=" + string.Join(",", new List<string>(d.Keys).GetRange(0, Math.Min(10, d.Keys.Count))));
+            } catch { /* ignore */ }
+        }
+
+        Debug.LogError("[Config] Missing setting '" + setting + "' in both experiment and system configs.");
         throw new MissingFieldException("Missing Config Setting " + setting + ".");
     }
 
@@ -110,20 +143,33 @@ public class Config
     {
         if (systemConfig == null)
         {
-            // Setup config file
             #if !UNITY_WEBGL // System.IO
-                string configPath = System.IO.Path.Combine(
-                    Directory.GetParent(Directory.GetParent(UnityEPL.GetParticipantFolder()).FullName).FullName,
-                    "configs");
-                string text = File.ReadAllText(Path.Combine(configPath, SYSTEM_CONFIG_NAME));
-                systemConfig = FlexibleConfig.LoadFromText(text);
+                try {
+                    string participantFolder = UnityEPL.GetParticipantFolder();
+                    string configDir = System.IO.Path.Combine(
+                        Directory.GetParent(Directory.GetParent(participantFolder).FullName).FullName,
+                        "configs");
+
+                    string fullPath = Path.Combine(configDir, SYSTEM_CONFIG_NAME);
+                    Debug.Log("[Config] participantFolder=" + participantFolder + ", system config path=" + fullPath + ", exists=" + System.IO.File.Exists(fullPath));
+
+                    string text = File.ReadAllText(fullPath);
+                    systemConfig = FlexibleConfig.LoadFromText(text);
+                }
+                catch (Exception e) {
+                    Debug.LogError("[Config] Failed to load system config: " + e.Message);
+                }
             #else
                 if (onlineSystemConfigText == null)
-                    Debug.Log("Missing config from web");
+                    Debug.LogWarning("[Config] Missing online system config text for WebGL");
                 else
-                    systemConfig = FlexibleConfig.LoadFromText(onlineSystemConfigText);
+                {
+                    try { systemConfig = FlexibleConfig.LoadFromText(onlineSystemConfigText); }
+                    catch (Exception e) { Debug.LogError("[Config] Failed to parse online system config: " + e.Message); }
+                }
             #endif
         }
+
         return (IDictionary<string, object>)systemConfig;
     }
 
@@ -131,20 +177,33 @@ public class Config
     {
         if (experimentConfig == null)
         {
-            // Setup config file
             #if !UNITY_WEBGL // System.IO
-                string configPath = System.IO.Path.Combine(
-                    Directory.GetParent(Directory.GetParent(UnityEPL.GetParticipantFolder()).FullName).FullName,
-                    "configs");
-                string text = File.ReadAllText(Path.Combine(configPath, experimentConfigName + ".json"));
-                experimentConfig = FlexibleConfig.LoadFromText(text);
+                try {
+                    string participantFolder = UnityEPL.GetParticipantFolder();
+                    string configDir = System.IO.Path.Combine(
+                        Directory.GetParent(Directory.GetParent(participantFolder).FullName).FullName,
+                        "configs");
+
+                    string fullPath = Path.Combine(configDir, experimentConfigName + ".json");
+                    Debug.Log("[Config] participantFolder=" + participantFolder + ", experiment config path=" + fullPath + ", exists=" + System.IO.File.Exists(fullPath));
+
+                    string text = File.ReadAllText(fullPath);
+                    experimentConfig = FlexibleConfig.LoadFromText(text);
+                }
+                catch (Exception e) {
+                    Debug.LogError("[Config] Failed to load experiment config: " + e.Message);
+                }
             #else
                 if (onlineExperimentConfigText == null)
-                    Debug.Log("Missing config from web");
+                    Debug.LogWarning("[Config] Missing online experiment config text for WebGL");
                 else
-                    experimentConfig = FlexibleConfig.LoadFromText(onlineExperimentConfigText);
+                {
+                    try { experimentConfig = FlexibleConfig.LoadFromText(onlineExperimentConfigText); }
+                    catch (Exception e) { Debug.LogError("[Config] Failed to parse online experiment config: " + e.Message); }
+                }
             #endif
         }
+
         return (IDictionary<string, object>)experimentConfig;
     }
 
@@ -154,8 +213,9 @@ public class Config
         {
             if (scriptedEventReporter != null)
                 scriptedEventReporter.ReportScriptedEvent("experimentConfig", new Dictionary<string, object>(experimentConfig));
+                // Debug.Log("Saving experiment config to " + Path.Combine(path, experimentConfigName + ".json"));
             #if !UNITY_WEBGL // System.IO
-                FlexibleConfig.WriteToText(systemConfig, Path.Combine(path, experimentConfigName + ".json"));
+            FlexibleConfig.WriteToText(systemConfig, Path.Combine(path, experimentConfigName + ".json"));
             #endif // !UNITY_WEBGL
         }
 
@@ -207,6 +267,51 @@ public class Config
             onlineExperimentConfigText = experimentWWW.downloadHandler.text;
             Debug.Log("Online Experiment Config fetched!!");
             Debug.Log(Config.onlineExperimentConfigText);
+        }
+    }
+
+    // Debug helpers
+    public static void ForceReloadSystemConfig()
+    {
+        Debug.Log("ForceReloadSystemConfig called: clearing cached systemConfig");
+        systemConfig = null;
+    }
+
+    public static void DumpSystemConfig()
+    {
+        if (systemConfig == null)
+        {
+            Debug.Log("DumpSystemConfig: systemConfig is null");
+            return;
+        }
+
+        var dict = (IDictionary<string, object>)systemConfig;
+        Debug.Log("DumpSystemConfig: systemConfig contains " + dict.Count + " entries");
+        foreach (var kv in dict)
+        {
+            Debug.Log("  " + kv.Key + " => " + (kv.Value == null ? "null" : kv.Value.ToString()));
+        }
+    }
+
+    public static void ForceReloadExperimentConfig()
+    {
+        Debug.Log("ForceReloadExperimentConfig called: clearing cached experimentConfig");
+        experimentConfig = null;
+    }
+
+    public static void DumpExperimentConfig()
+    {
+        if (experimentConfig == null)
+        {
+            Debug.Log("DumpExperimentConfig: experimentConfig is null");
+            return;
+        }
+
+        var dict = (IDictionary<string, object>)experimentConfig;
+        Debug.Log("DumpExperimentConfig: experimentConfig contains " + dict.Count + " entries");
+        foreach (var kv in dict)
+        {
+            Debug.Log("  " + kv.Key + " => " + (kv.Value == null ? "null" : kv.Value.ToString()));
         }
     }
 }

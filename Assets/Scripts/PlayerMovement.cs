@@ -44,11 +44,11 @@ public class PlayerMovement : MonoBehaviour
         originalRotation = gameObject.transform.rotation;
 
         playerBody = GetComponent<Rigidbody>();
-        #if !UNITY_WEBGL
-            temporallySmoothedTurning = Config.Get(() => Config.temporallySmoothedTurning, false);
-            sinSmoothedTurning = Config.Get(() => Config.sinSmoothedTurning, false);
-            cubicSmoothedTurning = Config.Get(() => Config.cubicSmoothedTurning, true);
-        #endif
+        // #if !UNITY_WEBGL
+        //     temporallySmoothedTurning = Config.Get(() => Config.temporallySmoothedTurning, false);
+        //     sinSmoothedTurning = Config.Get(() => Config.sinSmoothedTurning, false);
+        //     cubicSmoothedTurning = Config.Get(() => Config.cubicSmoothedTurning, true);
+        // #endif
     }
 
     public float horizontalInput;

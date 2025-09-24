@@ -51,9 +51,9 @@ public class DeliveryExperiment : CoroutineExperiment
     // TODO: JPB: Make these configuration variables
 
     // Experiment type
-    private const bool HOSPITAL_COURIER = true;
+    private const bool HOSPITAL_COURIER = false;
     private const bool NICLS_COURIER = false;
-    private const bool VALUE_COURIER = false;
+    private const bool VALUE_COURIER = true;
     #if !UNITY_WEBGL
         private const bool COURIER_ONLINE = false;
     #else
@@ -334,20 +334,21 @@ public class DeliveryExperiment : CoroutineExperiment
         Neg,
         Sham
     }
-    
+
     public static void ConfigureExperiment(bool newUseRamulator, bool newUseNiclServer, bool newUseElemem, int newSessionNumber, string newExpName)
     {
-        #if !UNITY_WEBGL // Ramulator and NICLS
-            useRamulator = newUseRamulator;
-            useNiclServer = newUseNiclServer;
-            useElemem = newUseElemem;
-            Config.elememStimMode = useElemem;
-        #endif // !UNITY_WEBGL
+#if !UNITY_WEBGL // Ramulator and NICLS
+        useRamulator = newUseRamulator;
+        useNiclServer = newUseNiclServer;
+        useElemem = newUseElemem;
+        Config.elememStimMode = useElemem;
+#endif // !UNITY_WEBGL
         sessionNumber = newSessionNumber;
         continuousSessionNumber = useNiclServer ? NICLS_READ_ONLY_SESSIONS + sessionNumber :
                                   sessionNumber;
         expName = newExpName;
         Config.experimentConfigName = expName;
+        
     }
 
     void UncaughtExceptionHandler(object sender, UnhandledExceptionEventArgs args)
@@ -763,9 +764,10 @@ public class DeliveryExperiment : CoroutineExperiment
         }
         else
         {
-            yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
-                                LanguageSource.GetLanguageString("standard intro video"),
-                                VideoSelector.VideoType.valueIntro);
+            Debug.Log("THIS IS THE VIDEO YOU ARE LOOKING FOR");
+            // yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
+            //                     LanguageSource.GetLanguageString("standard intro video"),
+            //                     VideoSelector.VideoType.valueIntro);
         }
 
         #if !UNITY_WEBGL // Microphone
@@ -1205,8 +1207,11 @@ public class DeliveryExperiment : CoroutineExperiment
                     // LC: complete full 3 second interval
                     float restDelay = WORD_PRESENTATION_TOTAL_TIME - wordDelay - AUDIO_TEXT_DISPLAY;
                     yield return new WaitForSeconds(restDelay);
-                    playerMovement.Unfreeze();
+                    // wait a bit longer for hospital flow, then unfreeze below
                 }
+
+                // Always unfreeze after the audio presentation so the player can move again
+                playerMovement.Unfreeze();
             }
 
             if (repeatStores.Contains(nextStore))
@@ -1374,14 +1379,53 @@ public class DeliveryExperiment : CoroutineExperiment
         scriptedEventReporter.ReportScriptedEvent("start trials");
 
         // randomize the order of free recall & value guess task
-        freeTaskFirst = new bool[numTrials];
-        for (int i = 0; i < numTrials/2; i++) {
-            freeTaskFirst[i] = true;
+        if (Config.valueAlwaysFirst)
+        {
+            freeTaskFirst = new bool[numTrials];
+            for (int i = 0; i < numTrials; i++) {
+                freeTaskFirst[i] = false;
+            }
         }
-        freeTaskFirst.Shuffle(new System.Random());
+        else
+        {
+            freeTaskFirst = new bool[numTrials];
+            for (int i = 0; i < numTrials / 2; i++)
+            {
+                freeTaskFirst[i] = true;
+            }
+            freeTaskFirst.Shuffle(new System.Random());
+        }
 
-        List<StorePointType> freeList = Enum.GetValues(typeof(StorePointType)).Cast<StorePointType>().ToList();
-        List<StorePointType> valueList = Enum.GetValues(typeof(StorePointType)).Cast<StorePointType>().ToList();
+        // freeTaskFirst = new bool[numTrials];
+        //     for (int i = 0; i < numTrials / 2; i++)
+        //     {
+        //         freeTaskFirst[i] = true;
+        //     }
+        //     freeTaskFirst.Shuffle(new System.Random());
+
+        List<StorePointType> enabledConditions = new List<StorePointType>();
+        if (Config.enableTemporal) enabledConditions.Add(StorePointType.SerialPosition);
+        if (Config.enableSpatial) enabledConditions.Add(StorePointType.SpatialPosition);
+        if (Config.enableRandom) enabledConditions.Add(StorePointType.Random);
+
+        // Build lists of conditions that are at least as long as numTrials.
+        // Previously these lists were created as copies of enabledConditions which
+        // could be shorter than numTrials and cause IndexOutOfRange when
+        // indexed by freeIndex/valueIndex. Repeat enabledConditions to fill
+        // the lists to length numTrials and shuffle them.
+        if (enabledConditions.Count == 0)
+        {
+            // Ensure we have at least one condition to use
+            enabledConditions.Add(StorePointType.SerialPosition);
+        }
+
+        List<StorePointType> freeList = new List<StorePointType>(numTrials);
+        List<StorePointType> valueList = new List<StorePointType>(numTrials);
+        for (int i = 0; i < numTrials; i++)
+        {
+            freeList.Add(enabledConditions[i % enabledConditions.Count]);
+            valueList.Add(enabledConditions[i % enabledConditions.Count]);
+        }
 
         // LC: ELEMEM stim tag lists
         List<string> stimTagLists = GenerateStimTags(numTrials);
@@ -1640,16 +1684,22 @@ public class DeliveryExperiment : CoroutineExperiment
 
         if (VALUE_COURIER)
         {
-            if (freeFirst)
+            if (Config.valueAlwaysFirst)
             {
-                yield return DoFreeRecall(trialNumber, continuousTrialNum, practice);
-                yield return DoValueRecall(trialNumber);
-            }
-            else
-            {
+                
                 yield return DoValueRecall(trialNumber);
                 yield return DoFreeRecall(trialNumber, continuousTrialNum, practice);
             }
+            // if (freeFirst)
+            //     {
+            //         yield return DoFreeRecall(trialNumber, continuousTrialNum, practice);
+            //         yield return DoValueRecall(trialNumber);
+            //     }
+            //     else
+            //     {
+            //         yield return DoValueRecall(trialNumber);
+            //         yield return DoFreeRecall(trialNumber, continuousTrialNum, practice);
+            //     }
         }
         else
         {

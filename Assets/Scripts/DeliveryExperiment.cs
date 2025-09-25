@@ -8,14 +8,17 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using UnityEngine.Networking;
 using UnityEngine.UI;
-using UnityEngine.AI;
 
 using Accord.Math;
-using Accord.Statistics.Distributions.Multivariate;
+// using Accord.Statistics.Distributions.Multivariate;
 using Accord.Statistics.Distributions.Univariate;
+using MathNet.Numerics;
+using MathNet.Numerics.LinearAlgebra;
+using MathNet.Numerics.Distributions;
 
 using static MessageImageDisplayer;
-using static EventLoop;
+using static WorldDataReporter;
+using UnityEngine.AI;
 
 [System.Serializable]
 public struct Environment
@@ -86,7 +89,8 @@ public class DeliveryExperiment : CoroutineExperiment
     private const float FAMILIARIZATION_PRESENTATION_LENGTH = 1.5f;
     private const float RECALL_MESSAGE_DISPLAY_LENGTH = 6f;
     private const float RECALL_TEXT_DISPLAY_LENGTH = 1f;
-    private const float FREE_RECALL_LENGTH = DEBUG ? 90f : 90f;
+    // Free recall length (seconds). Use 75s for the structured recall (value then free)
+    private const float FREE_RECALL_LENGTH = 75f;
     private const float VALUE_RECALL_LENGTH = 10f;
     private const float PRACTICE_FREE_RECALL_LENGTH = 25f;
     private const float STORE_FINAL_RECALL_LENGTH = 90f;
@@ -258,26 +262,48 @@ public class DeliveryExperiment : CoroutineExperiment
         // Setup covariance matrix variables
         double[] serialPositions = Vector.Range(new Accord.DoubleRange(0, numStores), 1);
         int N = serialPositions.Length;
-        double[] mu = Vector.Zeros(N);
-        double[,] K = Matrix.Zeros(N, N);
+        // double[] mu = Vector.Zeros(N);
+        Vector<double> mu = Vector<double>.Build.Dense(N);
+        // double[,] K = Matrix.Zeros(N, N);
+        Matrix<double> K = Matrix<double>.Build.Dense(N, N);
         int rhoSq = numStores;
 
         // Create covariance matrix
-        for (int i = 0; i < N-1; i++)
+        for (int i = 0; i < N; i++)
         {
-            K[i, i] = 1;
-            for (int j = i+1; j < N; j++)
+            // ZR: add small number to get numerical stability
+            K[i, i] = 1 + 1e-5;
+            for (int j = i + 1; j < N; j++)
             {
                 K[i, j] = Math.Exp(-(1d / (2d * rhoSq)) * Math.Pow(serialPositions[i] - serialPositions[j], 2));
                 K[j, i] = K[i, j];
             }
         }
+
         K[(N - 1), (N - 1)] = 1;
 
-        // Generate point values
-        double[] storePoints = new MultivariateNormalDistribution(mu, K).Generate();
+        for (int i=0; i<N; i++)
+        {
+            for (int j=0; j<N; j++)
+            {
+                Debug.Log(i.ToString() + " " + j.ToString());
+                Debug.Log(K[i, j]);
+            }
+        }
+
+        //// ZR: Add Small value to ensure numerical stability
+        //for (int i = 0; i < N; i++)
+        //{
+        //    K[i, i] += 1e-5;
+        //}
+
+        // double[] storePoints = new MultivariateNormalDistribution(mu, K).Generate();
+        double[] storePoints = MatrixNormal.Sample(new System.Random(), mu.ToColumnMatrix(), K, Matrix<double>.Build.DenseIdentity(1)).Column(0).ToArray();
+        Debug.Log(string.Join(",", storePoints));
+
         // standardize point values
         storePoints = StandardizeStorePoints(storePoints);
+        // Debug.Log(string.Join(",", storePoints));
 
         // sample points from gaussian process
         double pointMean = new UniformContinuousDistribution(30, 70).Generate();
@@ -288,12 +314,14 @@ public class DeliveryExperiment : CoroutineExperiment
         return storePoints;
     }
 
-    void SpatialStorePoints(Transform[] stores)
+    double[] SpatialStorePoints(List<StoreComponent> stores)
     {
         // Setup covariance matrix variables
-        int N = stores.Length;
-        double[] mu = Vector.Zeros(N);
-        double[,] K = Matrix.Zeros(N, N);
+        int N = stores.Count;
+        // double[] mu = Vector.Zeros(N);
+        Vector<double> mu = Vector<double>.Build.Dense(N);
+        // double[,] K = Matrix.Zeros(N, N);
+        Matrix<double> K = Matrix<double>.Build.Dense(N, N);
         double rhoSq = N;
         
         // Create covariance matrix
@@ -302,18 +330,22 @@ public class DeliveryExperiment : CoroutineExperiment
             K[i, i] = 1;
             for (int j = i + 1; j < N; j++)
             {
-                var a = new double[2] { stores[i].position.x, stores[i].position.z };
-                var b = new double[2] { stores[j].position.x, stores[j].position.z };
-                K[i, j] = Math.Exp(-(1d / (2d * rhoSq)) * Math.Abs(Distance.Euclidean(a, b)));
+                var a = new double[2] { stores[i].transform.position.x, stores[i].transform.position.z };
+                var b = new double[2] { stores[j].transform.position.x, stores[j].transform.position.z };
+                K[i, j] = Math.Exp(-(1d / (2d * rhoSq)) * Accord.Math.Distance.Euclidean(a, b));
+                Debug.Log(K[i, j]);
                 K[j, i] = K[i, j];
             }
         }
         K[(N - 1), (N - 1)] = 1;
 
         // Generate point values
-        double[] storePoints = new MultivariateNormalDistribution(mu, K).Generate();
+        double[] storePoints = MatrixNormal.Sample(new System.Random(), mu.ToColumnMatrix(), K, Matrix<double>.Build.DenseIdentity(1)).Column(0).ToArray();
+        Debug.Log(string.Join(",", storePoints));
+
         // standardize point values
         storePoints = StandardizeStorePoints(storePoints);
+        // Debug.Log(string.Join(",", storePoints));
 
         // sample points from gaussian process
         double pointMean = new UniformContinuousDistribution(30, 70).Generate();
@@ -323,7 +355,11 @@ public class DeliveryExperiment : CoroutineExperiment
 
         // Set store object point values
         for (int i = 0; i < N; i++)
-            stores[i].GetComponent<DeliveryZone>().points = storePoints[i];
+        {
+            stores[i].points = storePoints[i];
+        }
+
+        return storePoints;
     }
 
     // These names are used in for what is sent to the log
@@ -667,10 +703,8 @@ public class DeliveryExperiment : CoroutineExperiment
 
         // Final Recalls
         BlackScreen();
-        if (!VALUE_COURIER)
-        {
-            yield return DoFinalRecall(subSessionNum);
-        }
+        // Final Recalls disabled per request
+        // (previously called DoFinalRecall here for non-value courier)
     }
 
     private IEnumerator DoFrameTest()
@@ -1490,8 +1524,14 @@ public class DeliveryExperiment : CoroutineExperiment
             cityEnvironment.SetActive(true);
             terrain.SetActive(true);
 
-            // LC: order of which the task appears is evenly randomized (3 free / 3 value)
-            if (freeTaskFirst[trialNumber])
+            // LC: order of which the task appears is either forced by config or randomized
+                if (Config.valueAlwaysFirst)
+                {
+                    // value always first -> mark freeTaskFirst false for this trial
+                    freeTaskFirst[trialNumber] = false;
+                }
+
+                if (freeTaskFirst[trialNumber])
             {
                 // LC: for each case, all 3 conditions should appear (serial, spatial, random)
                 yield return DoDeliveries(trialNumber, continuousTrialNum, practice: false, 
@@ -1519,6 +1559,8 @@ public class DeliveryExperiment : CoroutineExperiment
             // Do recall
             if (!COURIER_ONLINE)
                 yield return DoFixation(PAUSE_BEFORE_RETRIEVAL, practice: false);
+            // If valueAlwaysFirst is true, DoRecall will run Value then Free. Otherwise it will use the
+            // randomized freeFirst flag we prepared above.
             yield return DoRecall(trialNumber, continuousTrialNum, 
                                   practice: false, freeFirst: freeTaskFirst[trialNumber]);
 
@@ -1686,20 +1728,24 @@ public class DeliveryExperiment : CoroutineExperiment
         {
             if (Config.valueAlwaysFirst)
             {
-                
+                // Value always first: run value recall (indefinite) then free recall (FREE_RECALL_LENGTH)
                 yield return DoValueRecall(trialNumber);
                 yield return DoFreeRecall(trialNumber, continuousTrialNum, practice);
             }
-            // if (freeFirst)
-            //     {
-            //         yield return DoFreeRecall(trialNumber, continuousTrialNum, practice);
-            //         yield return DoValueRecall(trialNumber);
-            //     }
-            //     else
-            //     {
-            //         yield return DoValueRecall(trialNumber);
-            //         yield return DoFreeRecall(trialNumber, continuousTrialNum, practice);
-            //     }
+            else
+            {
+                // Use the randomized order passed in freeFirst
+                if (freeFirst)
+                {
+                    yield return DoFreeRecall(trialNumber, continuousTrialNum, practice);
+                    yield return DoValueRecall(trialNumber);
+                }
+                else
+                {
+                    yield return DoValueRecall(trialNumber);
+                    yield return DoFreeRecall(trialNumber, continuousTrialNum, practice);
+                }
+            }
         }
         else
         {
@@ -1707,7 +1753,7 @@ public class DeliveryExperiment : CoroutineExperiment
             //yield return DoCuedRecall(trialNumber, continuousTrialNum, practice);
         }
 
-        yield return DoDistanceJudgment(trialNumber, continuousTrialNum, practice);
+        // yield return DoDistanceJudgment(trialNumber, continuousTrialNum, practice);
 
         SetRamulatorState("RETRIEVAL", false, new Dictionary<string, object>());
     }

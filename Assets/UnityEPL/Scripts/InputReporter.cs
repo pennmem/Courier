@@ -18,7 +18,7 @@ public class InputReporter : DataReporter
     private int lastMousePositionReportFrame;
 
     // TODO: JPB: This is a hack and should be removed
-    private ElememInterface elememInterface;
+    // Using protected elememInterface from DataReporter
 
     void Update()
     {

@@ -17,7 +17,7 @@ public class WorldDataReporter : DataReporter
     BoxCollider objectCollider;
 
     // TODO: JPB: This is a hack and should be removed
-    private ElememInterface elememInterface;
+    // Using protected elememInterface from DataReporter
 
     void Awake() {
         offset = (int)Random.Range(0, framesPerReport / 2);

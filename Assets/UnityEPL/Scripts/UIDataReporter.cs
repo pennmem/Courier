@@ -7,7 +7,7 @@ public class UIDataReporter : DataReporter
 {
 
     // TODO: JPB: This is a hack and should be removed
-    private ElememInterface elememInterface;
+    // Using protected elememInterface from DataReporter
 
     public void LogUIEvent(string name)
     {

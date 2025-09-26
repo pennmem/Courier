@@ -362,6 +362,27 @@ public class DeliveryExperiment : CoroutineExperiment
         return storePoints;
     }
 
+    // Convenience overload: accept an array of Transforms (delivery zones) and convert
+    // them to their StoreComponent counterparts before computing spatial store points.
+    double[] SpatialStorePoints(Transform[] storeTransforms)
+    {
+        var storeComponents = new List<StoreComponent>(storeTransforms.Length);
+        foreach (var t in storeTransforms)
+        {
+            var sc = t.GetComponentInChildren<StoreComponent>();
+            if (sc == null)
+            {
+                // Try direct GetComponent as fallback
+                sc = t.GetComponent<StoreComponent>();
+            }
+            if (sc != null)
+                storeComponents.Add(sc);
+            else
+                Debug.LogWarning("SpatialStorePoints: Transform does not contain a StoreComponent: " + t.name);
+        }
+        return SpatialStorePoints(storeComponents);
+    }
+
     // These names are used in for what is sent to the log
     // If you change them, then you have to change the event processing (or the logging code)
     private enum NiclsClassifierType
@@ -383,7 +404,7 @@ public class DeliveryExperiment : CoroutineExperiment
         continuousSessionNumber = useNiclServer ? NICLS_READ_ONLY_SESSIONS + sessionNumber :
                                   sessionNumber;
         expName = newExpName;
-        Config.experimentConfigName = expName;
+        // Config.experimentConfigName = expName;
         
     }
 
@@ -583,27 +604,36 @@ public class DeliveryExperiment : CoroutineExperiment
 
         // Town Learning
         int trialsForFirstSubSession = Config.trialsPerSession;
-        //if (sessionNumber < SINGLE_TOWN_LEARNING_SESSIONS + DOUBLE_TOWN_LEARNING_SESSIONS)
-        //{
-        //    if (NICLS_COURIER && !useNiclServer)
-        //    {
-        //        Debug.Log("Town Learning Phase");
-        //        trialsForFirstSubSession = Config.trialsPerSessionSingleTownLearning;
-        //        messageImageDisplayer.SetGeneralMessageText("town learning title", "town learning main 1");
-        //        yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
-        //        WorldScreen();
-        //        yield return DoTownLearning(0, environment.stores.Length);
+        if (sessionNumber < SINGLE_TOWN_LEARNING_SESSIONS + DOUBLE_TOWN_LEARNING_SESSIONS)
+        {
+           if (NICLS_COURIER && !useNiclServer)
+           {
+               Debug.Log("Town Learning Phase");
+               trialsForFirstSubSession = Config.trialsPerSessionSingleTownLearning;
+               messageImageDisplayer.SetGeneralMessageText("town learning title", "town learning main 1");
+               yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
+               WorldScreen();
+               yield return DoTownLearning(0, environment.stores.Length);
 
-        //        if (sessionNumber < DOUBLE_TOWN_LEARNING_SESSIONS)
-        //        {
-        //            trialsForFirstSubSession = Config.trialsPerSessionDoubleTownLearning;
-        //            messageImageDisplayer.SetGeneralMessageText("town learning title", "town learning main 2");
-        //            yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
-        //            WorldScreen();
-        //            yield return DoTownLearning(1, environment.stores.Length);
-        //        }
-        //    }
-        //    else if (HOSPITAL_COURIER)
+               if (sessionNumber < DOUBLE_TOWN_LEARNING_SESSIONS)
+               {
+                   trialsForFirstSubSession = Config.trialsPerSessionDoubleTownLearning;
+                   messageImageDisplayer.SetGeneralMessageText("town learning title", "town learning main 2");
+                   yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
+                   WorldScreen();
+                   yield return DoTownLearning(1, environment.stores.Length);
+               }
+           }
+           else if (HOSPITAL_COURIER)
+           {
+               Debug.Log("Town Learning Phase");
+               trialsForFirstSubSession = Config.trialsPerSessionSingleTownLearning;
+               messageImageDisplayer.SetGeneralMessageText("town learning title", "town learning main 1");
+               yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
+               WorldScreen();
+               yield return DoTownLearning(0, environment.stores.Length / 2);
+           } 
+        //    else if (VALUE_COURIER)
         //    {
         //        Debug.Log("Town Learning Phase");
         //        trialsForFirstSubSession = Config.trialsPerSessionSingleTownLearning;
@@ -612,13 +642,13 @@ public class DeliveryExperiment : CoroutineExperiment
         //        WorldScreen();
         //        yield return DoTownLearning(0, environment.stores.Length / 2);
         //    }
-        //}
+        }
 
 
         // Task Recap Instructions and Practice Trials
         // Using useNiclsServer to skip practices on closed loop sessions
-        //if (sessionNumber == 0 && !useNiclServer && !COURIER_ONLINE)
-        //    yield return DoPracticeTrials(2);
+        if (sessionNumber == 0 && !useNiclServer && !COURIER_ONLINE)
+           yield return DoPracticeTrials(2);
 
         // Delay note
         if (useNiclServer)
@@ -786,6 +816,16 @@ public class DeliveryExperiment : CoroutineExperiment
             yield return DoRecapInstructions();
         }
         else if (HOSPITAL_COURIER)
+        {
+            if (sessionNumber == 0)
+                yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
+                                    LanguageSource.GetLanguageString("standard intro video"),
+                                    VideoSelector.VideoType.townlearningVideo);
+            else
+                yield return DoRecapInstructions(recap: true);
+            
+            // yield return DoSubjectSessionQuitPrompt(sessionNumber, LanguageSource.GetLanguageString("running participant"));
+        } else if (VALUE_COURIER)
         {
             if (sessionNumber == 0)
                 yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
@@ -1614,7 +1654,7 @@ public class DeliveryExperiment : CoroutineExperiment
                                          UnityEngine.UI.InputField inputField, string storeName = "")
     {
         float taskStart = Time.time;
-
+        Debug.Log("In DoTypedResponses, taskType is " + taskType + ", taskLength is " + taskLength.ToString() + ", storeName is " + storeName); 
         Dictionary<string, object> taskTypeData = new Dictionary<string, object>();
         taskTypeData.Add("trial number", trialNumber);
         // if (!String.IsNullOrEmpty(store_name)) {
@@ -1723,7 +1763,7 @@ public class DeliveryExperiment : CoroutineExperiment
         SetRamulatorState("RETRIEVAL", true, new Dictionary<string, object>());
         // LC: ELEMEM
         SetElememState("RETRIEVAL");
-
+        Debug.Log("In DoRecall, freeFirst is " + freeFirst.ToString());
         if (VALUE_COURIER)
         {
             if (Config.valueAlwaysFirst)
@@ -1760,21 +1800,27 @@ public class DeliveryExperiment : CoroutineExperiment
 
     private IEnumerator DoFreeRecall(int trialNumber, int continuousTrialNum, bool practice = false)
     {
-        if (COURIER_ONLINE)
-        {
-            messageImageDisplayer.SetGeneralBigMessageText("free recall title", "free recall main");
+        messageImageDisplayer.SetGeneralBigMessageText("free recall title", "free recall main");
             yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
-        }
+        // ZR: MAKe sure title is shown
+        //messageImageDisplayer.SetGeneralBigMessageText("free recall title", "free recall main");
+        //yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
 
-        // if (HOSPITAL_COURIER && !practice)
-        // {
-        //     // LC: add reminder instructions at the beginning of every recall task
-        //     if (Config.efrEnabled)
-        //         messageImageDisplayer.SetGeneralBigMessageText(titleText: "one btn efr instructions title",
-        //                                                         mainText: "one btn efr instructions main");
-        //     yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
-        // }
-        
+        //if (EFR_COURIER && !practice)
+        //{
+        //    // LC: add reminder instructions at the beginning of every recall task
+        //    if (Config.efrEnabled)
+        //    {
+        //        if (Config.doReject) messageImageDisplayer.SetGeneralBigMessageText(titleText: "one btn efr instructions title",
+        //                                                        mainText: "one btn efr instructions main");
+        //        else
+        //            messageImageDisplayer.SetGeneralBigMessageText(titleText: "one btn efr instructions title",
+        //                                                        mainText: "one btn efr instructions main no reject");
+        //    }
+
+        //    yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
+        //}
+
         scriptedEventReporter.ReportScriptedEvent("start free recall");
         BlackScreen();
         textDisplayer.ClearText();
@@ -1806,12 +1852,6 @@ public class DeliveryExperiment : CoroutineExperiment
             {
                 if (useElemem)
                 {
-                    // Elemem testing code
-                    // if (elememInterface == null)
-                    //     elememInterface = GameObject.Find("ElememInterface").GetComponent<ElememInterface>();
-                    //     elememInterface.elememInterfaceHelper.Start();
-                    //     elememInterface.elememInterfaceHelper.StartLoop();
-                    
                     int iterations = (int)Math.Round(FREE_RECALL_LENGTH / (STIM_DURATION * 2));
                     elememInterface.DoRepeatingStim(iterations, ELEMEM_REP_SWITCH_DELAY, ELEMEM_REP_STIM_INTERVAL);
                 }
@@ -1820,10 +1860,7 @@ public class DeliveryExperiment : CoroutineExperiment
             scriptedEventReporter.ReportScriptedEvent("object recall recording stop", recordingData);
             soundRecorder.StopRecording();
         #else
-            // recordingData.Add("trial number", trialNumber);
-            // scriptedEventReporter.ReportScriptedEvent("object recall typing start", recordingData);
             yield return DoTypedResponses(trialNumber, "free recall", FREE_RECALL_LENGTH, freeInputField, freeResponse);
-            // scriptedEventReporter.ReportScriptedEvent("object recall typing end", recordingData);
         #endif // !UNITY_WEBGL
 
         textDisplayer.ClearText();
@@ -1961,22 +1998,26 @@ public class DeliveryExperiment : CoroutineExperiment
     // LC: not implemented for double session, only for single session
     private IEnumerator DoValueRecall(int trialNumber)
     {
-        scriptedEventReporter.ReportScriptedEvent("start value recall");
+    scriptedEventReporter.ReportScriptedEvent("start value guess");
         BlackScreen();
 
         if (COURIER_ONLINE)
         {
-            messageImageDisplayer.SetGeneralBigMessageText("value recall title", "value recall main");
+            messageImageDisplayer.SetGeneralBigMessageText("value guess title", "value guess main");
             yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
         }
+        // ZR: MAKe sure value guess is shown
+        messageImageDisplayer.SetGeneralBigMessageText("value guess title", "value guess main");
+        yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
 
         #if !UNITY_WEBGL
+            // TODO: implement for UNITY standalone version
             yield return DoTypedResponses(trialNumber, "value recall", VALUE_RECALL_LENGTH, freeInputField, freeResponse);
         #else
             yield return DoTypedResponses(trialNumber, "value recall", VALUE_RECALL_LENGTH, freeInputField, freeResponse);
         #endif
 
-        scriptedEventReporter.ReportScriptedEvent("stop value recall");
+    scriptedEventReporter.ReportScriptedEvent("stop value guess");
     }
 
     private IEnumerator DoFinalRecall(int subSessionNum)

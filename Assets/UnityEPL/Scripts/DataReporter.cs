@@ -21,7 +21,8 @@ public abstract class DataReporter : MonoBehaviour
     protected Transform xform;
 
     // TODO: JPB: This is a hack and should be removed
-    private ElememInterface elememInterface;
+    // Centralize ElememInterface here to avoid duplicate serialized field names in derived classes
+    protected ElememInterface elememInterface;
 
     protected bool IsMacOS()
     {

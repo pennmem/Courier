@@ -21,23 +21,23 @@ public class BeginExperiment : MonoBehaviour
     // TODO: JPB: Make these configuration variables
     private const bool HOSPITAL_COURIER = true;
     private const bool NICLS_COURIER = false;
-    private const bool VALUE_COURIER = false;
-    private const bool APEM_COURIER = true;
+    private const bool VALUE_COURIER = true;
+    private const bool EFR_COURIER = false;
+    // string experiment_name = HOSPITAL_COURIER ? "StandardCourier" :
+                            //  NICLS_COURIER ? "NiclsCourier" :
+                            //  "StandardCourier";
 
-    string experiment_name = HOSPITAL_COURIER ? "StandardCourier" :
-                             NICLS_COURIER ? "NiclsCourier" :
-                             "StandardCourier";
-
-    private const string scene_name = APEM_COURIER ? "NewTown" : "MainGame";
+    private const string scene_name = VALUE_COURIER ? "NewTown" : "MainGame";
 
     public const string EXP_NAME_COURIER = "Courier";
-    public const string EXP_NAME_HOSPITAL = "StandardCourier";
+    public const string EXP_NAME_EFR = "EFRCourier";
     public const string EXP_NAME_NICLS = "NiclsCourier";
-
-    private void OnEnable() {
-        #if UNITY_WEBGL
+    public const string EXP_NAME_VALUE = "ValueCourier";
+    private void OnEnable()
+    {
+#if UNITY_WEBGL
             SceneManager.LoadScene(scene_name);
-        #endif // UNITY_WEBGL
+#endif // UNITY_WEBGL
 
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
@@ -133,6 +133,10 @@ public class BeginExperiment : MonoBehaviour
 
         //UnityEPL.SetSessionNumber(NextSessionNumber());
         UnityEPL.AddParticipant(participantCodeInput.text);
+        string experiment_name = EFR_COURIER ? EXP_NAME_EFR :
+                                NICLS_COURIER ? EXP_NAME_NICLS :
+                                VALUE_COURIER ? EXP_NAME_VALUE :
+                                EXP_NAME_COURIER;
         if (experiment_name == EXP_NAME_NICLS)
         {
             if (useNiclsToggle.isOn)
@@ -140,6 +144,7 @@ public class BeginExperiment : MonoBehaviour
             else
                 experiment_name += "ReadOnly";
         }
+        
         UnityEPL.SetExperimentName(experiment_name);
 
         LockLanguage();

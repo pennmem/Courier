@@ -8,7 +8,7 @@ using System.Threading;
 public class ScriptedEventReporter : DataReporter
 {
     // TODO: JPB: This is a hack and should be removed
-    private ElememInterface elememInterface;
+    // Using protected elememInterface from DataReporter
 
     public void ReportScriptedEvent(string type, Dictionary<string, object> dataDict = null, bool noNetwork = false)
     {

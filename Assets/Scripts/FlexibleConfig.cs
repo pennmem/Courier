@@ -11,10 +11,10 @@ using UnityEngine;
 using UnityEngine.Networking;
 
 public class Config
-{   
+{
     public static string experimentConfigName = "ValueCourierReadOnly";
     public static string onlineSystemConfigText = null;
-    public static string onlineExperimentConfigText = null;
+    public static string onlineExperimentConfigText = "ValueCourierReadOnly";
     // LC: TODO: COME UP WITH A BETTER WAY
     public static bool elememStimMode = false;
 
@@ -23,12 +23,12 @@ public class Config
     public static int niclServerPort { get { return (int)Config.GetSetting("niclServerPort"); } }
     public static string elememServerIP { get { return (string)Config.GetSetting("elememServerIP"); } }
     public static int elememServerPort { get { return (int)Config.GetSetting("elememServerPort"); } }
-    // public static bool elememOn { get { return (bool)Config.GetSetting("elememOn"); } }
-    public static bool elememOn { get { return false; } }
+    public static bool elememOn { get { return (bool)Config.GetSetting("elememOn"); } }
+    // public static bool elememOn { get { return false; } }
 
     // Hardware
     public static bool noSyncbox { get { return (bool)Config.GetSetting("noSyncbox"); } }
-    public static bool ps4Controller { get { return (bool)Config.GetSetting("ps4Contoller"); } }
+    public static bool ps4Controller { get { return (bool)Config.GetSetting("ps4Controller"); } }
 
     // Programmer Conveniences
     public static bool lessTrials { get { return (bool)Config.GetSetting("lessTrials"); } }
@@ -54,15 +54,15 @@ public class Config
 
     public static bool singleStickController { get { return (bool)Config.GetSetting("singleStickController"); } }
 
-    // public static bool valueAlwaysFirst { get { return (bool)Config.GetSetting("valueAlwaysFirst"); } }
-    // public static bool enableTemporal { get { return (bool)Config.GetSetting("enableTemporal"); } }
-    // public static bool enableSpatial { get { return (bool)Config.GetSetting("enableSpatial"); } }
-    // public static bool enableRandom { get { return (bool)Config.GetSetting("enableRandom"); } }
+    public static bool valueAlwaysFirst { get { return (bool)Config.GetSetting("valueAlwaysFirst"); } }
+    public static bool enableTemporal { get { return (bool)Config.GetSetting("enableTemporal"); } }
+    public static bool enableSpatial { get { return (bool)Config.GetSetting("enableSpatial"); } }
+    public static bool enableRandom { get { return (bool)Config.GetSetting("enableRandom"); } }
     
-    public static bool valueAlwaysFirst { get { return true; } }
-    public static bool enableTemporal { get { return true; } }
-    public static bool enableSpatial { get { return false; } }
-    public static bool enableRandom { get { return true; } }
+    // public static bool valueAlwaysFirst { get { return true; } }
+    // public static bool enableTemporal { get { return true; } }
+    // public static bool enableSpatial { get { return false; } }
+    // public static bool enableRandom { get { return true; } }
 
     // Constants
     public static int trialsPerSession

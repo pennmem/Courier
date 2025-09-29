@@ -236,8 +236,10 @@ public class DeliveryExperiment : CoroutineExperiment
     double[] RandomStorePoints(int numStores)
     {
         // Same as temporal algorithm but shuffled
-        double[] storePoints = TemporalStorePoints(numStores);
-        storePoints.Shuffle(new System.Random());
+        System.Random rng = new System.Random();
+        bool coinFlip = rng.Next(2) == 0;
+        double[] storePoints = TemporalStorePoints(numStores, coinFlip);
+        storePoints.Shuffle(rng);
 
         return storePoints;
     }
@@ -257,62 +259,179 @@ public class DeliveryExperiment : CoroutineExperiment
         return storePoints;
     }
 
-    double[] TemporalStorePoints(int numStores)
-    {
-        // Setup covariance matrix variables
-        double[] serialPositions = Vector.Range(new Accord.DoubleRange(0, numStores), 1);
-        int N = serialPositions.Length;
-        // double[] mu = Vector.Zeros(N);
-        Vector<double> mu = Vector<double>.Build.Dense(N);
-        // double[,] K = Matrix.Zeros(N, N);
-        Matrix<double> K = Matrix<double>.Build.Dense(N, N);
-        int rhoSq = numStores;
+    // double[] TemporalStorePoints(int numStores)
+    // {
+    //     // Setup covariance matrix variables
+    //     double[] serialPositions = Vector.Range(new Accord.DoubleRange(0, numStores), 1);
+    //     int N = serialPositions.Length;
+    //     // double[] mu = Vector.Zeros(N);
+    //     Vector<double> mu = Vector<double>.Build.Dense(N);
+    //     // double[,] K = Matrix.Zeros(N, N);
+    //     Matrix<double> K = Matrix<double>.Build.Dense(N, N);
+    //     int rhoSq = numStores;
 
-        // Create covariance matrix
-        for (int i = 0; i < N; i++)
-        {
-            // ZR: add small number to get numerical stability
-            K[i, i] = 1 + 1e-5;
-            for (int j = i + 1; j < N; j++)
-            {
-                K[i, j] = Math.Exp(-(1d / (2d * rhoSq)) * Math.Pow(serialPositions[i] - serialPositions[j], 2));
-                K[j, i] = K[i, j];
-            }
-        }
+    //     // Create covariance matrix
+    //     for (int i = 0; i < N; i++)
+    //     {
+    //         // ZR: add small number to get numerical stability
+    //         K[i, i] = 1 + 1e-5;
+    //         for (int j = i + 1; j < N; j++)
+    //         {
+    //             K[i, j] = Math.Exp(-(1d / (2d * rhoSq)) * Math.Pow(serialPositions[i] - serialPositions[j], 2));
+    //             K[j, i] = K[i, j];
+    //         }
+    //     }
 
-        K[(N - 1), (N - 1)] = 1;
+    //     K[(N - 1), (N - 1)] = 1;
 
-        for (int i=0; i<N; i++)
-        {
-            for (int j=0; j<N; j++)
-            {
-                Debug.Log(i.ToString() + " " + j.ToString());
-                Debug.Log(K[i, j]);
-            }
-        }
+    //     for (int i=0; i<N; i++)
+    //     {
+    //         for (int j=0; j<N; j++)
+    //         {
+    //             Debug.Log(i.ToString() + " " + j.ToString());
+    //             Debug.Log(K[i, j]);
+    //         }
+    //     }
 
-        //// ZR: Add Small value to ensure numerical stability
-        //for (int i = 0; i < N; i++)
-        //{
-        //    K[i, i] += 1e-5;
-        //}
+    //     //// ZR: Add Small value to ensure numerical stability
+    //     //for (int i = 0; i < N; i++)
+    //     //{
+    //     //    K[i, i] += 1e-5;
+    //     //}
 
-        // double[] storePoints = new MultivariateNormalDistribution(mu, K).Generate();
-        double[] storePoints = MatrixNormal.Sample(new System.Random(), mu.ToColumnMatrix(), K, Matrix<double>.Build.DenseIdentity(1)).Column(0).ToArray();
-        Debug.Log(string.Join(",", storePoints));
+    //     // double[] storePoints = new MultivariateNormalDistribution(mu, K).Generate();
+    //     double[] storePoints = MatrixNormal.Sample(new System.Random(), mu.ToColumnMatrix(), K, Matrix<double>.Build.DenseIdentity(1)).Column(0).ToArray();
+    //     Debug.Log(string.Join(",", storePoints));
 
-        // standardize point values
-        storePoints = StandardizeStorePoints(storePoints);
-        // Debug.Log(string.Join(",", storePoints));
+    //     // standardize point values
+    //     storePoints = StandardizeStorePoints(storePoints);
+    //     // Debug.Log(string.Join(",", storePoints));
 
-        // sample points from gaussian process
-        double pointMean = new UniformContinuousDistribution(30, 70).Generate();
-        double pointVar = new UniformContinuousDistribution(13, 17).Generate();
-        storePoints = Elementwise.Multiply(storePoints, pointVar);
-        storePoints = Elementwise.Add(storePoints, pointMean);
+    //     // sample points from gaussian process
+    //     double pointMean = new UniformContinuousDistribution(30, 70).Generate();
+    //     double pointVar = new UniformContinuousDistribution(13, 17).Generate();
+    //     storePoints = Elementwise.Multiply(storePoints, pointVar);
+    //     storePoints = Elementwise.Add(storePoints, pointMean);
 
-        return storePoints;
+    //     return storePoints;
+    // }
+
+    public static double[] TemporalStorePoints(int numStores, bool highFirst = true)
+{
+    Debug.Log("TemporalStorePoints called with numStores: " + numStores + ", highFirst: " + highFirst);
+    // --- Hardcoded parameters ---
+    int valMin = 1;
+    int valMax = 20;
+    int primacyBuf = 2;
+    int recencyBuf = 3;
+    int numInGroupChosen = 4;
+
+    if (numStores <= primacyBuf + recencyBuf) {
+        primacyBuf = 0;
+        recencyBuf = 0;
+        Debug.LogWarning("List length too short for buffers.");
     }
+    int middleLen = numStores - (primacyBuf + recencyBuf);
+    int firstHalfSize = middleLen / 2;
+    int secondHalfSize = middleLen - firstHalfSize;
+
+    int midpoint = (valMin + valMax) / 2;
+    System.Random rng = new System.Random();
+
+    // Define ranges
+    List<int> firstRange, secondRange;
+    if (highFirst)
+    {
+        firstRange = Enumerable.Range(midpoint, valMax - midpoint + 1).ToList();
+        secondRange = Enumerable.Range(valMin, midpoint - valMin).ToList();
+    }
+    else
+    {
+        firstRange = Enumerable.Range(valMin, midpoint - valMin).ToList();
+        secondRange = Enumerable.Range(midpoint, valMax - midpoint + 1).ToList();
+    }
+
+    // --- First half of middle ---
+    var firstHalf = SampleFromList(firstRange, numInGroupChosen, rng);
+    RemoveRange(firstRange, firstHalf);
+
+    var firstNotInGroup = SampleFromList(secondRange, firstHalfSize - numInGroupChosen, rng);
+    RemoveRange(secondRange, firstNotInGroup);
+
+    firstHalf.AddRange(firstNotInGroup);
+    Shuffle(firstHalf, rng);
+
+    // --- Second half of middle ---
+    var secondHalf = SampleFromList(secondRange, numInGroupChosen, rng);
+    RemoveRange(secondRange, secondHalf);
+
+    var secondNotInGroup = SampleFromList(firstRange, secondHalfSize - numInGroupChosen, rng);
+    RemoveRange(firstRange, secondNotInGroup);
+
+    secondHalf.AddRange(secondNotInGroup);
+    Shuffle(secondHalf, rng);
+
+    // Combine middle
+    var middleVals = firstHalf.Concat(secondHalf).ToArray();
+    int[] valsInt = new int[numStores];
+
+    // --- Remaining pool for buffers ---
+    var remainderRange = Enumerable.Range(valMin, valMax - valMin + 1)
+                                   .Except(middleVals)
+                                   .ToList();
+
+    // Primacy buffer
+    if (primacyBuf > 0)
+    {
+        var primacyChoice = SampleFromList(remainderRange, primacyBuf, rng);
+        RemoveRange(remainderRange, primacyChoice);
+        Array.Copy(primacyChoice.ToArray(), 0, valsInt, 0, primacyBuf);
+    }
+
+    // Middle
+    Array.Copy(middleVals, 0, valsInt, primacyBuf, middleLen);
+
+    // Recency buffer
+    if (recencyBuf > 0)
+    {
+        var recencyChoice = SampleFromList(remainderRange, recencyBuf, rng);
+        Array.Copy(recencyChoice.ToArray(), 0, valsInt, numStores - recencyBuf, recencyBuf);
+    }
+
+    double[] vals = Array.ConvertAll(valsInt, x => (double)x);
+
+    Debug.Log("TemporalStorePoints: " + string.Join(", ", vals));
+    Debug.Log("TemporalStorePoints: " + (highFirst ? "highFirst" : "lowFirst"));
+    Debug.Log($"Primacy: {primacyBuf}, Recency: {recencyBuf}, numInGroupChosen: {numInGroupChosen}");
+
+    return vals;
+}
+
+
+// --- Helpers ---
+private static List<int> SampleFromList(List<int> source, int count, System.Random rng)
+{
+    if (count <= 0) return new List<int>();
+    return source.OrderBy(_ => rng.Next()).Take(count).ToList();
+}
+
+private static void RemoveRange(List<int> source, IEnumerable<int> items)
+{
+    foreach (var item in items.ToList())
+        source.Remove(item);
+}
+
+private static void Shuffle<T>(List<T> list, System.Random rng)
+{
+    int n = list.Count;
+    while (n > 1)
+    {
+        n--;
+        int k = rng.Next(n + 1);
+        (list[k], list[n]) = (list[n], list[k]);
+    }
+}
+
 
     double[] SpatialStorePoints(List<StoreComponent> stores)
     {
@@ -996,7 +1115,7 @@ public class DeliveryExperiment : CoroutineExperiment
     }
 
     private IEnumerator DoDeliveries(int trialNumber, int continuousTrialNum, bool practice = false, bool skipLastDelivStores = false, 
-                                     StorePointType storePointType = StorePointType.Random, bool freeFirst = true, string stimTag = null)
+                                     StorePointType storePointType = StorePointType.Random, bool freeFirst = true, string stimTag = null, bool highFirst = true)
     {
         Dictionary<string, object> trialData = new Dictionary<string, object>();
         trialData.Add("trial number", continuousTrialNum);
@@ -1043,7 +1162,7 @@ public class DeliveryExperiment : CoroutineExperiment
                 }
         }
 
-        int deliveries = practice ? 8 : 12; // Config.deliveriesPerPracticeTrial : Config.deliveriesPerTrial;
+        int deliveries = practice ? Config.deliveriesPerPracticeTrial : Config.deliveriesPerTrial;
         
         int craft_shop_delivery_num = rng.Next(deliveries - 1);
         int numLocationRepeats = deliveries/4;
@@ -1083,7 +1202,7 @@ public class DeliveryExperiment : CoroutineExperiment
                 allStoresPoints = RandomStorePoints(unvisitedStores.Count);
                 break;
             case StorePointType.SerialPosition:
-                allStoresPoints = TemporalStorePoints(unvisitedStores.Count);
+                allStoresPoints = TemporalStorePoints(unvisitedStores.Count, highFirst);
                 break;
             case StorePointType.SpatialPosition:
                 SpatialStorePoints(unvisitedStores.ToArray());
@@ -1310,6 +1429,29 @@ public class DeliveryExperiment : CoroutineExperiment
             scriptedEventReporter.ReportScriptedEvent("stop deliveries");
     }
 
+    private List<bool> GenerateBalancedHighFirstList(int numTrials)
+    {
+        // Half true, half false
+        int half = numTrials / 2;
+        List<bool> highFirstList = new List<bool>();
+
+        for (int i = 0; i < half; i++) highFirstList.Add(true);
+        for (int i = 0; i < numTrials - half; i++) highFirstList.Add(false);
+
+        // Shuffle
+        System.Random rng = new System.Random();
+        for (int i = highFirstList.Count - 1; i > 0; i--)
+        {
+            int j = rng.Next(i + 1);
+            bool temp = highFirstList[i];
+            highFirstList[i] = highFirstList[j];
+            highFirstList[j] = temp;
+        }
+
+        return highFirstList;
+    }
+
+
     private IEnumerator DoPracticeTrials(int numTrials)
     {
         Debug.Log("Practice trials");
@@ -1317,6 +1459,9 @@ public class DeliveryExperiment : CoroutineExperiment
 
         starSystem.ResetSession();
         BlackScreen();
+        
+        List<bool> highFirstFlags = GenerateBalancedHighFirstList(numTrials);
+
 
         if (!HOSPITAL_COURIER)
         {
@@ -1363,12 +1508,12 @@ public class DeliveryExperiment : CoroutineExperiment
                         yield return DoOneBtnErKeypressCheck();
                         yield return DoOneBtnErKeypressPractice();
                     }
-                    
+
                 }
 
                 if (HOSPITAL_COURIER) // Skip the second ER practice deliv day (have it be a real deliv day)
                     break;
-  
+
                 messageImageDisplayer.SetGeneralMessageText(titleText: "er check understanding title",
                                                             mainText: "er check understanding main");
                 yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
@@ -1401,23 +1546,23 @@ public class DeliveryExperiment : CoroutineExperiment
             }
             SetRamulatorState("WAITING", false, new Dictionary<string, object>());
 
-            #if !UNITY_WEBGL // Ramulator
-                // Set ramulator trial start                       
-                if (useRamulator)                                  
-                    ramulatorInterface.BeginNewTrial(trialNumber); 
-                if (Config.elememOn)
-                    elememInterface.SendTrialMessage(trialNumber, false);
-            #endif
+#if !UNITY_WEBGL // Ramulator
+            // Set ramulator trial start                       
+            if (useRamulator)
+                ramulatorInterface.BeginNewTrial(trialNumber);
+            if (Config.elememOn)
+                elememInterface.SendTrialMessage(trialNumber, false);
+#endif
 
             cityEnvironment.SetActive(true);
             terrain.SetActive(true);
 
-            
+            bool highFirst = highFirstFlags[trialNumber];
             // Do deliveries
             if (HOSPITAL_COURIER && trialNumber == 0) // Skip town learning stores in first pratice deliv days
                 yield return DoDeliveries(trialNumber, trialNumber, practice: true, skipLastDelivStores: true);
             else
-                yield return DoDeliveries(trialNumber, trialNumber, practice: true);
+                yield return DoDeliveries(trialNumber, trialNumber, practice: true, highFirst: highFirst);
             // Delivery Scores : LC : now pointing feedback comes right after the delivery day
             //if (HOSPITAL_COURIER)
             //{
@@ -1432,7 +1577,7 @@ public class DeliveryExperiment : CoroutineExperiment
             if (!COURIER_ONLINE)
                 yield return DoFixation(PAUSE_BEFORE_RETRIEVAL, practice: true);
             yield return DoRecall(trialNumber, trialNumber, practice: true);
-            
+
 
         }
 
@@ -1451,12 +1596,15 @@ public class DeliveryExperiment : CoroutineExperiment
     {
         Debug.Log("Real trials");
         scriptedEventReporter.ReportScriptedEvent("start trials");
+        
+        List<bool> highFirstFlags = GenerateBalancedHighFirstList(numTrials);
 
         // randomize the order of free recall & value guess task
         if (Config.valueAlwaysFirst)
         {
             freeTaskFirst = new bool[numTrials];
-            for (int i = 0; i < numTrials; i++) {
+            for (int i = 0; i < numTrials; i++)
+            {
                 freeTaskFirst[i] = false;
             }
         }
@@ -1563,7 +1711,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
             cityEnvironment.SetActive(true);
             terrain.SetActive(true);
-
+                bool highFirst = highFirstFlags[trialNumber];
             // LC: order of which the task appears is either forced by config or randomized
                 if (Config.valueAlwaysFirst)
                 {
@@ -1576,14 +1724,14 @@ public class DeliveryExperiment : CoroutineExperiment
                 // LC: for each case, all 3 conditions should appear (serial, spatial, random)
                 yield return DoDeliveries(trialNumber, continuousTrialNum, practice: false, 
                                           storePointType: freeList[freeIndex], freeFirst: true, 
-                                          stimTag: stimTagLists[trialNumber]);
+                                          stimTag: stimTagLists[trialNumber], highFirst: highFirst);
                 freeIndex += 1;
             }
             else
             {
                 yield return DoDeliveries(trialNumber, continuousTrialNum, practice: false, 
                                           storePointType: valueList[valueIndex], freeFirst: false,
-                                          stimTag: stimTagLists[trialNumber]);
+                                          stimTag: stimTagLists[trialNumber], highFirst: highFirst);
                 valueIndex += 1;
             }
             // Delivery Scores

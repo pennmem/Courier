@@ -23,8 +23,8 @@ public class Config
     public static int niclServerPort { get { return (int)Config.GetSetting("niclServerPort"); } }
     public static string elememServerIP { get { return (string)Config.GetSetting("elememServerIP"); } }
     public static int elememServerPort { get { return (int)Config.GetSetting("elememServerPort"); } }
-    public static bool elememOn { get { return (bool)Config.GetSetting("elememOn"); } }
-    // public static bool elememOn { get { return false; } }
+    // public static bool elememOn { get { return (bool)Config.GetSetting("elememOn"); } }
+    public static bool elememOn { get { return false; } }
 
     // Hardware
     public static bool noSyncbox { get { return (bool)Config.GetSetting("noSyncbox"); } }

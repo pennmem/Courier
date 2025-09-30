@@ -58,6 +58,10 @@ public class Config
     public static bool enableTemporal { get { return (bool)Config.GetSetting("enableTemporal"); } }
     public static bool enableSpatial { get { return (bool)Config.GetSetting("enableSpatial"); } }
     public static bool enableRandom { get { return (bool)Config.GetSetting("enableRandom"); } }
+    public static double maxCompensation
+    {
+        get { return Convert.ToDouble(Config.GetSetting("maxCompensation")); }
+    }
     
     // public static bool valueAlwaysFirst { get { return true; } }
     // public static bool enableTemporal { get { return true; } }

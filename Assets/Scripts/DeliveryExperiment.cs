@@ -218,13 +218,15 @@ public class DeliveryExperiment : CoroutineExperiment
     private const int ELEMEM_REP_STIM_INTERVAL = 6000; // ms, 2*STIM_DURATION
     private const int ELEMEM_REP_STIM_DELAY = 1500; // ms
     private const int ELEMEM_REP_SWITCH_DELAY = 3000; // ms
+    private double[] actualAvgStorePoints = new double[Config.trialsPerSession];
+    private double[] guessAvgStorePoints = new double[Config.trialsPerSession];
 
     // Stim Tags
     List<string> GenerateStimTags(int numTrials)
     {
         List<string> result = new List<string>();
         stimTags.Shuffle();
-
+ 
         for (int i=0; i < numTrials; i++)
             result.Add(stimTags[i % 2]);
         // Debug.Log("stim tags: " + string.Join(", ", stimTags));
@@ -318,10 +320,10 @@ public class DeliveryExperiment : CoroutineExperiment
 
     public static double[] TemporalStorePoints(int numStores, bool highFirst = true)
 {
-    Debug.Log("TemporalStorePoints called with numStores: " + numStores + ", highFirst: " + highFirst);
+    // Debug.Log("TemporalStorePoints called with numStores: " + numStores + ", highFirst: " + highFirst);
     // --- Hardcoded parameters ---
     int valMin = 1;
-    int valMax = 20;
+    int valMax = 50;
     int primacyBuf = 2;
     int recencyBuf = 3;
     int numInGroupChosen = 4;
@@ -329,7 +331,7 @@ public class DeliveryExperiment : CoroutineExperiment
     if (numStores <= primacyBuf + recencyBuf) {
         primacyBuf = 0;
         recencyBuf = 0;
-        Debug.LogWarning("List length too short for buffers.");
+        Debug.LogWarning("List length too short for buffers. Removed Buffers");
     }
     int middleLen = numStores - (primacyBuf + recencyBuf);
     int firstHalfSize = middleLen / 2;
@@ -835,7 +837,7 @@ private static void Shuffle<T>(List<T> list, System.Random rng)
     private IEnumerator DoSubSession(int subSessionNum, int priorTrialsThisSession, int trialsPerSubSession)
     {
         BlackScreen();
-        
+
         if (Config.elememOn)
             elememInterface.SendSessionMessage(UnityEPL.GetSessionNumber());
 
@@ -852,6 +854,31 @@ private static void Shuffle<T>(List<T> list, System.Random rng)
 
         // Final Recalls
         BlackScreen();
+        double compensation = DoCompensation();
+        // Always show tips/compensation message
+        // string mainText = LanguageSource.GetFormattableLanguageString(
+        //     "earned_tips",
+        //     new string[] { compensation.ToString("C") }  // formatted as currency
+        // );
+
+        string[] formatValues = new string[] { compensation.ToString("C") };
+
+        // Call SetGeneralMessageText, passing the format array for mainText
+        messageImageDisplayer.SetGeneralMessageText(
+            mainText: "earned_tips",
+            mtFormatVals: formatValues
+            // descriptiveText: "Great job! Keep it up."
+        );
+
+        // // Pass the fully formatted string directly to the display system
+        // messageImageDisplayer.SetGeneralMessageText(
+        //     mainText: "earned_tips",
+        //     descriptiveText: "Great job!"
+        //     // mtFormatVals=compensation.ToString("C")
+        // );
+
+        yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
+
         // Final Recalls disabled per request
         // (previously called DoFinalRecall here for non-value courier)
     }
@@ -1208,6 +1235,12 @@ private static void Shuffle<T>(List<T> list, System.Random rng)
                 SpatialStorePoints(unvisitedStores.ToArray());
                 break;
         }
+        // ZR store average for compensation
+        if (!practice)
+        {
+            actualAvgStorePoints[trialNumber] = allStoresPoints.Average();
+            Debug.Log("Average store points for trial " + trialNumber + ": " + actualAvgStorePoints[trialNumber]);
+        }
 
         while (repeatStores.Count < numLocationRepeats && DO_REPEATS)
         {
@@ -1452,6 +1485,29 @@ private static void Shuffle<T>(List<T> list, System.Random rng)
     }
 
 
+    private double DoCompensation()
+    {
+        if (!VALUE_COURIER)
+            return 0.0;
+
+        double actualAvgSum = actualAvgStorePoints.Sum();
+        double guessErrorSum = 0.0;
+
+        for (int i = 0; i < guessAvgStorePoints.Length; i++)
+        {
+            double error = Math.Abs(actualAvgStorePoints[i] - guessAvgStorePoints[i]);
+            guessErrorSum += error;
+        }
+
+        double compensationMultiplier = 1 - (guessErrorSum / actualAvgSum);
+        double compensation = compensationMultiplier * Config.maxCompensation;
+
+        Debug.Log("Total compensation: " + compensation.ToString("C2") +
+                " (Multiplier: " + compensationMultiplier.ToString("P1") + ")");
+
+        return compensation;
+    }
+
     private IEnumerator DoPracticeTrials(int numTrials)
     {
         Debug.Log("Practice trials");
@@ -1459,7 +1515,7 @@ private static void Shuffle<T>(List<T> list, System.Random rng)
 
         starSystem.ResetSession();
         BlackScreen();
-        
+
         List<bool> highFirstFlags = GenerateBalancedHighFirstList(numTrials);
 
 
@@ -1762,7 +1818,7 @@ private static void Shuffle<T>(List<T> list, System.Random rng)
                                                             mtFormatVals: mtFormatValues);
                 yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
             }
-
+            
         }
         scriptedEventReporter.ReportScriptedEvent("stop trials");
     }
@@ -1799,7 +1855,7 @@ private static void Shuffle<T>(List<T> list, System.Random rng)
     }
 
     private IEnumerator DoTypedResponses(int trialNumber, string taskType, float taskLength, GameObject inputObject,
-                                         UnityEngine.UI.InputField inputField, string storeName = "")
+                                         UnityEngine.UI.InputField inputField, Action<string> onResponse, string storeName = "")
     {
         float taskStart = Time.time;
         Debug.Log("In DoTypedResponses, taskType is " + taskType + ", taskLength is " + taskLength.ToString() + ", storeName is " + storeName); 
@@ -1845,6 +1901,8 @@ private static void Shuffle<T>(List<T> list, System.Random rng)
                         typedData.Add("typed response", inputField.text);
                         scriptedEventReporter.ReportScriptedEvent(taskType, typedData);
 
+                        onResponse?.Invoke(inputField.text);
+
                         // clear the field and exit the coroutine
                         inputField.Select();
                         inputField.text = "";
@@ -1881,6 +1939,8 @@ private static void Shuffle<T>(List<T> list, System.Random rng)
                         typedData.Add("typed response", inputField.text);
                         scriptedEventReporter.ReportScriptedEvent(taskType, typedData);
 
+                        onResponse?.Invoke(inputField.text);
+
                         // reset input text UI
                         inputField.Select();
                         inputField.text = "";
@@ -1911,13 +1971,13 @@ private static void Shuffle<T>(List<T> list, System.Random rng)
         SetRamulatorState("RETRIEVAL", true, new Dictionary<string, object>());
         // LC: ELEMEM
         SetElememState("RETRIEVAL");
-        Debug.Log("In DoRecall, freeFirst is " + freeFirst.ToString());
+        // Debug.Log("In DoRecall, freeFirst is " + freeFirst.ToString());
         if (VALUE_COURIER)
         {
             if (Config.valueAlwaysFirst)
             {
                 // Value always first: run value recall (indefinite) then free recall (FREE_RECALL_LENGTH)
-                yield return DoValueRecall(trialNumber);
+                yield return DoValueRecall(trialNumber, practice);
                 yield return DoFreeRecall(trialNumber, continuousTrialNum, practice);
             }
             else
@@ -1926,11 +1986,11 @@ private static void Shuffle<T>(List<T> list, System.Random rng)
                 if (freeFirst)
                 {
                     yield return DoFreeRecall(trialNumber, continuousTrialNum, practice);
-                    yield return DoValueRecall(trialNumber);
+                    yield return DoValueRecall(trialNumber, practice);
                 }
                 else
                 {
-                    yield return DoValueRecall(trialNumber);
+                    yield return DoValueRecall(trialNumber, practice);
                     yield return DoFreeRecall(trialNumber, continuousTrialNum, practice);
                 }
             }
@@ -2144,7 +2204,7 @@ private static void Shuffle<T>(List<T> list, System.Random rng)
     }
 
     // LC: not implemented for double session, only for single session
-    private IEnumerator DoValueRecall(int trialNumber)
+    private IEnumerator DoValueRecall(int trialNumber, bool practice = false)
     {
     scriptedEventReporter.ReportScriptedEvent("start value guess");
         BlackScreen();
@@ -2160,10 +2220,24 @@ private static void Shuffle<T>(List<T> list, System.Random rng)
 
         #if !UNITY_WEBGL
             // TODO: implement for UNITY standalone version
-            yield return DoTypedResponses(trialNumber, "value recall", VALUE_RECALL_LENGTH, freeInputField, freeResponse);
+            string response = null;
+            yield return StartCoroutine(DoTypedResponses(trialNumber, "value recall", VALUE_RECALL_LENGTH, freeInputField, freeResponse,
+                result => response = result)); 
         #else
-            yield return DoTypedResponses(trialNumber, "value recall", VALUE_RECALL_LENGTH, freeInputField, freeResponse);
+            string response = null;
+            yield return StartCoroutine(DoTypedResponses(trialNumber, "value recall", VALUE_RECALL_LENGTH, freeInputField, freeResponse,
+                result => response = result)); 
         #endif
+        
+    if (double.TryParse(response, out double guessValue) && !practice)
+    {
+        guessAvgStorePoints[trialNumber] = guessValue;
+        // Debug.Log($"Stored guess {guessValue} for trial {trialNumber}");
+    }
+    else
+    {
+        Debug.LogWarning($"Invalid typed response for trial {trialNumber}: {response} or is practice trial");
+    }    
 
     scriptedEventReporter.ReportScriptedEvent("stop value guess");
     }

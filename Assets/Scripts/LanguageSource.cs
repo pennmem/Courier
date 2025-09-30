@@ -60,7 +60,7 @@ public static class LanguageSource
                                                       GERMAN_TRANSLATION_NEEDED } },
 
         { "frame test start title", new string [] { "Frame Rate Testing ", GERMAN_TRANSLATION_NEEDED } },
-        { "frame test start main", new string [] { "First, we will check if your connection is fast enough to complete this task. \nAs a test, please briefly navigate around this town using the arrow keys.", 
+        { "frame test start main", new string [] { "First, we will check if your connection is fast enough to complete this task. \nAs a test, please briefly navigate around this town using the arrow keys.",
                                                    GERMAN_TRANSLATION_NEEDED } },
         { "frame test end title", new string [] { "Your average FPS was ", GERMAN_TRANSLATION_NEEDED } },
         { "frame test end pass", new string [] { "You passed our initial FPS check! However, if you experienced any significant lag, you will likely take longer than average to complete the task. However, we can only pay a fixed rate for task completion, regardless of time taken." + "\n" +
@@ -146,7 +146,7 @@ public static class LanguageSource
         { "one btn er message store", new string [] { "Press the (B) key to reject a recalled store", GERMAN_TRANSLATION_NEEDED } },
 
         { "free recall title", new string [] { "Free Recall", GERMAN_TRANSLATION_NEEDED} },
-        { "free recall main", new string [] { "Try to recall all the items that you delivered to the stores in this delivery day.\n\nType one item and press <Enter> to submit and type your next response", 
+        { "free recall main", new string [] { "Try to recall all the items that you delivered to the stores in this delivery day.\n\nType one item and press <Enter> to submit and type your next response",
                                               GERMAN_TRANSLATION_NEEDED}},
 
     // Value guess language strings (used during value-recall phase)
@@ -166,7 +166,7 @@ public static class LanguageSource
         { "final store recall title", new string [] {"Final Store Recall", GERMAN_TRANSLATION_NEEDED} },
         { "final store recall main", new string [] {"Try to recall stores that you delivered items to.\n\nNote that you need to recall the store names", GERMAN_TRANSLATION_NEEDED} },
         { "final store recall text", new string [] {"Start typing store name one at a time...", GERMAN_TRANSLATION_NEEDED}},
-        
+
         { "final object recall title", new string [] {"Final Item Recall", GERMAN_TRANSLATION_NEEDED} },
         { "final object recall main", new string [] {"Try to recall all of the items that you delivered so far across all delivery days.", GERMAN_TRANSLATION_NEEDED} },
         { "final object recall text", new string [] {"Start typing item one at a time...", GERMAN_TRANSLATION_NEEDED}},
@@ -224,9 +224,9 @@ public static class LanguageSource
         { "pet store", new string[] {"pet store", "die Tierhandlung"} },
         { "music store", new string[] {"music store", "das Musikgeschäft"} },
         { "pharmacy", new string[] {"pharmacy", "die Apotheke"} },
-        { "toy store", new string[] {"toy store", "den Spielwarenladen"} }, 
+        { "toy store", new string[] {"toy store", "den Spielwarenladen"} },
 
-        { "confetti", new string[] {"confetti", "Konfetti"} },
+        { "confetti", new string[] {"confetti", "Konfetti"} }
     };
 
     private static Dictionary<string, string[]> language_formattable_string_dict = new Dictionary<string, string[]>()
@@ -235,6 +235,7 @@ public static class LanguageSource
 
         {"deliv day pointing accuracy main", new string[] { "Good job! \n\nYou correctly pointed to {0} out of {1} stores in this delivery day.", GERMAN_TRANSLATION_NEEDED } },
         {"deliv day progress main", new string[] { "{0} out of {1} delivery days completed!!", GERMAN_TRANSLATION_NEEDED } },
+        {"earned_tips", new string[] { "You earned {0:C} in extra tips!", "Sie haben {0:C} an Trinkgeld erhalten!" } }
     };
 
     public static string GetLanguageString(string string_name)

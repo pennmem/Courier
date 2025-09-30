@@ -504,6 +504,226 @@ private static void Shuffle<T>(List<T> list, System.Random rng)
         return SpatialStorePoints(storeComponents);
     }
 
+    //  // LC: this is maually selected store lists that are visible from given store location
+    // //     need to update this dictionary manually when the town layout changes
+    // private Dictionary<string, List<string>> storeDict = new Dictionary<string, List<string>>()
+    // {
+    //     { "gym", new List<string>{ "bakery", "hardware_store", "craft_shop", "dentist"} },
+    //     { "craft_shop", new List<string>{ "gym", "hardware_store", "dentist", "cafe" } },
+    //     { "hardware_store", new List<string>{ "toy_store", "barber_shop", "clothing_store", "gym", "craft_shop" } },
+    //     { "clothing_store", new List<string>{ "barber_shop", "toy_store", "pharmacy", "hardware_store", "jewelry_store", "craft_shop" } },
+    //     { "jewelry_store", new List<string>{ "pharmacy", "toy_store", "clothing_store" } },
+    //     { "pharmacy", new List<string>{ "bakery", "jewelry_store", "clothing_store", "toy_store" } },
+    //     { "bakery", new List<string>{ "pharmacy", "gym", "pet_store" } },
+    //     { "pet_store", new List<string>{ "gym", "bakery" } },
+    //     { "music_store", new List<string>{ "pizzeria", "florist", "dentist", "pet_store" } },
+    //     { "florist", new List<string>{ "dentist", "pizzeria", "music_store" } },
+    //     { "pizzeria", new List<string>{ "music_store", "florist", "dentist" } },
+    //     { "dentist", new List<string>{ "cafe", "grocery_store", "craft_shop", "florist", "music_store", "pizzeria", "gym" } },
+    //     { "grocery_store", new List<string>{ "cafe", "dentist", "craft_shop", "dentist" } },
+    //     { "cafe", new List<string>{ "bike_shop", "grocery_store", "craft_shop", "dentist" } },
+    //     { "bike_shop", new List<string>{ "grocery_store", "cafe", "clothing_store", "barber_shop", "jewelry_store" } },
+    //     { "barber_shop", new List<string>{ "toy_store", "jewelry_store", "hardware_store", "grocery_store", "bike_shop" } },
+    //     { "toy_store", new List<string>{ "pharmacy", "jewelry_store", "clothing_store", "barber_shop", "grocery_store", "bike_shop", "craft_shop" } }
+    // };
+
+    // // LC: this function pre-generates the list of stores to visit in a trial
+    // private Tuple<bool, List<StoreComponent>> getTrialStores(Environment environment, int num_deliveries)
+    // {
+    //     List<StoreComponent> this_trial_presented_stores = new List<StoreComponent>();
+    //     List<StoreComponent> unvisitedStores = new List<StoreComponent>(environment.stores);
+    //     StoreComponent nextStore = null;
+    //     bool success = true;
+
+    //     Dictionary<string, List<string>> storeDict = new Dictionary<string, List<string>>()
+    // {
+    //     { "gym", new List<string>{ "bakery", "hardware_store", "craft_shop", "dentist"} },
+    //     { "craft_shop", new List<string>{ "gym", "hardware_store", "dentist", "cafe" } },
+    //     { "hardware_store", new List<string>{ "toy_store", "barber_shop", "clothing_store", "gym", "craft_shop" } },
+    //     { "clothing_store", new List<string>{ "barber_shop", "toy_store", "pharmacy", "hardware_store", "jewelry_store", "craft_shop" } },
+    //     { "jewelry_store", new List<string>{ "pharmacy", "toy_store", "clothing_store" } },
+    //     { "pharmacy", new List<string>{ "bakery", "jewelry_store", "clothing_store", "toy_store" } },
+    //     { "bakery", new List<string>{ "pharmacy", "gym", "pet_store" } },
+    //     { "pet_store", new List<string>{ "gym", "bakery" } },
+    //     { "music_store", new List<string>{ "pizzeria", "florist", "dentist", "pet_store" } },
+    //     { "florist", new List<string>{ "dentist", "pizzeria", "music_store" } },
+    //     { "pizzeria", new List<string>{ "music_store", "florist", "dentist" } },
+    //     { "dentist", new List<string>{ "cafe", "grocery_store", "craft_shop", "florist", "music_store", "pizzeria", "gym" } },
+    //     { "grocery_store", new List<string>{ "cafe", "dentist", "craft_shop", "dentist" } },
+    //     { "cafe", new List<string>{ "bike_shop", "grocery_store", "craft_shop", "dentist" } },
+    //     { "bike_shop", new List<string>{ "grocery_store", "cafe", "clothing_store", "barber_shop", "jewelry_store" } },
+    //     { "barber_shop", new List<string>{ "toy_store", "jewelry_store", "hardware_store", "grocery_store", "bike_shop" } },
+    //     { "toy_store", new List<string>{ "pharmacy", "jewelry_store", "clothing_store", "barber_shop", "grocery_store", "bike_shop", "craft_shop" } }
+    // };
+
+    //     // pick random store first
+    //     int random_store_index = -1;
+    //     int tries = 0;
+    //     do
+    //     {
+    //         tries++;
+    //         random_store_index = UnityEngine.Random.Range(0, unvisitedStores.Count);
+    //         nextStore = unvisitedStores[random_store_index];
+    //     }
+    //     while (nextStore.IsVisible() && tries < 17);
+    //     unvisitedStores.RemoveAt(random_store_index);
+    //     this_trial_presented_stores.Add(nextStore);
+
+    //     // then for the remaining stores, pick as such
+
+    //     for (int i = 0; i < num_deliveries; i++)
+    //     {
+    //         // find the lastly visited store
+    //         StoreComponent prevStore = this_trial_presented_stores.Last();
+    //         string prevStoreName = prevStore.gameObject.name;
+
+    //         // get the list of stores that are visible from this store
+    //         //string prevStoreName = prevStore.gameObject.name;
+    //         //if (!storeDict.ContainsKey(prevStoreName))
+    //         //{
+    //         //    Debug.LogError("Missing key in storeDict for store: " + prevStoreName);
+    //         //    success = false;
+    //         //    break; // or return Tuple.Create(false, null);
+    //         //}
+    //         List<string> visibleStores = storeDict[prevStoreName];
+    //         List<StoreComponent> candidateStores = new List<StoreComponent>();
+
+    //         // now loop through the remaining unvisited stores and find candidates
+    //         foreach (StoreComponent store in unvisitedStores)
+    //         {
+    //             if (!visibleStores.Contains(store.gameObject.name))
+    //             {
+    //                 candidateStores.Add(store);
+    //             }
+    //         }
+
+    //         // if there is/are candidate store(s)...
+    //         if (candidateStores.Count > 0)
+    //         {
+    //             // pick randomly from candidate store list
+    //             random_store_index = UnityEngine.Random.Range(0, candidateStores.Count);
+    //             nextStore = candidateStores[random_store_index];
+    //         }
+    //         else
+    //         {
+    //             // pick randomly from uunvisited store list
+    //             random_store_index = UnityEngine.Random.Range(0, unvisitedStores.Count);
+    //             nextStore = unvisitedStores[random_store_index];
+    //             success = false;
+    //         }
+
+    //         // remove / add appropriately
+    //         unvisitedStores.Remove(nextStore);
+    //         this_trial_presented_stores.Add(nextStore);
+    //     }
+
+    //     Tuple<bool, List<StoreComponent>> result = new Tuple<bool, List<StoreComponent>>
+    //                                                         (success, this_trial_presented_stores);
+    //     return result;
+    // }
+
+    // private List<List<StoreComponent>> listGenerator(Environment environment, int num_deliveries)
+    // {
+    //     List<List<StoreComponent>> total = new List<List<StoreComponent>>();
+    //     int num_total = 20;
+    //     while (total.Count < num_total)
+    //     {
+    //         Tuple<bool, List<StoreComponent>> list = getTrialStores(environment, num_deliveries);
+    //         if (list.Item1)
+    //             total.Add(list.Item2);
+    //     }
+    //     return total;
+    // }
+
+    // private bool listCheck(List<StoreComponent> list1, List<StoreComponent> list2) //, Dictionary<string, List<string>> dict)
+    // {
+    //     bool result = true;
+        
+    //     // initialize a dictionary with all the transitions in the sequence
+    //     Dictionary<StoreComponent, StoreComponent> listDict = new Dictionary<StoreComponent, StoreComponent>();
+    //     for (int i=0; i < list1.Count-1; i++)
+    //     {
+    //         listDict.Add(list1[i], list1[i+1]);
+    //     }
+
+    //     // now check and see if there is repetitive transition
+    //     for (int i=0; i < list2.Count-1; i++)
+    //     {
+    //         if(listDict.ContainsKey(list2[i]))
+    //         {
+    //             StoreComponent prevNext = listDict[list2[i]];
+    //             StoreComponent currNext = list2[i+1];
+
+    //             if (prevNext == currNext)
+    //             {
+    //                 result = false;
+    //                 break;
+    //             }
+    //         }
+    //     }
+        
+    //     return result;
+    // }
+
+    // private List<List<StoreComponent>> getTotalList(Environment environment, int num_trials, int num_deliveries)
+    // {
+    //     List<List<StoreComponent>> new_total = new List<List<StoreComponent>>();
+    //     bool success = false;
+
+    //     while (!success)
+    //     {
+    //         List<List<StoreComponent>> total = listGenerator(environment, num_deliveries);
+    //         new_total = new List<List<StoreComponent>>();
+    //         new_total.Add(total[0]);
+    //         total.Remove(total[0]);
+
+    //         Dictionary<StoreComponent, List<StoreComponent>> transDict = new Dictionary<StoreComponent, List<StoreComponent>>();
+    //         List<StoreComponent> firstList = new_total[0];
+    //         for (int i=0; i < firstList.Count-1; i++)
+    //         {
+    //             transDict.Add(firstList[i], new List<StoreComponent>{firstList[i+1]});
+    //         }
+
+    //         for (int i=0; i < total.Count; i++)
+    //         {
+    //             List<StoreComponent> prevList = new_total.Last();
+    //             List<StoreComponent> currList = total[i];
+    //             bool isGood = listCheck(prevList, currList);
+
+    //             if (isGood)
+    //             {
+    //                 int cumCount = 0;
+    //                 for (int j=0; j < currList.Count-1; j++)
+    //                 {
+    //                     StoreComponent currStore = currList[j];
+    //                     StoreComponent nextStore = currList[j+1];
+    //                     if (transDict.ContainsKey(currStore))
+    //                     {
+    //                         List<StoreComponent> values = transDict[currStore];
+    //                         if (values.Contains(nextStore))
+    //                             cumCount += 1;
+    //                     }
+    //                 }
+
+    //                 if (cumCount < 1)
+    //                 {
+    //                     new_total.Add(currList);
+    //                     for (int k=0; k < currList.Count-1; k++)
+    //                         transDict.AddOrUpdateKey(currList[k], currList[k+1]);
+    //                 }
+    //             }
+
+    //             if (new_total.Count == num_trials)
+    //             {
+    //                 success = true;
+    //                 break;
+    //             }
+    //         }
+    //     }
+
+    //     return new_total;
+    // }
+
     // These names are used in for what is sent to the log
     // If you change them, then you have to change the event processing (or the logging code)
     private enum NiclsClassifierType
@@ -1140,8 +1360,100 @@ private static void Shuffle<T>(List<T> list, System.Random rng)
         messageImageDisplayer.please_find_the_blah_reminder.SetActive(false);
         scriptedEventReporter.ReportScriptedEvent("stop town learning");
     }
+    
+    // NEW
+    // private IEnumerator DoTownLearning(int trialNumber, int numDeliveries)
+    // {
+    //     if (Config.skipTownLearning || InputManager.GetButton("Secret"))                                                
+    //         yield break;                                                                                                
 
-    private IEnumerator DoDeliveries(int trialNumber, int continuousTrialNum, bool practice = false, bool skipLastDelivStores = false, 
+    //     scriptedEventReporter.ReportScriptedEvent("start town learning");
+
+    //     thisTrialPresentedStores = new List<StoreComponent>();
+    //     List<StoreComponent> unvisitedStores = new List<StoreComponent>(environment.stores);
+
+    //     for (int i = 0; i < numDeliveries; i++)
+    //     {
+    //         messageImageDisplayer.please_find_the_blah_reminder.SetActive(false);
+
+    //         StoreComponent nextStore = PickNextStore(unvisitedStores);
+    //         unvisitedStores.Remove(nextStore);
+    //         thisTrialPresentedStores.Add(nextStore);
+
+    //         playerMovement.Freeze();
+    //         EnablePlayerTransfromReporting(false);
+    //         pointerParticleSystem.Play();
+    //         yield return new WaitForSeconds(.2f);
+    //         pointerParticleSystem.Stop();
+
+    //         // ZR: GOT RID OF POINTING TASK
+    //         if (EFR_COURIER)
+    //         {
+    //             // yield return DoPointingTask(nextStore, townlearning:true);
+    //         }
+    //         else
+    //         {
+    //             navigationMessage.SetActive(true);
+    //             if (i != 0)
+    //                 navigationText.text = LanguageSource.GetLanguageString("correct pointing");
+    //             else
+    //                 navigationText.text = "";
+    //             navigationText.text += LanguageSource.GetLanguageString("town learning prompt 1") +
+    //                                    LanguageSource.GetLanguageString(nextStore.GetStoreName()) + ".\n" +
+    //                                    LanguageSource.GetLanguageString("town learning prompt 2") +
+    //                                    LanguageSource.GetLanguageString(nextStore.GetStoreName()) + ".\n\n" +
+    //                                    LanguageSource.GetLanguageString("continue");
+
+    //             while (!InputManager.GetButtonDown("Continue"))
+    //                 yield return null;
+    //             navigationMessage.SetActive(false);
+    //         }
+
+    //         playerMovement.Unfreeze();
+    //         EnablePlayerTransfromReporting(true);
+
+    //         messageImageDisplayer.please_find_the_blah_reminder.SetActive(true);
+    //         messageImageDisplayer.SetReminderText(nextStore.GetStoreName());
+
+    //         float startTime = Time.time;
+    //         float cumDist = 0f;
+    //         float dist = CalculateDistance(nextStore.transform.Find("DeliveryZone"));
+    //         bool distTriggerActivated = false;
+    //         bool timeTriggerActivated = false;
+    //         while (!nextStore.PlayerInDeliveryPosition())
+    //         {
+    //             yield return null;
+
+    //             float newDist = CalculateDistance(nextStore.transform.Find("DeliveryZone"));
+    //             if (newDist > dist)cumDist += newDist - dist;
+    //             dist = newDist;
+
+    //             if (Time.time > startTime + POINTING_INDICATOR_DELAY && Config.timeTrigger) timeTriggerActivated = true;
+    //             if (cumDist > DISTANCE_THRESHOLD && Config.distTrigger) distTriggerActivated = true;
+
+    //             if (timeTriggerActivated || distTriggerActivated)
+    //                 yield return DisplayPointingIndicator(nextStore, true);
+    //             if (InputManager.GetButton("Secret"))
+    //                 goto SkipRemainingDeliveries;
+    //         }
+    //         yield return DisplayPointingIndicator(nextStore, false);
+
+    //         scriptedEventReporter.ReportScriptedEvent("store visited",
+    //             new Dictionary<string, object>() { {"trial number", trialNumber},
+    //                                                {"store name", nextStore.GetStoreName()},
+    //                                                {"serial position", i+1},
+    //                                                {"player position", playerMovement.transform.position.ToString()},
+    //                                                {"store position", nextStore.transform.position.ToString()},
+    //                                                {"distance trigger activated", distTriggerActivated.ToString()},
+    //                                                {"time trigger activated", timeTriggerActivated.ToString()}});
+    //     }
+
+    // SkipRemainingDeliveries:
+    //     messageImageDisplayer.please_find_the_blah_reminder.SetActive(false);
+    //     scriptedEventReporter.ReportScriptedEvent("stop town learning");
+    // }
+
+    private IEnumerator DoDeliveries(int trialNumber, int continuousTrialNum, bool practice = false, bool skipLastDelivStores = false,
                                      StorePointType storePointType = StorePointType.Random, bool freeFirst = true, string stimTag = null, bool highFirst = true)
     {
         Dictionary<string, object> trialData = new Dictionary<string, object>();
@@ -1159,7 +1471,7 @@ private static void Shuffle<T>(List<T> list, System.Random rng)
         //     so, we need to add slight delay for the camera to "see" the stores in town
         yield return new WaitForSeconds(0.1f);
 
-        
+
 
         SetRamulatorState("ENCODING", true, new Dictionary<string, object>());
         SetElememState("ENCODING");
@@ -1190,9 +1502,9 @@ private static void Shuffle<T>(List<T> list, System.Random rng)
         }
 
         int deliveries = practice ? Config.deliveriesPerPracticeTrial : Config.deliveriesPerTrial;
-        
+
         int craft_shop_delivery_num = rng.Next(deliveries - 1);
-        int numLocationRepeats = deliveries/4;
+        int numLocationRepeats = deliveries / 4;
         List<Transform> unvisitedStores = null;
         List<Transform> visitedStores = new List<Transform>();
         List<Transform> repeatStores = new List<Transform>();
@@ -1219,7 +1531,7 @@ private static void Shuffle<T>(List<T> list, System.Random rng)
         //    unvisitedStores.Shuffle();
         //}
         //else
-            unvisitedStores = GetDeliveryRoute(deliveries);
+        unvisitedStores = GetDeliveryRoute(deliveries);
 
         // Set store points for the delivery day
         double[] allStoresPoints = null;
@@ -1348,30 +1660,30 @@ private static void Shuffle<T>(List<T> list, System.Random rng)
                 //AudioClip deliveredItem = nextStore.PopItem();
 
 
-                AudioClip deliveredItem = items.transform.Find("Audio").GetComponent<AudioFiles>().audioFiles.Find(clip => clip.name.Equals("item_"+nextItem));
-                
+                AudioClip deliveredItem = items.transform.Find("Audio").GetComponent<AudioFiles>().audioFiles.Find(clip => clip.name.Equals("item_" + nextItem));
+
 
                 float wordDelay = 0f;
 
                 bool isStimStore = StimStores.Contains(nextStore);
                 Debug.Log("is this stim store? " + isStimStore.ToString());
 
-                #if !UNITY_WEBGL 
-                    // NICLS
-                    if (useNiclServer && !practice)
-                    {
-                        yield return new WaitForSeconds(WORD_PRESENTATION_DELAY);
-                        if (trialNumber < NUM_CLASSIFIER_NORMALIZATION_TRIALS)
-                            niclsInterface.SendEncoding(1);
-                        else
-                            yield return WaitForClassifier(niclsClassifierTypes[continuousTrialNum]);
-                    }
-                    // Hospital
+#if !UNITY_WEBGL
+                // NICLS
+                if (useNiclServer && !practice)
+                {
+                    yield return new WaitForSeconds(WORD_PRESENTATION_DELAY);
+                    if (trialNumber < NUM_CLASSIFIER_NORMALIZATION_TRIALS)
+                        niclsInterface.SendEncoding(1);
                     else
-                    {
+                        yield return WaitForClassifier(niclsClassifierTypes[continuousTrialNum]);
+                }
+                // Hospital
+                else
+                {
                     // LC: ELEMEM
                     //ZAP it when they deliver items to stim store
-                        if (useElemem && !practice && isStimStore)
+                    if (useElemem && !practice && isStimStore)
                     {
                         elememInterface.SendStimMessage();
                         Debug.Log("ZZZAPPP THIS STORE");
@@ -1379,14 +1691,14 @@ private static void Shuffle<T>(List<T> list, System.Random rng)
 
                     wordDelay = UnityEngine.Random.Range(WORD_PRESENTATION_DELAY - WORD_PRESENTATION_JITTER,
                                                              WORD_PRESENTATION_DELAY + WORD_PRESENTATION_JITTER);
-                        yield return new WaitForSeconds(wordDelay);
-                    }
-                #endif
+                    yield return new WaitForSeconds(wordDelay);
+                }
+#endif
 
                 string deliveredItemName = deliveredItem.name;
                 int roundedPoints = (int)Math.Round(storePoints);
                 Debug.Log(roundedPoints);
-                string deliveredItemNameWithSpace = VALUE_COURIER ? nextItem.Replace('_', ' ') + ", " + roundedPoints.ToString() 
+                string deliveredItemNameWithSpace = VALUE_COURIER ? nextItem.Replace('_', ' ') + ", " + roundedPoints.ToString()
                                                                   : nextItem.Replace('_', ' ');
                 var itemPresentationInfo = new Dictionary<string, object>() { {"trial number", continuousTrialNum},
                                                                             {"item name", nextItem},
@@ -1400,15 +1712,15 @@ private static void Shuffle<T>(List<T> list, System.Random rng)
                                                                             {"stim condition", useElemem ? isStimStore : false},
                                                                             {"stim tag", stimTag} };
 
-                #if !UNITY_WEBGL // System.IO
-                    string lstFilepath = practice
-                                ? System.IO.Path.Combine(UnityEPL.GetDataPath(), "practice-" + continuousTrialNum.ToString() + ".lst")
-                                : System.IO.Path.Combine(UnityEPL.GetDataPath(), continuousTrialNum.ToString() + ".lst");
-                    AppendWordToLst(lstFilepath, deliveredItemName);
-                #endif
+#if !UNITY_WEBGL // System.IO
+                string lstFilepath = practice
+                            ? System.IO.Path.Combine(UnityEPL.GetDataPath(), "practice-" + continuousTrialNum.ToString() + ".lst")
+                            : System.IO.Path.Combine(UnityEPL.GetDataPath(), continuousTrialNum.ToString() + ".lst");
+                AppendWordToLst(lstFilepath, deliveredItemName);
+#endif
                 allPresentedObjects.Add(nextItem);
 
-                
+
                 audioPlayback.clip = deliveredItem;
                 audioPlayback.Play();
 
@@ -1422,8 +1734,8 @@ private static void Shuffle<T>(List<T> list, System.Random rng)
                 messageImageDisplayer.SetDeliverItemText(deliveredItemNameWithSpace);
                 yield return SkippableWait(AUDIO_TEXT_DISPLAY);
                 messageImageDisplayer.deliver_item_visual_dislay.SetActive(false);
-                
-                SetRamulatorState("WORD", false, new Dictionary<string, object>() { { "word", nextItem} });
+
+                SetRamulatorState("WORD", false, new Dictionary<string, object>() { { "word", nextItem } });
 
                 scriptedEventReporter.ReportScriptedEvent("audio presentation finished",
                                                           new Dictionary<string, object>());

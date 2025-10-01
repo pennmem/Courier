@@ -81,7 +81,8 @@ public class DeliveryExperiment : CoroutineExperiment
     private const int HOSPTIAL_TOWN_LEARNING_NUM_STORES = 8;
     private const int SINGLE_TOWN_LEARNING_SESSIONS = 1;
     private const int DOUBLE_TOWN_LEARNING_SESSIONS = 0;
-    private const int POINTING_INDICATOR_DELAY = NICLS_COURIER ? 12 : 48;
+    private readonly int POINTING_INDICATOR_DELAY = Config.timeDelay;
+    private readonly int DISTANCE_THRESHOLD = Config.distThreshold;
     private const int EFR_KEYPRESS_PRACTICES = 10;
     private const float FRAME_TEST_LENGTH = 20f;
     private const float MIN_FAMILIARIZATION_ISI = 0.4f;
@@ -135,6 +136,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private static bool useRamulator = false;
     private static bool useNiclServer = false;
     private static bool useElemem = false;
+    private static bool isFirstSession = false;
 #if !UNITY_WEBGL // Syncbox, Ramulator, and NICLS
     private Syncbox syncs;
     public RamulatorInterface ramulatorInterface;
@@ -176,7 +178,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private string efrLeftLogMsg = "incorrect";
     private string efrRightLogMsg = "correct";
 
-    private List<Transform> thisTrialPresentedStores = new List<Transform>();
+    private List<StoreComponent> thisTrialPresentedStores = new List<StoreComponent>();
     private StoreComponent previousTrialStore = null;
     private List<string> allPresentedObjects = new List<string>();
 
@@ -743,6 +745,7 @@ public class DeliveryExperiment : CoroutineExperiment
         useNiclServer = newUseNiclServer;
         useElemem = newUseElemem;
         Config.elememStimMode = useElemem;
+        isFirstSession = newSessionNumber == 0;
 #endif // !UNITY_WEBGL
         sessionNumber = newSessionNumber;
         continuousSessionNumber = useNiclServer ? NICLS_READ_ONLY_SESSIONS + sessionNumber :
@@ -928,6 +931,10 @@ public class DeliveryExperiment : CoroutineExperiment
 
         // Setup Environment
         yield return EnableEnvironment();  // TODO: JPB: there is a race condition between saving config and generating session folder probably (remove enable environment to test)
+
+        // Value Courier store list generator
+        if (VALUE_COURIER)
+            storeLists = getTotalList(environment, Config.trialsPerSession, Config.deliveriesPerTrial);
 
         // set stim/no_stim stores unique for each subject
         var reliableRandom = deliveryItems.ReliableRandom();
@@ -1331,7 +1338,7 @@ public class DeliveryExperiment : CoroutineExperiment
                 yield return null;
 
                 float newDist = CalculateDistance(nextStore.transform.Find("DeliveryZone"));
-                if (newDist > dist)cumDist += newDist - dist;
+                if (newDist > dist) cumDist += newDist - dist;
                 dist = newDist;
 
                 if (Time.time > startTime + POINTING_INDICATOR_DELAY && Config.timeTrigger) timeTriggerActivated = true;
@@ -1393,13 +1400,10 @@ public class DeliveryExperiment : CoroutineExperiment
             switch (storePointType)
             {
                 case StorePointType.Random:
-                    allStoresPoints = RandomStorePoints(unvisitedStores.Count);
+                    allStoresPoints = RandomStorePoints(deliveries-1);
                     break;
                 case StorePointType.SerialPosition:
-                    allStoresPoints = TemporalStorePoints(unvisitedStores.Count, highFirst);
-                    break;
-                case StorePointType.SpatialPosition:
-                    SpatialStorePoints(unvisitedStores.ToArray());
+                    allStoresPoints = TemporalStorePoints(deliveries-1, highFirst);
                     break;
             }
         }
@@ -1410,42 +1414,13 @@ public class DeliveryExperiment : CoroutineExperiment
 
         messageImageDisplayer.please_find_the_blah_reminder.SetActive(true);
 
-
-
-
-        //messageImageDisplayer.please_find_the_blah_reminder.SetActive(true);
-        // genreate store order
-        // if (RANDOM_STORE_ORDER)
-        // {
-        //     int enabledArea = rng.Next(3);
-        //     foreach (Transform area in deliveryZones.transform)
-        //     {
-        //         area.gameObject.SetActive(false);
-        //     }
-        //     deliveryZones.transform.GetChild(enabledArea).gameObject.SetActive(true);
-        // }
-
-
-        // allZones = new List<Transform>();
-        // foreach (Transform area in deliveryZones.transform)
-        // {
-        //     if (area.gameObject.activeSelf)
-        //         foreach (Transform zone in area)
-        //         {
-        //             allZones.Add(zone);
-        //             zone.GetComponent<DeliveryZone>().Hide();
-        //         }
-        // }
-
-        int deliveries = practice ? Config.deliveriesPerPracticeTrial : Config.deliveriesPerTrial;
-
         int craft_shop_delivery_num = rng.Next(deliveries - 1);
         int numLocationRepeats = deliveries / 4;
-        List<Transform> unvisitedStores = null;
-        List<Transform> visitedStores = new List<Transform>();
-        List<Transform> repeatStores = new List<Transform>();
-        List<Transform> stimStoresToVisit = null;
-        List<Transform> nostimStoresToVisit = null;
+        List<StoreComponent> unvisitedStores = null;
+        List<StoreComponent> visitedStores = new List<StoreComponent>();
+        List<StoreComponent> repeatStores = new List<StoreComponent>();
+        List<StoreComponent> stimStoresToVisit = null;
+        List<StoreComponent> nostimStoresToVisit = null;
 
         List<string> deliveryItems = GetItemsList(deliveries);
 
@@ -1492,10 +1467,7 @@ public class DeliveryExperiment : CoroutineExperiment
             Debug.Log("This Trial is using " + stimTag + " as stim frequency");
         }
 
-        StoreComponent lastStoreToVisit = null;
-        StoreComponent nextStore = null;
-
-        for (int i = 0; i <= deliveries; i++)
+        for (int i = 0; i < deliveries; i++)
         {
             if (VALUE_COURIER)
             {
@@ -1557,7 +1529,7 @@ public class DeliveryExperiment : CoroutineExperiment
             else
                 storePoints = -1.0;
 
-             ///AUDIO PRESENTATION OF OBJECT///
+            ///AUDIO PRESENTATION OF OBJECT///
             if (i != deliveries - 1)
             {
                 playerMovement.Freeze();
@@ -1570,36 +1542,36 @@ public class DeliveryExperiment : CoroutineExperiment
                 bool isStimStore = StimStores.Contains(nextStore);
                 // Debug.Log("is this stim store? " + isStimStore.ToString());
 
-                #if !UNITY_WEBGL 
-                    // NICLS
-                    if (useNiclServer && !practice)
-                    {
-                        yield return new WaitForSeconds(WORD_PRESENTATION_DELAY);
-                        if (trialNumber < NUM_CLASSIFIER_NORMALIZATION_TRIALS)
-                            niclsInterface.SendEncoding(1);
-                        else
-                            yield return WaitForClassifier(niclsClassifierTypes[continuousTrialNum]);
-                    }
-                    // Hospital
+#if !UNITY_WEBGL
+                // NICLS
+                if (useNiclServer && !practice)
+                {
+                    yield return new WaitForSeconds(WORD_PRESENTATION_DELAY);
+                    if (trialNumber < NUM_CLASSIFIER_NORMALIZATION_TRIALS)
+                        niclsInterface.SendEncoding(1);
                     else
+                        yield return WaitForClassifier(niclsClassifierTypes[continuousTrialNum]);
+                }
+                // Hospital
+                else
+                {
+                    // LC: ELEMEM
+                    // ZAP it when they deliver items to stim store
+                    if (useElemem && !practice && isStimStore)
                     {
-                        // LC: ELEMEM
-                        // ZAP it when they deliver items to stim store
-                        if (useElemem && !practice && isStimStore)
-                        {
-                            elememInterface.SendStimMessage();
-                            Debug.Log("ZZZAPPP THIS STORE");
-                        }
-
-                        wordDelay = UnityEngine.Random.Range(WORD_PRESENTATION_DELAY - WORD_PRESENTATION_JITTER,
-                                                             WORD_PRESENTATION_DELAY + WORD_PRESENTATION_JITTER);
-                        yield return new WaitForSeconds(wordDelay);
+                        elememInterface.SendStimMessage();
+                        Debug.Log("ZZZAPPP THIS STORE");
                     }
-                #endif
+
+                    wordDelay = UnityEngine.Random.Range(WORD_PRESENTATION_DELAY - WORD_PRESENTATION_JITTER,
+                                                         WORD_PRESENTATION_DELAY + WORD_PRESENTATION_JITTER);
+                    yield return new WaitForSeconds(wordDelay);
+                }
+#endif
 
                 string deliveredItemName = deliveredItem.name;
                 int roundedPoints = (int)Math.Round(storePoints);
-                string deliveredItemNameWithSpace = VALUE_COURIER ? deliveredItemName.Replace('_', ' ') + ", " + roundedPoints.ToString() 
+                string deliveredItemNameWithSpace = VALUE_COURIER ? deliveredItemName.Replace('_', ' ') + ", " + roundedPoints.ToString()
                                                                   : deliveredItemName.Replace('_', ' ');
                 var itemPresentationInfo = new Dictionary<string, object>() { {"trial number", continuousTrialNum},
                                                                             {"item name", deliveredItemName},
@@ -1615,17 +1587,17 @@ public class DeliveryExperiment : CoroutineExperiment
                                                                             {"stim condition", useElemem ? isStimStore : false},
                                                                             {"stim tag", stimTag} };
 
-                #if !UNITY_WEBGL // System.IO
-                    string lstFilepath = practice
-                                ? System.IO.Path.Combine(UnityEPL.GetDataPath(), "practice-" + continuousTrialNum.ToString() + ".lst")
-                                : System.IO.Path.Combine(UnityEPL.GetDataPath(), continuousTrialNum.ToString() + ".lst");
-                    AppendWordToLst(lstFilepath, deliveredItemName);
-                #endif
+#if !UNITY_WEBGL // System.IO
+                string lstFilepath = practice
+                            ? System.IO.Path.Combine(UnityEPL.GetDataPath(), "practice-" + continuousTrialNum.ToString() + ".lst")
+                            : System.IO.Path.Combine(UnityEPL.GetDataPath(), continuousTrialNum.ToString() + ".lst");
+                AppendWordToLst(lstFilepath, deliveredItemName);
+#endif
                 allPresentedObjects.Add(deliveredItemName);
 
                 audioPlayback.clip = deliveredItem;
                 audioPlayback.Play();
-                
+
 
                 scriptedEventReporter.ReportScriptedEvent("object presentation begins", itemPresentationInfo);
                 SetRamulatorState("WORD", true, new Dictionary<string, object>() { { "word", deliveredItemName } });
@@ -1642,12 +1614,6 @@ public class DeliveryExperiment : CoroutineExperiment
                 scriptedEventReporter.ReportScriptedEvent("audio presentation finished",
                                                           new Dictionary<string, object>());
 
-                // LC: complete full 3 second interval
-                if (EFR_COURIER)
-                {
-                    float restDelay = WORD_PRESENTATION_TOTAL_TIME - wordDelay - AUDIO_TEXT_DISPLAY;
-                    yield return new WaitForSeconds(restDelay);
-                }
                 playerMovement.Unfreeze();
                 EnablePlayerTransfromReporting(true);
             }
@@ -1669,135 +1635,135 @@ public class DeliveryExperiment : CoroutineExperiment
 
 
 
-//             if (i == deliveries) messageImageDisplayer.cue_return.SetActive(false);
+    //             if (i == deliveries) messageImageDisplayer.cue_return.SetActive(false);
 
-//             nextStore.GetComponent<DeliveryZone>().Hide();
-
-
+    //             nextStore.GetComponent<DeliveryZone>().Hide();
 
 
-//             ///AUDIO PRESENTATION OF OBJECT///
-//             if (i != deliveries)
-//             {
-//                 string nextItem = deliveryItems[i];
-//                 playerMovement.Freeze();
-//                 Debug.Log(trialNumber);
-//                 //AudioClip deliveredItem = nextStore.PopItem();
 
 
-//                 AudioClip deliveredItem = items.transform.Find("Audio").GetComponent<AudioFiles>().audioFiles.Find(clip => clip.name.Equals("item_" + nextItem));
+    //             ///AUDIO PRESENTATION OF OBJECT///
+    //             if (i != deliveries)
+    //             {
+    //                 string nextItem = deliveryItems[i];
+    //                 playerMovement.Freeze();
+    //                 Debug.Log(trialNumber);
+    //                 //AudioClip deliveredItem = nextStore.PopItem();
 
 
-//                 float wordDelay = 0f;
-
-//                 bool isStimStore = StimStores.Contains(nextStore);
-//                 Debug.Log("is this stim store? " + isStimStore.ToString());
-
-// #if !UNITY_WEBGL
-//                 // NICLS
-//                 if (useNiclServer && !practice)
-//                 {
-//                     yield return new WaitForSeconds(WORD_PRESENTATION_DELAY);
-//                     if (trialNumber < NUM_CLASSIFIER_NORMALIZATION_TRIALS)
-//                         niclsInterface.SendEncoding(1);
-//                     else
-//                         yield return WaitForClassifier(niclsClassifierTypes[continuousTrialNum]);
-//                 }
-//                 // Hospital
-//                 else
-//                 {
-//                     // LC: ELEMEM
-//                     //ZAP it when they deliver items to stim store
-//                     if (useElemem && !practice && isStimStore)
-//                     {
-//                         elememInterface.SendStimMessage();
-//                         Debug.Log("ZZZAPPP THIS STORE");
-//                     }
-
-//                     wordDelay = UnityEngine.Random.Range(WORD_PRESENTATION_DELAY - WORD_PRESENTATION_JITTER,
-//                                                              WORD_PRESENTATION_DELAY + WORD_PRESENTATION_JITTER);
-//                     yield return new WaitForSeconds(wordDelay);
-//                 }
-// #endif
-
-//                 string deliveredItemName = deliveredItem.name;
-//                 int roundedPoints = (int)Math.Round(storePoints);
-//                 Debug.Log(roundedPoints);
-//                 string deliveredItemNameWithSpace = VALUE_COURIER ? nextItem.Replace('_', ' ') + ", " + roundedPoints.ToString()
-//                                                                   : nextItem.Replace('_', ' ');
-//                 var itemPresentationInfo = new Dictionary<string, object>() { {"trial number", continuousTrialNum},
-//                                                                             {"item name", nextItem},
-//                                                                             {"store name", nextStore.name},
-//                                                                             {"serial position", i+1},
-//                                                                             {"player position", playerMovement.transform.position.ToString()},
-//                                                                             {"store position", nextStore.position.ToString()},
-//                                                                             {"store value", roundedPoints},
-//                                                                             {"point condition", (int)storePointType},
-//                                                                             {"task condition", freeFirst ? "FreeFirst" : "ValueFirst"},
-//                                                                             {"stim condition", useElemem ? isStimStore : false},
-//                                                                             {"stim tag", stimTag} };
-
-// #if !UNITY_WEBGL // System.IO
-//                 string lstFilepath = practice
-//                             ? System.IO.Path.Combine(UnityEPL.GetDataPath(), "practice-" + continuousTrialNum.ToString() + ".lst")
-//                             : System.IO.Path.Combine(UnityEPL.GetDataPath(), continuousTrialNum.ToString() + ".lst");
-//                 AppendWordToLst(lstFilepath, deliveredItemName);
-// #endif
-//                 allPresentedObjects.Add(nextItem);
+    //                 AudioClip deliveredItem = items.transform.Find("Audio").GetComponent<AudioFiles>().audioFiles.Find(clip => clip.name.Equals("item_" + nextItem));
 
 
-//                 audioPlayback.clip = deliveredItem;
-//                 audioPlayback.Play();
+    //                 float wordDelay = 0f;
+
+    //                 bool isStimStore = StimStores.Contains(nextStore);
+    //                 Debug.Log("is this stim store? " + isStimStore.ToString());
+
+    // #if !UNITY_WEBGL
+    //                 // NICLS
+    //                 if (useNiclServer && !practice)
+    //                 {
+    //                     yield return new WaitForSeconds(WORD_PRESENTATION_DELAY);
+    //                     if (trialNumber < NUM_CLASSIFIER_NORMALIZATION_TRIALS)
+    //                         niclsInterface.SendEncoding(1);
+    //                     else
+    //                         yield return WaitForClassifier(niclsClassifierTypes[continuousTrialNum]);
+    //                 }
+    //                 // Hospital
+    //                 else
+    //                 {
+    //                     // LC: ELEMEM
+    //                     //ZAP it when they deliver items to stim store
+    //                     if (useElemem && !practice && isStimStore)
+    //                     {
+    //                         elememInterface.SendStimMessage();
+    //                         Debug.Log("ZZZAPPP THIS STORE");
+    //                     }
+
+    //                     wordDelay = UnityEngine.Random.Range(WORD_PRESENTATION_DELAY - WORD_PRESENTATION_JITTER,
+    //                                                              WORD_PRESENTATION_DELAY + WORD_PRESENTATION_JITTER);
+    //                     yield return new WaitForSeconds(wordDelay);
+    //                 }
+    // #endif
+
+    //                 string deliveredItemName = deliveredItem.name;
+    //                 int roundedPoints = (int)Math.Round(storePoints);
+    //                 Debug.Log(roundedPoints);
+    //                 string deliveredItemNameWithSpace = VALUE_COURIER ? nextItem.Replace('_', ' ') + ", " + roundedPoints.ToString()
+    //                                                                   : nextItem.Replace('_', ' ');
+    //                 var itemPresentationInfo = new Dictionary<string, object>() { {"trial number", continuousTrialNum},
+    //                                                                             {"item name", nextItem},
+    //                                                                             {"store name", nextStore.name},
+    //                                                                             {"serial position", i+1},
+    //                                                                             {"player position", playerMovement.transform.position.ToString()},
+    //                                                                             {"store position", nextStore.position.ToString()},
+    //                                                                             {"store value", roundedPoints},
+    //                                                                             {"point condition", (int)storePointType},
+    //                                                                             {"task condition", freeFirst ? "FreeFirst" : "ValueFirst"},
+    //                                                                             {"stim condition", useElemem ? isStimStore : false},
+    //                                                                             {"stim tag", stimTag} };
+
+    // #if !UNITY_WEBGL // System.IO
+    //                 string lstFilepath = practice
+    //                             ? System.IO.Path.Combine(UnityEPL.GetDataPath(), "practice-" + continuousTrialNum.ToString() + ".lst")
+    //                             : System.IO.Path.Combine(UnityEPL.GetDataPath(), continuousTrialNum.ToString() + ".lst");
+    //                 AppendWordToLst(lstFilepath, deliveredItemName);
+    // #endif
+    //                 allPresentedObjects.Add(nextItem);
 
 
-//                 scriptedEventReporter.ReportScriptedEvent("object presentation begins", itemPresentationInfo);
-//                 SetRamulatorState("WORD", true, new Dictionary<string, object>() { { "word", nextItem } });
+    //                 audioPlayback.clip = deliveredItem;
+    //                 audioPlayback.Play();
 
-//                 //add visuals with sound
-//                 messageImageDisplayer.deliver_item_visual_dislay.SetActive(true);
-//                 Debug.Log(deliveredItemNameWithSpace);
-//                 messageImageDisplayer.SetDeliverItemText(deliveredItemNameWithSpace);
-//                 yield return SkippableWait(AUDIO_TEXT_DISPLAY);
-//                 messageImageDisplayer.deliver_item_visual_dislay.SetActive(false);
 
-//                 SetRamulatorState("WORD", false, new Dictionary<string, object>() { { "word", nextItem } });
+    //                 scriptedEventReporter.ReportScriptedEvent("object presentation begins", itemPresentationInfo);
+    //                 SetRamulatorState("WORD", true, new Dictionary<string, object>() { { "word", nextItem } });
 
-//                 scriptedEventReporter.ReportScriptedEvent("audio presentation finished",
-//                                                           new Dictionary<string, object>());
+    //                 //add visuals with sound
+    //                 messageImageDisplayer.deliver_item_visual_dislay.SetActive(true);
+    //                 Debug.Log(deliveredItemNameWithSpace);
+    //                 messageImageDisplayer.SetDeliverItemText(deliveredItemNameWithSpace);
+    //                 yield return SkippableWait(AUDIO_TEXT_DISPLAY);
+    //                 messageImageDisplayer.deliver_item_visual_dislay.SetActive(false);
 
-//                 if (HOSPITAL_COURIER)
-//                 {
-//                     // LC: complete full 3 second interval
-//                     float restDelay = WORD_PRESENTATION_TOTAL_TIME - wordDelay - AUDIO_TEXT_DISPLAY;
-//                     yield return new WaitForSeconds(restDelay);
-//                     // wait a bit longer for hospital flow, then unfreeze below
-//                 }
+    //                 SetRamulatorState("WORD", false, new Dictionary<string, object>() { { "word", nextItem } });
 
-//                 // Always unfreeze after the audio presentation so the player can move again
-//                 playerMovement.Unfreeze();
-//             }
+    //                 scriptedEventReporter.ReportScriptedEvent("audio presentation finished",
+    //                                                           new Dictionary<string, object>());
 
-//             if (repeatStores.Contains(nextStore))
-//             {
-//                 yield return revisitStore(visitedStores, nextStore, unvisitedStores[0]);
-//             }
+    //                 if (HOSPITAL_COURIER)
+    //                 {
+    //                     // LC: complete full 3 second interval
+    //                     float restDelay = WORD_PRESENTATION_TOTAL_TIME - wordDelay - AUDIO_TEXT_DISPLAY;
+    //                     yield return new WaitForSeconds(restDelay);
+    //                     // wait a bit longer for hospital flow, then unfreeze below
+    //                 }
 
-//             visitedStores.Add(nextStore);
+    //                 // Always unfreeze after the audio presentation so the player can move again
+    //                 playerMovement.Unfreeze();
+    //             }
 
-//         }
-//         volume.SetFloat("MasterVolume", 0);
-//         BlackScreen();
+    //             if (repeatStores.Contains(nextStore))
+    //             {
+    //                 yield return revisitStore(visitedStores, nextStore, unvisitedStores[0]);
+    //             }
 
-//     SkipRemainingDeliveries:
-//         messageImageDisplayer.please_find_the_blah_reminder.SetActive(false);
+    //             visitedStores.Add(nextStore);
 
-//         SetRamulatorState("ENCODING", false, new Dictionary<string, object>());
+    //         }
+    //         volume.SetFloat("MasterVolume", 0);
+    //         BlackScreen();
 
-//         if (practice)
-//             scriptedEventReporter.ReportScriptedEvent("stop practice deliveries");
-//         else
-//             scriptedEventReporter.ReportScriptedEvent("stop deliveries");
-//     }
+    //     SkipRemainingDeliveries:
+    //         messageImageDisplayer.please_find_the_blah_reminder.SetActive(false);
+
+    //         SetRamulatorState("ENCODING", false, new Dictionary<string, object>());
+
+    //         if (practice)
+    //             scriptedEventReporter.ReportScriptedEvent("stop practice deliveries");
+    //         else
+    //             scriptedEventReporter.ReportScriptedEvent("stop deliveries");
+    //     }
 
     private List<bool> GenerateBalancedHighFirstList(int numTrials)
     {
@@ -2400,130 +2366,130 @@ public class DeliveryExperiment : CoroutineExperiment
         scriptedEventReporter.ReportScriptedEvent("stop free recall");
     }
 
-    private IEnumerator DoCuedRecall(int trialNumber, int continuousTrialNum, bool practice = false)
-    {
-        scriptedEventReporter.ReportScriptedEvent("start cued recall");
-        BlackScreen();
-        thisTrialPresentedStores.RemoveAt(thisTrialPresentedStores.Count - 1); // LC: remove lastly visited stores where we don't delivery item
-        thisTrialPresentedStores.Shuffle(rng);
-        Debug.Log(thisTrialPresentedStores);
+//     private IEnumerator DoCuedRecall(int trialNumber, int continuousTrialNum, bool practice = false)
+//     {
+//         scriptedEventReporter.ReportScriptedEvent("start cued recall");
+//         BlackScreen();
+//         thisTrialPresentedStores.RemoveAt(thisTrialPresentedStores.Count - 1); // LC: remove lastly visited stores where we don't delivery item
+//         thisTrialPresentedStores.Shuffle(rng);
+//         Debug.Log(thisTrialPresentedStores);
 
-        // TODO: JPB: Handle case for multiple practice days
-        if (practice && HOSPITAL_COURIER)
-        {
-            scriptedEventReporter.ReportScriptedEvent("ecr cued recall video start");
-            yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
-                                 LanguageSource.GetLanguageString("standard intro video"),
-                                 VideoSelector.VideoType.ecrVideo);
-            yield return DoOneBtnErKeypressCheck();
-            scriptedEventReporter.ReportScriptedEvent("ecr cued recall video stop");
-        }
+//         // TODO: JPB: Handle case for multiple practice days
+//         if (practice && HOSPITAL_COURIER)
+//         {
+//             scriptedEventReporter.ReportScriptedEvent("ecr cued recall video start");
+//             yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
+//                                  LanguageSource.GetLanguageString("standard intro video"),
+//                                  VideoSelector.VideoType.ecrVideo);
+//             yield return DoOneBtnErKeypressCheck();
+//             scriptedEventReporter.ReportScriptedEvent("ecr cued recall video stop");
+//         }
 
-        if (COURIER_ONLINE)
-        {
-            messageImageDisplayer.SetGeneralBigMessageText(titleText: "cued recall title", mainText: "online cued recall main");
-            yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
-        }
-        else if (HOSPITAL_COURIER) // TODO: JPB: Merge this with the else statement (need descriptions)
-        {
-            messageImageDisplayer.SetGeneralBigMessageText(mainText: "store cue recall");
-            yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
-        }
-        else
-        {
-            textDisplayer.DisplayText("display day cued recall prompt", LanguageSource.GetLanguageString("store cue recall"));
-            yield return SkippableWait(RECALL_MESSAGE_DISPLAY_LENGTH);
-            textDisplayer.ClearText();
-        }
+//         if (COURIER_ONLINE)
+//         {
+//             messageImageDisplayer.SetGeneralBigMessageText(titleText: "cued recall title", mainText: "online cued recall main");
+//             yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
+//         }
+//         else if (HOSPITAL_COURIER) // TODO: JPB: Merge this with the else statement (need descriptions)
+//         {
+//             messageImageDisplayer.SetGeneralBigMessageText(mainText: "store cue recall");
+//             yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
+//         }
+//         else
+//         {
+//             textDisplayer.DisplayText("display day cued recall prompt", LanguageSource.GetLanguageString("store cue recall"));
+//             yield return SkippableWait(RECALL_MESSAGE_DISPLAY_LENGTH);
+//             textDisplayer.ClearText();
+//         }
 
-        // LC: make standard cued recall ECR here
-        // This is done to match the instruction video shown before.
-        if (HOSPITAL_COURIER)
-            practice = false;
+//         // LC: make standard cued recall ECR here
+//         // This is done to match the instruction video shown before.
+//         if (HOSPITAL_COURIER)
+//             practice = false;
 
-        highBeep.Play();
-        scriptedEventReporter.ReportScriptedEvent("sound played", new Dictionary<string, object>() { { "sound name", "high beep" }, { "sound duration", highBeep.clip.length.ToString() } });
-        textDisplayer.DisplayText("display recall text", RECALL_TEXT);
-        yield return SkippableWait(RECALL_TEXT_DISPLAY_LENGTH);
-        textDisplayer.ClearText();
-        foreach (Transform cueStore in thisTrialPresentedStores)
-        {
-#if !UNITY_WEBGL // NICLS
-            if (useNiclServer && (trialNumber >= NUM_CLASSIFIER_NORMALIZATION_TRIALS))
-            {
-                yield return new WaitForSeconds(WORD_PRESENTATION_DELAY);
-                yield return WaitForClassifier(niclsClassifierTypes[continuousTrialNum]);
-            }
-            else
-            {
-                float wordDelay = UnityEngine.Random.Range(WORD_PRESENTATION_DELAY - WORD_PRESENTATION_JITTER,
-                                                           WORD_PRESENTATION_DELAY + WORD_PRESENTATION_JITTER);
-                yield return new WaitForSeconds(wordDelay);
-            }
+//         highBeep.Play();
+//         scriptedEventReporter.ReportScriptedEvent("sound played", new Dictionary<string, object>() { { "sound name", "high beep" }, { "sound duration", highBeep.clip.length.ToString() } });
+//         textDisplayer.DisplayText("display recall text", RECALL_TEXT);
+//         yield return SkippableWait(RECALL_TEXT_DISPLAY_LENGTH);
+//         textDisplayer.ClearText();
+//         foreach (StoreComponent cueStore in thisTrialPresentedStores)
+//         {
+// #if !UNITY_WEBGL // NICLS
+//             if (useNiclServer && (trialNumber >= NUM_CLASSIFIER_NORMALIZATION_TRIALS))
+//             {
+//                 yield return new WaitForSeconds(WORD_PRESENTATION_DELAY);
+//                 yield return WaitForClassifier(niclsClassifierTypes[continuousTrialNum]);
+//             }
+//             else
+//             {
+//                 float wordDelay = UnityEngine.Random.Range(WORD_PRESENTATION_DELAY - WORD_PRESENTATION_JITTER,
+//                                                            WORD_PRESENTATION_DELAY + WORD_PRESENTATION_JITTER);
+//                 yield return new WaitForSeconds(wordDelay);
+//             }
 
-            string output_file_name = practice
-                        ? "practice-" + continuousTrialNum.ToString() + "-" + cueStore.name
-                        : continuousTrialNum.ToString() + "-" + cueStore.name;
-            string output_directory = UnityEPL.GetDataPath();
-            string wavFilePath = System.IO.Path.Combine(output_directory, output_file_name) + ".wav";
-            string lstFilepath = System.IO.Path.Combine(output_directory, output_file_name) + ".lst";
-            //AppendWordToLst(lstFilepath, cueStore.GetLastPoppedItemName()); TODO: CRB: integrate new item system
-#endif
+//             string output_file_name = practice
+//                         ? "practice-" + continuousTrialNum.ToString() + "-" + cueStore.name
+//                         : continuousTrialNum.ToString() + "-" + cueStore.name;
+//             string output_directory = UnityEPL.GetDataPath();
+//             string wavFilePath = System.IO.Path.Combine(output_directory, output_file_name) + ".wav";
+//             string lstFilepath = System.IO.Path.Combine(output_directory, output_file_name) + ".lst";
+//             //AppendWordToLst(lstFilepath, cueStore.GetLastPoppedItemName()); TODO: CRB: integrate new item system
+// #endif
 
-            //cueStore.familiarization_object.SetActive(true);
+//             //cueStore.familiarization_object.SetActive(true);
 
-            Dictionary<string, object> cuedRecordingData = new Dictionary<string, object>();
-            cuedRecordingData.Add("trial number", COURIER_ONLINE ? trialNumber : continuousTrialNum);
-            cuedRecordingData.Add("store", cueStore.name);
-            //cuedRecordingData.Add("item", cueStore.GetLastPoppedItemName());
-            cuedRecordingData.Add("store position", cueStore.position.ToString());
+//             Dictionary<string, object> cuedRecordingData = new Dictionary<string, object>();
+//             cuedRecordingData.Add("trial number", COURIER_ONLINE ? trialNumber : continuousTrialNum);
+//             cuedRecordingData.Add("store", cueStore.name);
+//             //cuedRecordingData.Add("item", cueStore.GetLastPoppedItemName());
+//             cuedRecordingData.Add("store position", cueStore.position.ToString());
 
-#if !UNITY_WEBGL // Microphone
-            scriptedEventReporter.ReportScriptedEvent("cued recall recording start", cuedRecordingData);
-            SetElememState("RECALL", new Dictionary<string, object> { { "duration", MAX_CUED_RECALL_TIME_PER_STORE } });
-            soundRecorder.StartRecording(wavFilePath);
+// #if !UNITY_WEBGL // Microphone
+//             scriptedEventReporter.ReportScriptedEvent("cued recall recording start", cuedRecordingData);
+//             SetElememState("RECALL", new Dictionary<string, object> { { "duration", MAX_CUED_RECALL_TIME_PER_STORE } });
+//             soundRecorder.StartRecording(wavFilePath);
 
-            // Pointless - not in new courier
-            //if (practice && trialNumber == 0)
-            //    yield return DoCuedRecallDisplay(cueStore, "", MAX_CUED_RECALL_TIME_PER_STORE, practice: true, ecrDisabled: true, minWaitTime: MIN_CUED_RECALL_TIME_PER_STORE);
-            //else if (practice)
-            //    yield return DoCuedRecallDisplay(cueStore, "", MAX_CUED_RECALL_TIME_PER_STORE, practice: true, minWaitTime: MIN_CUED_RECALL_TIME_PER_STORE);
-            //else
-            //    yield return DoCuedRecallDisplay(cueStore, "", MAX_CUED_RECALL_TIME_PER_STORE, minWaitTime: MIN_CUED_RECALL_TIME_PER_STORE);
+//             // Pointless - not in new courier
+//             //if (practice && trialNumber == 0)
+//             //    yield return DoCuedRecallDisplay(cueStore, "", MAX_CUED_RECALL_TIME_PER_STORE, practice: true, ecrDisabled: true, minWaitTime: MIN_CUED_RECALL_TIME_PER_STORE);
+//             //else if (practice)
+//             //    yield return DoCuedRecallDisplay(cueStore, "", MAX_CUED_RECALL_TIME_PER_STORE, practice: true, minWaitTime: MIN_CUED_RECALL_TIME_PER_STORE);
+//             //else
+//             //    yield return DoCuedRecallDisplay(cueStore, "", MAX_CUED_RECALL_TIME_PER_STORE, minWaitTime: MIN_CUED_RECALL_TIME_PER_STORE);
 
-            scriptedEventReporter.ReportScriptedEvent("cued recall recording stop", cuedRecordingData);
-            soundRecorder.StopRecording();
-#else
-                scriptedEventReporter.ReportScriptedEvent("cued recall answer start", cuedRecordingData);
-                yield return DoTypedResponses(trialNumber, "cued recall", CUED_RECALL_TIME_PER_STORE, cuedInputField, cuedResponse, cueStore.GetStoreName());
-                scriptedEventReporter.ReportScriptedEvent("cued recall answer stop", cuedRecordingData);
-#endif
+//             scriptedEventReporter.ReportScriptedEvent("cued recall recording stop", cuedRecordingData);
+//             soundRecorder.StopRecording();
+// #else
+//                 scriptedEventReporter.ReportScriptedEvent("cued recall answer start", cuedRecordingData);
+//                 yield return DoTypedResponses(trialNumber, "cued recall", CUED_RECALL_TIME_PER_STORE, cuedInputField, cuedResponse, cueStore.GetStoreName());
+//                 scriptedEventReporter.ReportScriptedEvent("cued recall answer stop", cuedRecordingData);
+// #endif
 
-            lowBeep.Play();
-            scriptedEventReporter.ReportScriptedEvent("sound played", new Dictionary<string, object>() { { "sound name", "low beep" }, { "sound duration", highBeep.clip.length.ToString() } });
-            textDisplayer.DisplayText("display recall text", RECALL_TEXT);
-            yield return SkippableWait(RECALL_TEXT_DISPLAY_LENGTH);
-            textDisplayer.ClearText();
-        }
-        scriptedEventReporter.ReportScriptedEvent("stop cued recall");
-    }
+//             lowBeep.Play();
+//             scriptedEventReporter.ReportScriptedEvent("sound played", new Dictionary<string, object>() { { "sound name", "low beep" }, { "sound duration", highBeep.clip.length.ToString() } });
+//             textDisplayer.DisplayText("display recall text", RECALL_TEXT);
+//             yield return SkippableWait(RECALL_TEXT_DISPLAY_LENGTH);
+//             textDisplayer.ClearText();
+//         }
+//         scriptedEventReporter.ReportScriptedEvent("stop cued recall");
+//     }
 
-    private IEnumerator DoDistanceJudgment(int trialNumber, int continuousTrialNum, bool practice = false)
-    {
-        scriptedEventReporter.ReportScriptedEvent("start relative distance judgment task");
-        BlackScreen();
-        textDisplayer.ClearText();
+//     private IEnumerator DoDistanceJudgment(int trialNumber, int continuousTrialNum, bool practice = false)
+//     {
+//         scriptedEventReporter.ReportScriptedEvent("start relative distance judgment task");
+//         BlackScreen();
+//         textDisplayer.ClearText();
 
-        highBeep.Play();
-        scriptedEventReporter.ReportScriptedEvent("sound played", new Dictionary<string, object>() { { "sound name", "high beep" }, { "sound duration", highBeep.clip.length.ToString() } });
-        textDisplayer.DisplayText("display recall text", RECALL_TEXT);
-        yield return SkippableWait(RECALL_TEXT_DISPLAY_LENGTH);
-        textDisplayer.ClearText();
+//         highBeep.Play();
+//         scriptedEventReporter.ReportScriptedEvent("sound played", new Dictionary<string, object>() { { "sound name", "high beep" }, { "sound duration", highBeep.clip.length.ToString() } });
+//         textDisplayer.DisplayText("display recall text", RECALL_TEXT);
+//         yield return SkippableWait(RECALL_TEXT_DISPLAY_LENGTH);
+//         textDisplayer.ClearText();
 
 
 
-        yield return DoDistanceJudgmentDisplay();
-    }
+//         yield return DoDistanceJudgmentDisplay();
+//     }
 
     // LC: not implemented for double session, only for single session
     private IEnumerator DoValueRecall(int trialNumber, bool practice = false)
@@ -2885,7 +2851,7 @@ public class DeliveryExperiment : CoroutineExperiment
     }
 
     private bool lastPointingIndicatorState = false;
-    private IEnumerator DisplayPointingIndicator(Transform nextStore, bool enable = false)
+    private IEnumerator DisplayPointingIndicator(StoreComponent nextStore, bool enable = false)
     {
         if (enable)
         {
@@ -2893,7 +2859,7 @@ public class DeliveryExperiment : CoroutineExperiment
                 scriptedEventReporter.ReportScriptedEvent("continuous pointer");
             pointer.SetActive(true);
             ColorPointer(new Color(0.5f, 0.5f, 1f));
-            yield return PointArrowToStore(nextStore);
+            yield return PointArrowToStore(nextStore.gameObject);
         }
         else
         {
@@ -2903,14 +2869,18 @@ public class DeliveryExperiment : CoroutineExperiment
         lastPointingIndicatorState = enable;
     }
 
-    private IEnumerator PointArrowToStore(Transform pointToZone, float arrowRotationSpeed = 0f, float arrowCorrectionTime = 0f)
+     private IEnumerator PointArrowToStore(GameObject pointToStore, float arrowRotationSpeed = 0f, float arrowCorrectionTime = 0f)
     {
-        //float rotationSpeed = arrowRotationSpeed == 0 ? 1f : arrowRotationSpeed * Time.deltaTime;
-        //float startTime = Time.time;
-
-        //do {
-        yield return truePointer.GetComponent<Navigation>().target = pointToZone;
-        //} while (Time.time < startTime + arrowCorrectionTime) ;
+        float rotationSpeed = arrowRotationSpeed == 0 ? 1f : arrowRotationSpeed * Time.deltaTime;
+        float startTime = Time.time;
+        
+        do {
+            yield return null;
+            UnityEngine.Vector3 lookDirection = pointToStore.transform.position - pointer.transform.position;
+            pointer.transform.rotation = Quaternion.Slerp(pointer.transform.rotation,
+                                                          Quaternion.LookRotation(lookDirection),
+                                                          rotationSpeed);
+        } while (Time.time < startTime + arrowCorrectionTime) ;
     }
 
     private float PointerError(GameObject toStore)
@@ -3579,29 +3549,49 @@ public class DeliveryExperiment : CoroutineExperiment
         return deliveryItems;
     }
 
-    private IEnumerator revisitStore(List<Transform> visited, Transform last, Transform next)
-    {
-        float proximity = 5f;  // Distance required for the revisit sequence to end 
+    // private IEnumerator revisitStore(List<Transform> visited, Transform last, Transform next)
+    // {
+    //     float proximity = 5f;  // Distance required for the revisit sequence to end 
 
-        Transform middle = deliveryZones.GetComponent<FindDeliveryRoute>().FindMiddle(visited, last, next);
-        while (UnityEngine.Vector3.Distance(middle.position, pointer.transform.position) > proximity)
-        {
-            yield return DisplayPointingIndicator(middle, true);
-        }
+    //     Transform middle = deliveryZones.GetComponent<FindDeliveryRoute>().FindMiddle(visited, last, next);
+    //     while (UnityEngine.Vector3.Distance(middle.position, pointer.transform.position) > proximity)
+    //     {
+    //         yield return DisplayPointingIndicator(middle, true);
+    //     }
 
-        var repeatLocationInfo = new Dictionary<string, object>() { { "name", middle.name }, { "position", middle.position } };
+    //     var repeatLocationInfo = new Dictionary<string, object>() { { "name", middle.name }, { "position", middle.position } };
 
-        scriptedEventReporter.ReportScriptedEvent("Revisited prior delivery location", repeatLocationInfo);
-    }
+    //     scriptedEventReporter.ReportScriptedEvent("Revisited prior delivery location", repeatLocationInfo);
+    // }
 
     private void EnablePlayerTransfromReporting(bool boolean)
     {
+        var player = playerMovement.gameObject;
         player.GetComponent<WorldDataReporter>().isStatic = !boolean;
     }
 
-    
+    private float CalculateDistance(Transform target)
+        {
+            var player = playerMovement.gameObject;
+            NavMeshPath path = new NavMeshPath();
+            float dist = 0;
 
-}
+            if (NavMesh.CalculatePath(target.position, player.transform.position, NavMesh.AllAreas, path))
+            {
+                for (int i = 0; i < path.corners.Length-1; i++)
+                {
+                    dist += UnityEngine.Vector3.Distance(path.corners[i], path.corners[i + 1]);
+                }
+            }
+            else
+            {
+                Debug.Log("ERROR: Could not calculate path");
+            }
+
+            return dist;
+        }
+
+    }
 
 public static class IListExtensions
 {
@@ -3622,4 +3612,16 @@ public static class IListExtensions
         return list;
     }
 }
+
+public static class Extensions
+{
+    public static void AddOrUpdateKey<T>(this Dictionary<T, List<T>> dict, T key, T newValue)
+    {
+        if (dict.ContainsKey(key))
+            dict[key].Add(newValue);
+        else
+            dict.Add(key, new List<T>{newValue});
+    }
+}
+
 

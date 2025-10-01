@@ -23,12 +23,14 @@ public class Config
     public static int niclServerPort { get { return (int)Config.GetSetting("niclServerPort"); } }
     public static string elememServerIP { get { return (string)Config.GetSetting("elememServerIP"); } }
     public static int elememServerPort { get { return (int)Config.GetSetting("elememServerPort"); } }
-    // public static bool elememOn { get { return (bool)Config.GetSetting("elememOn"); } }
-    public static bool elememOn { get { return false; } }
+    public static bool elememOn { get { return (bool)Config.GetSetting("elememOn"); } }
+    public static bool freiburgSyncboxOn { get { return (bool)Config.GetSetting("freiburgSyncboxOn"); } }
+    public static int freiburgSyncboxPort { get { return (int)Config.GetSetting("freiburgSyncboxPort"); } }
 
     // Hardware
     public static bool noSyncbox { get { return (bool)Config.GetSetting("noSyncbox"); } }
     public static bool ps4Controller { get { return (bool)Config.GetSetting("ps4Controller"); } }
+
 
     // Programmer Conveniences
     public static bool lessTrials { get { return (bool)Config.GetSetting("lessTrials"); } }
@@ -40,6 +42,12 @@ public class Config
     public static bool skipTownLearning { get { return (bool)Config.GetSetting("skipTownLearning"); } }
     public static bool skipNewEfrKeypressCheck { get { return (bool)Config.GetSetting("skipNewEfrKeypressCheck"); } }
     public static bool skipNewEfrKeypressPractice { get { return (bool)Config.GetSetting("skipNewEfrKeypressPractice"); } }
+    // Pointing Indicator Trigger Options
+    public static bool distTrigger { get { return (bool)Config.GetSetting("distTrigger"); } }
+    public static int distThreshold { get { return (int)Config.GetSetting("distThreshold"); } }
+    public static bool timeTrigger { get { return (bool)Config.GetSetting("timeTrigger"); } }
+    public static int timeDelay { get { return (int)Config.GetSetting("timeDelay"); } }
+
 
     // Game Logic
     public static bool efrEnabled { get { return (bool)Config.GetSetting("efrEnabled"); } }

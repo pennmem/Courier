@@ -63,60 +63,158 @@ public class DataPoint
         // return JSONString;
     }
 
-    public string ValueToString(object value) {
-        if (value is Dictionary<string, object>) // TODO: JPB: Remove
-        {
-            var dataDict = (Dictionary<string, object>)value;  // cast to dictionary
-            string jsonString = "{";
-            foreach (string key in dataDict.Keys)    
-            {
-                object dataVal = dataDict[key];
+    public string ValueToString(object value)
+    {
+        // Null safety
+        if (value == null)
+            return "null";
 
-                string valueJSONString = ValueToString(dataVal);
-                jsonString = jsonString + "\"" + key + "\":" + valueJSONString + ",";
-            }
-            if (dataDict.Count > 0) // Remove the last comma
-                jsonString = jsonString.Substring(0, jsonString.Length - 1);
-            jsonString = jsonString + "}";
-            return jsonString;
-        }
-        else if(value.GetType().IsArray || value is IList)
-        { 
-            string jsonString = "[";
-            var dataList = (IEnumerable<object>)value;
-            foreach (object val in dataList) {
-                jsonString = jsonString + ValueToString(val) + ",";
-            }
-            if (dataList != null && dataList.Any()) // Remove the last comma
-                jsonString = jsonString.Substring(0, jsonString.Length - 1); // Remove last comma
-            return jsonString + "]";
-        }
-        else if (IsNumeric(value)) 
+        // Handle nested dictionaries
+        if (value is Dictionary<string, object> dict)
         {
+            var json = new System.Text.StringBuilder("{");
+            bool first = true;
+
+            foreach (var kvp in dict)
+            {
+                if (!first) json.Append(",");
+                json.Append("\"").Append(kvp.Key).Append("\":").Append(ValueToString(kvp.Value));
+                first = false;
+            }
+
+            json.Append("}");
+            return json.ToString();
+        }
+
+        // Handle arrays
+        if (value.GetType().IsArray)
+        {
+            IEnumerable enumerable = (IEnumerable)value;
+            var json = new System.Text.StringBuilder("[");
+            bool first = true;
+
+            foreach (var val in enumerable)
+            {
+                if (!first) json.Append(",");
+                json.Append(ValueToString(val));
+                first = false;
+            }
+
+            json.Append("]");
+            return json.ToString();
+        }
+
+        // Handle other IEnumerable (e.g., List<T>)
+        if (value is IEnumerable enumerableObj)
+        {
+            var json = new System.Text.StringBuilder("[");
+            bool first = true;
+
+            foreach (var val in enumerableObj)
+            {
+                if (!first) json.Append(",");
+                json.Append(ValueToString(val));
+                first = false;
+            }
+
+            json.Append("]");
+            return json.ToString();
+        }
+
+        // Handle numeric types
+        if (IsNumeric(value))
+            return Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture);
+
+        // Handle booleans
+        if (value is bool b)
+            return b.ToString().ToLower();
+
+        // Handle strings and chars
+        if (value is string || value is char)
+        {
+            string s = value.ToString().Replace("\n", " ").Replace("\"", "\\\"");
+            if (s.Length > 2 && s[0] == '{' && s[^1] == '}')
+                return s; // treat as embedded JSON
+            return $"\"{s}\"";
+        }
+
+        // Handle DateTime
+        if (value is DateTime dt)
+            return ConvertToMillisecondsSinceEpoch(dt).ToString();
+
+        // Handle Unity-specific types
+        if (value is UnityEngine.Vector3 v3)
+            return $"\"{v3.x:F4},{v3.y:F4},{v3.z:F4}\"";
+        if (value is UnityEngine.Transform t)
+            return $"\"{t.name}\"";
+        if (value is UnityEngine.GameObject go)
+            return $"\"{go.name}\"";
+
+        // Catch-all for primitive or unexpected simple types
+        if (value.GetType().IsPrimitive)
             return value.ToString();
-        }
-        else if (value is bool)
-        {
-            return value.ToString().ToLower();
-        }
-        else if (value is string) 
-        {
-            string valueString = (string)value.ToString().Replace("\n", " "); // clean newlines for writing to jsonl
-            if(valueString.Length > 2 && valueString[0] == '{' && valueString[valueString.Length - 1] == '}') {
-                return valueString; // treat as embedded JSON
-            }
-            else {
-                return "\"" + valueString + "\"";
-            }
-        }
-        else if (value is DateTime)
-        {
-            return ConvertToMillisecondsSinceEpoch((DateTime)value).ToString(); ////// cast value to DateTime
-        }
-        else {
-            throw new Exception("Data logging type not supported: " + value.GetType().ToString());
-        }
+
+        // Unsupported complex types
+        Debug.LogWarning($"[ValueToString] Unsupported data type: {value.GetType()}. Serializing as string.");
+        return $"\"{value}\"";
     }
+
+
+
+    // public string ValueToString(object value) {
+    //     if (value is Dictionary<string, object>) // TODO: JPB: Remove
+    //     {
+    //         var dataDict = (Dictionary<string, object>)value;  // cast to dictionary
+    //         string jsonString = "{";
+    //         foreach (string key in dataDict.Keys)    
+    //         {
+    //             object dataVal = dataDict[key];
+
+    //             string valueJSONString = ValueToString(dataVal);
+    //             jsonString = jsonString + "\"" + key + "\":" + valueJSONString + ",";
+    //         }
+    //         if (dataDict.Count > 0) // Remove the last comma
+    //             jsonString = jsonString.Substring(0, jsonString.Length - 1);
+    //         jsonString = jsonString + "}";
+    //         return jsonString;
+    //     }
+    //     else if(value.GetType().IsArray || value is IList)
+    //     { 
+    //         string jsonString = "[";
+    //         var dataList = (IEnumerable<object>)value;
+    //         foreach (object val in dataList) {
+    //             jsonString = jsonString + ValueToString(val) + ",";
+    //         }
+    //         if (dataList != null && dataList.Any()) // Remove the last comma
+    //             jsonString = jsonString.Substring(0, jsonString.Length - 1); // Remove last comma
+    //         return jsonString + "]";
+    //     }
+    //     else if (IsNumeric(value)) 
+    //     {
+    //         return value.ToString();
+    //     }
+    //     else if (value is bool)
+    //     {
+    //         return value.ToString().ToLower();
+    //     }
+    //     else if (value is string) 
+    //     {
+    //         string valueString = (string)value.ToString().Replace("\n", " "); // clean newlines for writing to jsonl
+    //         if(valueString.Length > 2 && valueString[0] == '{' && valueString[valueString.Length - 1] == '}') {
+    //             return valueString; // treat as embedded JSON
+    //         }
+    //         else {
+    //             return "\"" + valueString + "\"";
+    //         }
+    //     }
+    //     else if (value is DateTime)
+    //     {
+    //         return ConvertToMillisecondsSinceEpoch((DateTime)value).ToString(); ////// cast value to DateTime
+    //     }
+    //     else {
+    //         throw new Exception("Data logging type not supported: " + value.GetType().ToString());
+    //     }
+    // }
 
     public static double ConvertToMillisecondsSinceEpoch(System.DateTime convertMe)
     {

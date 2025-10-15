@@ -20,7 +20,7 @@ public class MessageImageDisplayer : MonoBehaviour
 
     public GameObject[] online_hospital_instruction_messages_en;
     public GameObject[] online_value_instruction_messages_en;
-
+    public GameObject[] value_instruction_messages_en;
     public GameObject[] music_video_prompts;
 
     public GameObject please_find_the_blah;

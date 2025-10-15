@@ -2,5 +2,14 @@
     "niclServerIP": "127.0.0.1",
     "niclServerPort": 8889,
     "elememServerIP": "127.0.0.1",
-    "elememServerPort": 8889
+    "elememServerPort": 8889,
+	"doReject": false,
+	"doCuedRecall": true,
+	"doFinalRecall": true,
+	"timeTrigger": true,
+	"distTrigger": true,
+	"elememOn": false,
+	"showFps": false,
+	"singleStickController": false,
+	"ps4Controller": false
 }

@@ -70,6 +70,16 @@ public class Config
     {
         get { return Convert.ToDouble(Config.GetSetting("maxCompensation")); }
     }
+
+    public static int maxForwardSpeed { get { return (int)Config.GetSetting("maxForwardSpeed"); } }
+    public static int maxBackwardSpeed { get { return (int)Config.GetSetting("maxBackwardSpeed"); } }
+    public static int maxTurnSpeed { get { return (int)Config.GetSetting("maxTurnSpeed"); } }
+    public static int primacyBuf { get { return (int)Config.GetSetting("primacyBuf"); } }
+    public static int recencyBuf { get { return (int)Config.GetSetting("recencyBuf"); } }
+    public static int numInGroupChosen { get { return (int)Config.GetSetting("numInGroupChosen"); } }
+    public static int[] targetMean { get { return (int[])Config.GetSetting("targetMean"); } }
+    public static int[] targetVar { get { return (int[])Config.GetSetting("targetVar"); } }
+    public static float audioTextDisplayLength { get { return (float)Config.GetSetting("audioTextDisplayLength"); } }
     
     // public static bool valueAlwaysFirst { get { return true; } }
     // public static bool enableTemporal { get { return true; } }

@@ -1,0 +1,35 @@
+{
+    "noSyncbox": true,
+    "lessTrials": true,
+    "lessDeliveries": false,
+    "skipIntros": false,
+    "skipTownLearning": false,
+    "skipNewEfrKeypressCheck": false,
+    "skipNewEfrKeypressPractice": true,
+
+    "efrEnabled": false,
+    "ecrEnabled": false,
+    "twoBtnEfrEnabled": false,
+    "twoBtnEcrEnabled": false,
+    "niclsCourier": true,
+    "counterBalanceCorrectIncorrectButton": false,
+
+    "trialsPerSession": 3,
+    "trialsPerSessionSingleTownLearning": 1,
+    "trialsPerSessionDoubleTownLearning": 1,
+    "deliveriesPerPracticeTrial":3,
+    "deliveriesPerTrial": 3,
+
+    "newEfrKeypressPractices": 20,
+	"elememOn": false,
+	"freiburgSyncboxOn": false,
+	"freiburgSyncboxPort": 8889,
+	"timeDelay": 25,
+    "valueAlwaysFirst": true,
+    "enableTemporal": true,
+    "enableSpatial": false,
+    "enableRandom": true,
+    "doFinalRecall": false,
+    "maxCompensation": 10.0,
+    "distThreshold": 150
+}

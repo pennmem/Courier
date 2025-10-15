@@ -20,6 +20,7 @@ public class VideoSelector : MonoBehaviour
     public UnityEngine.Video.VideoClip practiceVideo;
     public UnityEngine.Video.VideoClip ecrVideo;
     public UnityEngine.Video.VideoClip efrRecapVideo;
+    public UnityEngine.Video.VideoClip vcInstructionsVideo;
 
     void OnEnable()
     {
@@ -42,7 +43,8 @@ public class VideoSelector : MonoBehaviour
         townlearningVideo,
         practiceVideo,
         ecrVideo,
-        efrRecapVideo
+        efrRecapVideo,
+        vcInstructionsVideo
     }
 
     public void SetVideo(VideoType videoType, int videoIndex = 0)
@@ -92,6 +94,9 @@ public class VideoSelector : MonoBehaviour
                     break;
                 case VideoType.efrRecapVideo:
                     videoPlayer.clip = efrRecapVideo;
+                break;
+                case VideoType.vcInstructionsVideo:
+                    videoPlayer.clip = vcInstructionsVideo;
                     break;
                 default: break;
             }

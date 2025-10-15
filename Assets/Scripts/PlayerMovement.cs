@@ -13,9 +13,9 @@ public class PlayerMovement : MonoBehaviour
         private const bool COURIER_ONLINE = true;
     #endif // !UNITY_WEBGL
 
-    protected float maxTurnSpeed = NICLS_COURIER ? 50f : COURIER_ONLINE ? 120f : 80; //45f;
-    protected const float maxForwardSpeed = COURIER_ONLINE ? 18f : 18;//10f;
-    protected const float maxBackwardSpeed = COURIER_ONLINE ? 13f : 18; //4f;
+    protected float maxTurnSpeed = Config.maxTurnSpeed; //45f;
+    protected float maxForwardSpeed = Config.maxForwardSpeed;//10f;
+    protected float maxBackwardSpeed = Config.maxBackwardSpeed; //4f;
     private float forwardSpeed;
 
     protected const float rotDampingTime = 0.05f;

@@ -15,6 +15,7 @@ public class WorldDataReporter : DataReporter
 
     private int offset;
     BoxCollider objectCollider;
+    private bool elememOn = Config.elememOn;
 
     // TODO: JPB: This is a hack and should be removed
     // Using protected elememInterface from DataReporter
@@ -70,7 +71,7 @@ public class WorldDataReporter : DataReporter
         eventQueue.Enqueue(new DataPoint(gameObject.name + "Transform", RealWorldFrameDisplayTime(), transformDict));
 
         #if !UNITY_WEBGL
-        if (Config.elememOn)
+        if (elememOn)
         {
             if (elememInterface == null)
                 elememInterface = GameObject.Find("ElememInterface").GetComponent<ElememInterface>();
@@ -103,7 +104,7 @@ public class WorldDataReporter : DataReporter
         eventQueue.Enqueue(new DataPoint(gameObject.name + "Transform", RealWorldFrameDisplayTime(), transformDict));
 
         #if !UNITY_WEBGL
-        if (Config.elememOn)
+        if (elememOn)
         {
             if (elememInterface == null)
                 elememInterface = GameObject.Find("ElememInterface").GetComponent<ElememInterface>();
@@ -143,7 +144,7 @@ public class WorldDataReporter : DataReporter
         eventQueue.Enqueue(new DataPoint(gameObject.name + "Spawn", RealWorldFrameDisplayTime(), transformDict));
 
         #if !UNITY_WEBGL
-        if (Config.elememOn)
+        if (elememOn)
         {
             if (elememInterface == null)
                 elememInterface = GameObject.Find("ElememInterface").GetComponent<ElememInterface>();
@@ -167,7 +168,7 @@ public class WorldDataReporter : DataReporter
         eventQueue.Enqueue(new DataPoint(gameObject.name + "Despawn", RealWorldFrameDisplayTime(), transformDict));
 
         #if !UNITY_WEBGL
-        if (Config.elememOn)
+        if (elememOn)
         {
             if (elememInterface == null)
                 elememInterface = GameObject.Find("ElememInterface").GetComponent<ElememInterface>();

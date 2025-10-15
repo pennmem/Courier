@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+// using System.Diagnostics;
 using UnityEngine;
 
 
@@ -133,6 +134,7 @@ public class DeliveryItems : MonoBehaviour
 
     public bool StoresSetup()
     {
+        Debug.Log("StoresSetup: " + unused_store_names.Count.ToString() + " stores left");
         return unused_store_names.Count == 0;
     }
 

@@ -55,31 +55,38 @@ public abstract class CoroutineExperiment : MonoBehaviour
         DisplayTitle(title);
         bool repeat = false;
         string wavFilePath;
+        Debug.Log("Starting microphone test");
 
         do
         {
+            Debug.Log("Press Key");
             yield return PressAnyKey(press_any_key);
+            Debug.Log("After Press Key");
             lowBeep.Play();
+            // Debug.Log("After Beep");
             textDisplayer.DisplayText("microphone test recording", recording);
             textDisplayer.ChangeColor(Color.red);
             yield return new WaitForSeconds(lowBeep.clip.length);
             wavFilePath = System.IO.Path.Combine(UnityEPL.GetDataPath(), "microphone_test_" + DataReporter.RealWorldTime().ToString("yyyy-MM-dd_HH_mm_ss") + ".wav");
-
+            // Debug.Log("BEEEP");
             soundRecorder.StartRecording(wavFilePath);
+            // Debug.Log("Start Recording");
             float startTime = Time.time;
             while (Time.time < startTime + MICROPHONE_TEST_LENGTH)
             {
+                // Debug.Log("In While Loop");
                 yield return null;
                 if (InputManager.GetButtonDown("Secret") && Time.time - startTime > 0.1f)
                     break;
             }
 
             audioPlayback.clip = soundRecorder.StopRecording();
-
+            // Debug.Log("Got CLip");
             textDisplayer.DisplayText("microphone test playing", playing);
             textDisplayer.ChangeColor(Color.green);
 
             audioPlayback.Play();
+            // Debug.Log("Playing clip");
             yield return new WaitForSeconds(audioPlayback.clip.length);
             textDisplayer.ClearText();
             textDisplayer.OriginalColor();
@@ -87,7 +94,7 @@ public abstract class CoroutineExperiment : MonoBehaviour
             SetRamulatorState("WAITING", true, new Dictionary<string, object>());
             SetElememState("WAITING");
             textDisplayer.DisplayText("microphone test confirmation", confirmation);
-            while (!InputManager.GetKeyDown(KeyCode.Y) && !InputManager.GetKeyDown(KeyCode.N) && !InputManager.GetKeyDown(KeyCode.C) && 
+            while (!InputManager.GetKeyDown(KeyCode.Y) && !InputManager.GetKeyDown(KeyCode.N) && !InputManager.GetKeyDown(KeyCode.C) &&
                    !InputManager.GetButtonDown("Continue"))
             {
                 yield return null;
@@ -99,6 +106,7 @@ public abstract class CoroutineExperiment : MonoBehaviour
             repeat = InputManager.GetKey(KeyCode.N);
         }
         while (repeat);
+        
 
         if (!System.IO.File.Exists(wavFilePath))
             yield return PressAnyKey("WARNING: Wav output file not detected.  Sounds may not be successfully recorded to disk.");
@@ -130,6 +138,7 @@ public abstract class CoroutineExperiment : MonoBehaviour
             SetRamulatorState("INSTRUCT", true, new Dictionary<string, object>());
             SetElememState("INSTRUCT");
             videoSelector.SetVideo(videoType, videoIndex);
+            Debug.Log("Starting video " + videoType.ToString() + " " + videoIndex.ToString());
             scriptedEventReporter.ReportScriptedEvent("start video", new Dictionary<string, object> { { "video number", videoIndex } });
             videoPlayer.StartVideo();
             while (videoPlayer.IsPlaying())
@@ -159,13 +168,16 @@ public abstract class CoroutineExperiment : MonoBehaviour
         SetRamulatorState("WAITING", true, new Dictionary<string, object>());
         SetElememState("WAITING");
         yield return null;
-
+        Debug.Log("In PressAnyKey");
         textDisplayer.DisplayText("press any key prompt", displayText);
+
         while (!InputManager.anyKeyDown)
             yield return null;
-
+        Debug.Log("After any key down");
         textDisplayer.ClearText();
+        Debug.Log("After clear text");
         SetRamulatorState("WAITING", false, new Dictionary<string, object>());
+        Debug.Log("After waiting");
     }
 
     protected void Quit()

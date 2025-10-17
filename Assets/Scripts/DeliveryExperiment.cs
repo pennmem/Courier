@@ -68,7 +68,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private const bool skipFPS = true;
 
     private const string COURIER_VERSION = "v6.0.0";
-    private const bool DEBUG = false;
+    private const bool DEBUG = true;
 
     private const string RECALL_TEXT = "*******"; // TODO: JPB: Remove this and use display system
     // Constants moved to the Config File
@@ -521,7 +521,6 @@ public class DeliveryExperiment : CoroutineExperiment
         {
             var primacyChoice = SampleFromList(remainderRange, primacyBuf, rng);
             RemoveRange(remainderRange, primacyChoice);
-            Array.Copy(primacyChoice.ToArray(), 0, vals, 0, primacyBuf);
         }
 
         if (recencyBuf > 0)
@@ -537,11 +536,16 @@ public class DeliveryExperiment : CoroutineExperiment
 
         for (int i = 0; i < vals.Length; i++)
         {
-            vals[i] = targetMean + (vals[i] - normMean) * scale;
+            // scale to target mean/variance then clamp to [1,50]
+            double scaled = targetMean + (vals[i] - normMean) * scale;
+            vals[i] = Math.Max(1.0, Math.Min(50.0, scaled));
         }
+
         if (DEBUG)
-            Debug.Log("TemporalStorePoints (scaled): " + string.Join(", ", vals));
+        {
+            Debug.Log("TemporalStorePoints (scaled & clamped): " + string.Join(", ", vals));
             Debug.Log($"TargetMean={targetMean:F2}, TargetSD={targetSD:F2}, TargetVar={targetVar:F2}");
+        }
 
         return vals;
     }
@@ -569,6 +573,19 @@ public class DeliveryExperiment : CoroutineExperiment
             int k = rng.Next(n + 1);
             (list[k], list[n]) = (list[n], list[k]);
         }
+    }
+
+    // Return an int[] containing 0..n-1 shuffled via Fisher-Yates using provided rng
+    private int[] ShuffleIndices(int n, System.Random rng)
+    {
+        int[] arr = new int[n];
+        for (int i = 0; i < n; i++) arr[i] = i;
+        for (int i = n - 1; i > 0; i--)
+        {
+            int j = rng.Next(i + 1);
+            int t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+        }
+        return arr;
     }
 
 
@@ -676,18 +693,8 @@ public class DeliveryExperiment : CoroutineExperiment
 
         for (int i = 0; i < numDeliveries; i++)
         {
-            string prevStore = trialStores.Last();
-            List<string> visible = storeDict.ContainsKey(prevStore) ? storeDict[prevStore] : new List<string>();
-            List<string> candidates = unvisited.Where(s => !visible.Contains(s)).ToList();
-
-            if (candidates.Count > 0)
-                nextStore = candidates[rng.Next(candidates.Count)];
-            else
-            {
-                nextStore = unvisited[rng.Next(unvisited.Count)];
-                success = false;
-            }
-
+            // Relaxed: pick any unvisited store, regardless of visibility
+            nextStore = unvisited[rng.Next(unvisited.Count)];
             unvisited.Remove(nextStore);
             trialStores.Add(nextStore);
         }
@@ -724,64 +731,255 @@ public class DeliveryExperiment : CoroutineExperiment
     }
 
 
-    private List<List<string>> getTotalListPure(List<string> allStores, int numTrials, int numDeliveries, System.Random rng)
+    // private List<List<string>> getTotalListPure(List<string> allStores, int numTrials, int numDeliveries, System.Random rng)
+    // {
+    //     // Build candidate pool once per attempt, then use backtracking with precomputed pair-sets
+    //     // to efficiently select numTrials lists that satisfy the transition constraints.
+    //     int attempts = 0;
+    //     const int MAX_ATTEMPTS = 100;
+
+    //     while (attempts < MAX_ATTEMPTS)
+    //     {
+    //         if (DEBUG) Debug.Log($"getTotalListPure attempt {attempts}");
+
+    //         var pool = listGeneratorPure(allStores, numDeliveries, rng);
+    //         if (pool == null || pool.Count == 0)
+    //         {
+    //             attempts++;
+    //             continue;
+    //         }
+
+    //         // Precompute mapping from store name to index to encode pairs as ints
+    //         int storeCount = allStores.Count;
+    //         var nameToIndex = new Dictionary<string, int>(storeCount);
+    //         for (int i = 0; i < storeCount; i++) nameToIndex[allStores[i]] = i;
+
+    //         // Precompute pair-sets (int-encoded keys) for each candidate list for O(1) membership tests
+    //         int poolSize = pool.Count;
+    //         var pairSets = new List<HashSet<int>>(poolSize);
+    //         for (int i = 0; i < poolSize; i++)
+    //         {
+    //             var s = new HashSet<int>();
+    //             var list = pool[i];
+    //             for (int k = 0; k < list.Count - 1; k++)
+    //             {
+    //                 int a = nameToIndex[list[k]];
+    //                 int b = nameToIndex[list[k + 1]];
+    //                 int key = (a << 16) | b;
+    //                 s.Add(key);
+    //             }
+    //             pairSets.Add(s);
+    //         }
+
+    //         // Backtracking search for a valid ordered selection of numTrials lists
+    //         var used = new bool[poolSize];
+    //         var selection = new List<int>(numTrials);
+
+    //         // Helper: try to extend selection recursively
+    //         bool dfs()
+    //         {
+    //             if (selection.Count == numTrials) return true;
+
+    //             int prevIdx = selection.Count > 0 ? selection[selection.Count - 1] : -1;
+
+    //             for (int candidate = 0; candidate < poolSize; candidate++)
+    //             {
+    //                 if (used[candidate]) continue;
+
+    //                 // If there is a previous list, enforce listCheckPure(prev, curr)
+    //                 if (prevIdx != -1)
+    //                 {
+    //                     // quick check: if any pair is shared between prev and candidate, reject
+    //                     var prevPairs = pairSets[prevIdx];
+    //                     var candPairs = pairSets[candidate];
+    //                     bool shares = false;
+    //                     foreach (var p in candPairs)
+    //                     {
+    //                         if (prevPairs.Contains(p)) { shares = true; break; }
+    //                     }
+    //                     if (shares) continue;
+    //                 }
+
+    //                 // compute overlap with global transitions from already selected lists
+    //                 int overlap = 0;
+    //                 for (int sIdx = 0; sIdx < selection.Count; sIdx++)
+    //                 {
+    //                     var selPairs = pairSets[selection[sIdx]];
+    //                     foreach (var p in pairSets[candidate])
+    //                         if (selPairs.Contains(p)) { overlap++; if (overlap >= 1) break; }
+    //                     if (overlap >= 1) break;
+    //                 }
+    //                 if (overlap >= 1) continue;
+
+    //                 // choose
+    //                 used[candidate] = true;
+    //                 selection.Add(candidate);
+
+    //                 if (dfs()) return true;
+
+    //                 // backtrack
+    //                 selection.RemoveAt(selection.Count - 1);
+    //                 used[candidate] = false;
+    //             }
+
+    //             return false;
+    //         }
+
+    //         // Try different starting orders to increase chance of finding solution quickly
+    //         var startOrder = ShuffleIndices(poolSize, rng);
+    //         bool found = false;
+    //         foreach (var start in startOrder)
+    //         {
+    //             // init
+    //             for (int i = 0; i < poolSize; i++) used[i] = false;
+    //             selection.Clear();
+
+    //             used[start] = true;
+    //             selection.Add(start);
+
+    //             if (dfs())
+    //             {
+    //                 found = true;
+    //                 break;
+    //             }
+
+    //             // else continue to next start
+    //         }
+
+    //         if (found)
+    //         {
+    //             var result = new List<List<string>>();
+    //             foreach (var idx in selection) result.Add(pool[idx]);
+    //             if (DEBUG) Debug.Log("Finished creating store lists (optimized)");
+    //             return result;
+    //         }
+
+    //         attempts++;
+    //     }
+
+    //     // Fallback: last-resort behavior - return a single valid list to avoid blocking calling code
+    //     if (DEBUG) Debug.LogWarning("getTotalListPure failed to build full set within attempts; returning minimal list");
+    //     var fallback = listGeneratorPure(allStores, numDeliveries, rng);
+    //     return fallback != null && fallback.Count > 0 ? new List<List<string>> { fallback[0] } : new List<List<string>>();
+    // }
+
+    // Fast greedy fallback generator: try to build numTrials lists quickly from a candidate pool.
+    // If pool is null or insufficient, it will generate a fresh pool via listGeneratorPure.
+    private List<List<string>> getTotalListGreedy(List<string> allStores, int numTrials, int numDeliveries, System.Random rng, List<List<string>> pool = null)
     {
-        List<List<string>> finalLists = new List<List<string>>();
-        int attempts = 0;
-        bool success = false;
+        if (pool == null || pool.Count == 0)
+            pool = listGeneratorPure(allStores, numDeliveries, rng);
 
-        while (!success && attempts < 10)
+        int poolSize = pool.Count;
+        if (poolSize == 0) return new List<List<string>>();
+
+        // Precompute mapping from store name to index and pair sets (int keys)
+        int storeCount = allStores.Count;
+        var nameToIndex = new Dictionary<string, int>(storeCount);
+        for (int i = 0; i < storeCount; i++) nameToIndex[allStores[i]] = i;
+
+        var pairSets = new List<HashSet<int>>(poolSize);
+        for (int i = 0; i < poolSize; i++)
         {
-            var total = listGeneratorPure(allStores, numDeliveries, rng);
-            finalLists = new List<List<string>> { total[0] };
-            total.RemoveAt(0);
-
-            var transDict = new Dictionary<string, List<string>>();
-            var firstList = finalLists[0];
-            for (int i = 0; i < firstList.Count - 1; i++)
+            var s = new HashSet<int>();
+            var list = pool[i];
+            for (int k = 0; k < list.Count - 1; k++)
             {
-                string a = firstList[i];
-                string b = firstList[i + 1];
-                transDict[a] = new List<string> { b };
+                int a = nameToIndex[list[k]];
+                int b = nameToIndex[list[k + 1]];
+                int key = (a << 16) | b;
+                s.Add(key);
             }
-
-            foreach (var curr in total)
-            {
-                var prev = finalLists.Last();
-                if (!listCheckPure(prev, curr))
-                    continue;
-
-                int overlap = 0;
-                for (int i = 0; i < curr.Count - 1; i++)
-                {
-                    string a = curr[i], b = curr[i + 1];
-                    if (transDict.TryGetValue(a, out List<string> nexts) && nexts.Contains(b))
-                        overlap++;
-                }
-
-                if (overlap < 1)
-                {
-                    finalLists.Add(curr);
-                    for (int i = 0; i < curr.Count - 1; i++)
-                    {
-                        string a = curr[i], b = curr[i + 1];
-                        if (!transDict.ContainsKey(a))
-                            transDict[a] = new List<string>();
-                        transDict[a].Add(b);
-                    }
-                }
-
-                if (finalLists.Count == numTrials)
-                {
-                    success = true;
-                    break;
-                }
-            }
-
-            attempts++;
+            pairSets.Add(s);
         }
 
-        return finalLists;
+        // // Greedy construction with limited restarts
+        // int maxRestarts = 100000;
+        // for (int restart = 0; restart < maxRestarts; restart++)
+        // {
+        //     Debug.Log($"getTotalListGreedy attempt {restart}");
+        //     var used = new bool[poolSize];
+        //     var selection = new List<int>();
+
+        //     // pick random start
+        //     int start = rng.Next(poolSize);
+        //     used[start] = true;
+        //     selection.Add(start);
+
+        //     bool failed = false;
+        //     while (selection.Count < numTrials && !failed)
+        //     {
+        //         int prev = selection.Last();
+        //         bool found = false;
+        //         // try candidates in random order
+        //         var order = ShuffleIndices(poolSize, rng);
+        //         foreach (int cand in order)
+        //         {
+        //             if (used[cand]) continue;
+        //             // check adjacency with previous
+        //             bool shares = pairSets[prev].Overlaps(pairSets[cand]);
+        //             if (shares) continue;
+
+        //             // check global overlap with already selected
+        //             bool overlap = false;
+        //             foreach (var sIdx in selection)
+        //             {
+        //                 if (pairSets[sIdx].Overlaps(pairSets[cand])) { overlap = true; break; }
+        //             }
+        //             if (overlap) continue;
+
+        //             // choose
+        //             used[cand] = true;
+        //             selection.Add(cand);
+        //             found = true;
+        //             break;
+        //         }
+
+        //         if (!found)
+        //             failed = true;
+        //     }
+
+        //     if (!failed && selection.Count == numTrials)
+        //     {
+        //         var result = new List<List<string>>();
+        //         foreach (var idx in selection) result.Add(pool[idx]);
+        //         if (DEBUG) Debug.Log("Finished creating store lists (greedy)");
+        //         return result;
+        //     }
+        // }
+
+        // Fallback: return as many valid lists as we can greedily (possibly < numTrials)
+        var fallback = new List<List<string>>();
+        var used2 = new bool[poolSize];
+        for (int i = 0; i < poolSize && fallback.Count < numTrials; i++)
+        {
+            if (used2[i]) continue;
+            bool compatible = true;
+            foreach (var existing in fallback)
+            {
+                // check listCheckPure semantics
+                if (!listCheckPure(existing, pool[i])) { compatible = false; break; }
+            }
+            if (compatible)
+            {
+                fallback.Add(pool[i]);
+                used2[i] = true;
+            }
+        }
+
+        // If not enough lists, fill remainder with random lists from pool
+        if (fallback.Count < numTrials)
+        {
+            var remainingIndices = Enumerable.Range(0, poolSize).Where(i => !used2[i]).ToList();
+            while (fallback.Count < numTrials && remainingIndices.Count > 0)
+            {
+                int idx = remainingIndices[rng.Next(remainingIndices.Count)];
+                fallback.Add(pool[idx]);
+                remainingIndices.Remove(idx);
+            }
+        }
+        if (DEBUG) Debug.Log("Finished creating store lists (fallback)");
+        return fallback;
     }
 
     // LC: this function pre-generates the list of stores to visit in a trial
@@ -1227,16 +1425,17 @@ public class DeliveryExperiment : CoroutineExperiment
         // Setup Environment
         yield return EnableEnvironment();  // TODO: JPB: there is a race condition between saving config and generating session folder probably (remove enable environment to test)
 
+        int numTrials = (sessionNumber == 0) ? Config.trialsPerSessionSingleTownLearning: Config.trialsPerSession;
+        if (DEBUG) Debug.Log($"Value Courier: session {sessionNumber}, numTrials = {numTrials}");
         Task<List<List<string>>> totalListTask = null;
         if (VALUE_COURIER)
         {
             if (DEBUG)
                 Debug.Log("Starting async store list generation...");
             List<string> storeNames = environment.stores.Select(s => s.gameObject.name).ToList();
-            totalListTask = Task.Run(() => getTotalListPure(storeNames, Config.trialsPerSession, Config.deliveriesPerTrial, this.rng));
+            
+            totalListTask = Task.Run(() => getTotalListGreedy(storeNames, numTrials, Config.deliveriesPerTrial, this.rng));
         }
-
-
 
         // Frame Rate Test
         if (COURIER_ONLINE)
@@ -1316,59 +1515,110 @@ public class DeliveryExperiment : CoroutineExperiment
         {
             if (DEBUG)
                 Debug.Log("Waiting for store list generation to finish...");
+
+            // Wait indefinitely for background task to finish
             yield return new WaitUntil(() => totalListTask.IsCompleted);
 
-            if (totalListTask.Exception != null && DEBUG)
-                Debug.LogError($"Error generating store list: {totalListTask.Exception}");
+            List<List<string>> storeNameLists = null;
+            if (totalListTask.IsCompleted && totalListTask.Exception == null)
+            {
+                storeNameLists = totalListTask.Result;
+                if (DEBUG) Debug.Log("Store list generation complete (background).");
+                yield return null;
+            }
             else
             {
-                List<List<string>> storeNameLists = totalListTask.Result;
-                if (DEBUG)
-                    Debug.Log("Store list generation complete.");
-                yield return null;
+                if (DEBUG) Debug.LogWarning("Store list generation task failed or was canceled.");
+            }
 
-                storeLists = new List<List<StoreComponent>>();
-
-                for (int i = 0; i < storeNameLists.Count; i++)
+            // At this point we have storeNameLists (may be partial). Ensure we always produce something.
+            if (storeNameLists == null || storeNameLists.Count == 0)
+            {
+                // Instead of failing, create a deterministic fallback: rotate through all stores to build lists.
+                if (DEBUG) Debug.LogWarning("No store lists produced by generators; building deterministic fallback lists.");
+                List<string> storeNames = environment.stores.Select(s => s.gameObject.name).ToList();
+                storeNameLists = new List<List<string>>();
+                int m = storeNames.Count;
+                int listLen = Config.deliveriesPerTrial + 1; // initial + numDeliveries
+                for (int t = 0; t < numTrials; t++)
                 {
-                    List<string> nameList = storeNameLists[i];
-                    List<StoreComponent> storeList = new List<StoreComponent>();
+                    var trial = new List<string>();
+                    int start = t % m;
+                    for (int k = 0; k < listLen; k++)
+                        trial.Add(storeNames[(start + k) % m]);
+                    storeNameLists.Add(trial);
+                }
+            }
 
-                    for (int j = 0; j < nameList.Count; j++)
+            if (DEBUG) Debug.Log("Populating storeLists from names...");
+            yield return null;
+
+            // Debug: print the generated name lists
+            if (DEBUG)
+            {
+                Debug.Log($"storeNameLists count: {storeNameLists?.Count ?? 0}");
+                if (storeNameLists != null)
+                {
+                    for (int t = 0; t < storeNameLists.Count; t++)
                     {
-                        string storeName = nameList[j];
-                        StoreComponent store = null;
+                        var names = storeNameLists[t];
+                        Debug.Log($"storeNameLists[{t}] ({names.Count}): {string.Join(", ", names)}");
+                    }
+                }
+            }
 
-                        // Find the matching store in the environment
-                        for (int k = 0; k < environment.stores.Length; k++)
+            storeLists = new List<List<StoreComponent>>();
+
+            for (int i = 0; i < storeNameLists.Count; i++)
+            {
+                List<string> nameList = storeNameLists[i];
+                List<StoreComponent> storeList = new List<StoreComponent>();
+
+                for (int j = 0; j < nameList.Count; j++)
+                {
+                    string storeName = nameList[j];
+                    StoreComponent store = null;
+
+                    // Find the matching store in the environment
+                    for (int k = 0; k < environment.stores.Length; k++)
+                    {
+                        if (environment.stores[k].gameObject.name == storeName)
                         {
-                            if (environment.stores[k].gameObject.name == storeName)
-                            {
-                                store = environment.stores[k];
-                                break;
-                            }
+                            store = environment.stores[k];
+                            break;
                         }
-
-                        if (store != null)
-                            storeList.Add(store);
-                        else if (DEBUG)
-                            Debug.LogWarning($"Store name '{storeName}' not found in environment!");
                     }
 
-                    storeLists.Add(storeList);
+                    if (store != null)
+                        storeList.Add(store);
+                    else if (DEBUG)
+                        Debug.LogWarning($"Store name '{storeName}' not found in environment!");
                 }
 
+                storeLists.Add(storeList);
+            }
 
-                var reliableRandom = deliveryItems.ReliableRandom();
-                List<StoreComponent> allStores = new List<StoreComponent>(environment.stores);
-                allStores.Shuffle(reliableRandom);
-                for (int i = 0; i < allStores.Count; i++)
-                {
-                    if (i % 2 == 1)
-                        StimStores.Add(allStores[i]);
-                    else
-                        noStimStores.Add(allStores[i]);
-                }
+            // // Debug: print the mapped storeLists (StoreComponent names)
+            // if (DEBUG)
+            // {
+            //     Debug.Log($"storeLists count: {storeLists?.Count ?? 0}");
+            //     for (int t = 0; t < storeLists.Count; t++)
+            //     {
+            //         var sList = storeLists[t];
+            //         var sNames = sList.Select(s => s.gameObject.name).ToArray();
+            //         Debug.Log($"storeLists[{t}] ({sNames.Length}): {string.Join(", ", sNames)}");
+            //     }
+            // }
+
+            var reliableRandom = deliveryItems.ReliableRandom();
+            List<StoreComponent> allStores = new List<StoreComponent>(environment.stores);
+            allStores.Shuffle(reliableRandom);
+            for (int i = 0; i < allStores.Count; i++)
+            {
+                if (i % 2 == 1)
+                    StimStores.Add(allStores[i]);
+                else
+                    noStimStores.Add(allStores[i]);
             }
         }
 

@@ -1,0 +1,5031 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Input version="2">
+  <PlayerOneScheme>88b2e504dc1f43ec92b2dca0e8099417</PlayerOneScheme>
+  <PlayerTwoScheme />
+  <PlayerThreeScheme />
+  <PlayerFourScheme />
+  <ControlScheme name="Unity-Imported" id="88b2e504dc1f43ec92b2dca0e8099417">
+    <Action name="mouse_axis_0">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>MouseAxis</Type>
+        <Axis>0</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+    </Action>
+    <Action name="mouse_axis_1">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>MouseAxis</Type>
+        <Axis>1</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+    </Action>
+    <Action name="mouse_axis_2">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>MouseAxis</Type>
+        <Axis>2</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_0_axis_0">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>0</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_0_axis_1">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>1</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_0_axis_2">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>2</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_0_axis_3">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>3</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_0_axis_4">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>4</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_0_axis_5">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>5</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_0_axis_6">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>6</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_0_axis_7">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>7</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_0_axis_8">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>8</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_0_axis_9">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>9</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_0_axis_10">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>10</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_0_axis_11">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>11</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_0_axis_12">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>12</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_0_axis_13">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>13</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_0_axis_14">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>14</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_0_axis_15">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>15</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_0_axis_16">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>16</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_0_axis_17">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>17</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_0_axis_18">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>18</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_0_axis_19">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>19</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_0_axis_20">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>20</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_0_axis_21">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>21</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_0_axis_22">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>22</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_0_axis_23">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>23</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_0_axis_24">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>24</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_0_axis_25">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>25</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_0_axis_26">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>26</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_0_axis_27">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>27</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_1_axis_0">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>0</Axis>
+        <Joystick>1</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_1_axis_1">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>1</Axis>
+        <Joystick>1</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_1_axis_2">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>2</Axis>
+        <Joystick>1</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_1_axis_3">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>3</Axis>
+        <Joystick>1</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_1_axis_4">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>4</Axis>
+        <Joystick>1</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_1_axis_5">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>5</Axis>
+        <Joystick>1</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_1_axis_6">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>6</Axis>
+        <Joystick>1</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_1_axis_7">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>7</Axis>
+        <Joystick>1</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_1_axis_8">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>8</Axis>
+        <Joystick>1</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_1_axis_9">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>9</Axis>
+        <Joystick>1</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_1_axis_10">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>10</Axis>
+        <Joystick>1</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_1_axis_11">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>11</Axis>
+        <Joystick>1</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_1_axis_12">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>12</Axis>
+        <Joystick>1</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_1_axis_13">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>13</Axis>
+        <Joystick>1</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_1_axis_14">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>14</Axis>
+        <Joystick>1</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_1_axis_15">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>15</Axis>
+        <Joystick>1</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_1_axis_16">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>16</Axis>
+        <Joystick>1</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_1_axis_17">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>17</Axis>
+        <Joystick>1</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_1_axis_18">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>18</Axis>
+        <Joystick>1</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_1_axis_19">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>19</Axis>
+        <Joystick>1</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_1_axis_20">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>20</Axis>
+        <Joystick>1</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_1_axis_21">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>21</Axis>
+        <Joystick>1</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_1_axis_22">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>22</Axis>
+        <Joystick>1</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_1_axis_23">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>23</Axis>
+        <Joystick>1</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_1_axis_24">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>24</Axis>
+        <Joystick>1</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_1_axis_25">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>25</Axis>
+        <Joystick>1</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_1_axis_26">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>26</Axis>
+        <Joystick>1</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_1_axis_27">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>27</Axis>
+        <Joystick>1</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_2_axis_0">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>0</Axis>
+        <Joystick>2</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_2_axis_1">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>1</Axis>
+        <Joystick>2</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_2_axis_2">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>2</Axis>
+        <Joystick>2</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_2_axis_3">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>3</Axis>
+        <Joystick>2</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_2_axis_4">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>4</Axis>
+        <Joystick>2</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_2_axis_5">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>5</Axis>
+        <Joystick>2</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_2_axis_6">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>6</Axis>
+        <Joystick>2</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_2_axis_7">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>7</Axis>
+        <Joystick>2</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_2_axis_8">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>8</Axis>
+        <Joystick>2</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_2_axis_9">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>9</Axis>
+        <Joystick>2</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_2_axis_10">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>10</Axis>
+        <Joystick>2</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_2_axis_11">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>11</Axis>
+        <Joystick>2</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_2_axis_12">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>12</Axis>
+        <Joystick>2</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_2_axis_13">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>13</Axis>
+        <Joystick>2</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_2_axis_14">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>14</Axis>
+        <Joystick>2</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_2_axis_15">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>15</Axis>
+        <Joystick>2</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_2_axis_16">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>16</Axis>
+        <Joystick>2</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_2_axis_17">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>17</Axis>
+        <Joystick>2</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_2_axis_18">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>18</Axis>
+        <Joystick>2</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_2_axis_19">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>19</Axis>
+        <Joystick>2</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_2_axis_20">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>20</Axis>
+        <Joystick>2</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_2_axis_21">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>21</Axis>
+        <Joystick>2</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_2_axis_22">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>22</Axis>
+        <Joystick>2</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_2_axis_23">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>23</Axis>
+        <Joystick>2</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_2_axis_24">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>24</Axis>
+        <Joystick>2</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_2_axis_25">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>25</Axis>
+        <Joystick>2</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_2_axis_26">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>26</Axis>
+        <Joystick>2</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_2_axis_27">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>27</Axis>
+        <Joystick>2</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_3_axis_0">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>0</Axis>
+        <Joystick>3</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_3_axis_1">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>1</Axis>
+        <Joystick>3</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_3_axis_2">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>2</Axis>
+        <Joystick>3</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_3_axis_3">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>3</Axis>
+        <Joystick>3</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_3_axis_4">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>4</Axis>
+        <Joystick>3</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_3_axis_5">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>5</Axis>
+        <Joystick>3</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_3_axis_6">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>6</Axis>
+        <Joystick>3</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_3_axis_7">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>7</Axis>
+        <Joystick>3</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_3_axis_8">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>8</Axis>
+        <Joystick>3</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_3_axis_9">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>9</Axis>
+        <Joystick>3</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_3_axis_10">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>10</Axis>
+        <Joystick>3</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_3_axis_11">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>11</Axis>
+        <Joystick>3</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_3_axis_12">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>12</Axis>
+        <Joystick>3</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_3_axis_13">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>13</Axis>
+        <Joystick>3</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_3_axis_14">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>14</Axis>
+        <Joystick>3</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_3_axis_15">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>15</Axis>
+        <Joystick>3</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_3_axis_16">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>16</Axis>
+        <Joystick>3</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_3_axis_17">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>17</Axis>
+        <Joystick>3</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_3_axis_18">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>18</Axis>
+        <Joystick>3</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_3_axis_19">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>19</Axis>
+        <Joystick>3</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_3_axis_20">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>20</Axis>
+        <Joystick>3</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_3_axis_21">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>21</Axis>
+        <Joystick>3</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_3_axis_22">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>22</Axis>
+        <Joystick>3</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_3_axis_23">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>23</Axis>
+        <Joystick>3</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_3_axis_24">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>24</Axis>
+        <Joystick>3</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_3_axis_25">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>25</Axis>
+        <Joystick>3</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_3_axis_26">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>26</Axis>
+        <Joystick>3</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_3_axis_27">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>27</Axis>
+        <Joystick>3</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_4_axis_0">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>0</Axis>
+        <Joystick>4</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_4_axis_1">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>1</Axis>
+        <Joystick>4</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_4_axis_2">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>2</Axis>
+        <Joystick>4</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_4_axis_3">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>3</Axis>
+        <Joystick>4</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_4_axis_4">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>4</Axis>
+        <Joystick>4</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_4_axis_5">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>5</Axis>
+        <Joystick>4</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_4_axis_6">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>6</Axis>
+        <Joystick>4</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_4_axis_7">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>7</Axis>
+        <Joystick>4</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_4_axis_8">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>8</Axis>
+        <Joystick>4</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_4_axis_9">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>9</Axis>
+        <Joystick>4</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_4_axis_10">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>10</Axis>
+        <Joystick>4</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_4_axis_11">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>11</Axis>
+        <Joystick>4</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_4_axis_12">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>12</Axis>
+        <Joystick>4</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_4_axis_13">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>13</Axis>
+        <Joystick>4</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_4_axis_14">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>14</Axis>
+        <Joystick>4</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_4_axis_15">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>15</Axis>
+        <Joystick>4</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_4_axis_16">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>16</Axis>
+        <Joystick>4</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_4_axis_17">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>17</Axis>
+        <Joystick>4</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_4_axis_18">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>18</Axis>
+        <Joystick>4</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_4_axis_19">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>19</Axis>
+        <Joystick>4</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_4_axis_20">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>20</Axis>
+        <Joystick>4</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_4_axis_21">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>21</Axis>
+        <Joystick>4</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_4_axis_22">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>22</Axis>
+        <Joystick>4</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_4_axis_23">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>23</Axis>
+        <Joystick>4</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_4_axis_24">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>24</Axis>
+        <Joystick>4</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_4_axis_25">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>25</Axis>
+        <Joystick>4</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_4_axis_26">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>26</Axis>
+        <Joystick>4</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_4_axis_27">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>27</Axis>
+        <Joystick>4</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_5_axis_0">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>0</Axis>
+        <Joystick>5</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_5_axis_1">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>1</Axis>
+        <Joystick>5</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_5_axis_2">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>2</Axis>
+        <Joystick>5</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_5_axis_3">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>3</Axis>
+        <Joystick>5</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_5_axis_4">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>4</Axis>
+        <Joystick>5</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_5_axis_5">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>5</Axis>
+        <Joystick>5</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_5_axis_6">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>6</Axis>
+        <Joystick>5</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_5_axis_7">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>7</Axis>
+        <Joystick>5</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_5_axis_8">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>8</Axis>
+        <Joystick>5</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_5_axis_9">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>9</Axis>
+        <Joystick>5</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_5_axis_10">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>10</Axis>
+        <Joystick>5</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_5_axis_11">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>11</Axis>
+        <Joystick>5</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_5_axis_12">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>12</Axis>
+        <Joystick>5</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_5_axis_13">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>13</Axis>
+        <Joystick>5</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_5_axis_14">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>14</Axis>
+        <Joystick>5</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_5_axis_15">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>15</Axis>
+        <Joystick>5</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_5_axis_16">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>16</Axis>
+        <Joystick>5</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_5_axis_17">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>17</Axis>
+        <Joystick>5</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_5_axis_18">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>18</Axis>
+        <Joystick>5</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_5_axis_19">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>19</Axis>
+        <Joystick>5</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_5_axis_20">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>20</Axis>
+        <Joystick>5</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_5_axis_21">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>21</Axis>
+        <Joystick>5</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_5_axis_22">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>22</Axis>
+        <Joystick>5</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_5_axis_23">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>23</Axis>
+        <Joystick>5</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_5_axis_24">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>24</Axis>
+        <Joystick>5</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_5_axis_25">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>25</Axis>
+        <Joystick>5</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_5_axis_26">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>26</Axis>
+        <Joystick>5</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_5_axis_27">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>27</Axis>
+        <Joystick>5</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_6_axis_0">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>0</Axis>
+        <Joystick>6</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_6_axis_1">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>1</Axis>
+        <Joystick>6</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_6_axis_2">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>2</Axis>
+        <Joystick>6</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_6_axis_3">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>3</Axis>
+        <Joystick>6</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_6_axis_4">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>4</Axis>
+        <Joystick>6</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_6_axis_5">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>5</Axis>
+        <Joystick>6</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_6_axis_6">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>6</Axis>
+        <Joystick>6</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_6_axis_7">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>7</Axis>
+        <Joystick>6</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_6_axis_8">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>8</Axis>
+        <Joystick>6</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_6_axis_9">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>9</Axis>
+        <Joystick>6</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_6_axis_10">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>10</Axis>
+        <Joystick>6</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_6_axis_11">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>11</Axis>
+        <Joystick>6</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_6_axis_12">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>12</Axis>
+        <Joystick>6</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_6_axis_13">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>13</Axis>
+        <Joystick>6</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_6_axis_14">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>14</Axis>
+        <Joystick>6</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_6_axis_15">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>15</Axis>
+        <Joystick>6</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_6_axis_16">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>16</Axis>
+        <Joystick>6</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_6_axis_17">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>17</Axis>
+        <Joystick>6</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_6_axis_18">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>18</Axis>
+        <Joystick>6</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_6_axis_19">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>19</Axis>
+        <Joystick>6</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_6_axis_20">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>20</Axis>
+        <Joystick>6</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_6_axis_21">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>21</Axis>
+        <Joystick>6</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_6_axis_22">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>22</Axis>
+        <Joystick>6</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_6_axis_23">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>23</Axis>
+        <Joystick>6</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_6_axis_24">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>24</Axis>
+        <Joystick>6</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_6_axis_25">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>25</Axis>
+        <Joystick>6</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_6_axis_26">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>26</Axis>
+        <Joystick>6</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_6_axis_27">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>27</Axis>
+        <Joystick>6</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_7_axis_0">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>0</Axis>
+        <Joystick>7</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_7_axis_1">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>1</Axis>
+        <Joystick>7</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_7_axis_2">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>2</Axis>
+        <Joystick>7</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_7_axis_3">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>3</Axis>
+        <Joystick>7</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_7_axis_4">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>4</Axis>
+        <Joystick>7</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_7_axis_5">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>5</Axis>
+        <Joystick>7</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_7_axis_6">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>6</Axis>
+        <Joystick>7</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_7_axis_7">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>7</Axis>
+        <Joystick>7</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_7_axis_8">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>8</Axis>
+        <Joystick>7</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_7_axis_9">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>9</Axis>
+        <Joystick>7</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_7_axis_10">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>10</Axis>
+        <Joystick>7</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_7_axis_11">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>11</Axis>
+        <Joystick>7</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_7_axis_12">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>12</Axis>
+        <Joystick>7</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_7_axis_13">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>13</Axis>
+        <Joystick>7</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_7_axis_14">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>14</Axis>
+        <Joystick>7</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_7_axis_15">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>15</Axis>
+        <Joystick>7</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_7_axis_16">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>16</Axis>
+        <Joystick>7</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_7_axis_17">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>17</Axis>
+        <Joystick>7</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_7_axis_18">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>18</Axis>
+        <Joystick>7</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_7_axis_19">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>19</Axis>
+        <Joystick>7</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_7_axis_20">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>20</Axis>
+        <Joystick>7</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_7_axis_21">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>21</Axis>
+        <Joystick>7</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_7_axis_22">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>22</Axis>
+        <Joystick>7</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_7_axis_23">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>23</Axis>
+        <Joystick>7</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_7_axis_24">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>24</Axis>
+        <Joystick>7</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_7_axis_25">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>25</Axis>
+        <Joystick>7</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_7_axis_26">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>26</Axis>
+        <Joystick>7</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_7_axis_27">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>27</Axis>
+        <Joystick>7</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_8_axis_0">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>0</Axis>
+        <Joystick>8</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_8_axis_1">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>1</Axis>
+        <Joystick>8</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_8_axis_2">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>2</Axis>
+        <Joystick>8</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_8_axis_3">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>3</Axis>
+        <Joystick>8</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_8_axis_4">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>4</Axis>
+        <Joystick>8</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_8_axis_5">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>5</Axis>
+        <Joystick>8</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_8_axis_6">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>6</Axis>
+        <Joystick>8</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_8_axis_7">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>7</Axis>
+        <Joystick>8</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_8_axis_8">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>8</Axis>
+        <Joystick>8</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_8_axis_9">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>9</Axis>
+        <Joystick>8</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_8_axis_10">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>10</Axis>
+        <Joystick>8</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_8_axis_11">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>11</Axis>
+        <Joystick>8</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_8_axis_12">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>12</Axis>
+        <Joystick>8</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_8_axis_13">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>13</Axis>
+        <Joystick>8</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_8_axis_14">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>14</Axis>
+        <Joystick>8</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_8_axis_15">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>15</Axis>
+        <Joystick>8</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_8_axis_16">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>16</Axis>
+        <Joystick>8</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_8_axis_17">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>17</Axis>
+        <Joystick>8</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_8_axis_18">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>18</Axis>
+        <Joystick>8</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_8_axis_19">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>19</Axis>
+        <Joystick>8</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_8_axis_20">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>20</Axis>
+        <Joystick>8</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_8_axis_21">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>21</Axis>
+        <Joystick>8</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_8_axis_22">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>22</Axis>
+        <Joystick>8</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_8_axis_23">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>23</Axis>
+        <Joystick>8</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_8_axis_24">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>24</Axis>
+        <Joystick>8</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_8_axis_25">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>25</Axis>
+        <Joystick>8</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_8_axis_26">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>26</Axis>
+        <Joystick>8</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_8_axis_27">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>27</Axis>
+        <Joystick>8</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_9_axis_0">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>0</Axis>
+        <Joystick>9</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_9_axis_1">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>1</Axis>
+        <Joystick>9</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_9_axis_2">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>2</Axis>
+        <Joystick>9</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_9_axis_3">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>3</Axis>
+        <Joystick>9</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_9_axis_4">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>4</Axis>
+        <Joystick>9</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_9_axis_5">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>5</Axis>
+        <Joystick>9</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_9_axis_6">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>6</Axis>
+        <Joystick>9</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_9_axis_7">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>7</Axis>
+        <Joystick>9</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_9_axis_8">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>8</Axis>
+        <Joystick>9</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_9_axis_9">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>9</Axis>
+        <Joystick>9</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_9_axis_10">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>10</Axis>
+        <Joystick>9</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_9_axis_11">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>11</Axis>
+        <Joystick>9</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_9_axis_12">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>12</Axis>
+        <Joystick>9</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_9_axis_13">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>13</Axis>
+        <Joystick>9</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_9_axis_14">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>14</Axis>
+        <Joystick>9</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_9_axis_15">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>15</Axis>
+        <Joystick>9</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_9_axis_16">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>16</Axis>
+        <Joystick>9</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_9_axis_17">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>17</Axis>
+        <Joystick>9</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_9_axis_18">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>18</Axis>
+        <Joystick>9</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_9_axis_19">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>19</Axis>
+        <Joystick>9</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_9_axis_20">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>20</Axis>
+        <Joystick>9</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_9_axis_21">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>21</Axis>
+        <Joystick>9</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_9_axis_22">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>22</Axis>
+        <Joystick>9</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_9_axis_23">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>23</Axis>
+        <Joystick>9</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_9_axis_24">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>24</Axis>
+        <Joystick>9</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_9_axis_25">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>25</Axis>
+        <Joystick>9</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_9_axis_26">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>26</Axis>
+        <Joystick>9</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_9_axis_27">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>27</Axis>
+        <Joystick>9</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_10_axis_0">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>0</Axis>
+        <Joystick>10</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_10_axis_1">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>1</Axis>
+        <Joystick>10</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_10_axis_2">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>2</Axis>
+        <Joystick>10</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_10_axis_3">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>3</Axis>
+        <Joystick>10</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_10_axis_4">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>4</Axis>
+        <Joystick>10</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_10_axis_5">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>5</Axis>
+        <Joystick>10</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_10_axis_6">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>6</Axis>
+        <Joystick>10</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_10_axis_7">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>7</Axis>
+        <Joystick>10</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_10_axis_8">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>8</Axis>
+        <Joystick>10</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_10_axis_9">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>9</Axis>
+        <Joystick>10</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_10_axis_10">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>10</Axis>
+        <Joystick>10</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_10_axis_11">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>11</Axis>
+        <Joystick>10</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_10_axis_12">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>12</Axis>
+        <Joystick>10</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_10_axis_13">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>13</Axis>
+        <Joystick>10</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_10_axis_14">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>14</Axis>
+        <Joystick>10</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_10_axis_15">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>15</Axis>
+        <Joystick>10</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_10_axis_16">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>16</Axis>
+        <Joystick>10</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_10_axis_17">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>17</Axis>
+        <Joystick>10</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_10_axis_18">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>18</Axis>
+        <Joystick>10</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_10_axis_19">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>19</Axis>
+        <Joystick>10</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_10_axis_20">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>20</Axis>
+        <Joystick>10</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_10_axis_21">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>21</Axis>
+        <Joystick>10</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_10_axis_22">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>22</Axis>
+        <Joystick>10</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_10_axis_23">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>23</Axis>
+        <Joystick>10</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_10_axis_24">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>24</Axis>
+        <Joystick>10</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_10_axis_25">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>25</Axis>
+        <Joystick>10</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_10_axis_26">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>26</Axis>
+        <Joystick>10</Joystick>
+      </Binding>
+    </Action>
+    <Action name="joy_10_axis_27">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>1</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>27</Axis>
+        <Joystick>10</Joystick>
+      </Binding>
+    </Action>
+    <Action name="Submit">
+      <Description />
+      <Binding>
+        <Positive>Return</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0.001</DeadZone>
+        <Gravity>1000</Gravity>
+        <Sensitivity>1000</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>Button</Type>
+        <Axis>0</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+      <Binding>
+        <Positive>JoystickButton0</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0.001</DeadZone>
+        <Gravity>1000</Gravity>
+        <Sensitivity>1000</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>Button</Type>
+        <Axis>0</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+    </Action>
+    <Action name="Submit">
+      <Description />
+      <Binding>
+        <Positive>None</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0.001</DeadZone>
+        <Gravity>1000</Gravity>
+        <Sensitivity>1000</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>Button</Type>
+        <Axis>0</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+      <Binding>
+        <Positive>Space</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0.001</DeadZone>
+        <Gravity>1000</Gravity>
+        <Sensitivity>1000</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>Button</Type>
+        <Axis>0</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+    </Action>
+    <Action name="Cancel">
+      <Description />
+      <Binding>
+        <Positive>Escape</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0.001</DeadZone>
+        <Gravity>1000</Gravity>
+        <Sensitivity>1000</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>Button</Type>
+        <Axis>0</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+      <Binding>
+        <Positive>JoystickButton1</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0.001</DeadZone>
+        <Gravity>1000</Gravity>
+        <Sensitivity>1000</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>Button</Type>
+        <Axis>0</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+    </Action>
+    <Action name="Enable Debug Button 1">
+      <Description />
+      <Binding>
+        <Positive>LeftControl</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>0</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>Button</Type>
+        <Axis>0</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+      <Binding>
+        <Positive>JoystickButton8</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>0</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>Button</Type>
+        <Axis>0</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+    </Action>
+    <Action name="Enable Debug Button 2">
+      <Description />
+      <Binding>
+        <Positive>Backspace</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>0</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>Button</Type>
+        <Axis>0</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+      <Binding>
+        <Positive>JoystickButton9</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>0</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>Button</Type>
+        <Axis>0</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+    </Action>
+    <Action name="Debug Reset">
+      <Description />
+      <Binding>
+        <Positive>LeftAlt</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>0</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>Button</Type>
+        <Axis>0</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+      <Binding>
+        <Positive>JoystickButton1</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>0</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>Button</Type>
+        <Axis>0</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+    </Action>
+    <Action name="Debug Next">
+      <Description />
+      <Binding>
+        <Positive>PageDown</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>0</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>Button</Type>
+        <Axis>0</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+      <Binding>
+        <Positive>JoystickButton5</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>0</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>Button</Type>
+        <Axis>0</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+    </Action>
+    <Action name="Debug Previous">
+      <Description />
+      <Binding>
+        <Positive>PageUp</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>0</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>Button</Type>
+        <Axis>0</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+      <Binding>
+        <Positive>JoystickButton4</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>0</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>Button</Type>
+        <Axis>0</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+    </Action>
+    <Action name="Debug Validate">
+      <Description />
+      <Binding>
+        <Positive>Return</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>0</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>Button</Type>
+        <Axis>0</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+      <Binding>
+        <Positive>JoystickButton0</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>0</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>Button</Type>
+        <Axis>0</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+    </Action>
+    <Action name="Debug Persistent">
+      <Description />
+      <Binding>
+        <Positive>RightShift</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>0</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>Button</Type>
+        <Axis>0</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+      <Binding>
+        <Positive>JoystickButton2</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>0</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>Button</Type>
+        <Axis>0</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+    </Action>
+    <Action name="Debug Multiplier">
+      <Description />
+      <Binding>
+        <Positive>LeftShift</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>0</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>Button</Type>
+        <Axis>0</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+      <Binding>
+        <Positive>JoystickButton3</Positive>
+        <Negative>None</Negative>
+        <DeadZone>0</DeadZone>
+        <Gravity>0</Gravity>
+        <Sensitivity>0</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>Button</Type>
+        <Axis>0</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+    </Action>
+    <Action name="Debug Horizontal">
+      <Description />
+      <Binding>
+        <Positive>RightArrow</Positive>
+        <Negative>LeftArrow</Negative>
+        <DeadZone>0.001</DeadZone>
+        <Gravity>1000</Gravity>
+        <Sensitivity>1000</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>DigitalAxis</Type>
+        <Axis>0</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+    </Action>
+    <Action name="Debug Vertical">
+      <Description />
+      <Binding>
+        <Positive>UpArrow</Positive>
+        <Negative>DownArrow</Negative>
+        <DeadZone>0.001</DeadZone>
+        <Gravity>1000</Gravity>
+        <Sensitivity>1000</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>DigitalAxis</Type>
+        <Axis>0</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+    </Action>
+    <Action name="Debug Vertical">
+      <Description />
+      <Binding>
+        <Positive>UpArrow</Positive>
+        <Negative>DownArrow</Negative>
+        <DeadZone>0.001</DeadZone>
+        <Gravity>1000</Gravity>
+        <Sensitivity>1000</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>6</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+    </Action>
+    <Action name="Debug Horizontal">
+      <Description />
+      <Binding>
+        <Positive>RightArrow</Positive>
+        <Negative>LeftArrow</Negative>
+        <DeadZone>0.001</DeadZone>
+        <Gravity>1000</Gravity>
+        <Sensitivity>1000</Sensitivity>
+        <Snap>false</Snap>
+        <Invert>false</Invert>
+        <Type>AnalogAxis</Type>
+        <Axis>5</Axis>
+        <Joystick>0</Joystick>
+      </Binding>
+    </Action>
+  </ControlScheme>
+</Input>

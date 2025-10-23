@@ -20,11 +20,13 @@ using static MessageImageDisplayer;
 using static WorldDataReporter;
 using UnityEngine.AI;
 using System.Threading.Tasks;
+
 [System.Serializable]
 public struct Environment
 {
     public GameObject parent;
     public StoreComponent[] stores;
+    public StoreComponent[] nonDeliveryStores;
 }
 
 public enum StorePointType 
@@ -68,7 +70,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private const bool skipFPS = true;
 
     private const string COURIER_VERSION = "v6.0.0";
-    private const bool DEBUG = true;
+    private static bool DEBUG = Config.debugMode;
 
     private const string RECALL_TEXT = "*******"; // TODO: JPB: Remove this and use display system
     // Constants moved to the Config File
@@ -156,6 +158,7 @@ public class DeliveryExperiment : CoroutineExperiment
     public UnityEngine.UI.Text navigationText;
     public StarSystem starSystem;
     public DeliveryItems deliveryItems;
+    public DeliveryItems nonDeliveryItems;
     public GameObject deliveryZones;
     private List<Transform> allZones;
     private List<Transform> distanceZonePair;
@@ -267,100 +270,155 @@ public class DeliveryExperiment : CoroutineExperiment
         return storePoints;
     }
 
-    // double[] TemporalStorePoints(int numStores)
-    // {
-    //     // Setup covariance matrix variables
-    //     double[] serialPositions = Vector.Range(new Accord.DoubleRange(0, numStores), 1);
-    //     int N = serialPositions.Length;
-    //     // double[] mu = Vector.Zeros(N);
-    //     Vector<double> mu = Vector<double>.Build.Dense(N);
-    //     // double[,] K = Matrix.Zeros(N, N);
-    //     Matrix<double> K = Matrix<double>.Build.Dense(N, N);
-    //     int rhoSq = numStores;
+    public static double[] TemporalStorePoints(int numStores, bool highFirst = true)
+    {
+        int primacyBuf = Config.primacyBuf;
+        int recencyBuf = Config.recencyBuf;
+        int numInGroupChosen = Config.numInGroupChosen;
 
-    //     // Create covariance matrix
-    //     for (int i = 0; i < N; i++)
-    //     {
-    //         // ZR: add small number to get numerical stability
-    //         K[i, i] = 1 + 1e-5;
-    //         for (int j = i + 1; j < N; j++)
-    //         {
-    //             K[i, j] = Math.Exp(-(1d / (2d * rhoSq)) * Math.Pow(serialPositions[i] - serialPositions[j], 2));
-    //             K[j, i] = K[i, j];
-    //         }
-    //     }
+        if (numStores <= primacyBuf + recencyBuf)
+        {
+            primacyBuf = 0;
+            recencyBuf = 0;
+            if (DEBUG)
+                Debug.LogWarning("List length too short for buffers. Removed buffers.");
+        }
 
-    //     K[(N - 1), (N - 1)] = 1;
+        int middleLen = numStores - (primacyBuf + recencyBuf);
+        int firstHalfSize = middleLen / 2;
+        int secondHalfSize = middleLen - firstHalfSize;
 
-    //     for (int i=0; i<N; i++)
-    //     {
-    //         for (int j=0; j<N; j++)
-    //         {
-    //             Debug.Log(i.ToString() + " " + j.ToString());
-    //             Debug.Log(K[i, j]);
-    //         }
-    //     }
+        System.Random rng = new System.Random();
 
-    //     //// ZR: Add Small value to ensure numerical stability
-    //     //for (int i = 0; i < N; i++)
-    //     //{
-    //     //    K[i, i] += 1e-5;
-    //     //}
+        // --- Targets for mean/SD ---
+        double targetMean = Math.Round(Config.targetMean[0] + rng.NextDouble() * (Config.targetMean[1] - Config.targetMean[0]));
+        double targetSD = Config.targetVar[0] + rng.NextDouble() * (Config.targetVar[1] - Config.targetVar[0]);
+        double targetVar = targetSD * targetSD;
 
-    //     // double[] storePoints = new MultivariateNormalDistribution(mu, K).Generate();
-    //     double[] storePoints = MatrixNormal.Sample(new System.Random(), mu.ToColumnMatrix(), K, Matrix<double>.Build.DenseIdentity(1)).Column(0).ToArray();
-    //     Debug.Log(string.Join(",", storePoints));
+        int valMin = 1;
+        int valMax = 50;
 
-    //     // standardize point values
-    //     storePoints = StandardizeStorePoints(storePoints);
-    //     // Debug.Log(string.Join(",", storePoints));
+        // --- Define ranges ---
+        int midpoint = (valMin + valMax) / 2;
+        List<double> aboveMid = Enumerable.Range(midpoint, valMax - midpoint + 1).Select(x => (double)x).ToList();
+        List<double> belowMid = Enumerable.Range(valMin, midpoint - valMin).Select(x => (double)x).ToList();
 
-    //     // sample points from gaussian process
-    //     double pointMean = new UniformContinuousDistribution(30, 70).Generate();
-    //     double pointVar = new UniformContinuousDistribution(13, 17).Generate();
-    //     storePoints = Elementwise.Multiply(storePoints, pointVar);
-    //     storePoints = Elementwise.Add(storePoints, pointMean);
 
-    //     return storePoints;
-    // }
+        List<double> firstRange = highFirst ? new List<double>(aboveMid) : new List<double>(belowMid);
+        List<double> secondRange = highFirst ? new List<double>(belowMid) : new List<double>(aboveMid);
+
+        // --- First half ---
+        List<double> firstHalf = SampleFromList(firstRange, numInGroupChosen, rng);
+        RemoveRange(firstRange, firstHalf);
+        List<double> firstNotInGroup = SampleFromList(secondRange, firstHalfSize - numInGroupChosen, rng);
+        RemoveRange(secondRange, firstNotInGroup);
+
+        firstHalf.AddRange(firstNotInGroup);
+        Shuffle(firstHalf, rng);
+
+        // --- Second half ---
+        List<double> secondHalf = SampleFromList(secondRange, numInGroupChosen, rng);
+        RemoveRange(secondRange, secondHalf);
+        List<double> secondNotInGroup = SampleFromList(firstRange, secondHalfSize - numInGroupChosen, rng);
+        RemoveRange(firstRange, secondNotInGroup);
+
+        secondHalf.AddRange(secondNotInGroup);
+        Shuffle(secondHalf, rng);
+
+        // --- Combine middle ---
+        double[] vals = new double[numStores];
+        double[] middleVals = firstHalf.Concat(secondHalf).ToArray();
+        Array.Copy(middleVals, 0, vals, primacyBuf, middleLen);
+
+        // --- Primacy & recency buffers ---
+        List<double> remainderRange = Enumerable.Range(valMin, valMax)
+                                                .Select(x => (double)x)
+                                                .Except(middleVals)
+                                                .ToList();
+
+        if (primacyBuf > 0)
+        {
+            List<double> primacyChoice = SampleFromList(remainderRange, primacyBuf, rng);
+            RemoveRange(remainderRange, primacyChoice);
+            Array.Copy(primacyChoice.ToArray(), 0, vals, 0, primacyBuf);
+        }
+
+        if (recencyBuf > 0)
+        {
+            List<double> recencyChoice = SampleFromList(remainderRange, recencyBuf, rng);
+            Array.Copy(recencyChoice.ToArray(), 0, vals, numStores - recencyBuf, recencyBuf);
+        }
+
+        // --- Scale & mean correction ---
+        double normMean = vals.Average();
+        double normVar = vals.Select(v => Math.Pow(v - normMean, 2)).Average();
+        double scale = Math.Sqrt(targetVar / normVar);
+
+        for (int i = 0; i < vals.Length; i++)
+            vals[i] = Math.Max(valMin, Math.Min(valMax, targetMean + (vals[i] - normMean) * scale));
+
+        double meanDiff = targetMean - vals.Average();
+        for (int i = 0; i < vals.Length; i++)
+            vals[i] = Math.Round(Math.Max(valMin, Math.Min(valMax, vals[i] + meanDiff)));  // round but keep double
+
+        if (DEBUG)
+        {
+            Debug.Log("TemporalStorePoints (scaled & clamped): " + string.Join(", ", vals));
+            Debug.Log($"TargetMean={targetMean:F2}, TargetSD={targetSD:F2}, TargetVar={targetVar:F2}");
+        }
+
+        return vals;  // still double[]
+    }
+
+    
+
+
 
     // public static double[] TemporalStorePoints(int numStores, bool highFirst = true)
     // {
-    //     // Debug.Log("TemporalStorePoints called with numStores: " + numStores + ", highFirst: " + highFirst);
-    //     // --- Hardcoded parameters ---
-    //     int valMin = 1;
-    //     int valMax = 50;
-    //     int primacyBuf = Config.primacyBuf;
-    //     int recencyBuf = Config.recencyBuf;
-    //     int numInGroupChosen = Config.numInGroupChosen;
+    //     // --- Parameters from Config ---
+    //     int primacyBuf = Config.primacyBuf;       // e.g. 2
+    //     int recencyBuf = Config.recencyBuf;       // e.g. 3
+    //     int numInGroupChosen = Config.numInGroupChosen; // e.g. 4
 
     //     if (numStores <= primacyBuf + recencyBuf)
     //     {
     //         primacyBuf = 0;
     //         recencyBuf = 0;
-    //         Debug.LogWarning("List length too short for buffers. Removed Buffers");
+    //         if (DEBUG)
+    //             Debug.LogWarning("List length too short for buffers. Removed Buffers");
     //     }
+
     //     int middleLen = numStores - (primacyBuf + recencyBuf);
     //     int firstHalfSize = middleLen / 2;
     //     int secondHalfSize = middleLen - firstHalfSize;
 
-    //     int midpoint = (valMin + valMax) / 2;
     //     System.Random rng = new System.Random();
 
-    //     // Define ranges
-    //     List<int> firstRange, secondRange;
+    //     // --- Pull targets from Config ranges ---
+    //     double targetMean = Config.targetMean[0]
+    //                     + rng.NextDouble() * (Config.targetMean[1] - Config.targetMean[0]);
+    //     targetMean = Math.Round(targetMean);
+
+    //     double targetSD = Config.targetVar[0]
+    //                     + rng.NextDouble() * (Config.targetVar[1] - Config.targetVar[0]);
+
+    //     double targetVar = targetSD * targetSD;
+
+    //     // --- Normalized ranges [0,1] ---
+    //     List<double> firstRange, secondRange;
     //     if (highFirst)
     //     {
-    //         firstRange = Enumerable.Range(midpoint, valMax - midpoint + 1).ToList();
-    //         secondRange = Enumerable.Range(valMin, midpoint - valMin).ToList();
+    //         firstRange = Enumerable.Range(50, 51).Select(x => x / 100.0).ToList();  // 0.50–1.00
+    //         secondRange = Enumerable.Range(0, 50).Select(x => x / 100.0).ToList();   // 0.00–0.49
     //     }
     //     else
     //     {
-    //         firstRange = Enumerable.Range(valMin, midpoint - valMin).ToList();
-    //         secondRange = Enumerable.Range(midpoint, valMax - midpoint + 1).ToList();
+    //         firstRange = Enumerable.Range(0, 50).Select(x => x / 100.0).ToList();
+    //         secondRange = Enumerable.Range(50, 51).Select(x => x / 100.0).ToList();
     //     }
 
-    //     // --- First half of middle ---
+    //     // --- First half ---
     //     var firstHalf = SampleFromList(firstRange, numInGroupChosen, rng);
     //     RemoveRange(firstRange, firstHalf);
 
@@ -370,7 +428,7 @@ public class DeliveryExperiment : CoroutineExperiment
     //     firstHalf.AddRange(firstNotInGroup);
     //     Shuffle(firstHalf, rng);
 
-    //     // --- Second half of middle ---
+    //     // --- Second half ---
     //     var secondHalf = SampleFromList(secondRange, numInGroupChosen, rng);
     //     RemoveRange(secondRange, secondHalf);
 
@@ -380,189 +438,89 @@ public class DeliveryExperiment : CoroutineExperiment
     //     secondHalf.AddRange(secondNotInGroup);
     //     Shuffle(secondHalf, rng);
 
-    //     // Combine middle
+    //     // --- Combine middle ---
     //     var middleVals = firstHalf.Concat(secondHalf).ToArray();
-    //     int[] valsInt = new int[numStores];
+    //     double[] vals = new double[numStores];
 
-    //     // --- Remaining pool for buffers ---
-    //     var remainderRange = Enumerable.Range(valMin, valMax - valMin + 1)
-    //                                    .Except(middleVals)
-    //                                    .ToList();
+    //     // Fill middle
+    //     Array.Copy(middleVals, 0, vals, primacyBuf, middleLen);
 
-    //     // Primacy buffer
+    //     // Buffers (random from remaining normalized pool)
+    //     var remainderRange = Enumerable.Range(0, 100).Select(x => x / 100.0)
+    //                                 .Except(middleVals)
+    //                                 .ToList();
+
     //     if (primacyBuf > 0)
     //     {
     //         var primacyChoice = SampleFromList(remainderRange, primacyBuf, rng);
     //         RemoveRange(remainderRange, primacyChoice);
-    //         Array.Copy(primacyChoice.ToArray(), 0, valsInt, 0, primacyBuf);
     //     }
 
-    //     // Middle
-    //     Array.Copy(middleVals, 0, valsInt, primacyBuf, middleLen);
-
-    //     // Recency buffer
     //     if (recencyBuf > 0)
     //     {
     //         var recencyChoice = SampleFromList(remainderRange, recencyBuf, rng);
-    //         Array.Copy(recencyChoice.ToArray(), 0, valsInt, numStores - recencyBuf, recencyBuf);
+    //         Array.Copy(recencyChoice.ToArray(), 0, vals, numStores - recencyBuf, recencyBuf);
     //     }
 
-    //     double[] vals = Array.ConvertAll(valsInt, x => (double)x);
+    //     // --- Normalize and rescale to target mean/variance ---
+    //     double normMean = vals.Average();
+    //     double normVar = vals.Select(v => Math.Pow(v - normMean, 2)).Average();
+    //     double scale = Math.Sqrt(targetVar / normVar);
 
-    //     Debug.Log("TemporalStorePoints: " + string.Join(", ", vals));
-    //     Debug.Log("TemporalStorePoints: " + (highFirst ? "highFirst" : "lowFirst"));
-    //     Debug.Log($"Primacy: {primacyBuf}, Recency: {recencyBuf}, numInGroupChosen: {numInGroupChosen}");
+    //     // --- Scale and clamp ---
+    //     for (int i = 0; i < vals.Length; i++)
+    //     {
+    //         double scaled = targetMean + (vals[i] - normMean) * scale;
+    //         vals[i] = Math.Max(1.0, Math.Min(50.0, scaled));
+    //     }
+
+    //     // --- Compute mean correction ---
+    //     double currentMean = vals.Average();
+    //     double meanDiff = targetMean - currentMean;
+
+    //     // --- Apply correction inside second loop ---
+    //     for (int i = 0; i < vals.Length; i++)
+    //     {
+    //         vals[i] = Math.Max(1.0, Math.Min(50.0, vals[i] + meanDiff));
+    //         vals[i] = Math.Round(vals[i]);  // optional rounding
+    //     }
+
+
+    //     if (DEBUG)
+    //     {
+    //         Debug.Log("TemporalStorePoints (scaled & clamped): " + string.Join(", ", vals));
+    //         Debug.Log($"TargetMean={targetMean:F2}, TargetSD={targetSD:F2}, TargetVar={targetVar:F2}");
+    //     }
 
     //     return vals;
     // }
-
-
-    // // --- Helpers ---
-    // private static List<int> SampleFromList(List<int> source, int count, System.Random rng)
-    // {
-    //     if (count <= 0) return new List<int>();
-    //     return source.OrderBy(_ => rng.Next()).Take(count).ToList();
-    // }
-
-    // private static void RemoveRange(List<int> source, IEnumerable<int> items)
-    // {
-    //     foreach (var item in items.ToList())
-    //         source.Remove(item);
-    // }
-
-    // private static void Shuffle<T>(List<T> list, System.Random rng)
-    // {
-    //     int n = list.Count;
-    //     while (n > 1)
-    //     {
-    //         n--;
-    //         int k = rng.Next(n + 1);
-    //         (list[k], list[n]) = (list[n], list[k]);
-    //     }
-    // }
-
-
-    public static double[] TemporalStorePoints(int numStores, bool highFirst = true)
-    {
-        // --- Parameters from Config ---
-        int primacyBuf = Config.primacyBuf;       // e.g. 2
-        int recencyBuf = Config.recencyBuf;       // e.g. 3
-        int numInGroupChosen = Config.numInGroupChosen; // e.g. 4
-
-        if (numStores <= primacyBuf + recencyBuf)
-        {
-            primacyBuf = 0;
-            recencyBuf = 0;
-            if (DEBUG)
-                Debug.LogWarning("List length too short for buffers. Removed Buffers");
-        }
-
-        int middleLen = numStores - (primacyBuf + recencyBuf);
-        int firstHalfSize = middleLen / 2;
-        int secondHalfSize = middleLen - firstHalfSize;
-
-        System.Random rng = new System.Random();
-
-        // --- Pull targets from Config ranges ---
-        double targetMean = Config.targetMean[0]
-                        + rng.NextDouble() * (Config.targetMean[1] - Config.targetMean[0]);
-
-        double targetSD = Config.targetVar[0]
-                        + rng.NextDouble() * (Config.targetVar[1] - Config.targetVar[0]);
-
-        double targetVar = targetSD * targetSD;
-
-        // --- Normalized ranges [0,1] ---
-        List<double> firstRange, secondRange;
-        if (highFirst)
-        {
-            firstRange = Enumerable.Range(50, 51).Select(x => x / 100.0).ToList();  // 0.50–1.00
-            secondRange = Enumerable.Range(0, 50).Select(x => x / 100.0).ToList();   // 0.00–0.49
-        }
-        else
-        {
-            firstRange = Enumerable.Range(0, 50).Select(x => x / 100.0).ToList();
-            secondRange = Enumerable.Range(50, 51).Select(x => x / 100.0).ToList();
-        }
-
-        // --- First half ---
-        var firstHalf = SampleFromList(firstRange, numInGroupChosen, rng);
-        RemoveRange(firstRange, firstHalf);
-
-        var firstNotInGroup = SampleFromList(secondRange, firstHalfSize - numInGroupChosen, rng);
-        RemoveRange(secondRange, firstNotInGroup);
-
-        firstHalf.AddRange(firstNotInGroup);
-        Shuffle(firstHalf, rng);
-
-        // --- Second half ---
-        var secondHalf = SampleFromList(secondRange, numInGroupChosen, rng);
-        RemoveRange(secondRange, secondHalf);
-
-        var secondNotInGroup = SampleFromList(firstRange, secondHalfSize - numInGroupChosen, rng);
-        RemoveRange(firstRange, secondNotInGroup);
-
-        secondHalf.AddRange(secondNotInGroup);
-        Shuffle(secondHalf, rng);
-
-        // --- Combine middle ---
-        var middleVals = firstHalf.Concat(secondHalf).ToArray();
-        double[] vals = new double[numStores];
-
-        // Fill middle
-        Array.Copy(middleVals, 0, vals, primacyBuf, middleLen);
-
-        // Buffers (random from remaining normalized pool)
-        var remainderRange = Enumerable.Range(0, 100).Select(x => x / 100.0)
-                                    .Except(middleVals)
-                                    .ToList();
-
-        if (primacyBuf > 0)
-        {
-            var primacyChoice = SampleFromList(remainderRange, primacyBuf, rng);
-            RemoveRange(remainderRange, primacyChoice);
-        }
-
-        if (recencyBuf > 0)
-        {
-            var recencyChoice = SampleFromList(remainderRange, recencyBuf, rng);
-            Array.Copy(recencyChoice.ToArray(), 0, vals, numStores - recencyBuf, recencyBuf);
-        }
-
-        // --- Normalize and rescale to target mean/variance ---
-        double normMean = vals.Average();
-        double normVar = vals.Select(v => Math.Pow(v - normMean, 2)).Average();
-        double scale = Math.Sqrt(targetVar / normVar);
-
-        for (int i = 0; i < vals.Length; i++)
-        {
-            // scale to target mean/variance then clamp to [1,50]
-            double scaled = targetMean + (vals[i] - normMean) * scale;
-            vals[i] = Math.Max(1.0, Math.Min(50.0, scaled));
-        }
-
-        if (DEBUG)
-        {
-            Debug.Log("TemporalStorePoints (scaled & clamped): " + string.Join(", ", vals));
-            Debug.Log($"TargetMean={targetMean:F2}, TargetSD={targetSD:F2}, TargetVar={targetVar:F2}");
-        }
-
-        return vals;
-    }
 
 
     // --- Helpers ---
     private static List<double> SampleFromList(List<double> source, int count, System.Random rng)
     {
         if (count <= 0) return new List<double>();
-        return source.OrderBy(_ => rng.Next()).Take(count).ToList();
+        if (count >= source.Count)
+            return new List<double>(source); // if asking for more than available
+
+        List<double> pool = new List<double>(source);
+        List<double> result = new List<double>(count);
+        for (int i = 0; i < count; i++)
+        {
+            int index = rng.Next(pool.Count);
+            result.Add(pool[index]);
+            pool.RemoveAt(index); // ensures no replacement
+        }
+        return result;
     }
 
-    private static void RemoveRange(List<double> source, IEnumerable<double> items)
+
+    private static void RemoveRange(List<double> source, List<double> toRemove)
     {
-        foreach (var item in items.ToList())
-            source.Remove(item);
+        foreach (double val in toRemove)
+            source.Remove(val); // removes first occurrence
     }
+
 
     private static void Shuffle<T>(List<T> list, System.Random rng)
     {
@@ -681,7 +639,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
     private Tuple<bool, List<string>> getTrialStoresPure(List<string> allStores, int numDeliveries, System.Random rng)
     {
-        List<string> unvisited = new List<string>(allStores);
+        List<string> unvisited = new List<string>(allStores.Where(s => s != "post_office"));
         List<string> trialStores = new List<string>();
         bool success = true;
 
@@ -691,7 +649,7 @@ public class DeliveryExperiment : CoroutineExperiment
         unvisited.RemoveAt(randomIndex);
         trialStores.Add(nextStore);
 
-        for (int i = 0; i < numDeliveries; i++)
+        for (int i = 0; i < numDeliveries - 1; i++)
         {
             // Relaxed: pick any unvisited store, regardless of visibility
             nextStore = unvisited[rng.Next(unvisited.Count)];
@@ -731,141 +689,9 @@ public class DeliveryExperiment : CoroutineExperiment
     }
 
 
-    // private List<List<string>> getTotalListPure(List<string> allStores, int numTrials, int numDeliveries, System.Random rng)
-    // {
-    //     // Build candidate pool once per attempt, then use backtracking with precomputed pair-sets
-    //     // to efficiently select numTrials lists that satisfy the transition constraints.
-    //     int attempts = 0;
-    //     const int MAX_ATTEMPTS = 100;
-
-    //     while (attempts < MAX_ATTEMPTS)
-    //     {
-    //         if (DEBUG) Debug.Log($"getTotalListPure attempt {attempts}");
-
-    //         var pool = listGeneratorPure(allStores, numDeliveries, rng);
-    //         if (pool == null || pool.Count == 0)
-    //         {
-    //             attempts++;
-    //             continue;
-    //         }
-
-    //         // Precompute mapping from store name to index to encode pairs as ints
-    //         int storeCount = allStores.Count;
-    //         var nameToIndex = new Dictionary<string, int>(storeCount);
-    //         for (int i = 0; i < storeCount; i++) nameToIndex[allStores[i]] = i;
-
-    //         // Precompute pair-sets (int-encoded keys) for each candidate list for O(1) membership tests
-    //         int poolSize = pool.Count;
-    //         var pairSets = new List<HashSet<int>>(poolSize);
-    //         for (int i = 0; i < poolSize; i++)
-    //         {
-    //             var s = new HashSet<int>();
-    //             var list = pool[i];
-    //             for (int k = 0; k < list.Count - 1; k++)
-    //             {
-    //                 int a = nameToIndex[list[k]];
-    //                 int b = nameToIndex[list[k + 1]];
-    //                 int key = (a << 16) | b;
-    //                 s.Add(key);
-    //             }
-    //             pairSets.Add(s);
-    //         }
-
-    //         // Backtracking search for a valid ordered selection of numTrials lists
-    //         var used = new bool[poolSize];
-    //         var selection = new List<int>(numTrials);
-
-    //         // Helper: try to extend selection recursively
-    //         bool dfs()
-    //         {
-    //             if (selection.Count == numTrials) return true;
-
-    //             int prevIdx = selection.Count > 0 ? selection[selection.Count - 1] : -1;
-
-    //             for (int candidate = 0; candidate < poolSize; candidate++)
-    //             {
-    //                 if (used[candidate]) continue;
-
-    //                 // If there is a previous list, enforce listCheckPure(prev, curr)
-    //                 if (prevIdx != -1)
-    //                 {
-    //                     // quick check: if any pair is shared between prev and candidate, reject
-    //                     var prevPairs = pairSets[prevIdx];
-    //                     var candPairs = pairSets[candidate];
-    //                     bool shares = false;
-    //                     foreach (var p in candPairs)
-    //                     {
-    //                         if (prevPairs.Contains(p)) { shares = true; break; }
-    //                     }
-    //                     if (shares) continue;
-    //                 }
-
-    //                 // compute overlap with global transitions from already selected lists
-    //                 int overlap = 0;
-    //                 for (int sIdx = 0; sIdx < selection.Count; sIdx++)
-    //                 {
-    //                     var selPairs = pairSets[selection[sIdx]];
-    //                     foreach (var p in pairSets[candidate])
-    //                         if (selPairs.Contains(p)) { overlap++; if (overlap >= 1) break; }
-    //                     if (overlap >= 1) break;
-    //                 }
-    //                 if (overlap >= 1) continue;
-
-    //                 // choose
-    //                 used[candidate] = true;
-    //                 selection.Add(candidate);
-
-    //                 if (dfs()) return true;
-
-    //                 // backtrack
-    //                 selection.RemoveAt(selection.Count - 1);
-    //                 used[candidate] = false;
-    //             }
-
-    //             return false;
-    //         }
-
-    //         // Try different starting orders to increase chance of finding solution quickly
-    //         var startOrder = ShuffleIndices(poolSize, rng);
-    //         bool found = false;
-    //         foreach (var start in startOrder)
-    //         {
-    //             // init
-    //             for (int i = 0; i < poolSize; i++) used[i] = false;
-    //             selection.Clear();
-
-    //             used[start] = true;
-    //             selection.Add(start);
-
-    //             if (dfs())
-    //             {
-    //                 found = true;
-    //                 break;
-    //             }
-
-    //             // else continue to next start
-    //         }
-
-    //         if (found)
-    //         {
-    //             var result = new List<List<string>>();
-    //             foreach (var idx in selection) result.Add(pool[idx]);
-    //             if (DEBUG) Debug.Log("Finished creating store lists (optimized)");
-    //             return result;
-    //         }
-
-    //         attempts++;
-    //     }
-
-    //     // Fallback: last-resort behavior - return a single valid list to avoid blocking calling code
-    //     if (DEBUG) Debug.LogWarning("getTotalListPure failed to build full set within attempts; returning minimal list");
-    //     var fallback = listGeneratorPure(allStores, numDeliveries, rng);
-    //     return fallback != null && fallback.Count > 0 ? new List<List<string>> { fallback[0] } : new List<List<string>>();
-    // }
-
     // Fast greedy fallback generator: try to build numTrials lists quickly from a candidate pool.
     // If pool is null or insufficient, it will generate a fresh pool via listGeneratorPure.
-    private List<List<string>> getTotalListGreedy(List<string> allStores, int numTrials, int numDeliveries, System.Random rng, List<List<string>> pool = null)
+    private List<List<string>> getTotalListSimple(List<string> allStores, int numTrials, int numDeliveries, System.Random rng, List<List<string>> pool = null)
     {
         if (pool == null || pool.Count == 0)
             pool = listGeneratorPure(allStores, numDeliveries, rng);
@@ -892,62 +718,6 @@ public class DeliveryExperiment : CoroutineExperiment
             }
             pairSets.Add(s);
         }
-
-        // // Greedy construction with limited restarts
-        // int maxRestarts = 100000;
-        // for (int restart = 0; restart < maxRestarts; restart++)
-        // {
-        //     Debug.Log($"getTotalListGreedy attempt {restart}");
-        //     var used = new bool[poolSize];
-        //     var selection = new List<int>();
-
-        //     // pick random start
-        //     int start = rng.Next(poolSize);
-        //     used[start] = true;
-        //     selection.Add(start);
-
-        //     bool failed = false;
-        //     while (selection.Count < numTrials && !failed)
-        //     {
-        //         int prev = selection.Last();
-        //         bool found = false;
-        //         // try candidates in random order
-        //         var order = ShuffleIndices(poolSize, rng);
-        //         foreach (int cand in order)
-        //         {
-        //             if (used[cand]) continue;
-        //             // check adjacency with previous
-        //             bool shares = pairSets[prev].Overlaps(pairSets[cand]);
-        //             if (shares) continue;
-
-        //             // check global overlap with already selected
-        //             bool overlap = false;
-        //             foreach (var sIdx in selection)
-        //             {
-        //                 if (pairSets[sIdx].Overlaps(pairSets[cand])) { overlap = true; break; }
-        //             }
-        //             if (overlap) continue;
-
-        //             // choose
-        //             used[cand] = true;
-        //             selection.Add(cand);
-        //             found = true;
-        //             break;
-        //         }
-
-        //         if (!found)
-        //             failed = true;
-        //     }
-
-        //     if (!failed && selection.Count == numTrials)
-        //     {
-        //         var result = new List<List<string>>();
-        //         foreach (var idx in selection) result.Add(pool[idx]);
-        //         if (DEBUG) Debug.Log("Finished creating store lists (greedy)");
-        //         return result;
-        //     }
-        // }
-
         // Fallback: return as many valid lists as we can greedily (possibly < numTrials)
         var fallback = new List<List<string>>();
         var used2 = new bool[poolSize];
@@ -982,217 +752,6 @@ public class DeliveryExperiment : CoroutineExperiment
         return fallback;
     }
 
-    // LC: this function pre-generates the list of stores to visit in a trial
-    // private Tuple<bool, List<StoreComponent>> getTrialStores(Environment environment, int num_deliveries)
-    // {
-
-
-    //     Dictionary<string, List<string>> storeDict = new Dictionary<string, List<string>>()
-    // {
-    //     { "gym", new List<string>{ "bakery", "hardware_store", "craft_shop", "dentist"} },
-    //     { "craft_shop", new List<string>{ "gym", "hardware_store", "dentist", "cafe" } },
-    //     { "hardware_store", new List<string>{ "toy_store", "barber_shop", "clothing_store", "gym", "craft_shop" } },
-    //     { "clothing_store", new List<string>{ "barber_shop", "toy_store", "pharmacy", "hardware_store", "jewelry_store", "craft_shop" } },
-    //     { "jewelry_store", new List<string>{ "pharmacy", "toy_store", "clothing_store" } },
-    //     { "pharmacy", new List<string>{ "bakery", "jewelry_store", "clothing_store", "toy_store" } },
-    //     { "bakery", new List<string>{ "pharmacy", "gym", "pet_store" } },
-    //     { "pet_store", new List<string>{ "gym", "bakery" } },
-    //     { "music_store", new List<string>{ "pizzeria", "florist", "dentist", "pet_store" } },
-    //     { "florist", new List<string>{ "dentist", "pizzeria", "music_store" } },
-    //     { "pizzeria", new List<string>{ "music_store", "florist", "dentist" } },
-    //     { "dentist", new List<string>{ "cafe", "grocery_store", "craft_shop", "florist", "music_store", "pizzeria", "gym" } },
-    //     { "grocery_store", new List<string>{ "cafe", "dentist", "craft_shop", "dentist" } },
-    //     { "cafe", new List<string>{ "bike_shop", "grocery_store", "craft_shop", "dentist" } },
-    //     { "bike_shop", new List<string>{ "grocery_store", "cafe", "clothing_store", "barber_shop", "jewelry_store" } },
-    //     { "barber_shop", new List<string>{ "toy_store", "jewelry_store", "hardware_store", "grocery_store", "bike_shop" } },
-    //     { "toy_store", new List<string>{ "pharmacy", "jewelry_store", "clothing_store", "barber_shop", "grocery_store", "bike_shop", "craft_shop" } }
-    // };
-
-    //     List<StoreComponent> this_trial_presented_stores = new List<StoreComponent>();
-    //     List<StoreComponent> unvisitedStores = new List<StoreComponent>(storeDict.Keys);
-    //     StoreComponent nextStore = null;
-    //     bool success = true;
-
-    //     // pick random store first
-    //     int random_store_index = -1;
-    //     int tries = 0;
-    //     do
-    //     {
-    //         tries++;
-    //         random_store_index = rng.Next(0, unvisitedStores.Count);
-    //         // random_store_index = UnityEngine.Random.Range(0, unvisitedStores.Count);
-    //         nextStore = unvisitedStores[random_store_index];
-    //     }
-    //     while (nextStore.IsVisible() && tries < 17);
-    //     unvisitedStores.RemoveAt(random_store_index);
-    //     this_trial_presented_stores.Add(nextStore);
-
-    //     // then for the remaining stores, pick as such
-
-    //     for (int i = 0; i < num_deliveries; i++)
-    //     {
-    //         // find the lastly visited store
-    //         StoreComponent prevStore = this_trial_presented_stores.Last();
-    //         string prevStoreName = prevStore.gameObject.name;
-
-    //         // get the list of stores that are visible from this store
-    //         //string prevStoreName = prevStore.gameObject.name;
-    //         //if (!storeDict.ContainsKey(prevStoreName))
-    //         //{
-    //         //    Debug.LogError("Missing key in storeDict for store: " + prevStoreName);
-    //         //    success = false;
-    //         //    break; // or return Tuple.Create(false, null);
-    //         //}
-    //         List<string> visibleStores = storeDict[prevStoreName];
-    //         List<StoreComponent> candidateStores = new List<StoreComponent>();
-
-    //         // now loop through the remaining unvisited stores and find candidates
-    //         foreach (StoreComponent store in unvisitedStores)
-    //         {
-    //             if (!visibleStores.Contains(store.gameObject.name))
-    //             {
-    //                 candidateStores.Add(store);
-    //             }
-    //         }
-
-    //         // if there is/are candidate store(s)...
-    //         if (candidateStores.Count > 0)
-    //         {
-    //             // pick randomly from candidate store list
-    //             random_store_index = rng.Next(0, candidateStores.Count);
-    //             // random_store_index = UnityEngine.Random.Range(0, candidateStores.Count);
-    //             nextStore = candidateStores[random_store_index];
-    //         }
-    //         else
-    //         {
-    //             // pick randomly from uunvisited store list
-    //             random_store_index = rng.Next(0, unvisitedStores.Count);
-    //             // random_store_index = UnityEngine.Random.Range(0, unvisitedStores.Count);
-    //             nextStore = unvisitedStores[random_store_index];
-    //             success = false;
-    //         }
-
-    //         // remove / add appropriately
-    //         unvisitedStores.Remove(nextStore);
-    //         this_trial_presented_stores.Add(nextStore);
-    //     }
-
-    //     Tuple<bool, List<StoreComponent>> result = new Tuple<bool, List<StoreComponent>>
-    //                                                         (success, this_trial_presented_stores);
-    //     return result;
-    // }
-
-    // private List<List<StoreComponent>> listGenerator(Environment environment, int num_deliveries)
-    // {
-    //     List<List<StoreComponent>> total = new List<List<StoreComponent>>();
-    //     while (total.Count < environment.stores.Length)
-    //     {
-    //         Tuple<bool, List<StoreComponent>> list = getTrialStores(environment, num_deliveries);
-    //         if (list.Item1)
-    //             total.Add(list.Item2);
-    //     }
-    //     // Debug.Log($"Generated {total.Count} store lists.");
-    //     return total;
-    // }
-
-    // private bool listCheck(List<StoreComponent> list1, List<StoreComponent> list2) //, Dictionary<string, List<string>> dict)
-    // {
-    //     bool result = true;
-
-    //     // initialize a dictionary with all the transitions in the sequence
-    //     Dictionary<StoreComponent, StoreComponent> listDict = new Dictionary<StoreComponent, StoreComponent>();
-    //     for (int i = 0; i < list1.Count - 1; i++)
-    //     {
-    //         listDict.Add(list1[i], list1[i + 1]);
-    //     }
-
-    //     // now check and see if there is repetitive transition
-    //     for (int i = 0; i < list2.Count - 1; i++)
-    //     {
-    //         if (listDict.ContainsKey(list2[i]))
-    //         {
-    //             StoreComponent prevNext = listDict[list2[i]];
-    //             StoreComponent currNext = list2[i + 1];
-
-    //             if (prevNext == currNext)
-    //             {
-    //                 result = false;
-    //                 break;
-    //             }
-    //         }
-    //     }
-
-    //     return result;
-    // }
-
-    // private List<List<StoreComponent>> getTotalList(Environment environment, int num_trials, int num_deliveries)
-    // {
-    //     List<List<StoreComponent>> new_total = new List<List<StoreComponent>>();
-    //     int attempts = 0;
-    //     bool success = false;
-    //     Debug.Log($"Generating store lists: {environment.stores.Length} stores, {num_trials} trials, {num_deliveries} deliveries.");
-
-    //     while (!success)
-    //     {
-    //         Debug.Log($"Attempt {attempts}");
-    //         if (attempts == 10)
-    //         {
-    //             Debug.Log($"Attempt {attempts}: current count = {new_total.Count}");
-    //             break;
-    //         }
-
-    //         List<List<StoreComponent>> total = listGenerator(environment, num_deliveries);
-    //         new_total = new List<List<StoreComponent>>();
-    //         new_total.Add(total[0]);
-    //         total.Remove(total[0]);
-
-    //         Dictionary<StoreComponent, List<StoreComponent>> transDict = new Dictionary<StoreComponent, List<StoreComponent>>();
-    //         List<StoreComponent> firstList = new_total[0];
-    //         for (int i = 0; i < firstList.Count - 1; i++)
-    //         {
-    //             transDict.Add(firstList[i], new List<StoreComponent> { firstList[i + 1] });
-    //         }
-
-    //         for (int i = 0; i < total.Count; i++)
-    //         {
-    //             List<StoreComponent> prevList = new_total.Last();
-    //             List<StoreComponent> currList = total[i];
-    //             bool isGood = listCheck(prevList, currList);
-
-    //             if (isGood) // isGood)
-    //             {
-    //                 int cumCount = 0;
-    //                 for (int j = 0; j < currList.Count - 1; j++)
-    //                 {
-    //                     StoreComponent currStore = currList[j];
-    //                     StoreComponent nextStore = currList[j + 1];
-    //                     if (transDict.ContainsKey(currStore))
-    //                     {
-    //                         List<StoreComponent> values = transDict[currStore];
-    //                         if (values.Contains(nextStore))
-    //                             cumCount += 1;
-    //                     }
-    //                 }
-
-    //                 if (cumCount < 1)
-    //                 {
-    //                     new_total.Add(currList);
-    //                     for (int k = 0; k < currList.Count - 1; k++)
-    //                         transDict.AddOrUpdateKey(currList[k], currList[k + 1]);
-    //                 }
-    //             }
-
-    //             if (new_total.Count == num_trials)
-    //             {
-    //                 success = true;
-    //                 break;
-    //             }
-    //         }
-    //         attempts += 1;
-    //     }
-
-    //     return new_total;
-    // }
 
     // These names are used in for what is sent to the log
     // If you change them, then you have to change the event processing (or the logging code)
@@ -1343,21 +902,6 @@ public class DeliveryExperiment : CoroutineExperiment
         // Start syncpulses
         if (!Config.noSyncbox)
         {
-            // GameObject obj = GameObject.Find("SyncBox");
-            // if (obj == null)
-            // {
-            //     Debug.LogError("❌ Could not find GameObject named 'SyncBox' in the scene!");
-            // }
-            // else
-            // {
-            //     Debug.Log($"✅ Found SyncBox object: {obj.name}");
-            //     var comp = obj.GetComponent<Syncbox>();
-            //     if (comp == null)
-            //         Debug.LogError("❌ 'SyncBox' GameObject found, but it has no 'Syncbox' component attached!");
-            //     else
-            //         Debug.Log("✅ 'Syncbox' component found on SyncBox object.");
-            //     syncs = comp;
-            // }
             syncs = GameObject.Find("SyncBox").GetComponent<Syncbox>();
             syncs.scriptedInput = scriptedEventReporter;
             syncs.Init();
@@ -1433,8 +977,8 @@ public class DeliveryExperiment : CoroutineExperiment
             if (DEBUG)
                 Debug.Log("Starting async store list generation...");
             List<string> storeNames = environment.stores.Select(s => s.gameObject.name).ToList();
-            
-            totalListTask = Task.Run(() => getTotalListGreedy(storeNames, numTrials, Config.deliveriesPerTrial, this.rng));
+            Debug.Log($"Store names ({storeNames.Count}): {string.Join(", ", storeNames)}");
+            totalListTask = Task.Run(() => getTotalListSimple(storeNames, numTrials, Config.deliveriesPerTrial, this.rng));
         }
 
         // Frame Rate Test
@@ -1493,24 +1037,6 @@ public class DeliveryExperiment : CoroutineExperiment
         }
 
         // Value Courier store list generator
-        // if (VALUE_COURIER)
-        // {
-
-        //     storeLists = await totalListTask;
-        //     Debug.Log("Store list generation complete.");
-
-        //     // // set stim/no_stim stores unique for each subject
-        //     var reliableRandom = deliveryItems.ReliableRandom();
-        //     List<StoreComponent> allStores = new List<StoreComponent>(environment.stores);
-        //     allStores.Shuffle(reliableRandom);
-        //     for (int i = 0; i < allStores.Count; i++)
-        //     {
-        //         if (i % 2 == 1)
-        //             StimStores.Add(allStores[i]);
-        //         else
-        //             noStimStores.Add(allStores[i]);
-        //     }
-        // }
         if (VALUE_COURIER && totalListTask != null)
         {
             if (DEBUG)
@@ -1635,12 +1161,6 @@ public class DeliveryExperiment : CoroutineExperiment
                                                            mainText: "classifier delay note main");
             yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
         }
-
-        // Player Reminders/Tips/Notes
-        // messageImageDisplayer.SetGeneralBigMessageText(titleText: "navigation note title",
-        //                                                mainText: "navigation note main");
-        // yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
-
         // 1st Real Trials
 
         int trialsThisSession = 0;
@@ -1667,13 +1187,24 @@ public class DeliveryExperiment : CoroutineExperiment
             }
         }
 
-        // Ending Message
-        string endMessage = LanguageSource.GetLanguageString("end message");
+        if (VALUE_COURIER)
+        {
+            double compensation = DoCompensation();
+            string[] formatValues = new string[] { compensation.ToString("C") };
+            string formattedTips = LanguageSource.GetFormattableLanguageString("earned_tips", formatValues);
+            textDisplayer.DisplayText("earned_tips", formattedTips);
+            // Message will remain until experiment advances
+        }
+        else
+        {
+            // Ending Message
+            string endMessage = LanguageSource.GetLanguageString("end message");
 
-        // NICLS_COURIER
-        //     ? LanguageSource.GetLanguageString("end message")
-        //     : LanguageSource.GetLanguageString("end message scored") + "\n\n" + starSystem.CumulativeRating().ToString("+#.##;-#.##");
-        textDisplayer.DisplayText("end text", endMessage);
+            // NICLS_COURIER
+            //     ? LanguageSource.GetLanguageString("end message")
+            //     : LanguageSource.GetLanguageString("end message scored") + "\n\n" + starSystem.CumulativeRating().ToString("+#.##;-#.##");
+            textDisplayer.DisplayText("end text", endMessage);
+        }
 
 #if !UNITY_WEBGL // WebGL DLL
         // LC: ELEMEM
@@ -1712,18 +1243,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
         // Final Recalls
         BlackScreen();
-        if (VALUE_COURIER)
-        {
-            double compensation = DoCompensation();
-            string[] formatValues = new string[] { compensation.ToString("C") };
-            // Call SetGeneralMessageText, passing the format array for mainText
-            messageImageDisplayer.SetGeneralMessageText(
-                mainText: "earned_tips",
-                mtFormatVals: formatValues
-            );
-
-            yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
-        }
+        
     }
 
     private IEnumerator DoFrameTest()
@@ -1926,15 +1446,50 @@ public class DeliveryExperiment : CoroutineExperiment
         yield return familiarizer.DoFamiliarization(MIN_FAMILIARIZATION_ISI, MAX_FAMILIARIZATION_ISI, FAMILIARIZATION_PRESENTATION_LENGTH);
     }
 
+    // public static StoreComponent FindStoreByName(string name)
+    // {
+    //     foreach (StoreComponent store in GameObject.FindObjectsOfType<StoreComponent>())
+    //     {
+    //         if (store.GetStoreName().Equals(name, System.StringComparison.OrdinalIgnoreCase))
+    //         {
+    //             return store;
+    //         }
+    //     }
+    //     return null; // not found
+    // }
+
     private IEnumerator DoTownLearning(int trialNumber, int numDeliveries)
     {
-        if (Config.skipTownLearning || InputManager.GetButton("Secret"))
+        if (Config.skipTownLearning)
+            yield break;
+
+        if (DEBUG && InputManager.GetButton("Secret"))
             yield break;
 
         scriptedEventReporter.ReportScriptedEvent("start town learning");
 
         thisTrialPresentedStores = new List<StoreComponent>();
         List<StoreComponent> unvisitedStores = new List<StoreComponent>(environment.stores);
+        // List<StoreComponent> unvisitedStores = new List<StoreComponent>
+        // {
+        //     FindStoreByName("bakery"),
+        //     FindStoreByName("bake_shop"),
+        //     FindStoreByName("barber_shop"),
+        //     FindStoreByName("jewlery_store"),
+        //     FindStoreByName("hardware_store"),
+        //     FindStoreByName("toy_store"),
+        //     FindStoreByName("clothing_store"),
+        //     FindStoreByName("grocery_store"),
+        //     FindStoreByName("cafe"),
+        //     FindStoreByName("dentist"),
+        //     FindStoreByName("pizzeria"),
+        //     FindStoreByName("craft_shop"),
+        //     FindStoreByName("gym"),
+        //     FindStoreByName("pet_store"),
+        //     FindStoreByName("florist"),
+        //     FindStoreByName("music_store"),
+        //     FindStoreByName("pharmacy"),
+        // };
 
         for (int i = 0; i < numDeliveries; i++)
         {
@@ -2001,7 +1556,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
                 if (timeTriggerActivated && distTriggerActivated)
                     yield return DisplayPointingIndicator(nextStore, true);
-                if (InputManager.GetButton("Secret"))
+                if (DEBUG && InputManager.GetButton("Secret"))
                     goto SkipRemainingDeliveries;
             }
             yield return DisplayPointingIndicator(nextStore, false);
@@ -2140,7 +1695,13 @@ public class DeliveryExperiment : CoroutineExperiment
 
         for (int i = 0; i < deliveries; i++)
         {
-            if (VALUE_COURIER)
+            if (i == deliveries - 1)
+            {
+                nextStore = environment.nonDeliveryStores[0];
+                if (nextStore == null)
+                    Debug.LogWarning("Post office not found in environment!");
+            }
+            else
             {
                 nextStore = curStoreList[i];
             }
@@ -2181,7 +1742,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
                 if (timeTriggerActivated && distTriggerActivated)
                     yield return DisplayPointingIndicator(nextStore, true);
-                if (InputManager.GetButton("Secret"))
+                if (DEBUG && InputManager.GetButton("Secret"))
                     goto SkipRemainingDeliveries;
             }
             yield return DisplayPointingIndicator(nextStore, false);
@@ -2249,11 +1810,13 @@ public class DeliveryExperiment : CoroutineExperiment
                 int roundedPoints = (int)Math.Round(storePoints);
                 string deliveredItemNameWithSpace = VALUE_COURIER ? deliveredItemName.Replace('_', ' ') + ", " + roundedPoints.ToString()
                                                                   : deliveredItemName.Replace('_', ' ');
+                string listType = storePointType == StorePointType.SerialPosition ? "Temporal" : storePointType.ToString().ToLower();
                 var itemPresentationInfo = new Dictionary<string, object>() { {"trial number", continuousTrialNum},
                                                                             {"item name", deliveredItemName},
                                                                             {"store name", nextStore.GetStoreName()},
                                                                             {"serial position", i+1},
                                                                             {"player position", playerMovement.transform.position.ToString()},
+                                                                            {"player orientation", playerMovement.transform.rotation.eulerAngles.ToString()},
                                                                             {"store position", nextStore.transform.position.ToString()},
                                                                             {"distance trigger activated", distTriggerActivated.ToString()},
                                                                             {"time trigger activated", timeTriggerActivated.ToString()},
@@ -2261,7 +1824,8 @@ public class DeliveryExperiment : CoroutineExperiment
                                                                             {"point condition", (int)storePointType},
                                                                             {"primacy buffer", Config.primacyBuf},
                                                                             {"recency buffer", Config.recencyBuf},
-                                                                            {"number of in group chosen", Config.numInGroupChosen} };
+                                                                            {"number of in group chosen", Config.numInGroupChosen},
+                                                                            {"store point type",listType} };
 
                 string debugString = string.Join(", ", itemPresentationInfo.Select(kv => kv.Key + ": " + kv.Value));
                 if (DEBUG)
@@ -2577,7 +2141,7 @@ public class DeliveryExperiment : CoroutineExperiment
                 }
 
                 // Skip to the next trial
-                if (InputManager.GetButton("Secret"))
+                if (DEBUG && InputManager.GetButton("Secret"))
                 {
                     SetRamulatorState("WAITING", false, new Dictionary<string, object>());
                     continue;
@@ -2720,7 +2284,7 @@ public class DeliveryExperiment : CoroutineExperiment
                 }
 
                 // Skip to the next trial
-                if (InputManager.GetButton("Secret"))
+                if (DEBUG && InputManager.GetButton("Secret"))
                 {
                     SetRamulatorState("WAITING", false, new Dictionary<string, object>());
                     continue;
@@ -3764,7 +3328,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
     private IEnumerator DoTwoBtnErKeypressCheck()
     {
-        if (InputManager.GetButton("Secret"))
+        if (DEBUG && InputManager.GetButton("Secret"))
             yield break;
 
         scriptedEventReporter.ReportScriptedEvent("start efr keypress check");
@@ -3798,7 +3362,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
     private IEnumerator DoTwoBtnErKeypressPractice()
     {
-        if (InputManager.GetButton("Secret"))
+        if (DEBUG && InputManager.GetButton("Secret"))
             yield break;
 
         scriptedEventReporter.ReportScriptedEvent("start efr keypress practice");
@@ -3849,7 +3413,10 @@ public class DeliveryExperiment : CoroutineExperiment
 
     private IEnumerator DoOneBtnErKeypressCheck()
     {
-        if (Config.skipNewEfrKeypressCheck || InputManager.GetButton("Secret"))
+        if (Config.skipNewEfrKeypressCheck)
+            yield break;
+
+        if (DEBUG && InputManager.GetButton("Secret"))
             yield break;
 
         scriptedEventReporter.ReportScriptedEvent("start efr keypress check");
@@ -3877,7 +3444,10 @@ public class DeliveryExperiment : CoroutineExperiment
 
     private IEnumerator DoOneBtnErKeypressPractice()
     {
-        if (Config.skipNewEfrKeypressPractice || InputManager.GetButton("Secret"))
+        if (Config.skipNewEfrKeypressPractice)
+            yield break;
+
+        if (DEBUG && InputManager.GetButton("Secret"))
             yield break;
 
         scriptedEventReporter.ReportScriptedEvent("start efr keypress practice");
@@ -4017,9 +3587,15 @@ public class DeliveryExperiment : CoroutineExperiment
         scriptedEventReporter.ReportScriptedEvent("versions", versionsData);
     }
 
+    public Environment GetEnvironment()
+    {
+        return environment;
+    }
+
     private IEnumerator EnableEnvironment()
     {
         yield return new WaitUntil(() => deliveryItems.StoresSetup());
+        yield return new WaitUntil(() => nonDeliveryItems.StoresSetup());
         environment = environments[0]; // Remnant of old design
         environment.parent.SetActive(true);
         Dictionary<string, object> storeMappings = new Dictionary<string, object>();
@@ -4129,7 +3705,7 @@ public class DeliveryExperiment : CoroutineExperiment
         float startTime = Time.time;
         while (Time.time < startTime + waitTime)
         {
-            if (InputManager.GetButtonDown("Secret"))
+            if (DEBUG && InputManager.GetButton("Secret"))
                 break;
             yield return null;
         }
@@ -4142,7 +3718,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
         BlackScreen();
         textDisplayer.DisplayText(description, message + "\r\nPress (x) to continue");
-        while (!InputManager.GetButtonDown("Secret") && !InputManager.GetButtonDown("Continue"))
+        while (!(DEBUG && InputManager.GetButton("Secret")) && !InputManager.GetButtonDown("Continue"))
             yield return null;
         textDisplayer.ClearText();
 

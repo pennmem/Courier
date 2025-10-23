@@ -80,6 +80,7 @@ public class Config
     public static int[] targetMean { get { return (int[])Config.GetSetting("targetMean"); } }
     public static int[] targetVar { get { return (int[])Config.GetSetting("targetVar"); } }
     public static float audioTextDisplayLength { get { return (float)Config.GetSetting("audioTextDisplayLength"); } }
+    public static bool debugMode { get { return (bool)Config.GetSetting("debugMode"); } }
     
     // public static bool valueAlwaysFirst { get { return true; } }
     // public static bool enableTemporal { get { return true; } }

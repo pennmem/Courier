@@ -9,6 +9,7 @@ public class StoreComponent : MonoBehaviour
     private string mostRecentlyPoppedItem;
 
     public DeliveryItems deliveryItems;
+    public bool isNonDelivery = false;
     public GameObject familiarization_object;
     public double points;
 
@@ -17,11 +18,36 @@ public class StoreComponent : MonoBehaviour
         return storeName;
     }
 
+    // void Start()
+    // {
+    //     deliveryZone = GetComponentInChildren<DeliveryZone>();
+
+    //     storeName = deliveryItems.PopStoreName();
+    //     DrawSigns();
+    // }
     void Start()
     {
         deliveryZone = GetComponentInChildren<DeliveryZone>();
 
-        storeName = deliveryItems.PopStoreName();
+        // --- Assign name logic ---
+        if (isNonDelivery)
+        {
+            // Keep its existing name (from Inspector or GameObject)
+            storeName = gameObject.name;
+            Debug.Log($"[StoreComponent] Non-delivery store preserved: {storeName}");
+        }
+        else
+        {
+            // Normal delivery store
+            if (deliveryItems == null)
+            {
+                Debug.LogError($"[StoreComponent] deliveryItems not set for {gameObject.name}!");
+                return;
+            }
+
+            storeName = deliveryItems.PopStoreName();
+        }
+
         DrawSigns();
     }
 

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+
 // using System.Diagnostics;
 using UnityEngine;
 
@@ -17,6 +18,7 @@ public class DeliveryItems : MonoBehaviour
     private static Dictionary<string, List<string>> remainingItems = new Dictionary<string, List<string>>();
 
     private System.Random reliableRandom;
+    public bool isNonDelivery = false;
 
     public StoreAudio[] storeNamesToItems;
     public StoreAudio[] practiceStoreNamesToItems;
@@ -90,29 +92,83 @@ public class DeliveryItems : MonoBehaviour
     }
 #endif // !UNITY_WEBGL
 
-    void Awake()
-    {
-        reliableRandom = ReliableRandom();
-        #if !UNITY_WEBGL // System.IO
-            WriteRemainingItemsFiles();
-            WriteAlphabetizedItemsFile();
-            WriteStoreNamesFile();
-        #else
-            remainingItems = LoadItems();
-        #endif // !UNITY_WEBGL
-
-        foreach (StoreAudio storeAudio in storeNamesToItems)
+        void Awake()
         {
-            unused_store_names.Add(storeAudio.storeName);
-        }
-    }
+            reliableRandom = ReliableRandom();
+            #if !UNITY_WEBGL // System.IO
+                WriteRemainingItemsFiles();
+                WriteAlphabetizedItemsFile();
+                WriteStoreNamesFile();
+    #else
+                remainingItems = LoadItems();
+    #endif // !UNITY_WEBGL
 
-    private Dictionary<string, List<string>> LoadItems() {
+            foreach (StoreAudio storeAudio in storeNamesToItems)
+            {
+                unused_store_names.Add(storeAudio.storeName);
+            }
+            Debug.Log("DeliveryItems Awake: Loaded " + storeNamesToItems.Length + " store entries");
+
+            for (int i = 0; i < storeNamesToItems.Length; i++)
+            {
+                Debug.Log($"[{i}] storeName={storeNamesToItems[i].storeName}");
+            }
+
+            Debug.Log("DeliveryItems Awake: unused_store_names (" + unused_store_names.Count + " total):");
+            foreach (string name in unused_store_names)
+            {
+                Debug.Log(" - " + name);
+            }
+        }
+    // void Awake()
+    // {
+    //     reliableRandom = ReliableRandom();
+
+    // #if !UNITY_WEBGL // System.IO
+    //     WriteRemainingItemsFiles();
+    //     WriteAlphabetizedItemsFile();
+    //     WriteStoreNamesFile();
+    // #else
+    //     remainingItems = LoadItems();
+    // #endif
+
+    //     // Gather non-delivery store names (like post_office)
+    //     List<string> nonDeliveryNames = new List<string>();
+    //     if (nonDeliveryItems != null)
+    //     {
+    //         foreach (StoreAudio nonDeliveryStore in nonDeliveryItems.storeNamesToItems)
+    //         {
+    //             nonDeliveryNames.Add(nonDeliveryStore.storeName);
+    //         }
+    //     }
+
+    //     // Add only delivery stores
+    //     foreach (StoreAudio storeAudio in storeNamesToItems)
+    //     {
+    //         if (!nonDeliveryNames.Contains(storeAudio.storeName))
+    //         {
+    //             unused_store_names.Add(storeAudio.storeName);
+    //         }
+    //         else
+    //         {
+    //             Debug.Log($"[DeliveryItems] Excluding non-delivery store: {storeAudio.storeName}");
+    //         }
+    //     }
+
+    //     Debug.Log("DeliveryItems Awake: Loaded " + storeNamesToItems.Length + " store entries");
+    //     Debug.Log("DeliveryItems Awake: " + unused_store_names.Count + " stores added to delivery pool");
+    // }
+
+
+    private Dictionary<string, List<string>> LoadItems()
+    {
         Dictionary<string, List<string>> allItems = new Dictionary<string, List<string>>();
-        foreach(StoreAudio store in storeNamesToItems) {
+        foreach (StoreAudio store in storeNamesToItems)
+        {
             allItems.Add(store.storeName, new List<string>());
-            
-            foreach(AudioClip clip in store.englishAudio) {
+
+            foreach (AudioClip clip in store.englishAudio)
+            {
                 allItems[store.storeName].Add(clip.name);
             }
         }
@@ -121,6 +177,8 @@ public class DeliveryItems : MonoBehaviour
 
     public string PopStoreName()
     {
+        Debug.Log($"Store count in scene: {FindObjectsOfType<StoreComponent>().Length}, names available: {unused_store_names.Count}");
+
         if (unused_store_names.Count < 1)
         {
             throw new UnityException("I ran out of store names!");

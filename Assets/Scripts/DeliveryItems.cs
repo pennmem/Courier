@@ -58,6 +58,7 @@ public class DeliveryItems : MonoBehaviour
     private void WriteAlphabetizedItemsFile()
     {
         string outputFilePath = System.IO.Path.Combine(UnityEPL.GetParticipantFolder(), "wordpool.txt");
+        string outputFilePath2 = System.IO.Path.Combine(UnityEPL.GetParticipantFolder(), "all_items.txt");
         List<string> allItems = new List<string>();
         foreach (StoreAudio storeAudio in storeNamesToItems)
         {
@@ -77,6 +78,7 @@ public class DeliveryItems : MonoBehaviour
         }
         allItems.Sort();
         System.IO.File.AppendAllLines(outputFilePath, allItems);
+        System.IO.File.AppendAllLines(outputFilePath2, allItems);
     }
 
     private void WriteStoreNamesFile()

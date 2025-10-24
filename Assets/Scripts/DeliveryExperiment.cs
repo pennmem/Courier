@@ -1032,7 +1032,7 @@ public class DeliveryExperiment : CoroutineExperiment
                 messageImageDisplayer.SetGeneralMessageText("town learning title", "town learning main 1");
                 yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_message_display);
                 WorldScreen();
-                yield return DoTownLearning(0, environment.stores.Length);
+                yield return DoTownLearning(0, environment.stores.Length + 1);
             }
         }
 
@@ -1470,6 +1470,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
         thisTrialPresentedStores = new List<StoreComponent>();
         List<StoreComponent> unvisitedStores = new List<StoreComponent>(environment.stores);
+        unvisitedStores.Add(environment.nonDeliveryStores[0]);
         // List<StoreComponent> unvisitedStores = new List<StoreComponent>
         // {
         //     FindStoreByName("bakery"),

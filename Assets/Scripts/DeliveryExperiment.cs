@@ -96,8 +96,8 @@ public class DeliveryExperiment : CoroutineExperiment
     private const float RECALL_TEXT_DISPLAY_LENGTH = 1f;
     // Free recall length (seconds). Use 75s for the structured recall (value then free)
     private const float FREE_RECALL_LENGTH = 75f;
-    private const float VALUE_RECALL_LENGTH = 10f;
-    private const float PRACTICE_FREE_RECALL_LENGTH = 25f;
+    private const float VALUE_RECALL_LENGTH = 50f;
+    private const float PRACTICE_FREE_RECALL_LENGTH = 75f;
     private const float STORE_FINAL_RECALL_LENGTH = 90f;
     private const float OBJECT_FINAL_RECALL_LENGTH = NICLS_COURIER ? 120f : COURIER_ONLINE ? 240f : 180f;
     private const float TIME_BETWEEN_DIFFERENT_RECALL_PHASES = 2f;

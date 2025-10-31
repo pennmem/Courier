@@ -2270,6 +2270,11 @@ public class DeliveryExperiment : CoroutineExperiment
                 niclsInterface.SendReadOnlyState(0);
             }
 #endif
+            if (VALUE_COURIER && trialNumber == numTrials / 2)
+            {
+                Debug.Log("Do break");
+                yield return DoBreak();
+            }
 
             // Next day message (and trial skip button)
             SetRamulatorState("WAITING", true, new Dictionary<string, object>());

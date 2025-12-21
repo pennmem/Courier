@@ -225,7 +225,16 @@ public static class LanguageSource
         { "music store", new string[] {"music store", "das Musikgeschäft"} },
         { "pharmacy", new string[] {"pharmacy", "die Apotheke"} },
         { "toy store", new string[] {"toy store", "den Spielwarenladen"} },
-{ "post_office", new string[] {"post office", "die Post"} },
+        { "post_office", new string[] {"post office", "die Post"} },
+        // { "post office", new string[] {"post office", "die Post"} },
+        { "bank", new string[] {"bank", "die Bank"} },
+        { "noodle house", new string[] {"noodle shop", "Chinesisches Restaurant"} },
+        { "burger joint", new string[] {"burger joint", "das Fast Food Restaurant"} },
+        { "party store", new string[] {"party store", "den Kostumladen"} },
+        { "gelateria", new string[] {"gelateria", "das Eiscafe"} },
+        { "bookstore", new string[] {"bookstore", "die Buchhandlung"} },
+        { "salon", new string[] {"salon", "der Schönheitssalon"} },
+        { "tech shop", new string[] {"tech shop", "der Computerladen"} },
 
         { "confetti", new string[] {"confetti", "Konfetti"} }
     };

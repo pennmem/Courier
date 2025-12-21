@@ -637,6 +637,385 @@ public class DeliveryExperiment : CoroutineExperiment
         { "toy_store", new List<string>{ "pharmacy", "jewelry_store", "clothing_store", "barber_shop", "grocery_store", "bike_shop", "craft_shop" } }
     };
 
+    private static Dictionary<string, List<string>> closeStoreDict = new Dictionary<string, List<string>>()
+    {
+        { "barber_shop", new List<string>{ "jewelry_store", "bike_shop", "bakery", "hardware_store", "toy_store"} },
+        { "jewelry_store", new List<string>{ "barber_shop", "bike_shop", "bakery"} },
+        { "bike_shop", new List<string>{ "barber_shop", "jewelry_store", "bakery", "pharmacy"} },
+        { "bakery", new List<string>{ "barber_shop", "jewelry_store", "bike_shop", "pharmacy", "hardware_store"} },
+        { "pharmacy", new List<string>{ "bakery", "gym", "bike_shop", "music_store", "hardware_store", "florist"} },
+        { "music_store", new List<string>{ "florist", "pharmacy","pet_store" } },
+        { "florist", new List<string>{ "music_store", "pharmacy","pet_store", "craft_store" , "gym"} },
+         { "pet_store", new List<string>{ "music_store", "pet_store", "craft_store", "florist" } },
+           { "craft_store", new List<string>{ "music_store", "pet_store", "florist", "gym", "dentist", "pizzeria", "cafe"} },
+        { "gym", new List<string>{ "pharmacy", "craft_store", "hardware_store", "florist"} },
+        { "hardware_store", new List<string>{ "pharmacy", "gym", "barber_shop", "bakery", "toy_store"} },
+        { "toy_store", new List<string>{ "hardware_store", "clothing_store", "grocery_store", "cafe"} },
+        { "clothing_store", new List<string>{ "hardware_store", "toy_store", "grocery_store", "cafe"} },
+        { "grocery_store", new List<string>{ "hardware_store", "toy_store", "clothing_store", "cafe"} },
+        { "cafe", new List<string>{ "hardware_store", "toy_store", "clothing_store", "grocery_store", "dentist", "pizzeria"} },
+        { "pizzeria", new List<string>{"cafe", "dentist", "craft_shop"} },
+        { "dentist", new List<string>{"cafe", "pizzeria", "craft_shop"} },
+    };
+
+    private List<string> getTrialStoresRadius(List<string> allStores, int numDeliveries, System.Random rng)
+    {
+        // Start with all non–post office stores
+        List<string> unvisited = allStores
+            .Where(s => s != "post_office")
+            .ToList();
+
+        List<string> trialStores = new List<string>();
+
+        if (numDeliveries <= 0 || unvisited.Count == 0)
+        {
+            return trialStores;
+        }
+
+        // Pick first store randomly
+        int randomIndex = rng.Next(unvisited.Count);
+        string currentStore = unvisited[randomIndex];
+        unvisited.RemoveAt(randomIndex);
+        trialStores.Add(currentStore);
+
+        // Fill remaining deliveries
+        for (int deliveryIdx = 1; deliveryIdx < numDeliveries && unvisited.Count > 0; deliveryIdx++)
+        {
+            string nextStore = null;
+
+            // Try to choose a nearby store first
+            if (closeStoreDict.TryGetValue(currentStore, out List<string> nearbyStores) &&
+                nearbyStores != null &&
+                nearbyStores.Count > 0)
+            {
+                // Choose a random starting point, then walk through neighbors once
+                int startIndex = rng.Next(nearbyStores.Count);
+
+                for (int offset = 0; offset < nearbyStores.Count; offset++)
+                {
+                    int idx = (startIndex + offset) % nearbyStores.Count;
+                    string candidate = nearbyStores[idx];
+
+                    // Must be unvisited and not already in this trial
+                    if (unvisited.Contains(candidate) && !trialStores.Contains(candidate))
+                    {
+                        nextStore = candidate;
+                        break;
+                    }
+                }
+            }
+
+            // Fallback: pick any unvisited store at random
+            if (nextStore == null)
+            {
+                int idx = rng.Next(unvisited.Count);
+                nextStore = unvisited[idx];
+            }
+
+            unvisited.Remove(nextStore);
+            trialStores.Add(nextStore);
+            currentStore = nextStore;
+        }
+        trialStores.Add("post_office");
+
+        return trialStores;
+    }
+
+    private List<List<string>> getTotalListRadius(List<string> allStores, int numTrials, int numDeliveries, System.Random rng)
+    {
+        List<List<string>> storesList = new List<List<string>>();
+        for (int i = 0; i < numTrials; i++)
+        {
+            storesList.Add(getTrialStoresRadius(allStores, numDeliveries, rng));
+        }
+        return storesList;
+    }
+
+     private static Dictionary<string, List<string>> storeQuadrantDict = new Dictionary<string, List<string>>()
+    {
+        { "suburb",  new List<string>{ "barber_shop", "jewelry_store", "bike_shop", "bakery", "hardware_store"} },
+        { "skyscraper",  new List<string>{ "toy_store", "clothing_store", "grocery_store", "cafe"} },
+        { "darkcity",  new List<string>{ "pizzeria", "dentist", "craft_shop", "gym"} },
+        { "island",  new List<string>{ "pet_store", "florist", "music_store", "pharmacy"} }
+    };
+
+    private static Dictionary<string, List<string>> quadrantTransitionDict = new Dictionary<string, List<string>>()
+    {
+        { "suburb",  new List<string>{ "skyscraper", "island"} },
+        { "skyscraper",  new List<string>{"suburb", "darkcity"} },
+        { "darkcity",  new List<string>{ "skyscraper", "island"} },
+        { "island",  new List<string>{"darkcity", "suburb"} }
+    };
+
+
+    /// <summary>
+/// Generate a trial path of stores:
+/// - Visits quadrants in a random valid path (each quadrant exactly once, using quadrantTransitionDict)
+/// - Visits (numDeliveries / numQuadrants) stores per quadrant, with remainder distributed randomly
+/// - Uses closeStoreDict to keep each next store close to the previous one when possible
+/// </summary>
+    private List<string> getTrialStoresQuadrant(List<string> allStores, int numDeliveries, System.Random rng)
+    {
+        var trialStores = new List<string>();
+
+        // Filter out post office from pool of candidate stores
+        var allStoreSet = new HashSet<string>(allStores.Where(s => s != "post_office"));
+
+        if (numDeliveries <= 0 || allStoreSet.Count == 0)
+        {
+            trialStores.Add("post_office");
+            return trialStores;
+        }
+
+        // Build inverse mapping: store -> quadrant
+        var storeToQuadrant = new Dictionary<string, string>();
+        foreach (var kv in storeQuadrantDict)
+        {
+            string quad = kv.Key;
+            foreach (var store in kv.Value)
+            {
+                // Later stores not in allStoreSet will be filtered out via unvisited
+                storeToQuadrant[store] = quad;
+            }
+        }
+
+        // Unvisited stores that we can actually use (must have quadrant mapping)
+        var unvisited = new HashSet<string>(
+            allStoreSet.Where(s => storeToQuadrant.ContainsKey(s))
+        );
+
+        if (unvisited.Count == 0)
+        {
+            trialStores.Add("post_office");
+            return trialStores;
+        }
+
+        // 1) Generate random quadrant path visiting each quadrant once
+        var quadrantPath = GenerateQuadrantPath(rng);
+        int numQuadrants = quadrantPath.Count;
+        if (numQuadrants == 0)
+        {
+            // Fallback: just sample stores randomly
+            var list = unvisited.ToList();
+            while (trialStores.Count < numDeliveries && list.Count > 0)
+            {
+                int idx = rng.Next(list.Count);
+                trialStores.Add(list[idx]);
+                list.RemoveAt(idx);
+            }
+            trialStores.Add("post_office");
+            return trialStores;
+        }
+
+        // 2) Decide how many deliveries per quadrant
+        var deliveriesPerQuad = ComputeQuadrantDeliveryCounts(numDeliveries, quadrantPath, rng);
+
+        string currentStore = null;
+
+        // 3) Walk quadrants in path order and pick stores
+        foreach (var quad in quadrantPath)
+        {
+            int deliveriesInThisQuad = deliveriesPerQuad.TryGetValue(quad, out var c) ? c : 0;
+            if (deliveriesInThisQuad <= 0)
+            {
+                continue;
+            }
+
+            for (int j = 0; j < deliveriesInThisQuad && unvisited.Count > 0; j++)
+            {
+                string nextStore = null;
+
+                // Candidate stores in this quadrant that are still unvisited
+                List<string> storesInQuad = storeQuadrantDict.TryGetValue(quad, out var quadStores)
+                    ? quadStores.Where(s => unvisited.Contains(s)).ToList()
+                    : new List<string>();
+
+                // First store overall: just pick random in this quadrant
+                if (currentStore == null)
+                {
+                    if (storesInQuad.Count == 0)
+                    {
+                        break; // nothing usable in this quadrant
+                    }
+
+                    int idx = rng.Next(storesInQuad.Count);
+                    nextStore = storesInQuad[idx];
+                }
+                else
+                {
+                    // Prefer an unvisited neighbor that is also in this quadrant
+                    if (closeStoreDict.TryGetValue(currentStore, out var neighbors) &&
+                        neighbors != null && neighbors.Count > 0)
+                    {
+                        var neighborCandidates = neighbors
+                            .Where(s => unvisited.Contains(s)
+                                        && storeToQuadrant.TryGetValue(s, out var q)
+                                        && q == quad)
+                            .ToList();
+
+                        if (neighborCandidates.Count > 0)
+                        {
+                            int idx = rng.Next(neighborCandidates.Count);
+                            nextStore = neighborCandidates[idx];
+                        }
+                    }
+
+                    // If no close neighbor in this quadrant, pick any unvisited store in this quadrant
+                    if (nextStore == null && storesInQuad.Count > 0)
+                    {
+                        int idx = rng.Next(storesInQuad.Count);
+                        nextStore = storesInQuad[idx];
+                    }
+                }
+
+                // Final fallback: any unvisited store at all, if quadrant is exhausted
+                if (nextStore == null)
+                {
+                    var unvisitedList = unvisited.ToList();
+                    if (unvisitedList.Count == 0)
+                    {
+                        break;
+                    }
+                    int idx = rng.Next(unvisitedList.Count);
+                    nextStore = unvisitedList[idx];
+                }
+
+                // Mark used
+                if (!unvisited.Remove(nextStore))
+                {
+                    // Already removed somehow; skip
+                    continue;
+                }
+
+                trialStores.Add(nextStore);
+                currentStore = nextStore;
+
+                if (trialStores.Count >= numDeliveries)
+                {
+                    break;
+                }
+            }
+
+            if (trialStores.Count >= numDeliveries)
+            {
+                break;
+            }
+        }
+
+        trialStores.Add("post_office");
+        return trialStores;
+    }
+
+    /// <summary>
+    /// Generate a random path that visits each quadrant exactly once,
+    /// respecting transitions in quadrantTransitionDict.
+    /// </summary>
+    private List<string> GenerateQuadrantPath(System.Random rng)
+    {
+        var quadrants = quadrantTransitionDict.Keys.ToList();
+        int targetLength = quadrants.Count;
+
+        if (targetLength == 0)
+        {
+            return new List<string>();
+        }
+
+        while (true)
+        {
+            var visited = new HashSet<string>();
+            var path = new List<string>();
+
+            string current = quadrants[rng.Next(quadrants.Count)];
+            visited.Add(current);
+            path.Add(current);
+
+            while (path.Count < targetLength)
+            {
+                if (!quadrantTransitionDict.TryGetValue(current, out var neighbors) ||
+                    neighbors == null || neighbors.Count == 0)
+                {
+                    break;
+                }
+
+                var candidates = neighbors.Where(q => !visited.Contains(q)).ToList();
+                if (candidates.Count == 0)
+                {
+                    break;
+                }
+
+                string next = candidates[rng.Next(candidates.Count)];
+                visited.Add(next);
+                path.Add(next);
+                current = next;
+            }
+
+            if (path.Count == targetLength)
+            {
+                return path;
+            }
+            // Otherwise retry with a new random start / random neighbor choices
+        }
+    }
+
+    /// <summary>
+    /// Compute how many deliveries each quadrant gets:
+    /// - baseCount = numDeliveries / numQuadrants
+    /// - remainder = numDeliveries % numQuadrants
+    /// - randomly give +1 extra to 'remainder' quadrants
+    /// </summary>
+    private Dictionary<string, int> ComputeQuadrantDeliveryCounts(
+        int numDeliveries,
+        List<string> quadrantPath,
+        System.Random rng)
+    {
+        var counts = new Dictionary<string, int>();
+
+        var uniqueQuads = quadrantPath.Distinct().ToList();
+        int numQuadrants = uniqueQuads.Count;
+
+        if (numQuadrants == 0 || numDeliveries <= 0)
+        {
+            foreach (var q in uniqueQuads)
+            {
+                counts[q] = 0;
+            }
+            return counts;
+        }
+
+        int baseCount = numDeliveries / numQuadrants;
+        int remainder = numDeliveries % numQuadrants;
+
+        // Everyone gets baseCount
+        foreach (var quad in uniqueQuads)
+        {
+            counts[quad] = baseCount;
+        }
+
+        if (remainder > 0)
+        {
+            // Randomly choose 'remainder' quadrants to get +1 extra
+            var shuffled = uniqueQuads.OrderBy(_ => rng.Next()).ToList();
+            for (int i = 0; i < remainder; i++)
+            {
+                string q = shuffled[i];
+                counts[q] = counts[q] + 1;
+            }
+        }
+
+        return counts;
+    }
+
+
+    private List<List<string>> getTotalListQuadrant(List<string> allStores, int numTrials, int numDeliveries, System.Random rng)
+    {
+        List<List<string>> storesList = new List<List<string>>();
+        for (int i = 0; i < numTrials; i++)
+        {
+            storesList.Add(getTrialStoresQuadrant(allStores, numDeliveries, rng));
+        }
+        return storesList;
+    }
+
     private Tuple<bool, List<string>> getTrialStoresPure(List<string> allStores, int numDeliveries, System.Random rng)
     {
         List<string> unvisited = new List<string>(allStores.Where(s => s != "post_office"));
@@ -752,6 +1131,139 @@ public class DeliveryExperiment : CoroutineExperiment
         return fallback;
     }
 
+   
+ // --- TSP-based list loader -------------------------------------------------
+    // Reads a file of valid TSP paths (one path per line) and deterministically
+    // selects `numTrials` unique paths without repeats using a participant-based
+    // hashing/step scheme. The selection is deterministic per participant and
+    // session (uses `continuousSessionNumber` as an offset) so we don't need to
+    // persist which paths were used between runs.
+    private List<List<StoreComponent>> getTotalListTSP(int numTrials, System.Random rng)
+    {
+        string routesPath = System.IO.Path.Combine(Application.dataPath, "Routes", "tsp_valid_paths_25_15_12.txt");
+        if (!System.IO.File.Exists(routesPath))
+        {
+            Debug.LogError($"TSP routes file not found: {routesPath}");
+            return new List<List<StoreComponent>>();
+        }
+
+        // Read and parse file lines into list of paths
+        var rawLines = System.IO.File.ReadAllLines(routesPath);
+        var paths = new List<List<string>>();
+        foreach (var raw in rawLines)
+        {
+            var line = raw.Trim();
+            if (string.IsNullOrEmpty(line)) continue;
+            // Split on commas/spaces/tabs and remove empties
+            var parts = line.Split(new char[] { ',', ' ', '\t' }, System.StringSplitOptions.RemoveEmptyEntries)
+                                .Select(s => s.Trim().Replace("_", " ")).ToList();
+            if (parts.Count > 0)
+                paths.Add(parts);
+        }
+
+        int N = paths.Count;
+        if (N == 0) return new List<List<StoreComponent>>();
+
+        // Determine participant seed string (fall back to rng if participant unknown)
+        string participantId = "__unknown__";
+        try { participantId = UnityEPL.GetParticipants()[0]; } catch { participantId = rng.Next().ToString(); }
+
+        // Create deterministic start and step from participant id
+        int start = HashStringToInt(participantId + "_start") % N;
+        int step = (HashStringToInt(participantId + "_step") % (N - 1)) + 1; // in [1, N-1]
+
+        // ensure step is coprime with N for full-cycle behavior
+        int attempts = 0;
+        while (Gcd(step, N) != 1 && attempts < N)
+        {
+            step = (step + 1) % N;
+            if (step == 0) step = 1;
+            attempts++;
+        }
+
+        // Offset across sessions so different sessions pick different disjoint blocks
+        long sessionOffset = (long)continuousSessionNumber * (long)numTrials;
+
+        var result = new List<List<StoreComponent>>();
+        var chosen = new HashSet<int>();
+
+        // Build a lookup for store names in the environment for flexible matching
+        var envStores = ((object)environment != null && environment.stores != null) ? environment.stores : new StoreComponent[0];
+        var envNameToStore = new Dictionary<string, StoreComponent>(StringComparer.OrdinalIgnoreCase);
+        foreach (var store in envStores)
+        {
+            // Normalize: lowercase, remove underscores/spaces
+            string norm = store.gameObject.name.ToLower().Replace("_", "").Replace(" ", "");
+            if (!envNameToStore.ContainsKey(norm))
+                envNameToStore[norm] = store;
+        }
+
+        for (int i = 0; i < numTrials; i++)
+        {
+            // index = (start + sessionOffset + i*step) % N
+            long idx = (start + sessionOffset + (long)i * (long)step) % N;
+            int index = (int)idx;
+            // guard against accidental duplicates (shouldn't happen if step coprime and offset chosen well)
+            int guard = 0;
+            while (chosen.Contains(index) && guard < N)
+            {
+                index = (index + 1) % N;
+                guard++;
+            }
+            if (guard >= N)
+            {
+                Debug.LogWarning("getTotalListTSP: unable to find new unique path index");
+                break;
+            }
+            chosen.Add(index);
+            // Map TSP names to StoreComponent, append post office
+            var pathNames = new List<string>(paths[index]);
+            pathNames.Add("post office");
+            var storeList = new List<StoreComponent>();
+            foreach (var name in pathNames)
+            {
+                string norm = name.ToLower().Replace("_", "").Replace(" ", "");
+                if (envNameToStore.TryGetValue(norm, out var store))
+                {
+                    storeList.Add(store);
+                }
+                else if (DEBUG)
+                {
+                    Debug.LogWarning($"TSP store name '{name}' (normalized '{norm}') not found in environment!");
+                }
+            }
+            result.Add(storeList);
+        }
+
+        return result;
+    }
+
+    // Simple string -> positive int hash
+    private int HashStringToInt(string s)
+    {
+        unchecked
+        {
+            int h = 23;
+            foreach (char c in s)
+                h = h * 31 + c;
+            return (h == int.MinValue) ? int.MaxValue : System.Math.Abs(h);
+        }
+    }
+
+    // Euclidean gcd
+    private int Gcd(int a, int b)
+    {
+        a = System.Math.Abs(a); b = System.Math.Abs(b);
+        if (a == 0) return b;
+        if (b == 0) return a;
+        while (b != 0)
+        {
+            int t = b;
+            b = a % b;
+            a = t;
+        }
+        return a;
+    }
 
     // These names are used in for what is sent to the log
     // If you change them, then you have to change the event processing (or the logging code)
@@ -969,17 +1481,19 @@ public class DeliveryExperiment : CoroutineExperiment
         // Setup Environment
         yield return EnableEnvironment();  // TODO: JPB: there is a race condition between saving config and generating session folder probably (remove enable environment to test)
 
-        int numTrials = (sessionNumber == 0) ? Config.trialsPerSessionSingleTownLearning: Config.trialsPerSession;
-        if (DEBUG) Debug.Log($"Value Courier: session {sessionNumber}, numTrials = {numTrials}");
-        Task<List<List<string>>> totalListTask = null;
-        if (VALUE_COURIER)
-        {
-            if (DEBUG)
-                Debug.Log("Starting async store list generation...");
-            List<string> storeNames = environment.stores.Select(s => s.gameObject.name).ToList();
-            Debug.Log($"Store names ({storeNames.Count}): {string.Join(", ", storeNames)}");
-            totalListTask = Task.Run(() => getTotalListSimple(storeNames, numTrials, Config.deliveriesPerTrial, this.rng));
-        }
+        // int numTrials = (sessionNumber == 0) ? Config.trialsPerSessionSingleTownLearning: Config.trialsPerSession;
+        // if (DEBUG) Debug.Log($"Value Courier: session {sessionNumber}, numTrials = {numTrials}");
+        // Task<List<List<string>>> totalListTask = null;
+        // if (VALUE_COURIER)
+        // {
+        //     if (DEBUG)
+        //         Debug.Log("Starting async store list generation...");
+        //         Debug.Log($"environment has {environment.stores.Length} stores.");
+        //     List<string> storeNames = environment.stores.Select(s => s.gameObject.name).ToList();
+        //     Debug.Log($"Store names ({storeNames.Count}): {string.Join(", ", storeNames)}");
+        //     // totalListTask = Task.Run(() => getTotalListTSP(numTrials, this.rng));
+        //     totalListTask = Task.Run(() => getTotalListTSP(numTrials, this.rng));
+        // }
 
         // Frame Rate Test
         if (COURIER_ONLINE)
@@ -1037,91 +1551,91 @@ public class DeliveryExperiment : CoroutineExperiment
         }
 
         // Value Courier store list generator
-        if (VALUE_COURIER && totalListTask != null)
+        if (VALUE_COURIER)
         {
             if (DEBUG)
                 Debug.Log("Waiting for store list generation to finish...");
-
-            // Wait indefinitely for background task to finish
-            yield return new WaitUntil(() => totalListTask.IsCompleted);
-
-            List<List<string>> storeNameLists = null;
-            if (totalListTask.IsCompleted && totalListTask.Exception == null)
-            {
-                storeNameLists = totalListTask.Result;
-                if (DEBUG) Debug.Log("Store list generation complete (background).");
-                yield return null;
+            int numTrials = (sessionNumber == 0) ? Config.trialsPerSessionSingleTownLearning: Config.trialsPerSession;
+            if (isFirstSession) {
+                numTrials += Config.trialsPerSessionSingleTownLearning;
             }
-            else
-            {
-                if (DEBUG) Debug.LogWarning("Store list generation task failed or was canceled.");
-            }
+            storeLists = getTotalListTSP(numTrials, this.rng);
+            if (DEBUG) Debug.Log("Store list generation complete (background).");
+            // // Wait indefinitely for background task to finish
+            // yield return new WaitUntil(() => totalListTask.IsCompleted);
 
-            // At this point we have storeNameLists (may be partial). Ensure we always produce something.
-            if (storeNameLists == null || storeNameLists.Count == 0)
-            {
-                // Instead of failing, create a deterministic fallback: rotate through all stores to build lists.
-                if (DEBUG) Debug.LogWarning("No store lists produced by generators; building deterministic fallback lists.");
-                List<string> storeNames = environment.stores.Select(s => s.gameObject.name).ToList();
-                storeNameLists = new List<List<string>>();
-                int m = storeNames.Count;
-                int listLen = Config.deliveriesPerTrial + 1; // initial + numDeliveries
-                for (int t = 0; t < numTrials; t++)
-                {
-                    var trial = new List<string>();
-                    int start = t % m;
-                    for (int k = 0; k < listLen; k++)
-                        trial.Add(storeNames[(start + k) % m]);
-                    storeNameLists.Add(trial);
-                }
-            }
+            // List<List<string>> storeNameLists = null;
+            // if (totalListTask.IsCompleted && totalListTask.Exception == null)
+            // {
+            //     storeNameLists = totalListTask.Result;
+            //     if (DEBUG) Debug.Log("Store list generation complete (background).");
+            //     yield return null;
+            // }
+            // else
+            // {
+            //     if (DEBUG) Debug.LogWarning("Store list generation task failed or was canceled.");
+            // }
+
 
             if (DEBUG) Debug.Log("Populating storeLists from names...");
             yield return null;
 
-            // Debug: print the generated name lists
+            // // Debug: print the generated name lists
+            // if (DEBUG)
+            // {
+            //     Debug.Log($"storeNameLists count: {storeNameLists?.Count ?? 0}");
+            //     if (storeNameLists != null)
+            //     {
+            //         for (int t = 0; t < storeNameLists.Count; t++)
+            //         {
+            //             var names = storeNameLists[t];
+            //             Debug.Log($"storeNameLists[{t}] ({names.Count}): {string.Join(", ", names)}");
+            //         }
+            //     }
+            // }
+
+            // storeLists = new List<List<StoreComponent>>();
+
+            // // Populate storeLists from storeNameLists
+            // for (int i = 0; i < storeNameLists.Count; i++)
+            // {
+            //     List<string> nameList = storeNameLists[i];
+            //     List<StoreComponent> storeList = new List<StoreComponent>();
+
+            //     for (int j = 0; j < nameList.Count; j++)
+            //     {
+            //         string storeName = nameList[j];
+            //         StoreComponent store = null;
+
+            //         // Find the matching store in the environment
+            //         for (int k = 0; k < environment.stores.Length; k++)
+            //         {
+            //             if (environment.stores[k].gameObject.name == storeName)
+            //             {
+            //                 store = environment.stores[k];
+            //                 break;
+            //             }
+            //         }
+
+            //         if (store != null)
+            //             storeList.Add(store);
+            //         else if (DEBUG)
+            //             Debug.LogWarning($"Store name '{storeName}' not found in environment!");
+            //     }
+
+            //     storeLists.Add(storeList);
+            // }
+
+            // Debug log all lists after population
             if (DEBUG)
             {
-                Debug.Log($"storeNameLists count: {storeNameLists?.Count ?? 0}");
-                if (storeNameLists != null)
+                Debug.Log($"storeLists count: {storeLists.Count}");
+                for (int t = 0; t < storeLists.Count; t++)
                 {
-                    for (int t = 0; t < storeNameLists.Count; t++)
-                    {
-                        var names = storeNameLists[t];
-                        Debug.Log($"storeNameLists[{t}] ({names.Count}): {string.Join(", ", names)}");
-                    }
+                    var sList = storeLists[t];
+                    var sNames = sList.Select(s => s != null ? s.gameObject.name : "<null>").ToArray();
+                    Debug.Log($"storeLists[{t}] ({sNames.Length}): {string.Join(", ", sNames)}");
                 }
-            }
-
-            storeLists = new List<List<StoreComponent>>();
-
-            for (int i = 0; i < storeNameLists.Count; i++)
-            {
-                List<string> nameList = storeNameLists[i];
-                List<StoreComponent> storeList = new List<StoreComponent>();
-
-                for (int j = 0; j < nameList.Count; j++)
-                {
-                    string storeName = nameList[j];
-                    StoreComponent store = null;
-
-                    // Find the matching store in the environment
-                    for (int k = 0; k < environment.stores.Length; k++)
-                    {
-                        if (environment.stores[k].gameObject.name == storeName)
-                        {
-                            store = environment.stores[k];
-                            break;
-                        }
-                    }
-
-                    if (store != null)
-                        storeList.Add(store);
-                    else if (DEBUG)
-                        Debug.LogWarning($"Store name '{storeName}' not found in environment!");
-                }
-
-                storeLists.Add(storeList);
             }
 
             // // Debug: print the mapped storeLists (StoreComponent names)
@@ -1616,6 +2130,10 @@ public class DeliveryExperiment : CoroutineExperiment
 
         if (VALUE_COURIER)
         {
+            if (practice)
+            {
+                trialNumber += 2;
+            }
             curStoreList = storeLists[trialNumber];
             switch (storePointType)
             {
@@ -1822,7 +2340,7 @@ public class DeliveryExperiment : CoroutineExperiment
                                                                             {"distance trigger activated", distTriggerActivated.ToString()},
                                                                             {"time trigger activated", timeTriggerActivated.ToString()},
                                                                             {"store value", roundedPoints},
-                                                                            {"point condition", (int)storePointType},
+                                                                            {"point condition", storePointType},
                                                                             {"primacy buffer", Config.primacyBuf},
                                                                             {"recency buffer", Config.recencyBuf},
                                                                             {"number of in group chosen", Config.numInGroupChosen},
@@ -3600,7 +4118,11 @@ public class DeliveryExperiment : CoroutineExperiment
 
     private IEnumerator EnableEnvironment()
     {
+        if (DEBUG)
+            Debug.Log("delivery items");
         yield return new WaitUntil(() => deliveryItems.StoresSetup());
+        if (DEBUG)
+            Debug.Log("non delivery items");
         yield return new WaitUntil(() => nonDeliveryItems.StoresSetup());
         environment = environments[0]; // Remnant of old design
         environment.parent.SetActive(true);
@@ -3883,7 +4405,6 @@ public class DeliveryExperiment : CoroutineExperiment
         return UnityEngine.Vector3.Distance(player.position, target.position);
     }
 }
-
 
 public static class IListExtensions
 {

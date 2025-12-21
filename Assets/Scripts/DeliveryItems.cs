@@ -105,6 +105,8 @@ public class DeliveryItems : MonoBehaviour
                 remainingItems = LoadItems();
     #endif // !UNITY_WEBGL
 
+            // Reset pool and populate from configured store entries
+            unused_store_names.Clear();
             foreach (StoreAudio storeAudio in storeNamesToItems)
             {
                 unused_store_names.Add(storeAudio.storeName);
@@ -179,22 +181,26 @@ public class DeliveryItems : MonoBehaviour
 
     public string PopStoreName()
     {
-        Debug.Log($"Store count in scene: {FindObjectsOfType<StoreComponent>().Length}, names available: {unused_store_names.Count}");
+        // Debug.Log($"PopStoreName (isNonDelivery={isNonDelivery}) - scene store count: {FindObjectsOfType<StoreComponent>().Length}, names available: {unused_store_names.Count}");
 
         if (unused_store_names.Count < 1)
         {
             throw new UnityException("I ran out of store names!");
         }
+
+
         unused_store_names.Shuffle(reliableRandom);
         string storeName = unused_store_names[0];
         unused_store_names.RemoveAt(0);
-        
+
+        // Debug.Log($"PopStoreName - popped: {storeName}; remaining: {unused_store_names.Count}");
+
         return storeName;
     }
 
     public bool StoresSetup()
     {
-        Debug.Log("StoresSetup: " + unused_store_names.Count.ToString() + " stores left");
+        // Debug.Log($"StoresSetup (isNonDelivery={isNonDelivery}): {unused_store_names.Count} stores left");
         return unused_store_names.Count == 0;
     }
 
@@ -253,7 +259,7 @@ public class DeliveryItems : MonoBehaviour
                             remainingItems.Length - randomItemIndex - 1);
             System.Array.Resize(ref remainingItems, remainingItems.Length - 1);
             System.IO.File.WriteAllLines(remainingItemsPath, remainingItems);
-            Debug.Log("Items remaining: " + remainingItems.Length.ToString());
+            // Debug.Log("Items remaining: " + remainingItems.Length.ToString());
         #else
             int randomItemIndex = UnityEngine.Random.Range(0, remainingItems[storeName].Count);
             string randomItemName = remainingItems[storeName][randomItemIndex];

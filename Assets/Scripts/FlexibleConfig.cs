@@ -81,6 +81,7 @@ public class Config
     public static int[] targetVar { get { return (int[])Config.GetSetting("targetVar"); } }
     public static float audioTextDisplayLength { get { return (float)Config.GetSetting("audioTextDisplayLength"); } }
     public static bool debugMode { get { return (bool)Config.GetSetting("debugMode"); } }
+    public static float sprintMultiplier { get { return (float)Config.GetSetting("sprintMultiplier"); } }
     
     // public static bool valueAlwaysFirst { get { return true; } }
     // public static bool enableTemporal { get { return true; } }

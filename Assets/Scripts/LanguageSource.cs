@@ -245,7 +245,7 @@ public static class LanguageSource
 
         {"deliv day pointing accuracy main", new string[] { "Good job! \n\nYou correctly pointed to {0} out of {1} stores in this delivery day.", GERMAN_TRANSLATION_NEEDED } },
         {"deliv day progress main", new string[] { "{0} out of {1} delivery days completed!!", GERMAN_TRANSLATION_NEEDED } },
-        {"earned_tips", new string[] { "You earned {0:C} in extra tips! \n Thank you for playing!", "Sie haben {0:C} an Trinkgeld erhalten!" } }
+        {"earned_tips", new string[] { "You earned {0:C} based on your tip guess accuracy! \n Your word recall bonus will be calculated later. Thank you for playing!", "Sie haben {0:C} an Trinkgeld erhalten!" } }
     };
 
     public static string GetLanguageString(string string_name)

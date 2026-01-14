@@ -37,6 +37,7 @@ public class PlayerMovement : MonoBehaviour
     private bool temporallySmoothedTurning = false;
     private bool sinSmoothedTurning = false;
     private bool cubicSmoothedTurning = true;
+    public float sprintMultiplier = Config.sprintMultiplier;   // tune
 
     void Start()
     {
@@ -77,23 +78,52 @@ public class PlayerMovement : MonoBehaviour
                 //handlebars.transform.localRotation = Quaternion.Euler(horizontalInput * maxHandlebarRotationX, dampedHorizInput * maxHandlebarRotationY, 0);
 
                 // Rotate the player's perspective
-                //playerPerspective.transform.localRotation = Quaternion.Euler(0, 0, -dampedHorizInput * 5f);
-
                 // Rotate the player
                 dampedHorizInput = Vector3.SmoothDamp(dampedHorizInput, Vector3.up * horizontalInput, ref horizVel, rotDampingTime);
                 Quaternion deltaRotation = Quaternion.Euler(dampedHorizInput * maxTurnSpeed * Time.smoothDeltaTime);
                 playerBody.MoveRotation(playerBody.rotation * deltaRotation);
 
                 // Move the player
+                float speedMult = IsSprinting() ? sprintMultiplier : 1f;
+
                 if (verticalInput > joystickDeadZone)
-                    playerBody.velocity = Vector3.ClampMagnitude(playerBody.transform.forward * (verticalInput - Mathf.Abs(dampedHorizInput.y) * 0.2f) * maxForwardSpeed, maxForwardSpeed);
+                {
+                    float spd = maxForwardSpeed * speedMult;
+                    playerBody.velocity = Vector3.ClampMagnitude(
+                        playerBody.transform.forward * (verticalInput - Mathf.Abs(dampedHorizInput.y) * 0.2f) * spd,
+                        spd
+                    );
+                }
                 else if (verticalInput < -joystickDeadZone)
-                    playerBody.velocity = Vector3.ClampMagnitude(playerBody.transform.forward * (verticalInput - Mathf.Abs(dampedHorizInput.y) * 0.2f) * maxBackwardSpeed, maxBackwardSpeed);
+                {
+                    // usually don't sprint backward; keep as-is or apply multiplier if you want
+                    playerBody.velocity = Vector3.ClampMagnitude(
+                        playerBody.transform.forward * (verticalInput - Mathf.Abs(dampedHorizInput.y) * 0.2f) * maxBackwardSpeed,
+                        maxBackwardSpeed
+                    );
+                }
                 else
+                {
                     playerBody.velocity = new Vector3(0, 0, 0);
+                }
+
+                // if (verticalInput > joystickDeadZone)
+                //     playerBody.velocity = Vector3.ClampMagnitude(playerBody.transform.forward * (verticalInput - Mathf.Abs(dampedHorizInput.y) * 0.2f) * maxForwardSpeed, maxForwardSpeed);
+                // else if (verticalInput < -joystickDeadZone)
+                //     playerBody.velocity = Vector3.ClampMagnitude(playerBody.transform.forward * (verticalInput - Mathf.Abs(dampedHorizInput.y) * 0.2f) * maxBackwardSpeed, maxBackwardSpeed);
+                // else
+                //     playerBody.velocity = new Vector3(0, 0, 0);
             }
         }
     }
+
+    private bool IsSprinting()
+    {
+        // Old Input Manager style: Sprint is a "button axis"
+        // If your InputManager wrapper doesn't have GetButton, use GetAxis("Sprint") > 0.5f
+        return InputManager.GetButton("Sprint") || InputManager.GetAxis("Sprint") > 0.5f;
+    }
+
 
     float SinCurve(float x)
     {
@@ -140,13 +170,30 @@ public class PlayerMovement : MonoBehaviour
                     playerBody.MoveRotation(playerBody.rotation * deltaRotation);
                 }
 
-                // Move the player
+                              // Move the player
+                float speedMult = IsSprinting() ? sprintMultiplier : 1f;
+
                 if (verticalInput > joystickDeadZone)
-                    playerBody.velocity = Vector3.ClampMagnitude(playerBody.transform.forward * verticalInput * forwardSpeed, forwardSpeed);
+                {
+                    float spd = maxForwardSpeed * speedMult;
+                    playerBody.velocity = Vector3.ClampMagnitude(
+                        playerBody.transform.forward * (verticalInput - Mathf.Abs(dampedHorizInput.y) * 0.2f) * spd,
+                        spd
+                    );
+                }
                 else if (verticalInput < -joystickDeadZone)
-                    playerBody.velocity = Vector3.ClampMagnitude(playerBody.transform.forward * verticalInput * maxBackwardSpeed, maxBackwardSpeed);
+                {
+                    // usually don't sprint backward; keep as-is or apply multiplier if you want
+                    playerBody.velocity = Vector3.ClampMagnitude(
+                        playerBody.transform.forward * (verticalInput - Mathf.Abs(dampedHorizInput.y) * 0.2f) * maxBackwardSpeed,
+                        maxBackwardSpeed
+                    );
+                }
                 else
+                {
                     playerBody.velocity = new Vector3(0, 0, 0);
+                }
+
             }
         }
     }

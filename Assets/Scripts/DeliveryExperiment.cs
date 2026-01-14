@@ -1138,9 +1138,108 @@ public class DeliveryExperiment : CoroutineExperiment
     // hashing/step scheme. The selection is deterministic per participant and
     // session (uses `continuousSessionNumber` as an offset) so we don't need to
     // persist which paths were used between runs.
+    // private List<List<StoreComponent>> getTotalListTSP(int numTrials, System.Random rng)
+    // {
+    //     string routesPath = System.IO.Path.Combine(Application.dataPath, "Routes", "tsp_dijk_filt.txt");
+    //     if (!System.IO.File.Exists(routesPath))
+    //     {
+    //         Debug.LogError($"TSP routes file not found: {routesPath}");
+    //         return new List<List<StoreComponent>>();
+    //     }
+
+    //     // Read and parse file lines into list of paths
+    //     var rawLines = System.IO.File.ReadAllLines(routesPath);
+    //     var paths = new List<List<string>>();
+    //     foreach (var raw in rawLines)
+    //     {
+    //         var line = raw.Trim();
+    //         if (string.IsNullOrEmpty(line)) continue;
+    //         // Split on commas/spaces/tabs and remove empties
+    //         var parts = line.Split(new char[] { ',', ' ', '\t' }, System.StringSplitOptions.RemoveEmptyEntries)
+    //                             .Select(s => s.Trim().Replace("_", " ")).ToList();
+    //         if (parts.Count > 0)
+    //             paths.Add(parts);
+    //     }
+
+    //     int N = paths.Count;
+    //     if (N == 0) return new List<List<StoreComponent>>();
+
+    //     // Determine participant seed string (fall back to rng if participant unknown)
+    //     string participantId = "__unknown__";
+    //     try { participantId = UnityEPL.GetParticipants()[0]; } catch { participantId = rng.Next().ToString(); }
+
+    //     // Create deterministic start and step from participant id
+    //     int start = HashStringToInt(participantId + "_start") % N;
+    //     int step = (HashStringToInt(participantId + "_step") % (N - 1)) + 1; // in [1, N-1]
+
+    //     // ensure step is coprime with N for full-cycle behavior
+    //     int attempts = 0;
+    //     while (Gcd(step, N) != 1 && attempts < N)
+    //     {
+    //         step = (step + 1) % N;
+    //         if (step == 0) step = 1;
+    //         attempts++;
+    //     }
+
+    //     // Offset across sessions so different sessions pick different disjoint blocks
+    //     long sessionOffset = (long)continuousSessionNumber * (long)numTrials;
+
+    //     var result = new List<List<StoreComponent>>();
+    //     var chosen = new HashSet<int>();
+
+    //     // Build a lookup for store names in the environment for flexible matching
+    //     var envStores = ((object)environment != null && environment.stores != null) ? environment.stores : new StoreComponent[0];
+    //     var envNameToStore = new Dictionary<string, StoreComponent>(StringComparer.OrdinalIgnoreCase);
+    //     foreach (var store in envStores)
+    //     {
+    //         // Normalize: lowercase, remove underscores/spaces
+    //         string norm = store.gameObject.name.ToLower().Replace("_", "").Replace(" ", "");
+    //         if (!envNameToStore.ContainsKey(norm))
+    //             envNameToStore[norm] = store;
+    //     }
+
+    //     for (int i = 0; i < numTrials; i++)
+    //     {
+    //         // index = (start + sessionOffset + i*step) % N
+    //         long idx = (start + sessionOffset + (long)i * (long)step) % N;
+    //         int index = (int)idx;
+    //         // guard against accidental duplicates (shouldn't happen if step coprime and offset chosen well)
+    //         int guard = 0;
+    //         while (chosen.Contains(index) && guard < N)
+    //         {
+    //             index = (index + 1) % N;
+    //             guard++;
+    //         }
+    //         if (guard >= N)
+    //         {
+    //             Debug.LogWarning("getTotalListTSP: unable to find new unique path index");
+    //             break;
+    //         }
+    //         chosen.Add(index);
+    //         // Map TSP names to StoreComponent, append post office
+    //         var pathNames = new List<string>(paths[index]);
+    //         pathNames.Add("post office");
+    //         var storeList = new List<StoreComponent>();
+    //         foreach (var name in pathNames)
+    //         {
+    //             string norm = name.ToLower().Replace("_", "").Replace(" ", "");
+    //             if (envNameToStore.TryGetValue(norm, out var store))
+    //             {
+    //                 storeList.Add(store);
+    //             }
+    //             else if (DEBUG)
+    //             {
+    //                 Debug.LogWarning($"TSP store name '{name}' (normalized '{norm}') not found in environment!");
+    //             }
+    //         }
+    //         result.Add(storeList);
+    //     }
+
+    //     return result;
+    // }
     private List<List<StoreComponent>> getTotalListTSP(int numTrials, System.Random rng)
     {
-        string routesPath = System.IO.Path.Combine(Application.dataPath, "Routes", "tsp_valid_paths_25_15_12.txt");
+        string routesPath = System.IO.Path.Combine(Application.streamingAssetsPath, "Routes", "tsp_dijk_filt.txt");
         if (!System.IO.File.Exists(routesPath))
         {
             Debug.LogError($"TSP routes file not found: {routesPath}");
@@ -1154,9 +1253,11 @@ public class DeliveryExperiment : CoroutineExperiment
         {
             var line = raw.Trim();
             if (string.IsNullOrEmpty(line)) continue;
+
             // Split on commas/spaces/tabs and remove empties
             var parts = line.Split(new char[] { ',', ' ', '\t' }, System.StringSplitOptions.RemoveEmptyEntries)
-                                .Select(s => s.Trim().Replace("_", " ")).ToList();
+                            .Select(s => s.Trim().Replace("_", " "))
+                            .ToList();
             if (parts.Count > 0)
                 paths.Add(parts);
         }
@@ -1166,26 +1267,8 @@ public class DeliveryExperiment : CoroutineExperiment
 
         // Determine participant seed string (fall back to rng if participant unknown)
         string participantId = "__unknown__";
-        try { participantId = UnityEPL.GetParticipants()[0]; } catch { participantId = rng.Next().ToString(); }
-
-        // Create deterministic start and step from participant id
-        int start = HashStringToInt(participantId + "_start") % N;
-        int step = (HashStringToInt(participantId + "_step") % (N - 1)) + 1; // in [1, N-1]
-
-        // ensure step is coprime with N for full-cycle behavior
-        int attempts = 0;
-        while (Gcd(step, N) != 1 && attempts < N)
-        {
-            step = (step + 1) % N;
-            if (step == 0) step = 1;
-            attempts++;
-        }
-
-        // Offset across sessions so different sessions pick different disjoint blocks
-        long sessionOffset = (long)continuousSessionNumber * (long)numTrials;
-
-        var result = new List<List<StoreComponent>>();
-        var chosen = new HashSet<int>();
+        try { participantId = UnityEPL.GetParticipants()[0]; }
+        catch { participantId = rng.Next().ToString(); }
 
         // Build a lookup for store names in the environment for flexible matching
         var envStores = ((object)environment != null && environment.stores != null) ? environment.stores : new StoreComponent[0];
@@ -1198,27 +1281,50 @@ public class DeliveryExperiment : CoroutineExperiment
                 envNameToStore[norm] = store;
         }
 
-        for (int i = 0; i < numTrials; i++)
+        // Helper: deterministic Fisher-Yates shuffle
+        void DeterministicShuffle<T>(IList<T> list, int seed)
         {
-            // index = (start + sessionOffset + i*step) % N
-            long idx = (start + sessionOffset + (long)i * (long)step) % N;
-            int index = (int)idx;
-            // guard against accidental duplicates (shouldn't happen if step coprime and offset chosen well)
-            int guard = 0;
-            while (chosen.Contains(index) && guard < N)
+            var r = new System.Random(seed);
+            for (int i = list.Count - 1; i > 0; i--)
             {
-                index = (index + 1) % N;
-                guard++;
+                int j = r.Next(i + 1);
+                (list[i], list[j]) = (list[j], list[i]);
             }
-            if (guard >= N)
-            {
-                Debug.LogWarning("getTotalListTSP: unable to find new unique path index");
-                break;
-            }
-            chosen.Add(index);
+        }
+
+        // Total "global" offset across sessions (can exceed N)
+        long sessionOffset = (long)continuousSessionNumber * (long)numTrials;
+
+        // We avoid repeats until we exhaust N routes. After exhaustion, we allow repeats
+        // by reshuffling into a new deterministic permutation "block" and continuing.
+        //
+        // Think of routes as laid out like:
+        //   block 0: perm0[0..N-1]
+        //   block 1: perm1[0..N-1]
+        //   block 2: perm2[0..N-1]
+        // where each permK is a deterministic shuffle based on participantId + block index.
+        //
+        // We then take indices from position sessionOffset forward.
+        var result = new List<List<StoreComponent>>(numTrials);
+
+        for (int t = 0; t < numTrials; t++)
+        {
+            long pos = sessionOffset + t;
+
+            long block = pos / N;          // which reshuffle block we are in
+            int within = (int)(pos % N);   // index within that block
+
+            // Deterministically generate the permutation for this block
+            int seed = HashStringToInt(participantId + "_tsp_routes_block_" + block);
+            var perm = Enumerable.Range(0, N).ToList();
+            DeterministicShuffle(perm, seed);
+
+            int routeIndex = perm[within];
+
             // Map TSP names to StoreComponent, append post office
-            var pathNames = new List<string>(paths[index]);
+            var pathNames = new List<string>(paths[routeIndex]);
             pathNames.Add("post office");
+
             var storeList = new List<StoreComponent>();
             foreach (var name in pathNames)
             {
@@ -1232,11 +1338,13 @@ public class DeliveryExperiment : CoroutineExperiment
                     Debug.LogWarning($"TSP store name '{name}' (normalized '{norm}') not found in environment!");
                 }
             }
+
             result.Add(storeList);
         }
 
         return result;
     }
+
 
     // Simple string -> positive int hash
     private int HashStringToInt(string s)

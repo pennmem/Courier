@@ -97,9 +97,10 @@ public class PlayerMovement : MonoBehaviour
                 else if (verticalInput < -joystickDeadZone)
                 {
                     // usually don't sprint backward; keep as-is or apply multiplier if you want
+                    float spd = maxBackwardSpeed * speedMult;
                     playerBody.velocity = Vector3.ClampMagnitude(
-                        playerBody.transform.forward * (verticalInput - Mathf.Abs(dampedHorizInput.y) * 0.2f) * maxBackwardSpeed,
-                        maxBackwardSpeed
+                        playerBody.transform.forward * (verticalInput - Mathf.Abs(dampedHorizInput.y) * 0.2f) * spd,
+                        spd
                     );
                 }
                 else
@@ -165,7 +166,7 @@ public class PlayerMovement : MonoBehaviour
 
                 // Rotate the player
                 if (Mathf.Abs(horizontalInput) > joystickDeadZone)
-                {
+                {   
                     Quaternion deltaRotation = Quaternion.Euler(Vector3.up * horizontalInput * maxTurnSpeed * Time.fixedDeltaTime);
                     playerBody.MoveRotation(playerBody.rotation * deltaRotation);
                 }
@@ -183,10 +184,10 @@ public class PlayerMovement : MonoBehaviour
                 }
                 else if (verticalInput < -joystickDeadZone)
                 {
-                    // usually don't sprint backward; keep as-is or apply multiplier if you want
+                    float spd = maxBackwardSpeed * speedMult;
                     playerBody.velocity = Vector3.ClampMagnitude(
-                        playerBody.transform.forward * (verticalInput - Mathf.Abs(dampedHorizInput.y) * 0.2f) * maxBackwardSpeed,
-                        maxBackwardSpeed
+                        playerBody.transform.forward * (verticalInput - Mathf.Abs(dampedHorizInput.y) * 0.2f) * spd,
+                        spd
                     );
                 }
                 else

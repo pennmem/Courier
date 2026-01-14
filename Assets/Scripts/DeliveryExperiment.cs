@@ -1493,10 +1493,14 @@ public class DeliveryExperiment : CoroutineExperiment
         if (Config.Get(() => Config.singleStickController, false))
             controlName = "SingleStick" + controlName;
         else
-            controlName = "Split" + controlName;
+        // Chnage to VC controls by default from split controls
+            controlName = "VC1" + controlName;
 
         if (Config.Get(() => Config.ps4Controller, false))
             controlName = "Ps4" + controlName;
+
+        if (DEBUG)
+            Debug.Log("Loading control config: " + controlName);
 
 #if !UNITY_WEBGL // System.IO
         string configPath = System.IO.Path.Combine(

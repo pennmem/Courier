@@ -1,17 +1,19 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Luminosity.IO;
+// using Luminosity.IO;
+
+using UnityEngine.InputSystem;
 
 public class PlayerMovement : MonoBehaviour
 {
     // TODO: JPB: Make these configuration variables
     private const bool NICLS_COURIER = true;
-    #if !UNITY_WEBGL
-        private const bool COURIER_ONLINE = false;
-    #else
-        private const bool COURIER_ONLINE = true;
-    #endif // !UNITY_WEBGL
+#if !UNITY_WEBGL
+    private const bool COURIER_ONLINE = false;
+#else
+    private const bool COURIER_ONLINE = true;
+#endif // !UNITY_WEBGL
 
     protected float maxTurnSpeed = Config.maxTurnSpeed; //45f;
     protected float maxForwardSpeed = Config.maxForwardSpeed;//10f;
@@ -33,11 +35,18 @@ public class PlayerMovement : MonoBehaviour
     public GameObject handlebars;
     protected const float maxHandlebarRotationX = 20f;
     protected const float maxHandlebarRotationY = 15f;
-    
+
     private bool temporallySmoothedTurning = false;
     private bool sinSmoothedTurning = false;
     private bool cubicSmoothedTurning = true;
     public float sprintMultiplier = Config.sprintMultiplier;   // tune
+
+    // Input System fields
+    private InputAction moveAction;
+    private InputAction sprintAction;
+    private Vector2 moveInput;
+    private bool sprintHeld;
+
 
     void Start()
     {
@@ -45,11 +54,19 @@ public class PlayerMovement : MonoBehaviour
         originalRotation = gameObject.transform.rotation;
 
         playerBody = GetComponent<Rigidbody>();
-        // #if !UNITY_WEBGL
-        //     temporallySmoothedTurning = Config.Get(() => Config.temporallySmoothedTurning, false);
-        //     sinSmoothedTurning = Config.Get(() => Config.sinSmoothedTurning, false);
-        //     cubicSmoothedTurning = Config.Get(() => Config.cubicSmoothedTurning, true);
-        // #endif
+
+        // Setup Input Actions
+        moveAction = new InputAction("Move", binding: "<Gamepad>/leftStick");
+        moveAction.AddCompositeBinding("Dpad")
+            .With("Up", "<Keyboard>/w")
+            .With("Down", "<Keyboard>/s")
+            .With("Left", "<Keyboard>/a")
+            .With("Right", "<Keyboard>/d");
+        moveAction.Enable();
+
+        sprintAction = new InputAction("Sprint", binding: "<Keyboard>/leftShift");
+        sprintAction.AddBinding("<Gamepad>/buttonWest"); // e.g. A button
+        sprintAction.Enable();
     }
 
     public float horizontalInput;
@@ -60,30 +77,25 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
+        // Read input from Input System
+        moveInput = moveAction.ReadValue<Vector2>();
+        sprintHeld = sprintAction.ReadValue<float>() > 0.5f;
+
         if (temporallySmoothedTurning)
         {
-            // This is only in Update because we want it locked to frame rate.
-            // Because MoveRotation is used, the rotation doesn't occur until the next FixedUpdate
-            // Also, adjusting the velocity doesn't change any position until the next FixedUpdate
             if (!IsFrozen())
             {
-                horizontalInput = InputManager.GetAxis("Horizontal");
+                horizontalInput = moveInput.x;
                 if (sinSmoothedTurning)
                     horizontalInput = SinCurve(horizontalInput);
                 else if (cubicSmoothedTurning)
                     horizontalInput = CubicCurve(horizontalInput);
-                verticalInput = InputManager.GetAxis("Vertical");
+                verticalInput = moveInput.y;
 
-                // Rotate the bike handlebars
-                //handlebars.transform.localRotation = Quaternion.Euler(horizontalInput * maxHandlebarRotationX, dampedHorizInput * maxHandlebarRotationY, 0);
-
-                // Rotate the player's perspective
-                // Rotate the player
                 dampedHorizInput = Vector3.SmoothDamp(dampedHorizInput, Vector3.up * horizontalInput, ref horizVel, rotDampingTime);
                 Quaternion deltaRotation = Quaternion.Euler(dampedHorizInput * maxTurnSpeed * Time.smoothDeltaTime);
                 playerBody.MoveRotation(playerBody.rotation * deltaRotation);
 
-                // Move the player
                 float speedMult = IsSprinting() ? sprintMultiplier : 1f;
 
                 if (verticalInput > joystickDeadZone)
@@ -96,7 +108,6 @@ public class PlayerMovement : MonoBehaviour
                 }
                 else if (verticalInput < -joystickDeadZone)
                 {
-                    // usually don't sprint backward; keep as-is or apply multiplier if you want
                     playerBody.velocity = Vector3.ClampMagnitude(
                         playerBody.transform.forward * (verticalInput - Mathf.Abs(dampedHorizInput.y) * 0.2f) * maxBackwardSpeed,
                         maxBackwardSpeed
@@ -106,22 +117,13 @@ public class PlayerMovement : MonoBehaviour
                 {
                     playerBody.velocity = new Vector3(0, 0, 0);
                 }
-
-                // if (verticalInput > joystickDeadZone)
-                //     playerBody.velocity = Vector3.ClampMagnitude(playerBody.transform.forward * (verticalInput - Mathf.Abs(dampedHorizInput.y) * 0.2f) * maxForwardSpeed, maxForwardSpeed);
-                // else if (verticalInput < -joystickDeadZone)
-                //     playerBody.velocity = Vector3.ClampMagnitude(playerBody.transform.forward * (verticalInput - Mathf.Abs(dampedHorizInput.y) * 0.2f) * maxBackwardSpeed, maxBackwardSpeed);
-                // else
-                //     playerBody.velocity = new Vector3(0, 0, 0);
             }
         }
     }
 
     private bool IsSprinting()
     {
-        // Old Input Manager style: Sprint is a "button axis"
-        // If your InputManager wrapper doesn't have GetButton, use GetAxis("Sprint") > 0.5f
-        return InputManager.GetButton("Sprint") || InputManager.GetAxis("Sprint") > 0.5f;
+        return sprintHeld;
     }
 
 
@@ -145,16 +147,20 @@ public class PlayerMovement : MonoBehaviour
     {
         if (!temporallySmoothedTurning)
         {
-            if (InputManager.GetKey(KeyCode.Z) || InputManager.GetKey(KeyCode.LeftShift)) forwardSpeed = maxForwardSpeed * 0.5f;
-            else if (InputManager.GetKey(KeyCode.R) || InputManager.GetKey(KeyCode.LeftCommand)) forwardSpeed = maxForwardSpeed * 1.5f;
-            else forwardSpeed = maxForwardSpeed;
+            // Example: adjust forwardSpeed with keys (optional, can be mapped to InputSystem as well)
+            if (Keyboard.current != null)
+            {
+                if (Keyboard.current.zKey.isPressed || Keyboard.current.leftShiftKey.isPressed) forwardSpeed = maxForwardSpeed * 0.5f;
+                else if (Keyboard.current.rKey.isPressed || Keyboard.current.leftCommandKey.isPressed) forwardSpeed = maxForwardSpeed * 1.5f;
+                else forwardSpeed = maxForwardSpeed;
+            }
 
-            horizontalInput = InputManager.GetAxis("Horizontal");
+            horizontalInput = moveInput.x;
             if (sinSmoothedTurning)
                 horizontalInput = SinCurve(horizontalInput);
             else if (cubicSmoothedTurning)
                 horizontalInput = CubicCurve(horizontalInput);
-            verticalInput = InputManager.GetAxis("Vertical");
+            verticalInput = moveInput.y;
             if (!IsFrozen())
             {
                 // Rotate the bike handlebars
@@ -170,7 +176,6 @@ public class PlayerMovement : MonoBehaviour
                     playerBody.MoveRotation(playerBody.rotation * deltaRotation);
                 }
 
-                              // Move the player
                 float speedMult = IsSprinting() ? sprintMultiplier : 1f;
 
                 if (verticalInput > joystickDeadZone)
@@ -183,7 +188,6 @@ public class PlayerMovement : MonoBehaviour
                 }
                 else if (verticalInput < -joystickDeadZone)
                 {
-                    // usually don't sprint backward; keep as-is or apply multiplier if you want
                     playerBody.velocity = Vector3.ClampMagnitude(
                         playerBody.transform.forward * (verticalInput - Mathf.Abs(dampedHorizInput.y) * 0.2f) * maxBackwardSpeed,
                         maxBackwardSpeed
@@ -193,9 +197,19 @@ public class PlayerMovement : MonoBehaviour
                 {
                     playerBody.velocity = new Vector3(0, 0, 0);
                 }
-
             }
         }
+    }
+    private void OnEnable()
+    {
+        moveAction?.Enable();
+        sprintAction?.Enable();
+    }
+
+    private void OnDisable()
+    {
+        moveAction?.Disable();
+        sprintAction?.Disable();
     }
 
     public bool IsFrozen()

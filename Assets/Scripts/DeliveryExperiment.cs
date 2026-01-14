@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
-using Luminosity.IO;
+using UnityEngine.InputSystem;
 using System.Linq;
 using System.Runtime.InteropServices;
 using UnityEngine.Networking;
@@ -39,12 +39,38 @@ public enum StorePointType
 public class DeliveryExperiment : CoroutineExperiment
 {
 #if UNITY_WEBGL
-        [DllImport("__Internal")]
-        private static extern void EndTask();
+    [DllImport("__Internal")]
+    private static extern void EndTask();
 
-        // [DllImport("__Internal")]
-        // private static extern void NoRefresh();
+    // [DllImport("__Internal")]
+    // private static extern void NoRefresh();
 #endif
+
+    // Input System action for the Secret key
+    private InputAction secretAction;
+    private InputAction continueAction;
+    private InputAction efrRejectAction;
+
+    void OnEnable()
+    {
+        secretAction = new InputAction("Secret", binding: "<Keyboard>/f12");
+        secretAction.Enable();
+
+        continueAction = new InputAction("Continue", binding: "<Keyboard>/enter");
+        continueAction.AddBinding("<Keyboard>/numpadEnter");
+        continueAction.Enable();
+
+        efrRejectAction = new InputAction("EfrReject", binding: "<Keyboard>/r");
+        efrRejectAction.Enable();
+    }
+
+    void OnDisable()
+    {
+        secretAction?.Disable();
+        continueAction?.Disable();
+        efrRejectAction?.Disable();
+    }
+
 
     public delegate void StateChange(string stateName, bool on);
     public static StateChange OnStateChange;
@@ -79,7 +105,7 @@ public class DeliveryExperiment : CoroutineExperiment
     //private const int TRIALS_PER_SESSION = LESS_TRIALS ? 2 : (NICLS_COURIER ? 5 : 8);
     //private const int TRIALS_PER_SESSION_SINGLE_TOWN_LEARNING = LESS_TRIALS ? 2 : 5;
     //private const int TRIALS_PER_SESSION_DOUBLE_TOWN_LEARNING = LESS_TRIALS ? 1 : 3;
-    float lastTime;
+    public float lastTime;
     private const int EFR_PRACTICE_TRIAL_NUM = 1;
     private const int NUM_CLASSIFIER_NORMALIZATION_TRIALS = 1;
     private const int HOSPTIAL_TOWN_LEARNING_NUM_STORES = 8;
@@ -2085,7 +2111,7 @@ public class DeliveryExperiment : CoroutineExperiment
         if (Config.skipTownLearning)
             yield break;
 
-        if (DEBUG && InputManager.GetButton("Secret"))
+        if (DEBUG && secretAction.triggered)
             yield break;
 
         scriptedEventReporter.ReportScriptedEvent("start town learning");
@@ -2179,7 +2205,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
                 if (timeTriggerActivated && distTriggerActivated)
                     yield return DisplayPointingIndicator(nextStore, true);
-                if (DEBUG && InputManager.GetButton("Secret"))
+                if (DEBUG && secretAction.triggered)
                     goto SkipRemainingDeliveries;
             }
             yield return DisplayPointingIndicator(nextStore, false);

@@ -1239,7 +1239,7 @@ public class DeliveryExperiment : CoroutineExperiment
     // }
     private List<List<StoreComponent>> getTotalListTSP(int numTrials, System.Random rng)
     {
-        string routesPath = System.IO.Path.Combine(Application.streamingAssetsPath, "Routes", "tsp_dijk_filt.txt");
+        string routesPath = System.IO.Path.Combine(Application.streamingAssetsPath, "Routes", "tsp_dijk_filt_final.txt");
         if (!System.IO.File.Exists(routesPath))
         {
             Debug.LogError($"TSP routes file not found: {routesPath}");
@@ -1494,7 +1494,7 @@ public class DeliveryExperiment : CoroutineExperiment
             controlName = "SingleStick" + controlName;
         else
         // Chnage to VC controls by default from split controls
-            controlName = "VC1" + controlName;
+            controlName = "VC2" + controlName;
 
         if (Config.Get(() => Config.ps4Controller, false))
             controlName = "Ps4" + controlName;

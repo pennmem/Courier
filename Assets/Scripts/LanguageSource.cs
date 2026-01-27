@@ -233,7 +233,7 @@ public static class LanguageSource
         { "party store", new string[] {"party store", "den Kostumladen"} },
         { "gelateria", new string[] {"gelateria", "das Eiscafe"} },
         { "bookstore", new string[] {"bookstore", "die Buchhandlung"} },
-        { "salon", new string[] {"salon", "der Schönheitssalon"} },
+        { "laundromat", new string[] {"laundromat", "der Schönheitssalon"} },
         { "tech shop", new string[] {"tech shop", "der Computerladen"} },
 
         { "confetti", new string[] {"confetti", "Konfetti"} }

@@ -12,9 +12,9 @@ using UnityEngine.Networking;
 
 public class Config
 {
-    public static string experimentConfigName = "ValueCourierReadOnly";
+    public static string experimentConfigName = "VCBehOnly";
     public static string onlineSystemConfigText = null;
-    public static string onlineExperimentConfigText = "ValueCourierReadOnly";
+    public static string onlineExperimentConfigText = "VCBehOnly";
     // LC: TODO: COME UP WITH A BETTER WAY
     public static bool elememStimMode = false;
 

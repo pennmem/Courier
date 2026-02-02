@@ -2452,7 +2452,7 @@ public class DeliveryExperiment : CoroutineExperiment
                                                                             {"distance trigger activated", distTriggerActivated.ToString()},
                                                                             {"time trigger activated", timeTriggerActivated.ToString()},
                                                                             {"store value", roundedPoints},
-                                                                            {"point condition", storePointType},
+                                                                            {"point condition", listType},
                                                                             {"primacy buffer", Config.primacyBuf},
                                                                             {"recency buffer", Config.recencyBuf},
                                                                             {"number of in group chosen", Config.numInGroupChosen},

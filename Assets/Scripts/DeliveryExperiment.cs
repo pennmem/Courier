@@ -3072,6 +3072,16 @@ public class DeliveryExperiment : CoroutineExperiment
                 {
                     if (taskType == "value recall")
                     {
+                        if (inputFieldAsNum < 1 || inputFieldAsNum > 50)
+                        {
+                            var wrongTypeText = valueGuessWrongType.GetComponentInChildren<UnityEngine.UI.Text>();
+                            if (wrongTypeText is not null)
+                                wrongTypeText.text = "Please enter a value between 1 and 50.";
+                            valueGuessWrongType.SetActive(true);
+                            inputField.Select();
+                            inputField.text = "";
+                            continue;
+                        }
                         valueGuessWrongType.SetActive(false);
                         if (!practice) {
                             // save & report the response

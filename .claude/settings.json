@@ -4,7 +4,10 @@
       "Bash(git checkout -- Assets/Scripts/DeliveryItems.cs)",
       "Bash(find /Users/zrentala/Documents/Courier -name *.json -path */Config*)",
       "Bash(grep -o \"m_Name: dentist[^$]*\" \"/Users/zrentala/Documents/Courier/Assets/Scenes/NewTown.unity\")",
-      "Bash(awk -F',' '{print NF, NR}' \"/Users/zrentala/Documents/Courier/Assets/StreamingAssets/Routes/tsp_dijk_filt_final.txt\")"
+      "Bash(awk -F',' '{print NF, NR}' \"/Users/zrentala/Documents/Courier/Assets/StreamingAssets/Routes/tsp_dijk_filt_final.txt\")",
+      "Read(//tmp/**)",
+      "Bash(python3:*)",
+      "Read(//Users/zrentala/Documents/Courier/**)"
     ]
   }
 }

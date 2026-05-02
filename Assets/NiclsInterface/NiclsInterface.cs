@@ -1,4 +1,4 @@
-﻿#if !UNITY_WEBGL // NICLS
+﻿#if !(UNITY_WEBGL && !UNITY_EDITOR) // NICLS
 using System;
 using System.Linq;
 using System.Diagnostics;

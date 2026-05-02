@@ -14,7 +14,7 @@ public class Config
 {
     public static string experimentConfigName = "VCBehOnly";
     public static string onlineSystemConfigText = null;
-    public static string onlineExperimentConfigText = "VCBehOnly";
+    public static string onlineExperimentConfigText = null;
     // LC: TODO: COME UP WITH A BETTER WAY
     public static bool elememStimMode = false;
 
@@ -112,9 +112,13 @@ public class Config
     public static int newEfrKeypressPractices { get { return (int)Config.GetSetting("newEfrKeypressPractices"); } }
 
     private const string SYSTEM_CONFIG_NAME = "config.json";
+    private const string ONLINE_EXPERIMENT_CONFIG_NAME = "ValueCourier.json";
 
     private static IDictionary<string, object> systemConfig = null;
     private static IDictionary<string, object> experimentConfig = null;
+    private static bool onlineConfigLoading = false;
+    private static bool onlineConfigLoaded = false;
+    private static string onlineConfigLoadError = null;
 
 
     public static T Get<T>(Func<T> getProp, T defaultValue)
@@ -163,6 +167,65 @@ public class Config
         throw new MissingFieldException("Missing Config Setting " + setting + ".");
     }
 
+    private static string GetOnlineSystemConfigPath()
+    {
+        return Path.Combine(Application.streamingAssetsPath, SYSTEM_CONFIG_NAME);
+    }
+
+    private static string GetOnlineExperimentConfigPath()
+    {
+        return Path.Combine(Application.streamingAssetsPath, ONLINE_EXPERIMENT_CONFIG_NAME);
+    }
+
+    private static void ThrowConfigError(string message)
+    {
+        Debug.LogError(message);
+        throw new InvalidOperationException(message);
+    }
+
+    private static void FailOnlineConfigLoad(string message)
+    {
+        onlineConfigLoading = false;
+        onlineConfigLoaded = false;
+        onlineConfigLoadError = message;
+        onlineSystemConfigText = null;
+        onlineExperimentConfigText = null;
+        systemConfig = null;
+        experimentConfig = null;
+        ThrowConfigError(message);
+    }
+
+    private static void RequireOnlineConfigLoaded(string label, string source)
+    {
+        if (onlineConfigLoaded)
+            return;
+
+        if (onlineConfigLoading)
+            ThrowConfigError("[Config] WebGL " + label + " requested while online config is still loading from " + source + ". Yield Config.GetOnlineConfig() before accessing Config.");
+
+        if (!string.IsNullOrEmpty(onlineConfigLoadError))
+            ThrowConfigError("[Config] WebGL " + label + " requested after online config load failed. " + onlineConfigLoadError);
+
+        ThrowConfigError("[Config] WebGL " + label + " requested before online config was loaded. Call and yield Config.GetOnlineConfig() first. Source: " + source);
+    }
+
+    private static IDictionary<string, object> ParseRequiredConfigText(string text, string label, string source)
+    {
+        if (string.IsNullOrEmpty(text) || text.Trim().Length == 0)
+            ThrowConfigError("[Config] WebGL " + label + " from " + source + " was null or empty.");
+
+        try
+        {
+            return FlexibleConfig.LoadFromText(text);
+        }
+        catch (Exception e)
+        {
+            ThrowConfigError("[Config] Failed to parse WebGL " + label + " from " + source + ": " + e.Message);
+        }
+
+        return null;
+    }
+
     private static IDictionary<string, object> GetSystemConfig()
     {
         if (systemConfig == null)
@@ -184,13 +247,9 @@ public class Config
                     Debug.LogError("[Config] Failed to load system config: " + e.Message);
                 }
             #else
-                if (onlineSystemConfigText == null)
-                    Debug.LogWarning("[Config] Missing online system config text for WebGL");
-                else
-                {
-                    try { systemConfig = FlexibleConfig.LoadFromText(onlineSystemConfigText); }
-                    catch (Exception e) { Debug.LogError("[Config] Failed to parse online system config: " + e.Message); }
-                }
+                string source = GetOnlineSystemConfigPath();
+                RequireOnlineConfigLoaded("system config", source);
+                systemConfig = ParseRequiredConfigText(onlineSystemConfigText, "system config", source);
             #endif
         }
 
@@ -218,13 +277,9 @@ public class Config
                     Debug.LogError("[Config] Failed to load experiment config: " + e.Message);
                 }
             #else
-                if (onlineExperimentConfigText == null)
-                    Debug.LogWarning("[Config] Missing online experiment config text for WebGL");
-                else
-                {
-                    try { experimentConfig = FlexibleConfig.LoadFromText(onlineExperimentConfigText); }
-                    catch (Exception e) { Debug.LogError("[Config] Failed to parse online experiment config: " + e.Message); }
-                }
+                string source = GetOnlineExperimentConfigPath();
+                RequireOnlineConfigLoaded("experiment config", source);
+                experimentConfig = ParseRequiredConfigText(onlineExperimentConfigText, "experiment config", source);
             #endif
         }
 
@@ -256,42 +311,81 @@ public class Config
     // TODO: JPB: Refactor this to be of the singleton form (likely needs to use the new threading system)
     public static IEnumerator GetOnlineConfig()
     {
-        Debug.Log("setting web request");
-        string systemConfigPath = System.IO.Path.Combine(Application.streamingAssetsPath, "config.json");
+        if (onlineConfigLoaded)
+        {
+            Debug.Log("[Config] WebGL online config already loaded; using cached configs.");
+            yield break;
+        }
+
+        if (onlineConfigLoading)
+        {
+            Debug.Log("[Config] WebGL online config load already in progress; waiting for result.");
+            while (onlineConfigLoading)
+                yield return null;
+
+            if (onlineConfigLoaded)
+                yield break;
+
+            ThrowConfigError("[Config] WebGL online config load failed while waiting. " + onlineConfigLoadError);
+        }
+
+        onlineConfigLoading = true;
+        onlineConfigLoaded = false;
+        onlineConfigLoadError = null;
+        onlineSystemConfigText = null;
+        onlineExperimentConfigText = null;
+        systemConfig = null;
+        experimentConfig = null;
+
+        string systemConfigPath = GetOnlineSystemConfigPath();
+        Debug.Log("[Config] Fetching WebGL system config from " + systemConfigPath);
         // string systemConfigPath = "http://psiturk.sas.upenn.edu:22371/static/js/Unity/build/StreamingAssets/config.json";
         UnityWebRequest systemWWW = UnityWebRequest.Get(systemConfigPath);
         yield return systemWWW.SendWebRequest();
 
-        // TODO: LC: 
         if (systemWWW.result != UnityWebRequest.Result.Success)
-        // if (systemWWW.isNetworkError || systemWWW.isHttpError)
-        {
-            Debug.Log("Network error " + systemWWW.error);
-        }
-        else
-        {
-            onlineSystemConfigText = systemWWW.downloadHandler.text;
-            Debug.Log("Online System Config fetched!!");
-            Debug.Log(onlineSystemConfigText);
-        }
+            FailOnlineConfigLoad("[Config] Failed to fetch WebGL system config from " + systemConfigPath + ": " + systemWWW.error);
 
-        string experimentConfigPath = System.IO.Path.Combine(Application.streamingAssetsPath, "CourierOnline.json");
+        string fetchedSystemConfigText = systemWWW.downloadHandler != null ? systemWWW.downloadHandler.text : null;
+        IDictionary<string, object> fetchedSystemConfig = null;
+        try
+        {
+            fetchedSystemConfig = ParseRequiredConfigText(fetchedSystemConfigText, "system config", systemConfigPath);
+        }
+        catch (Exception e)
+        {
+            FailOnlineConfigLoad(e.Message);
+        }
+        Debug.Log("[Config] WebGL system config fetched and parsed from " + systemConfigPath);
+
+        string experimentConfigPath = GetOnlineExperimentConfigPath();
+        Debug.Log("[Config] Fetching WebGL experiment config from " + experimentConfigPath);
         // string experimentConfigPath = "http://psiturk.sas.upenn.edu:22371/static/js/Unity/build/StreamingAssets/CourierOnline.json";
         UnityWebRequest experimentWWW = UnityWebRequest.Get(experimentConfigPath);
         yield return experimentWWW.SendWebRequest();
 
-        // TODO: LC: 
         if (experimentWWW.result != UnityWebRequest.Result.Success)
-        // if (experimentWWW.isNetworkError || experimentWWW.isHttpError)
+            FailOnlineConfigLoad("[Config] Failed to fetch WebGL experiment config from " + experimentConfigPath + ": " + experimentWWW.error);
+
+        string fetchedExperimentConfigText = experimentWWW.downloadHandler != null ? experimentWWW.downloadHandler.text : null;
+        IDictionary<string, object> fetchedExperimentConfig = null;
+        try
         {
-            Debug.Log("Network error " + experimentWWW.error);
+            fetchedExperimentConfig = ParseRequiredConfigText(fetchedExperimentConfigText, "experiment config", experimentConfigPath);
         }
-        else
+        catch (Exception e)
         {
-            onlineExperimentConfigText = experimentWWW.downloadHandler.text;
-            Debug.Log("Online Experiment Config fetched!!");
-            Debug.Log(Config.onlineExperimentConfigText);
+            FailOnlineConfigLoad(e.Message);
         }
+
+        onlineSystemConfigText = fetchedSystemConfigText;
+        onlineExperimentConfigText = fetchedExperimentConfigText;
+        systemConfig = fetchedSystemConfig;
+        experimentConfig = fetchedExperimentConfig;
+        onlineConfigLoaded = true;
+        onlineConfigLoading = false;
+
+        Debug.Log("[Config] WebGL configs loaded successfully. system=" + systemConfigPath + ", experiment=" + experimentConfigPath);
     }
 
     // Debug helpers

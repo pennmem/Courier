@@ -22,7 +22,9 @@ public abstract class DataReporter : MonoBehaviour
 
     // TODO: JPB: This is a hack and should be removed
     // Centralize ElememInterface here to avoid duplicate serialized field names in derived classes
+#if !(UNITY_WEBGL && !UNITY_EDITOR)
     protected ElememInterface elememInterface;
+#endif
 
     protected bool IsMacOS()
     {
@@ -124,7 +126,7 @@ public abstract class DataReporter : MonoBehaviour
         transformDict.Add("object reporting id", reportingID);
         eventQueue.Enqueue(new DataPoint(gameObject.name + " transform", RealWorldFrameDisplayTime(), transformDict));
 
-        #if !UNITY_WEBGL
+#if !(UNITY_WEBGL && !UNITY_EDITOR)
         if (Config.elememOn)
         {
             if (elememInterface == null)
@@ -139,7 +141,7 @@ public abstract class DataReporter : MonoBehaviour
 
             elememInterface.SendStateMessage(elemem_type, transformDict);
         }
-        #endif
+#endif
     }
 
     protected System.DateTime RealWorldFrameDisplayTime()

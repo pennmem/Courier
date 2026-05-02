@@ -76,11 +76,21 @@ public class WriteToDiskHandler : DataHandler
         // Debug.Log("wrote " + waitingPoints.Count + " json lines to file");
     }
 #else
+#if UNITY_WEBGL && !UNITY_EDITOR
     [DllImport("__Internal")]
     private static extern void SaveData();
 
     [DllImport("__Internal")]
     private static extern void AddData(string data);
+#else
+    private static void SaveData()
+    {
+    }
+
+    private static void AddData(string data)
+    {
+    }
+#endif
 
     public IEnumerator DoWrite()
     {

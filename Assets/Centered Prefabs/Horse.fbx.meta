@@ -1,0 +1,204 @@
+fileFormatVersion: 2
+guid: 23865c87251184aee92992906d75bbeb
+ModelImporter:
+  serializedVersion: 21202
+  internalIDToNameTable:
+  - first:
+      74: -7215423558542319915
+    second: DeformationSystem|DeformationSystem|Attack|BaseLayer
+  - first:
+      74: 8589030331807884292
+    second: DeformationSystem|DeformationSystem|Death|BaseLayer
+  - first:
+      74: 4688736582204323490
+    second: DeformationSystem|DeformationSystem|Idle1|BaseLayer
+  - first:
+      74: -1482155882406471234
+    second: DeformationSystem|DeformationSystem|Idle2|BaseLayer
+  - first:
+      74: 5922520166361192591
+    second: DeformationSystem|DeformationSystem|Run|BaseLayer
+  - first:
+      74: -5605738649096346866
+    second: DeformationSystem|DeformationSystem|Take 001|BaseLayer.001
+  - first:
+      74: 287174014886955512
+    second: DeformationSystem|DeformationSystem|Walk|BaseLayer
+  - first:
+      74: 8478282238236627458
+    second: DeformationSystem|Geometry|Attack|BaseLayer
+  - first:
+      74: 8938664720841298027
+    second: DeformationSystem|Geometry|Death|BaseLayer
+  - first:
+      74: -7367342748502612776
+    second: DeformationSystem|Geometry|Idle1|BaseLayer
+  - first:
+      74: -6969520679029907433
+    second: DeformationSystem|Geometry|Idle2|BaseLayer
+  - first:
+      74: 4049289813637468964
+    second: DeformationSystem|Geometry|Run|BaseLayer
+  - first:
+      74: -4586614629138033894
+    second: DeformationSystem|Geometry|Walk|BaseLayer
+  - first:
+      74: -3927079794283616142
+    second: DeformationSystem|Main|Elephant_Elephant_attack|BaseLayer
+  - first:
+      74: 2193563000469747362
+    second: DeformationSystem|Main|Elephant_Elephant_death|BaseLayer
+  - first:
+      74: -1706767214019522312
+    second: DeformationSystem|Main|Elephant_Elephant_idle2|BaseLayer
+  - first:
+      74: 6239282805731459271
+    second: DeformationSystem|Main|Elephant_Elephant_idle_to_run|BaseLayer
+  - first:
+      74: 6104843998581009966
+    second: DeformationSystem|Main|Elephant_Elephant_idle_to_walk|BaseLayer
+  - first:
+      74: -1637397857550277696
+    second: DeformationSystem|Main|Elephant_Elephant_idle|BaseLayer
+  - first:
+      74: 6451510499184199019
+    second: DeformationSystem|Main|Elephant_Elephant_run_to_idle|BaseLayer
+  - first:
+      74: 2622791273816538038
+    second: DeformationSystem|Main|Elephant_Elephant_run|BaseLayer
+  - first:
+      74: -1083280311281345590
+    second: DeformationSystem|Main|Elephant_Elephant_walk_to_idle|BaseLayer
+  - first:
+      74: -1139600730332666086
+    second: DeformationSystem|Main|Elephant_Elephant_walk|BaseLayer
+  - first:
+      74: 5651100260301583962
+    second: DeformationSystem|Main|Goat_Attack|BaseLayer
+  - first:
+      74: -4620560981941485874
+    second: DeformationSystem|Main|Goat_Death|BaseLayer
+  - first:
+      74: 430294656686573584
+    second: DeformationSystem|Main|Goat_Idle 2|BaseLayer
+  - first:
+      74: 3171448861296509344
+    second: DeformationSystem|Main|Goat_Idle Breath|BaseLayer
+  - first:
+      74: -932325284960807549
+    second: DeformationSystem|Main|Goat_Idle to Run|BaseLayer
+  - first:
+      74: -5035966935020748421
+    second: DeformationSystem|Main|Goat_Idle to Walk|BaseLayer
+  - first:
+      74: 841109097473709225
+    second: DeformationSystem|Main|Goat_Run to Idle|BaseLayer
+  - first:
+      74: 3547346415331341574
+    second: DeformationSystem|Main|Goat_Run|BaseLayer
+  - first:
+      74: -3496843778891951815
+    second: DeformationSystem|Main|Goat_Walk to Idle|BaseLayer
+  - first:
+      74: -374486963172754085
+    second: DeformationSystem|Main|Goat_Walk|BaseLayer
+  externalObjects: {}
+  materials:
+    materialImportMode: 2
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    removeConstantScaleCurves: 1
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 0
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    useSRGBMaterialColor: 1
+    sortHierarchyByName: 1
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    nodeNameCollisionStrategy: 1
+    fileIdsGeneration: 2
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    keepQuads: 0
+    weldVertices: 1
+    bakeAxisConversion: 0
+    preserveHierarchy: 0
+    skinWeightsMode: 0
+    maxBonesPerVertex: 4
+    minBoneWeight: 0.001
+    optimizeBones: 1
+    meshOptimizationFlags: -1
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVMarginMethod: 1
+    secondaryUVMinLightmapResolution: 40
+    secondaryUVMinObjectScale: 1
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+    legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
+    blendShapeNormalImportMode: 1
+    normalSmoothingSource: 0
+  referencedClips: []
+  importAnimation: 1
+  humanDescription:
+    serializedVersion: 3
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    globalScale: 1
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  autoGenerateAvatarMappingIfUnspecified: 1
+  animationType: 2
+  humanoidOversampling: 1
+  avatarSetup: 0
+  addHumanoidExtraRootOnlyWhenUsingAvatar: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

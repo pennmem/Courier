@@ -9,9 +9,9 @@ using System.Runtime.InteropServices;
 using UnityEngine.Networking;
 using UnityEngine.UI;
 
-using Accord.Math;
+// using Accord.Math; // removed for WebGL
 // using Accord.Statistics.Distributions.Multivariate;
-using Accord.Statistics.Distributions.Univariate;
+// using Accord.Statistics.Distributions.Univariate; // removed for WebGL
 using MathNet.Numerics;
 using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics.Distributions;
@@ -38,12 +38,16 @@ public enum StorePointType
 
 public class DeliveryExperiment : CoroutineExperiment
 {
-#if UNITY_WEBGL
+#if UNITY_WEBGL && !UNITY_EDITOR
         [DllImport("__Internal")]
         private static extern void EndTask();
 
         // [DllImport("__Internal")]
         // private static extern void NoRefresh();
+#else
+        private static void EndTask()
+        {
+        }
 #endif
 
     public delegate void StateChange(string stateName, bool on);
@@ -70,7 +74,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private const bool skipFPS = true;
 
     private const string COURIER_VERSION = "v6.0.0";
-    private static bool DEBUG = Config.debugMode;
+    private static bool DEBUG = false;
 
     private const string RECALL_TEXT = "*******"; // TODO: JPB: Remove this and use display system
     // Constants moved to the Config File
@@ -85,8 +89,8 @@ public class DeliveryExperiment : CoroutineExperiment
     private const int HOSPTIAL_TOWN_LEARNING_NUM_STORES = 8;
     private const int SINGLE_TOWN_LEARNING_SESSIONS = 1;
     private const int DOUBLE_TOWN_LEARNING_SESSIONS = 0;
-    private readonly int POINTING_INDICATOR_DELAY = Config.timeDelay;
-    private readonly int DISTANCE_THRESHOLD = Config.distThreshold;
+    private int POINTING_INDICATOR_DELAY = 0;
+    private int DISTANCE_THRESHOLD = 0;
     private const int EFR_KEYPRESS_PRACTICES = 10;
     private const float FRAME_TEST_LENGTH = 20f;
     private const float MIN_FAMILIARIZATION_ISI = 0.4f;
@@ -109,7 +113,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private const float ARROW_ROTATION_SPEED = 1f;
     private const float PAUSE_BEFORE_RETRIEVAL = 10f;
     private const float DISPLAY_ITEM_PAUSE = 5f;
-    private float AUDIO_TEXT_DISPLAY = Config.audioTextDisplayLength; //3f;
+    private float AUDIO_TEXT_DISPLAY = 3f;
     private const float WORD_PRESENTATION_TOTAL_TIME = 5.0f;
     private const float WORD_PRESENTATION_DELAY = 1.0f; //NICLS_COURIER ? 1f : 1.25f; // TODO: JPB: Fix this is NICLS
     private const float WORD_PRESENTATION_JITTER = 0.25f;
@@ -141,12 +145,12 @@ public class DeliveryExperiment : CoroutineExperiment
     private static bool useNiclServer = false;
     private static bool useElemem = false;
     private static bool isFirstSession = false;
-#if !UNITY_WEBGL // Syncbox, Ramulator, and NICLS
+#if !(UNITY_WEBGL && !UNITY_EDITOR) // Syncbox, Ramulator, NICLS, and Elemem
     private Syncbox syncs;
     public RamulatorInterface ramulatorInterface;
     public NiclsInterface niclsInterface;
     public ElememInterface elememInterface;
-#endif // !UNITY_WEBGL
+#endif // !(UNITY_WEBGL && !UNITY_EDITOR)
 
     public PlayerMovement playerMovement;
     public GameObject pointer;
@@ -225,16 +229,16 @@ public class DeliveryExperiment : CoroutineExperiment
     private const int ELEMEM_REP_STIM_INTERVAL = 6000; // ms, 2*STIM_DURATION
     private const int ELEMEM_REP_STIM_DELAY = 1500; // ms
     private const int ELEMEM_REP_SWITCH_DELAY = 3000; // ms
-    private double[] actualAvgStorePoints = new double[Config.trialsPerSession];
-    private double[] guessAvgStorePoints = new double[Config.trialsPerSession];
+    private double[] actualAvgStorePoints = new double[0];
+    private double[] guessAvgStorePoints = new double[0];
 
-    private bool elememOn = Config.elememOn;
+    private bool elememOn = false;
 
     // Stim Tags
     List<string> GenerateStimTags(int numTrials)
     {
         List<string> result = new List<string>();
-        stimTags.Shuffle();
+        Shuffle(stimTags, rng);
 
         for (int i = 0; i < numTrials; i++)
             result.Add(stimTags[i % 2]);
@@ -250,28 +254,50 @@ public class DeliveryExperiment : CoroutineExperiment
         System.Random rng = new System.Random();
         bool coinFlip = rng.Next(2) == 0;
         double[] storePoints = TemporalStorePoints(numStores, coinFlip);
-        storePoints.Shuffle(rng);
+        Shuffle(storePoints, rng);
 
         return storePoints;
     }
 
     double[] StandardizeStorePoints(double[] storePoints)
     {
-        // std = sqrt(mean(x)), where x = abs(a - a.mean())**2
-        double[] storePoints2 = Vector.Zeros(storePoints.Length);
+        if (storePoints == null)
+            throw new ArgumentNullException(nameof(storePoints));
+
+        if (storePoints.Length == 0)
+            return new double[0];
+
+        double mean = storePoints.Average();
+        double variance = 0d;
+
         for (int i = 0; i < storePoints.Length; i++)
-            storePoints2[i] = Math.Pow(Math.Abs(storePoints[i] - storePoints.Average()), 2);
-        double std = Math.Sqrt(storePoints2.Average());
+        {
+            double centered = storePoints[i] - mean;
+            variance += centered * centered;
+        }
 
-        // points_standardized = (points - mean(points)) / std(points)
-        storePoints = Elementwise.Subtract(storePoints, storePoints.Average());
-        storePoints = Elementwise.Divide(storePoints, std);
+        variance /= storePoints.Length;
+        double std = Math.Sqrt(variance);
 
-        return storePoints;
+        double[] standardized = new double[storePoints.Length];
+
+        if (std <= double.Epsilon)
+            return standardized;
+
+        for (int i = 0; i < storePoints.Length; i++)
+            standardized[i] = (storePoints[i] - mean) / std;
+
+        return standardized;
     }
 
     public static double[] TemporalStorePoints(int numStores, bool highFirst = true)
     {
+        if (numStores <= 0)
+            return new double[0];
+
+        if (numStores == 1)
+            return new double[] { 25.0 };
+
         int primacyBuf = Config.primacyBuf;
         int recencyBuf = Config.recencyBuf;
         int numInGroupChosen = Config.numInGroupChosen;
@@ -522,7 +548,7 @@ public class DeliveryExperiment : CoroutineExperiment
     }
 
 
-    private static void Shuffle<T>(List<T> list, System.Random rng)
+    private static void Shuffle<T>(IList<T> list, System.Random rng)
     {
         int n = list.Count;
         while (n > 1)
@@ -565,7 +591,7 @@ public class DeliveryExperiment : CoroutineExperiment
             {
                 var a = new double[2] { stores[i].transform.position.x, stores[i].transform.position.z };
                 var b = new double[2] { stores[j].transform.position.x, stores[j].transform.position.z };
-                K[i, j] = Math.Exp(-(1d / (2d * rhoSq)) * Accord.Math.Distance.Euclidean(a, b));
+                K[i, j] = Math.Exp(-(1d / (2d * rhoSq)) * EuclideanDistance(a, b));
                 K[j, i] = K[i, j];
             }
         }
@@ -578,10 +604,10 @@ public class DeliveryExperiment : CoroutineExperiment
         // Debug.Log(string.Join(",", storePoints));
 
         // sample points from gaussian process
-        double pointMean = new UniformContinuousDistribution(30, 70).Generate();
-        double pointVar = new UniformContinuousDistribution(13, 17).Generate();
-        storePoints = Elementwise.Multiply(storePoints, pointVar);
-        storePoints = Elementwise.Add(storePoints, pointMean);
+        double pointMean = UniformSample(30d, 70d, rng);
+        double pointVar = UniformSample(13d, 17d, rng);
+        storePoints = Multiply(storePoints, pointVar);
+        storePoints = Add(storePoints, pointMean);
 
         // Set store object point values
         for (int i = 0; i < N; i++)
@@ -1237,6 +1263,14 @@ public class DeliveryExperiment : CoroutineExperiment
 
     //     return result;
     // }
+    private const string TSP_ROUTES_RELATIVE_PATH = "Routes/tsp_dijk_filt_final.txt";
+
+    private string GetStreamingAssetsUrl(string relativePath)
+    {
+        return Application.streamingAssetsPath.TrimEnd('/', '\\') + "/" + relativePath.Replace("\\", "/");
+    }
+
+#if !(UNITY_WEBGL && !UNITY_EDITOR)
     private List<List<StoreComponent>> getTotalListTSP(int numTrials, System.Random rng)
     {
         string routesPath = System.IO.Path.Combine(Application.streamingAssetsPath, "Routes", "tsp_dijk_filt_final.txt");
@@ -1246,8 +1280,33 @@ public class DeliveryExperiment : CoroutineExperiment
             return new List<List<StoreComponent>>();
         }
 
-        // Read and parse file lines into list of paths
-        var rawLines = System.IO.File.ReadAllLines(routesPath);
+        return BuildTotalListTSP(numTrials, rng, System.IO.File.ReadAllLines(routesPath), routesPath);
+    }
+#endif
+
+    private IEnumerator GetTotalListTSPWebGL(int numTrials, System.Random rng, Action<List<List<StoreComponent>>> onLoaded)
+    {
+        string routesPath = GetStreamingAssetsUrl(TSP_ROUTES_RELATIVE_PATH);
+        UnityWebRequest routesRequest = UnityWebRequest.Get(routesPath);
+        yield return routesRequest.SendWebRequest();
+
+        if (routesRequest.result != UnityWebRequest.Result.Success)
+        {
+            throw new UnityException("Failed to fetch TSP routes from " + routesPath + ": " + routesRequest.error);
+        }
+
+        string routesText = routesRequest.downloadHandler != null ? routesRequest.downloadHandler.text : null;
+        if (string.IsNullOrEmpty(routesText))
+        {
+            throw new UnityException("TSP routes file was empty: " + routesPath);
+        }
+
+        string[] rawLines = routesText.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
+        onLoaded(BuildTotalListTSP(numTrials, rng, rawLines, routesPath));
+    }
+
+    private List<List<StoreComponent>> BuildTotalListTSP(int numTrials, System.Random rng, IEnumerable<string> rawLines, string source)
+    {
         var paths = new List<List<string>>();
         foreach (var raw in rawLines)
         {
@@ -1263,7 +1322,11 @@ public class DeliveryExperiment : CoroutineExperiment
         }
 
         int N = paths.Count;
-        if (N == 0) return new List<List<StoreComponent>>();
+        if (N == 0)
+        {
+            Debug.LogError($"No TSP routes were parsed from: {source}");
+            return new List<List<StoreComponent>>();
+        }
 
         // Determine participant seed string (fall back to rng if participant unknown)
         string participantId = "__unknown__";
@@ -1384,19 +1447,35 @@ public class DeliveryExperiment : CoroutineExperiment
 
     public static void ConfigureExperiment(bool newUseRamulator, bool newUseNiclServer, bool newUseElemem, int newSessionNumber, string newExpName)
     {
-#if !UNITY_WEBGL // Ramulator and NICLS
+#if !(UNITY_WEBGL && !UNITY_EDITOR) // Ramulator, NICLS, and Elemem
         useRamulator = newUseRamulator;
         useNiclServer = newUseNiclServer;
         useElemem = newUseElemem;
         Config.elememStimMode = useElemem;
         isFirstSession = newSessionNumber == 0;
-#endif // !UNITY_WEBGL
+#endif // !(UNITY_WEBGL && !UNITY_EDITOR)
         sessionNumber = newSessionNumber;
         continuousSessionNumber = useNiclServer ? NICLS_READ_ONLY_SESSIONS + sessionNumber :
                                   sessionNumber;
         expName = newExpName;
         // Config.experimentConfigName = expName;
 
+    }
+
+    private void InitializeConfigBackedFields()
+    {
+        DEBUG = Config.debugMode;
+        POINTING_INDICATOR_DELAY = Config.timeDelay;
+        DISTANCE_THRESHOLD = Config.distThreshold;
+        AUDIO_TEXT_DISPLAY = Config.audioTextDisplayLength;
+        elememOn = Config.elememOn;
+
+        int trialsPerSession = Config.trialsPerSession;
+        if (trialsPerSession > 0 && actualAvgStorePoints.Length != trialsPerSession)
+        {
+            actualAvgStorePoints = new double[trialsPerSession];
+            guessAvgStorePoints = new double[trialsPerSession];
+        }
     }
 
     void UncaughtExceptionHandler(object sender, UnhandledExceptionEventArgs args)
@@ -1479,6 +1558,13 @@ public class DeliveryExperiment : CoroutineExperiment
         if (sessionNumber == -1)
             throw new UnityException("Please call ConfigureExperiment before beginning the experiment.");
 
+        if (!COURIER_ONLINE)
+        {
+            InitializeConfigBackedFields();
+            if (playerMovement != null)
+                playerMovement.LoadConfigValues();
+        }
+
         // Exception handling
         AppDomain currentDomain = AppDomain.CurrentDomain;
         currentDomain.UnhandledException += new UnhandledExceptionEventHandler(UncaughtExceptionHandler);
@@ -1490,13 +1576,13 @@ public class DeliveryExperiment : CoroutineExperiment
 
         // Player controls
         string controlName = "DrivingControls.xml";
-        if (Config.Get(() => Config.singleStickController, false))
+        if (!COURIER_ONLINE && Config.Get(() => Config.singleStickController, false))
             controlName = "SingleStick" + controlName;
         else
         // Chnage to VC controls by default from split controls
             controlName = "VC2" + controlName;
 
-        if (Config.Get(() => Config.ps4Controller, false))
+        if (!COURIER_ONLINE && Config.Get(() => Config.ps4Controller, false))
             controlName = "Ps4" + controlName;
 
         if (DEBUG)
@@ -1520,7 +1606,7 @@ public class DeliveryExperiment : CoroutineExperiment
         }
         // Debug.Log("Before Sync box");
         // Syncbox setup
-#if !UNITY_WEBGL // Syncbox
+#if !(UNITY_WEBGL && !UNITY_EDITOR) // Syncbox
         QualitySettings.vSyncCount = 1;
         Application.targetFrameRate = 300;
         // Start syncpulses
@@ -1557,7 +1643,7 @@ public class DeliveryExperiment : CoroutineExperiment
                 Debug.Log(name);
         }
 
-#if !UNITY_WEBGL // NICLS
+#if !(UNITY_WEBGL && !UNITY_EDITOR) // Ramulator, NICLS, and Elemem
         // Setup Ramulator
         if (useRamulator)
             yield return ramulatorInterface.BeginNewSession(sessionNumber);
@@ -1578,7 +1664,7 @@ public class DeliveryExperiment : CoroutineExperiment
         yield return elememInterface.BeginNewSession(sessionNumber,
             disableInterface: !elememOn,
             uniqueStimTags: useElemem ? stimTags.ToArray() : null);
-#endif // !UNITY_WEBGL
+#endif // !(UNITY_WEBGL && !UNITY_EDITOR)
 
         // Write versions to logfile
         LogVersions(expName);
@@ -1586,6 +1672,13 @@ public class DeliveryExperiment : CoroutineExperiment
         // Set Config for Courier Online
         if (COURIER_ONLINE)
             yield return Config.GetOnlineConfig();
+
+        if (COURIER_ONLINE)
+        {
+            InitializeConfigBackedFields();
+            if (playerMovement != null)
+                playerMovement.LoadConfigValues();
+        }
 
         // Save Config
         Config.SaveConfigs(scriptedEventReporter, UnityEPL.GetDataPath());
@@ -1671,7 +1764,11 @@ public class DeliveryExperiment : CoroutineExperiment
             if (isFirstSession) {
                 numTrials += Config.trialsPerSessionSingleTownLearning;
             }
+#if UNITY_WEBGL && !UNITY_EDITOR
+            yield return GetTotalListTSPWebGL(numTrials, this.rng, loadedStoreLists => storeLists = loadedStoreLists);
+#else
             storeLists = getTotalListTSP(numTrials, this.rng);
+#endif
             if (DEBUG) Debug.Log("Store list generation complete (background).");
             // // Wait indefinitely for background task to finish
             // yield return new WaitUntil(() => totalListTask.IsCompleted);
@@ -1832,7 +1929,7 @@ public class DeliveryExperiment : CoroutineExperiment
             textDisplayer.DisplayText("end text", endMessage);
         }
 
-#if !UNITY_WEBGL // WebGL DLL
+#if !(UNITY_WEBGL && !UNITY_EDITOR) // Elemem
         // LC: ELEMEM
         if (HOSPITAL_COURIER)
             elememInterface.SendExitMessage();
@@ -1853,8 +1950,10 @@ public class DeliveryExperiment : CoroutineExperiment
     {
         BlackScreen();
 
+#if !(UNITY_WEBGL && !UNITY_EDITOR) // Elemem
         if (elememOn)
             elememInterface.SendSessionMessage(UnityEPL.GetSessionNumber());
+#endif
 
         // Real trials
         if (Config.efrEnabled)
@@ -2291,12 +2390,14 @@ public class DeliveryExperiment : CoroutineExperiment
         thisTrialPresentedStores = new List<StoreComponent>();
 
         // LC: Set the Stim freq
+#if !(UNITY_WEBGL && !UNITY_EDITOR) // Elemem
         if (useElemem && (stimTag != null))
         {
             elememInterface.SendStimSelectMessage(stimTag);
             if (DEBUG)
                 Debug.Log("This Trial is using " + stimTag + " as stim frequency");
         }
+#endif
 
         StoreComponent lastStoreToVisit = null;
         StoreComponent nextStore = null;
@@ -2317,12 +2418,14 @@ public class DeliveryExperiment : CoroutineExperiment
         thisTrialPresentedStores = new List<StoreComponent>();
 
         // LC: Set the Stim freq
+#if !(UNITY_WEBGL && !UNITY_EDITOR) // Elemem
         if (useElemem && (stimTag != null))
         {
             elememInterface.SendStimSelectMessage(stimTag);
             if (DEBUG)
                 Debug.Log("This Trial is using " + stimTag + " as stim frequency");
         }
+#endif
 
         for (int i = 0; i < deliveries; i++)
         {
@@ -2409,7 +2512,7 @@ public class DeliveryExperiment : CoroutineExperiment
                 bool isStimStore = StimStores.Contains(nextStore);
                 // Debug.Log("is this stim store? " + isStimStore.ToString());
 
-#if !UNITY_WEBGL
+#if !(UNITY_WEBGL && !UNITY_EDITOR) // NICLS and Elemem
                 // NICLS
                 if (useNiclServer && !practice)
                 {
@@ -2785,7 +2888,7 @@ public class DeliveryExperiment : CoroutineExperiment
             }
             SetRamulatorState("WAITING", false, new Dictionary<string, object>());
 
-#if !UNITY_WEBGL // Ramulator
+#if !(UNITY_WEBGL && !UNITY_EDITOR) // Ramulator and Elemem
             // Set ramulator trial start                       
             if (useRamulator)
                 ramulatorInterface.BeginNewTrial(trialNumber);
@@ -2891,7 +2994,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
             int continuousTrialNum = trialNumber + trialNumOffset;
 
-#if !UNITY_WEBGL // NICLS
+#if !(UNITY_WEBGL && !UNITY_EDITOR) // NICLS
             //Turn off ReadOnlyState
             if (NICLS_COURIER && trialNumber == NUM_CLASSIFIER_NORMALIZATION_TRIALS)
             {
@@ -2933,7 +3036,7 @@ public class DeliveryExperiment : CoroutineExperiment
             }
             SetRamulatorState("WAITING", false, new Dictionary<string, object>());
 
-#if !UNITY_WEBGL // Ramulator
+#if !(UNITY_WEBGL && !UNITY_EDITOR) // Ramulator and Elemem
             // Set ramulator trial start
             if (useRamulator)
                 ramulatorInterface.BeginNewTrial(continuousTrialNum);
@@ -3161,6 +3264,12 @@ public class DeliveryExperiment : CoroutineExperiment
         valueGuessWrongType.SetActive(false);
     }
 
+    private IEnumerator DoTypedResponses(int trialNumber, string taskType, float taskLength, GameObject inputObject,
+                                         UnityEngine.UI.InputField inputField, string storeName = "", bool practice=false)
+    {
+        return DoTypedResponses(trialNumber, taskType, taskLength, inputObject, inputField, null, storeName, practice);
+    }
+
     private IEnumerator DoRecall(int trialNumber, int continuousTrialNum, bool practice = false, bool freeFirst = true)
     {
         SetRamulatorState("RETRIEVAL", true, new Dictionary<string, object>());
@@ -3253,11 +3362,13 @@ public class DeliveryExperiment : CoroutineExperiment
             yield return DoFreeRecallDisplay("", PRACTICE_FREE_RECALL_LENGTH, practice: true);
         else
         {
+#if !(UNITY_WEBGL && !UNITY_EDITOR) // Elemem
             if (useElemem)
             {
                 int iterations = (int)Math.Round(FREE_RECALL_LENGTH / (STIM_DURATION * 2));
                 elememInterface.DoRepeatingStim(iterations, ELEMEM_REP_SWITCH_DELAY, ELEMEM_REP_STIM_INTERVAL);
             }
+#endif
             yield return DoFreeRecallDisplay("", FREE_RECALL_LENGTH);
         }
         scriptedEventReporter.ReportScriptedEvent("object recall recording stop", recordingData);
@@ -3480,6 +3591,7 @@ public class DeliveryExperiment : CoroutineExperiment
             textDisplayer.ClearText();
             ClearTitle();
 
+#if !(UNITY_WEBGL && !UNITY_EDITOR) // Elemem
             if (useElemem)
             {
                 // Elemem testing code
@@ -3494,6 +3606,7 @@ public class DeliveryExperiment : CoroutineExperiment
                 elememInterface.DoRepeatingSwitch(iterations, ELEMEM_REP_STIM_DELAY, ELEMEM_REP_STIM_INTERVAL);
                 elememInterface.DoRepeatingStim(iterations, ELEMEM_REP_SWITCH_DELAY, ELEMEM_REP_STIM_INTERVAL);
             }
+#endif
             yield return DoFreeRecallDisplay("final store recall", STORE_FINAL_RECALL_LENGTH);
 
             scriptedEventReporter.ReportScriptedEvent("final store recall recording stop", new Dictionary<string, object>());
@@ -3532,6 +3645,7 @@ public class DeliveryExperiment : CoroutineExperiment
         textDisplayer.ClearText();
         ClearTitle();
 
+#if !(UNITY_WEBGL && !UNITY_EDITOR) // Elemem
         if (useElemem)
         {
             // Elemem testing code
@@ -3545,6 +3659,7 @@ public class DeliveryExperiment : CoroutineExperiment
             elememInterface.DoRepeatingSwitch(iterations, ELEMEM_REP_STIM_DELAY, ELEMEM_REP_STIM_INTERVAL);
             elememInterface.DoRepeatingStim(iterations, ELEMEM_REP_SWITCH_DELAY, ELEMEM_REP_STIM_INTERVAL);
         }
+#endif
         yield return DoFreeRecallDisplay("all objects recall", OBJECT_FINAL_RECALL_LENGTH);
 
         scriptedEventReporter.ReportScriptedEvent("final object recall recording stop");
@@ -4170,7 +4285,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
     private IEnumerator WaitForClassifier(NiclsClassifierType niclsClassifierType)
     {
-#if !UNITY_WEBGL // NICLS
+#if !(UNITY_WEBGL && !UNITY_EDITOR) // NICLS
         scriptedEventReporter.ReportScriptedEvent("start classifier wait");
         Debug.Log(Enum.GetName(typeof(NiclsClassifierType), niclsClassifierType));
         WaitUntilWithTimeout waitForClassifier = null;
@@ -4203,7 +4318,7 @@ public class DeliveryExperiment : CoroutineExperiment
     //WAITING, INSTRUCT, COUNTDOWN, ENCODING, WORD, DISTRACT, RETRIEVAL
     protected override void SetRamulatorState(string stateName, bool state, Dictionary<string, object> extraData)
     {
-#if !UNITY_WEBGL // Ramulator
+#if !(UNITY_WEBGL && !UNITY_EDITOR) // Ramulator
         if (OnStateChange != null)
             OnStateChange(stateName, state);
 
@@ -4214,7 +4329,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
     protected override void SetElememState(string stateName, Dictionary<string, object> extraData = null)
     {
-#if !UNITY_WEBGL // Elemem
+#if !(UNITY_WEBGL && !UNITY_EDITOR) // Elemem
         if (extraData == null)
             extraData = new Dictionary<string, object>();
 
@@ -4526,6 +4641,59 @@ public class DeliveryExperiment : CoroutineExperiment
             Debug.LogWarning("Could not calculate NavMesh path — falling back to Euclidean.");
         return UnityEngine.Vector3.Distance(player.position, target.position);
     }
+    private static double UniformSample(double minInclusive, double maxExclusive, System.Random rng)
+    {
+        if (rng == null)
+            rng = new System.Random();
+
+        return minInclusive + rng.NextDouble() * (maxExclusive - minInclusive);
+    }
+
+    private static double[] Multiply(double[] values, double scalar)
+    {
+        if (values == null)
+            throw new ArgumentNullException(nameof(values));
+
+        double[] result = new double[values.Length];
+
+        for (int i = 0; i < values.Length; i++)
+            result[i] = values[i] * scalar;
+
+        return result;
+    }
+
+    private static double[] Add(double[] values, double scalar)
+    {
+        if (values == null)
+            throw new ArgumentNullException(nameof(values));
+
+        double[] result = new double[values.Length];
+
+        for (int i = 0; i < values.Length; i++)
+            result[i] = values[i] + scalar;
+
+        return result;
+    }
+
+    private static double EuclideanDistance(double[] a, double[] b)
+    {
+        if (a == null || b == null)
+            throw new ArgumentNullException("EuclideanDistance received null input.");
+
+        if (a.Length != b.Length)
+            throw new ArgumentException("EuclideanDistance inputs must have the same length.");
+
+        double sum = 0d;
+
+        for (int i = 0; i < a.Length; i++)
+        {
+            double d = a[i] - b[i];
+            sum += d * d;
+        }
+
+        return Math.Sqrt(sum);
+    }
+
 }
 
 public static class IListExtensions
@@ -4557,6 +4725,6 @@ public static class Extensions
         else
             dict.Add(key, new List<T>{newValue});
     }
+
+
 }
-
-

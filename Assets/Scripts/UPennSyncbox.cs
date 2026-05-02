@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿#if !(UNITY_WEBGL && !UNITY_EDITOR) // Syncbox
+using UnityEngine;
 using System.Collections;
 using System;
 using System.Runtime.InteropServices;
@@ -12,9 +13,6 @@ using Newtonsoft.Json.Linq;
 using System.Collections.Concurrent;
 using System.Net.NetworkInformation;
 using System.Threading.Tasks;
-
-#if !UNITY_WEBGL // Syncbox
-
 
 public class UPennSyncbox : EventLoop {
 //Function from Corey's Syncbox plugin (called "ASimplePlugin")
@@ -279,7 +277,6 @@ public class UPennSyncbox : EventLoop {
         StopLoop();
     }
 }
-#endif // !UNITY_WEBGL
 
 //using UnityEngine;
 //using System.Collections;
@@ -391,3 +388,4 @@ public class SyncListener
         return received;
     }
 }
+#endif // !(UNITY_WEBGL && !UNITY_EDITOR)

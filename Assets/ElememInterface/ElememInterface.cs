@@ -1,4 +1,4 @@
-#if !UNITY_WEBGL // Elemem
+#if !(UNITY_WEBGL && !UNITY_EDITOR) // Elemem
 using System;
 using System.Linq;
 using System.Diagnostics;

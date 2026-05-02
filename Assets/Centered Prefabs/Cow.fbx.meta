@@ -1,0 +1,159 @@
+fileFormatVersion: 2
+guid: 4be2e80c8352e4249aac567f90d719b0
+ModelImporter:
+  serializedVersion: 21202
+  internalIDToNameTable:
+  - first:
+      74: -7215423558542319915
+    second: DeformationSystem|DeformationSystem|Attack|BaseLayer
+  - first:
+      74: 8589030331807884292
+    second: DeformationSystem|DeformationSystem|Death|BaseLayer
+  - first:
+      74: 4688736582204323490
+    second: DeformationSystem|DeformationSystem|Idle1|BaseLayer
+  - first:
+      74: -1482155882406471234
+    second: DeformationSystem|DeformationSystem|Idle2|BaseLayer
+  - first:
+      74: 5922520166361192591
+    second: DeformationSystem|DeformationSystem|Run|BaseLayer
+  - first:
+      74: 287174014886955512
+    second: DeformationSystem|DeformationSystem|Walk|BaseLayer
+  - first:
+      74: 8478282238236627458
+    second: DeformationSystem|Geometry|Attack|BaseLayer
+  - first:
+      74: 8938664720841298027
+    second: DeformationSystem|Geometry|Death|BaseLayer
+  - first:
+      74: -7367342748502612776
+    second: DeformationSystem|Geometry|Idle1|BaseLayer
+  - first:
+      74: -6969520679029907433
+    second: DeformationSystem|Geometry|Idle2|BaseLayer
+  - first:
+      74: 4049289813637468964
+    second: DeformationSystem|Geometry|Run|BaseLayer
+  - first:
+      74: -4586614629138033894
+    second: DeformationSystem|Geometry|Walk|BaseLayer
+  - first:
+      74: 3903584895985721369
+    second: Geometry|Geometry|Attack|BaseLayer
+  - first:
+      74: -7121218504467139786
+    second: Geometry|Geometry|Death|BaseLayer
+  - first:
+      74: -8241448961760272957
+    second: Geometry|Geometry|Idle1|BaseLayer
+  - first:
+      74: -1849140809606096254
+    second: Geometry|Geometry|Idle2|BaseLayer
+  - first:
+      74: 6555319024024802705
+    second: Geometry|Geometry|Run|BaseLayer
+  - first:
+      74: -4550076569267364062
+    second: Geometry|Geometry|Walk|BaseLayer
+  externalObjects: {}
+  materials:
+    materialImportMode: 2
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    removeConstantScaleCurves: 1
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 0
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    useSRGBMaterialColor: 1
+    sortHierarchyByName: 1
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    nodeNameCollisionStrategy: 1
+    fileIdsGeneration: 2
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    keepQuads: 0
+    weldVertices: 1
+    bakeAxisConversion: 0
+    preserveHierarchy: 0
+    skinWeightsMode: 0
+    maxBonesPerVertex: 4
+    minBoneWeight: 0.001
+    optimizeBones: 1
+    meshOptimizationFlags: -1
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVMarginMethod: 1
+    secondaryUVMinLightmapResolution: 40
+    secondaryUVMinObjectScale: 1
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+    legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
+    blendShapeNormalImportMode: 1
+    normalSmoothingSource: 0
+  referencedClips: []
+  importAnimation: 1
+  humanDescription:
+    serializedVersion: 3
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    globalScale: 1
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  autoGenerateAvatarMappingIfUnspecified: 1
+  animationType: 2
+  humanoidOversampling: 1
+  avatarSetup: 0
+  addHumanoidExtraRootOnlyWhenUsingAvatar: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -65,8 +65,7 @@ public class MeshCombineWizard : ScriptableWizard {
             resultGO = combinedObjects[0];
         }
 
-        Object prefab = PrefabUtility.CreateEmptyPrefab("Assets/" + resultGO.name + ".prefab");
-        PrefabUtility.ReplacePrefab(resultGO, prefab, ReplacePrefabOptions.ConnectToPrefab);
+        PrefabUtility.SaveAsPrefabAssetAndConnect(resultGO, "Assets/" + resultGO.name + ".prefab", InteractionMode.UserAction);
 
         parentOfObjectsToCombine.SetActive(false);
         parentOfObjectsToCombine.transform.position = originalPosition;

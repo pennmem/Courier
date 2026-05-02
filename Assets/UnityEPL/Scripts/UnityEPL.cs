@@ -11,6 +11,46 @@ public static class UnityEPL
 
     public static bool viewCheck = false;
 
+#if UNITY_WEBGL && !UNITY_EDITOR
+    public static double StartCocoaPlugin()
+    {
+        return 0;
+    }
+
+    public static void StopCocoaPlugin()
+    {
+    }
+
+    public static int PopKeyKeycode()
+    {
+        return 0;
+    }
+
+    public static double PopKeyTimestamp()
+    {
+        return 0;
+    }
+
+    public static int CountKeyEvents()
+    {
+        return 0;
+    }
+
+    public static int PopMouseButton()
+    {
+        return 0;
+    }
+
+    public static double PopMouseTimestamp()
+    {
+        return 0;
+    }
+
+    public static int CountMouseEvents()
+    {
+        return 0;
+    }
+#else
     //iPhones require special DLLImport due to static linkage
     //Add this to other external functions if adding iPhone support
 #if UNITY_IPHONE
@@ -40,6 +80,7 @@ public static class UnityEPL
 
     [DllImport("UnityEPLNativePlugin")]
     public static extern int CountMouseEvents();
+#endif
 
     /// <summary>
     /// Adds the given string as the name of a current participant.  Output is separated into folders for each participant combination.  Participant names are also included in output logs.

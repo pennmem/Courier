@@ -1,0 +1,567 @@
+fileFormatVersion: 2
+guid: 4433589181f8c4f4fb8779f1b1b7cf97
+ModelImporter:
+  serializedVersion: 21202
+  internalIDToNameTable:
+  - first:
+      74: 381024428949095656
+    second: DeformationSystem|actor:geo_grp|Take 001|BaseLayer
+  - first:
+      74: -7215423558542319915
+    second: DeformationSystem|DeformationSystem|Attack|BaseLayer
+  - first:
+      74: 3466627131020156798
+    second: DeformationSystem|DeformationSystem|Attack|BaseLayer.001
+  - first:
+      74: 8589030331807884292
+    second: DeformationSystem|DeformationSystem|Death|BaseLayer
+  - first:
+      74: -6360133692309265072
+    second: DeformationSystem|DeformationSystem|Death|BaseLayer.001
+  - first:
+      74: 4688736582204323490
+    second: DeformationSystem|DeformationSystem|Idle1|BaseLayer
+  - first:
+      74: 7288960831645263511
+    second: DeformationSystem|DeformationSystem|Idle1|BaseLayer.001
+  - first:
+      74: -1482155882406471234
+    second: DeformationSystem|DeformationSystem|Idle2|BaseLayer
+  - first:
+      74: 1779637855606676253
+    second: DeformationSystem|DeformationSystem|Idle2|BaseLayer.001
+  - first:
+      74: 5922520166361192591
+    second: DeformationSystem|DeformationSystem|Run|BaseLayer
+  - first:
+      74: 2166499522122174136
+    second: DeformationSystem|DeformationSystem|Run|BaseLayer.001
+  - first:
+      74: 3918297908556091419
+    second: DeformationSystem|DeformationSystem|Seal_Attack|BaseLayer
+  - first:
+      74: -4573134321072520717
+    second: DeformationSystem|DeformationSystem|Seal_Death|BaseLayer
+  - first:
+      74: -8802124335692191661
+    second: DeformationSystem|DeformationSystem|Seal_Idle 2|BaseLayer
+  - first:
+      74: -4375789807053060411
+    second: DeformationSystem|DeformationSystem|Seal_Idle to Run|BaseLayer
+  - first:
+      74: 1241232983690557136
+    second: DeformationSystem|DeformationSystem|Seal_Idle to Walk|BaseLayer
+  - first:
+      74: -863966246373127878
+    second: DeformationSystem|DeformationSystem|Seal_Idle|BaseLayer
+  - first:
+      74: 167934104575937465
+    second: DeformationSystem|DeformationSystem|Seal_Run to Idle|BaseLayer
+  - first:
+      74: 7767346915531867458
+    second: DeformationSystem|DeformationSystem|Seal_Run|BaseLayer
+  - first:
+      74: -2321281300852482374
+    second: DeformationSystem|DeformationSystem|Seal_Walk to Idle|BaseLayer
+  - first:
+      74: 3234140111256018019
+    second: DeformationSystem|DeformationSystem|Seal_Walk|BaseLayer
+  - first:
+      74: -5605738649096346866
+    second: DeformationSystem|DeformationSystem|Take 001|BaseLayer.001
+  - first:
+      74: -6574675625616699921
+    second: DeformationSystem|DeformationSystem|Take 001|BaseLayer.002
+  - first:
+      74: -3799531287960904700
+    second: DeformationSystem|DeformationSystem|Take 001|BaseLayer.003
+  - first:
+      74: 287174014886955512
+    second: DeformationSystem|DeformationSystem|Walk|BaseLayer
+  - first:
+      74: -1778492841074446409
+    second: DeformationSystem|DeformationSystem|Walk|BaseLayer.001
+  - first:
+      74: 6753136613283849061
+    second: DeformationSystem|DeformationSystem|Walrus_Attack|BaseLayer
+  - first:
+      74: -1542423317521306001
+    second: DeformationSystem|DeformationSystem|Walrus_Death|BaseLayer
+  - first:
+      74: 6006717716932806610
+    second: DeformationSystem|DeformationSystem|Walrus_Idle 2|BaseLayer
+  - first:
+      74: -4431696119363744841
+    second: DeformationSystem|DeformationSystem|Walrus_Idle to Run|BaseLayer
+  - first:
+      74: -8426671569915788229
+    second: DeformationSystem|DeformationSystem|Walrus_Idle to Walk|BaseLayer
+  - first:
+      74: 874891226342484336
+    second: DeformationSystem|DeformationSystem|Walrus_Idle|BaseLayer
+  - first:
+      74: 8150522857031623747
+    second: DeformationSystem|DeformationSystem|Walrus_Run to Idle|BaseLayer
+  - first:
+      74: -4527891026997486597
+    second: DeformationSystem|DeformationSystem|Walrus_Run|BaseLayer
+  - first:
+      74: -6109472575368506201
+    second: DeformationSystem|DeformationSystem|Walrus_Walk to Idle|BaseLayer
+  - first:
+      74: 2319936646997435608
+    second: DeformationSystem|DeformationSystem|Walrus_Walk|BaseLayer
+  - first:
+      74: 8478282238236627458
+    second: DeformationSystem|Geometry|Attack|BaseLayer
+  - first:
+      74: 8938664720841298027
+    second: DeformationSystem|Geometry|Death|BaseLayer
+  - first:
+      74: -7367342748502612776
+    second: DeformationSystem|Geometry|Idle1|BaseLayer
+  - first:
+      74: -6969520679029907433
+    second: DeformationSystem|Geometry|Idle2|BaseLayer
+  - first:
+      74: 489799369772124890
+    second: DeformationSystem|Geometry|Pig_attack|BaseLayer
+  - first:
+      74: -5758535235366524138
+    second: DeformationSystem|Geometry|Pig_death|BaseLayer
+  - first:
+      74: -3958081306198875468
+    second: DeformationSystem|Geometry|Pig_idle breathing|BaseLayer
+  - first:
+      74: 3051049791802799028
+    second: DeformationSystem|Geometry|Pig_idle to run|BaseLayer
+  - first:
+      74: -5206482617715742074
+    second: DeformationSystem|Geometry|Pig_idle to walk|BaseLayer
+  - first:
+      74: 1972043758991791314
+    second: DeformationSystem|Geometry|Pig_idle2|BaseLayer
+  - first:
+      74: -5555525806563220439
+    second: DeformationSystem|Geometry|Pig_run to idle|BaseLayer
+  - first:
+      74: 2824596538577167904
+    second: DeformationSystem|Geometry|Pig_run|BaseLayer
+  - first:
+      74: 7544502129083204159
+    second: DeformationSystem|Geometry|Pig_walk to idle|BaseLayer
+  - first:
+      74: 5581203102654199820
+    second: DeformationSystem|Geometry|Pig_walk|BaseLayer
+  - first:
+      74: 4049289813637468964
+    second: DeformationSystem|Geometry|Run|BaseLayer
+  - first:
+      74: -4586614629138033894
+    second: DeformationSystem|Geometry|Walk|BaseLayer
+  - first:
+      74: 7017550321698915240
+    second: DeformationSystem|Main.001|Sheep-wool_Attack|BaseLayer
+  - first:
+      74: 3439565696316367123
+    second: DeformationSystem|Main.001|Sheep-wool_Death|BaseLayer
+  - first:
+      74: 3604289861069343583
+    second: DeformationSystem|Main.001|Sheep-wool_Idle 2|BaseLayer
+  - first:
+      74: -7351347439782655916
+    second: DeformationSystem|Main.001|Sheep-wool_Idle to Run|BaseLayer
+  - first:
+      74: -4654161228224313596
+    second: DeformationSystem|Main.001|Sheep-wool_Idle to Walk|BaseLayer
+  - first:
+      74: 6390865423722504791
+    second: DeformationSystem|Main.001|Sheep-wool_Idle|BaseLayer
+  - first:
+      74: 735461578151065084
+    second: DeformationSystem|Main.001|Sheep-wool_Run to Idle|BaseLayer
+  - first:
+      74: 5647668848839577637
+    second: DeformationSystem|Main.001|Sheep-wool_Run|BaseLayer
+  - first:
+      74: -375681708030172122
+    second: DeformationSystem|Main.001|Sheep-wool_Walk to Idle|BaseLayer
+  - first:
+      74: 4945730608217946020
+    second: DeformationSystem|Main.001|Sheep-wool_Walk|BaseLayer
+  - first:
+      74: -3927079794283616142
+    second: DeformationSystem|Main|Elephant_Elephant_attack|BaseLayer
+  - first:
+      74: 2193563000469747362
+    second: DeformationSystem|Main|Elephant_Elephant_death|BaseLayer
+  - first:
+      74: -1706767214019522312
+    second: DeformationSystem|Main|Elephant_Elephant_idle2|BaseLayer
+  - first:
+      74: 6239282805731459271
+    second: DeformationSystem|Main|Elephant_Elephant_idle_to_run|BaseLayer
+  - first:
+      74: 6104843998581009966
+    second: DeformationSystem|Main|Elephant_Elephant_idle_to_walk|BaseLayer
+  - first:
+      74: -1637397857550277696
+    second: DeformationSystem|Main|Elephant_Elephant_idle|BaseLayer
+  - first:
+      74: 6451510499184199019
+    second: DeformationSystem|Main|Elephant_Elephant_run_to_idle|BaseLayer
+  - first:
+      74: 2622791273816538038
+    second: DeformationSystem|Main|Elephant_Elephant_run|BaseLayer
+  - first:
+      74: -1083280311281345590
+    second: DeformationSystem|Main|Elephant_Elephant_walk_to_idle|BaseLayer
+  - first:
+      74: -1139600730332666086
+    second: DeformationSystem|Main|Elephant_Elephant_walk|BaseLayer
+  - first:
+      74: 5651100260301583962
+    second: DeformationSystem|Main|Goat_Attack|BaseLayer
+  - first:
+      74: -4620560981941485874
+    second: DeformationSystem|Main|Goat_Death|BaseLayer
+  - first:
+      74: 430294656686573584
+    second: DeformationSystem|Main|Goat_Idle 2|BaseLayer
+  - first:
+      74: 3171448861296509344
+    second: DeformationSystem|Main|Goat_Idle Breath|BaseLayer
+  - first:
+      74: -932325284960807549
+    second: DeformationSystem|Main|Goat_Idle to Run|BaseLayer
+  - first:
+      74: -5035966935020748421
+    second: DeformationSystem|Main|Goat_Idle to Walk|BaseLayer
+  - first:
+      74: 841109097473709225
+    second: DeformationSystem|Main|Goat_Run to Idle|BaseLayer
+  - first:
+      74: 3547346415331341574
+    second: DeformationSystem|Main|Goat_Run|BaseLayer
+  - first:
+      74: -3496843778891951815
+    second: DeformationSystem|Main|Goat_Walk to Idle|BaseLayer
+  - first:
+      74: -374486963172754085
+    second: DeformationSystem|Main|Goat_Walk|BaseLayer
+  - first:
+      74: -3409541769482227979
+    second: DeformationSystem|Main|Octopus_Attack|BaseLayer
+  - first:
+      74: 8172244245399376958
+    second: DeformationSystem|Main|Octopus_Death|BaseLayer
+  - first:
+      74: 893562274321412532
+    second: DeformationSystem|Main|Octopus_Idle to Swim|BaseLayer
+  - first:
+      74: 8202424074873855934
+    second: DeformationSystem|Main|Octopus_Idle|BaseLayer
+  - first:
+      74: 7129857068484831716
+    second: DeformationSystem|Main|Octopus_Swim to Idle|BaseLayer
+  - first:
+      74: -3289621132474867753
+    second: DeformationSystem|Main|Octopus_Swim|BaseLayer
+  - first:
+      74: -7346354838016749529
+    second: DeformationSystem|Main|Pig_attack|BaseLayer
+  - first:
+      74: -8088004366960994780
+    second: DeformationSystem|Main|Pig_death|BaseLayer
+  - first:
+      74: 6080845823778167738
+    second: DeformationSystem|Main|Pig_idle breathing|BaseLayer
+  - first:
+      74: -5833990268432105109
+    second: DeformationSystem|Main|Pig_idle to run|BaseLayer
+  - first:
+      74: -4412782213635461797
+    second: DeformationSystem|Main|Pig_idle to walk|BaseLayer
+  - first:
+      74: 6088765858099424065
+    second: DeformationSystem|Main|Pig_idle2|BaseLayer
+  - first:
+      74: -3679865030745006151
+    second: DeformationSystem|Main|Pig_run to idle|BaseLayer
+  - first:
+      74: 1831737507104615244
+    second: DeformationSystem|Main|Pig_run|BaseLayer
+  - first:
+      74: -7645601590239234958
+    second: DeformationSystem|Main|Pig_walk to idle|BaseLayer
+  - first:
+      74: 6129283763092626230
+    second: DeformationSystem|Main|Pig_walk|BaseLayer
+  - first:
+      74: 7891082317713748496
+    second: DeformationSystem|Main|Seal_Attack|BaseLayer
+  - first:
+      74: -7829865937845725143
+    second: DeformationSystem|Main|Seal_Death|BaseLayer
+  - first:
+      74: 7460193870043257646
+    second: DeformationSystem|Main|Seal_Idle 2|BaseLayer
+  - first:
+      74: -1957023395788073344
+    second: DeformationSystem|Main|Seal_Idle to Run|BaseLayer
+  - first:
+      74: 6874752286048851667
+    second: DeformationSystem|Main|Seal_Idle to Walk|BaseLayer
+  - first:
+      74: -780978048800170122
+    second: DeformationSystem|Main|Seal_Idle|BaseLayer
+  - first:
+      74: 9145263847813075086
+    second: DeformationSystem|Main|Seal_Run to Idle|BaseLayer
+  - first:
+      74: -1316867714722748654
+    second: DeformationSystem|Main|Seal_Run|BaseLayer
+  - first:
+      74: -7357279262715868371
+    second: DeformationSystem|Main|Seal_Walk to Idle|BaseLayer
+  - first:
+      74: 1505515455562068114
+    second: DeformationSystem|Main|Seal_Walk|BaseLayer
+  - first:
+      74: -4207543494877530556
+    second: DeformationSystem|Main|Sheep_Attack|BaseLayer
+  - first:
+      74: 5279581004215237870
+    second: DeformationSystem|Main|Sheep_Death|BaseLayer
+  - first:
+      74: -407283235187879577
+    second: DeformationSystem|Main|Sheep_Idle 2|BaseLayer
+  - first:
+      74: -756261120061234214
+    second: DeformationSystem|Main|Sheep_Idle to Run|BaseLayer
+  - first:
+      74: 5475660870740001463
+    second: DeformationSystem|Main|Sheep_Idle to Walk|BaseLayer
+  - first:
+      74: -9110035960712575158
+    second: DeformationSystem|Main|Sheep_Idle|BaseLayer
+  - first:
+      74: 8938115239321666510
+    second: DeformationSystem|Main|Sheep_Run to Idle|BaseLayer
+  - first:
+      74: -7333745379003215530
+    second: DeformationSystem|Main|Sheep_Run|BaseLayer
+  - first:
+      74: 7507187144063874514
+    second: DeformationSystem|Main|Sheep_Walk to Idle|BaseLayer
+  - first:
+      74: -4336991046799840556
+    second: DeformationSystem|Main|Sheep_Walk|BaseLayer
+  - first:
+      74: 3723339795740031391
+    second: DeformationSystem|Main|Squid_Death|BaseLayer
+  - first:
+      74: 5331171466849946690
+    second: DeformationSystem|Main|Squid_Idle to Swim|BaseLayer
+  - first:
+      74: -2670876055254065120
+    second: DeformationSystem|Main|Squid_Idle|BaseLayer
+  - first:
+      74: -4689879229604745937
+    second: DeformationSystem|Main|Squid_Swim to Idle|BaseLayer
+  - first:
+      74: 8429317258646228099
+    second: DeformationSystem|Main|Squid_Swim|BaseLayer
+  - first:
+      74: -7678483204501708802
+    second: DeformationSystem|Main|Squirrel_Attack|BaseLayer
+  - first:
+      74: 7128559972694700994
+    second: DeformationSystem|Main|Squirrel_Death|BaseLayer
+  - first:
+      74: -3740328372309324359
+    second: DeformationSystem|Main|Squirrel_Idle 2|BaseLayer
+  - first:
+      74: 9123150192658704713
+    second: DeformationSystem|Main|Squirrel_Idle to Run|BaseLayer
+  - first:
+      74: -4062179320649031885
+    second: DeformationSystem|Main|Squirrel_Idle to Walk|BaseLayer
+  - first:
+      74: 4855599156707096704
+    second: DeformationSystem|Main|Squirrel_Idle|BaseLayer
+  - first:
+      74: -3342350720012644375
+    second: DeformationSystem|Main|Squirrel_Run to Idle|BaseLayer
+  - first:
+      74: -7385431065256988478
+    second: DeformationSystem|Main|Squirrel_Run|BaseLayer
+  - first:
+      74: -4957749237089498675
+    second: DeformationSystem|Main|Squirrel_Walk to Idle|BaseLayer
+  - first:
+      74: 5612808197477396743
+    second: DeformationSystem|Main|Squirrel_Walk|BaseLayer
+  - first:
+      74: -6514929170261582254
+    second: DeformationSystem|Main|Tiger_attack1|BaseLayer
+  - first:
+      74: 1226669578031618408
+    second: DeformationSystem|Main|Tiger_attack2|BaseLayer
+  - first:
+      74: -1623019746949582187
+    second: DeformationSystem|Main|Tiger_death|BaseLayer
+  - first:
+      74: 6558849002839877312
+    second: DeformationSystem|Main|Tiger_idle breathing|BaseLayer
+  - first:
+      74: 3920293539178829218
+    second: DeformationSystem|Main|Tiger_idle roar|BaseLayer
+  - first:
+      74: -5385929734631920895
+    second: DeformationSystem|Main|Tiger_idle to run|BaseLayer
+  - first:
+      74: -6720631696083043392
+    second: DeformationSystem|Main|Tiger_idle to walk|BaseLayer
+  - first:
+      74: -1971291622999064853
+    second: DeformationSystem|Main|Tiger_run to idle|BaseLayer
+  - first:
+      74: -8293715804981308378
+    second: DeformationSystem|Main|Tiger_run|BaseLayer
+  - first:
+      74: -7923580041571214720
+    second: DeformationSystem|Main|Tiger_walk to idle|BaseLayer
+  - first:
+      74: 7711913449628376376
+    second: DeformationSystem|Main|Tiger_walk|BaseLayer
+  - first:
+      74: 1087392778166600356
+    second: DeformationSystem|Main|Walrus_Attack|BaseLayer
+  - first:
+      74: 2804972530464323833
+    second: DeformationSystem|Main|Walrus_Death|BaseLayer
+  - first:
+      74: -4719051398361921721
+    second: DeformationSystem|Main|Walrus_Idle 2|BaseLayer
+  - first:
+      74: 5450310539250885379
+    second: DeformationSystem|Main|Walrus_Idle to Run|BaseLayer
+  - first:
+      74: -231247874424987325
+    second: DeformationSystem|Main|Walrus_Idle to Walk|BaseLayer
+  - first:
+      74: -9066168989887612782
+    second: DeformationSystem|Main|Walrus_Idle|BaseLayer
+  - first:
+      74: -7715139932103802004
+    second: DeformationSystem|Main|Walrus_Run to Idle|BaseLayer
+  - first:
+      74: -4335855150571191007
+    second: DeformationSystem|Main|Walrus_Run|BaseLayer
+  - first:
+      74: 3827606399491447657
+    second: DeformationSystem|Main|Walrus_Walk to Idle|BaseLayer
+  - first:
+      74: 7908802077293234423
+    second: DeformationSystem|Main|Walrus_Walk|BaseLayer
+  externalObjects: {}
+  materials:
+    materialImportMode: 2
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    removeConstantScaleCurves: 1
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 0
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    useSRGBMaterialColor: 1
+    sortHierarchyByName: 1
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    nodeNameCollisionStrategy: 1
+    fileIdsGeneration: 2
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    keepQuads: 0
+    weldVertices: 1
+    bakeAxisConversion: 0
+    preserveHierarchy: 0
+    skinWeightsMode: 0
+    maxBonesPerVertex: 4
+    minBoneWeight: 0.001
+    optimizeBones: 1
+    meshOptimizationFlags: -1
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVMarginMethod: 1
+    secondaryUVMinLightmapResolution: 40
+    secondaryUVMinObjectScale: 1
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+    legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
+    blendShapeNormalImportMode: 1
+    normalSmoothingSource: 0
+  referencedClips: []
+  importAnimation: 1
+  humanDescription:
+    serializedVersion: 3
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    globalScale: 1
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  autoGenerateAvatarMappingIfUnspecified: 1
+  animationType: 2
+  humanoidOversampling: 1
+  avatarSetup: 0
+  addHumanoidExtraRootOnlyWhenUsingAvatar: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

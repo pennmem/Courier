@@ -24,6 +24,12 @@ PluginImporter:
           DefaultValueInitialized: true
     data:
       first:
+        WebGL: WebGL
+      second:
+        enabled: 0
+        settings: {}
+    data:
+      first:
         Windows Store Apps: WindowsStoreApps
       second:
         enabled: 0

@@ -15,7 +15,7 @@ public class WorldDataReporter : DataReporter
 
     private int offset;
     BoxCollider objectCollider;
-    private bool elememOn = Config.elememOn;
+    private bool elememOn = false;
 
     // TODO: JPB: This is a hack and should be removed
     // Using protected elememInterface from DataReporter
@@ -43,6 +43,10 @@ public class WorldDataReporter : DataReporter
 
     protected override void OnEnable() {
         base.OnEnable();
+#if !UNITY_WEBGL
+        if (Application.isPlaying)
+            elememOn = Config.Get(() => Config.elememOn, false);
+#endif
         BoxCheck();
         if(doSpawnReport)
             DoSpawnReport();

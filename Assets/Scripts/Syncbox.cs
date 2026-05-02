@@ -1,4 +1,4 @@
-﻿#if !UNITY_WEBGL // Syncbox
+﻿#if !(UNITY_WEBGL && !UNITY_EDITOR) // Syncbox
 using UnityEngine;
 using System.Collections;
 using System;

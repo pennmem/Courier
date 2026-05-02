@@ -35,7 +35,7 @@ public class BeginExperiment : MonoBehaviour
     public const string EXP_NAME_VALUE = "VCBehOnly";
     private void OnEnable()
     {
-#if UNITY_WEBGL
+#if UNITY_WEBGL && !UNITY_EDITOR
             SceneManager.LoadScene(scene_name);
 #endif // UNITY_WEBGL
 
@@ -99,26 +99,38 @@ public class BeginExperiment : MonoBehaviour
 
     private string GetLanguageFilePath()
     {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        return "";
+#else
         string dataPath = UnityEPL.GetParticipantFolder();
         System.IO.Directory.CreateDirectory(dataPath);
         string languageFilePath = System.IO.Path.Combine(dataPath, "language");
         if (!System.IO.File.Exists(languageFilePath))
             System.IO.File.Create(languageFilePath).Close();
         return languageFilePath;
+#endif
     }
 
     private bool LanguageMismatch()
     {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        return false;
+#else
         if (UnityEPL.GetParticipants()[0].Equals("unspecified_participant"))
             return false;
         if (System.IO.File.ReadAllText(GetLanguageFilePath()).Equals(""))
             return false;
         return !LanguageSource.current_language.ToString().Equals(System.IO.File.ReadAllText(GetLanguageFilePath()));
+#endif
     }
 
     private void LockLanguage()
     {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        return;
+#else
         System.IO.File.WriteAllText(GetLanguageFilePath(), LanguageSource.current_language.ToString());
+#endif
     }
 
     public void DoBeginExperiment()
@@ -160,6 +172,9 @@ public class BeginExperiment : MonoBehaviour
 
     private int NextSessionNumber()
     {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        return 0;
+#else
         string dataPath = UnityEPL.GetParticipantFolder();
 		System.IO.Directory.CreateDirectory(dataPath);
         string[] sessionFolders = System.IO.Directory.GetDirectories(dataPath);
@@ -171,6 +186,7 @@ public class BeginExperiment : MonoBehaviour
                 mostRecentSessionNumber = thisSessionNumber;
         }
         return mostRecentSessionNumber + 1;
+#endif
     }
 
     private bool IsValidParticipantName(string name)

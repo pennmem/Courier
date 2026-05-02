@@ -1,0 +1,208 @@
+fileFormatVersion: 2
+guid: 17703c412a01c4215b7a00357781414e
+ModelImporter:
+  serializedVersion: 21202
+  internalIDToNameTable:
+  - first:
+      74: 6036599440833185229
+    second: Basket_o52iei|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k
+  - first:
+      74: -668015377333006110
+    second: Basket_o52iei|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k.001
+  - first:
+      74: -4875124630753435432
+    second: Basket_o52iei|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k.002
+  - first:
+      74: -4298960946265465517
+    second: Basket_o52iei|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k.003
+  - first:
+      74: 971198015887410043
+    second: Basket_o52iei|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k.004
+  - first:
+      74: -223460418584518385
+    second: Basket_o52iei|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k.005
+  - first:
+      74: -58539031856235201
+    second: Basket_o52iei|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k|Avo
+  - first:
+      74: -4265329435323840518
+    second: Basket_o52iei|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k|Take 001|BaseLayer
+  - first:
+      74: -6582134521436518532
+    second: Basket_o52iei|Basket_o52iei_Filling|Take 001|BaseLayer
+  - first:
+      74: -6224909685707338656
+    second: Basket_o52iei|Basket_o52iei_Filling|Take 001|BaseLayer.001
+  - first:
+      74: -7498170462894527728
+    second: Basket_o52iei|Basket_o52iei|Take 001|BaseLayer
+  - first:
+      74: 7613310895014308921
+    second: Basket_o52iei|Basket_o52iei|Take 001|BaseLayer.001
+  - first:
+      74: 4603898210335738900
+    second: Basket_o52iei|ChilliPeppers_w388hm|Take 001|BaseLayer
+  - first:
+      74: -8194510172592223209
+    second: Basket_o52iei|Perry_fhz4xg|Take 001|BaseLayer
+  - first:
+      74: -2622176645646040306
+    second: Basket_o52iei|Pineapple_c1vx80|Take 001|BaseLayer
+  - first:
+      74: -7736550585790434983
+    second: Basket_o52iei|Pumpkin_hjtgsa|Take 001|BaseLayer
+  - first:
+      74: -7886170872905661635
+    second: Basket_o52iei|Watermelon_z0o9y3|Take 001|BaseLayer
+  - first:
+      74: 951638394741816072
+    second: Basket_o52iei_Filling|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k
+  - first:
+      74: -817997082756082539
+    second: Basket_o52iei_Filling|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k.001
+  - first:
+      74: 2401564536378081731
+    second: Basket_o52iei_Filling|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k.002
+  - first:
+      74: 8539099863680816930
+    second: Basket_o52iei_Filling|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k.003
+  - first:
+      74: -8857956852202447251
+    second: Basket_o52iei_Filling|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k.004
+  - first:
+      74: 6453758445109947877
+    second: Basket_o52iei_Filling|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k.005
+  - first:
+      74: 1854517239251875153
+    second: Basket_o52iei_Filling|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k|Avo
+  - first:
+      74: -5919407796820477390
+    second: Basket_o52iei_Filling|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k|Take
+      001|BaseLayer
+  - first:
+      74: 1900135209904862662
+    second: Basket_o52iei_Filling|Basket_o52iei_Filling|Take 001|BaseLayer
+  - first:
+      74: 2796584422812821917
+    second: Basket_o52iei_Filling|Basket_o52iei_Filling|Take 001|BaseLayer.001
+  - first:
+      74: 1011571758906730073
+    second: Basket_o52iei_Filling|Basket_o52iei|Take 001|BaseLayer
+  - first:
+      74: -7175057163944007877
+    second: Basket_o52iei_Filling|Basket_o52iei|Take 001|BaseLayer.001
+  - first:
+      74: -6611132708953902025
+    second: Basket_o52iei_Filling|ChilliPeppers_w388hm|Take 001|BaseLayer
+  - first:
+      74: -8452920879319294148
+    second: Basket_o52iei_Filling|Perry_fhz4xg|Take 001|BaseLayer
+  - first:
+      74: -1673417433131127266
+    second: Basket_o52iei_Filling|Pineapple_c1vx80|Take 001|BaseLayer
+  - first:
+      74: 5683356549832156639
+    second: Basket_o52iei_Filling|Pumpkin_hjtgsa|Take 001|BaseLayer
+  - first:
+      74: 1619645956751974468
+    second: Basket_o52iei_Filling|Watermelon_z0o9y3|Take 001|BaseLayer
+  externalObjects: {}
+  materials:
+    materialImportMode: 2
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    removeConstantScaleCurves: 1
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 0
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    useSRGBMaterialColor: 1
+    sortHierarchyByName: 1
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    nodeNameCollisionStrategy: 1
+    fileIdsGeneration: 2
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    keepQuads: 0
+    weldVertices: 1
+    bakeAxisConversion: 0
+    preserveHierarchy: 0
+    skinWeightsMode: 0
+    maxBonesPerVertex: 4
+    minBoneWeight: 0.001
+    optimizeBones: 1
+    meshOptimizationFlags: -1
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVMarginMethod: 1
+    secondaryUVMinLightmapResolution: 40
+    secondaryUVMinObjectScale: 1
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+    legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
+    blendShapeNormalImportMode: 1
+    normalSmoothingSource: 0
+  referencedClips: []
+  importAnimation: 1
+  humanDescription:
+    serializedVersion: 3
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    globalScale: 1
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  autoGenerateAvatarMappingIfUnspecified: 1
+  animationType: 2
+  humanoidOversampling: 1
+  avatarSetup: 0
+  addHumanoidExtraRootOnlyWhenUsingAvatar: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

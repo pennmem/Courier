@@ -1,0 +1,426 @@
+fileFormatVersion: 2
+guid: 72965e217f9a24819b5bf4a8dcd7a381
+ModelImporter:
+  serializedVersion: 21202
+  internalIDToNameTable:
+  - first:
+      74: 7700201287818577650
+    second: actor:Group|actor:geo_grp|Take 001|BaseLayer
+  - first:
+      74: -1911307348325592937
+    second: actor:Group|actor:Group|Take 001|BaseLayer
+  - first:
+      74: 4793012283604094322
+    second: actor:Group|Geometry|Attack|BaseLayer
+  - first:
+      74: -1879730166787406302
+    second: actor:Group|Geometry|Death|BaseLayer
+  - first:
+      74: 2822038893597240713
+    second: actor:Group|Geometry|Idle1|BaseLayer
+  - first:
+      74: -1468816470446437261
+    second: actor:Group|Geometry|Idle2|BaseLayer
+  - first:
+      74: 8427394385051142902
+    second: actor:Group|Geometry|Pig_attack|BaseLayer
+  - first:
+      74: 4335517266446618358
+    second: actor:Group|Geometry|Pig_death|BaseLayer
+  - first:
+      74: -2976065048073963825
+    second: actor:Group|Geometry|Pig_idle breathing|BaseLayer
+  - first:
+      74: 2054802607927654533
+    second: actor:Group|Geometry|Pig_idle to run|BaseLayer
+  - first:
+      74: -2216180157400089037
+    second: actor:Group|Geometry|Pig_idle to walk|BaseLayer
+  - first:
+      74: -6620359614349989909
+    second: actor:Group|Geometry|Pig_idle2|BaseLayer
+  - first:
+      74: -5702713366551759081
+    second: actor:Group|Geometry|Pig_run to idle|BaseLayer
+  - first:
+      74: 1281913618839329742
+    second: actor:Group|Geometry|Pig_run|BaseLayer
+  - first:
+      74: -7826198809069704602
+    second: actor:Group|Geometry|Pig_walk to idle|BaseLayer
+  - first:
+      74: 5675656890120238788
+    second: actor:Group|Geometry|Pig_walk|BaseLayer
+  - first:
+      74: -2785058489676077521
+    second: actor:Group|Geometry|Run|BaseLayer
+  - first:
+      74: 5911113068603665853
+    second: actor:Group|Geometry|Walk|BaseLayer
+  - first:
+      74: -5771589793218198079
+    second: actor:Group|Main|Elephant_Elephant_attack|BaseLayer
+  - first:
+      74: -5196251284718921185
+    second: actor:Group|Main|Elephant_Elephant_death|BaseLayer
+  - first:
+      74: -5183971416476349241
+    second: actor:Group|Main|Elephant_Elephant_idle2|BaseLayer
+  - first:
+      74: -7625565756277176013
+    second: actor:Group|Main|Elephant_Elephant_idle_to_run|BaseLayer
+  - first:
+      74: 345016700570355904
+    second: actor:Group|Main|Elephant_Elephant_idle_to_walk|BaseLayer
+  - first:
+      74: 1678052983945199148
+    second: actor:Group|Main|Elephant_Elephant_idle|BaseLayer
+  - first:
+      74: 237836268423062542
+    second: actor:Group|Main|Elephant_Elephant_run_to_idle|BaseLayer
+  - first:
+      74: 1013435218290869720
+    second: actor:Group|Main|Elephant_Elephant_run|BaseLayer
+  - first:
+      74: -2873180719400887423
+    second: actor:Group|Main|Elephant_Elephant_walk_to_idle|BaseLayer
+  - first:
+      74: -2087149782783309904
+    second: actor:Group|Main|Elephant_Elephant_walk|BaseLayer
+  - first:
+      74: -7374543643982161132
+    second: actor:Group|Main|Goat_Attack|BaseLayer
+  - first:
+      74: 1002393397787103676
+    second: actor:Group|Main|Goat_Death|BaseLayer
+  - first:
+      74: 4558449229950510017
+    second: actor:Group|Main|Goat_Idle 2|BaseLayer
+  - first:
+      74: 7848749003448462599
+    second: actor:Group|Main|Goat_Idle Breath|BaseLayer
+  - first:
+      74: -3196362094440979
+    second: actor:Group|Main|Goat_Idle to Run|BaseLayer
+  - first:
+      74: 1619963185451543804
+    second: actor:Group|Main|Goat_Idle to Walk|BaseLayer
+  - first:
+      74: 8566148631911170024
+    second: actor:Group|Main|Goat_Run to Idle|BaseLayer
+  - first:
+      74: -8698533343434855646
+    second: actor:Group|Main|Goat_Run|BaseLayer
+  - first:
+      74: -7731271796717102173
+    second: actor:Group|Main|Goat_Walk to Idle|BaseLayer
+  - first:
+      74: -2198831670161247323
+    second: actor:Group|Main|Goat_Walk|BaseLayer
+  - first:
+      74: 3470265421531654741
+    second: actor:Group|Main|Octopus_Attack|BaseLayer
+  - first:
+      74: 7746932370658031486
+    second: actor:Group|Main|Octopus_Death|BaseLayer
+  - first:
+      74: 6528410275359152699
+    second: actor:Group|Main|Octopus_Idle to Swim|BaseLayer
+  - first:
+      74: -6665518284724601086
+    second: actor:Group|Main|Octopus_Idle|BaseLayer
+  - first:
+      74: -65413274797135123
+    second: actor:Group|Main|Octopus_Swim to Idle|BaseLayer
+  - first:
+      74: 9080539382434300589
+    second: actor:Group|Main|Octopus_Swim|BaseLayer
+  - first:
+      74: 6764749160025548490
+    second: actor:Group|Main|Pig_attack|BaseLayer
+  - first:
+      74: -5296709832356495807
+    second: actor:Group|Main|Pig_death|BaseLayer
+  - first:
+      74: -2386785370723276477
+    second: actor:Group|Main|Pig_idle breathing|BaseLayer
+  - first:
+      74: -7477202335672610015
+    second: actor:Group|Main|Pig_idle to run|BaseLayer
+  - first:
+      74: -3633037381098996532
+    second: actor:Group|Main|Pig_idle to walk|BaseLayer
+  - first:
+      74: 4896808969586664760
+    second: actor:Group|Main|Pig_idle2|BaseLayer
+  - first:
+      74: 1160648468703737711
+    second: actor:Group|Main|Pig_run to idle|BaseLayer
+  - first:
+      74: -213950119395349702
+    second: actor:Group|Main|Pig_run|BaseLayer
+  - first:
+      74: 2581287531461872600
+    second: actor:Group|Main|Pig_walk to idle|BaseLayer
+  - first:
+      74: 7745624474507559636
+    second: actor:Group|Main|Pig_walk|BaseLayer
+  - first:
+      74: 3583618395234033756
+    second: actor:geo_grp|actor:geo_grp|Take 001|BaseLayer
+  - first:
+      74: -5637942950662766114
+    second: actor:geo_grp|Geometry|Attack|BaseLayer
+  - first:
+      74: 8528659655660751169
+    second: actor:geo_grp|Geometry|Death|BaseLayer
+  - first:
+      74: -2223619624803170063
+    second: actor:geo_grp|Geometry|Idle1|BaseLayer
+  - first:
+      74: 598905331527344480
+    second: actor:geo_grp|Geometry|Idle2|BaseLayer
+  - first:
+      74: 5219371993877824384
+    second: actor:geo_grp|Geometry|Pig_attack|BaseLayer
+  - first:
+      74: -6242125713943481677
+    second: actor:geo_grp|Geometry|Pig_death|BaseLayer
+  - first:
+      74: 2220508562221188431
+    second: actor:geo_grp|Geometry|Pig_idle breathing|BaseLayer
+  - first:
+      74: 7867529233478094480
+    second: actor:geo_grp|Geometry|Pig_idle to run|BaseLayer
+  - first:
+      74: -5718276359579682890
+    second: actor:geo_grp|Geometry|Pig_idle to walk|BaseLayer
+  - first:
+      74: -5334747393153392584
+    second: actor:geo_grp|Geometry|Pig_idle2|BaseLayer
+  - first:
+      74: 8535373033514772177
+    second: actor:geo_grp|Geometry|Pig_run to idle|BaseLayer
+  - first:
+      74: 1420100943621057205
+    second: actor:geo_grp|Geometry|Pig_run|BaseLayer
+  - first:
+      74: 2768010582582075247
+    second: actor:geo_grp|Geometry|Pig_walk to idle|BaseLayer
+  - first:
+      74: -6633090141316410337
+    second: actor:geo_grp|Geometry|Pig_walk|BaseLayer
+  - first:
+      74: -5057567560904708908
+    second: actor:geo_grp|Geometry|Run|BaseLayer
+  - first:
+      74: -8676902159358490937
+    second: actor:geo_grp|Geometry|Walk|BaseLayer
+  - first:
+      74: 7267479005301027425
+    second: actor:geo_grp|Main|Elephant_Elephant_attack|BaseLayer
+  - first:
+      74: -2581314818246824480
+    second: actor:geo_grp|Main|Elephant_Elephant_death|BaseLayer
+  - first:
+      74: -2885833237526191397
+    second: actor:geo_grp|Main|Elephant_Elephant_idle2|BaseLayer
+  - first:
+      74: -2527238789857886060
+    second: actor:geo_grp|Main|Elephant_Elephant_idle_to_run|BaseLayer
+  - first:
+      74: -5845182819374199250
+    second: actor:geo_grp|Main|Elephant_Elephant_idle_to_walk|BaseLayer
+  - first:
+      74: 4520400027795880744
+    second: actor:geo_grp|Main|Elephant_Elephant_idle|BaseLayer
+  - first:
+      74: 1542145514110110264
+    second: actor:geo_grp|Main|Elephant_Elephant_run_to_idle|BaseLayer
+  - first:
+      74: -4722128537688436968
+    second: actor:geo_grp|Main|Elephant_Elephant_run|BaseLayer
+  - first:
+      74: 2883577122730123833
+    second: actor:geo_grp|Main|Elephant_Elephant_walk_to_idle|BaseLayer
+  - first:
+      74: -2702599875610758348
+    second: actor:geo_grp|Main|Elephant_Elephant_walk|BaseLayer
+  - first:
+      74: -6434315794503962609
+    second: actor:geo_grp|Main|Goat_Attack|BaseLayer
+  - first:
+      74: -2689997736689975731
+    second: actor:geo_grp|Main|Goat_Death|BaseLayer
+  - first:
+      74: -1334432307562129899
+    second: actor:geo_grp|Main|Goat_Idle 2|BaseLayer
+  - first:
+      74: -2170913337578707921
+    second: actor:geo_grp|Main|Goat_Idle Breath|BaseLayer
+  - first:
+      74: -9049825076263779335
+    second: actor:geo_grp|Main|Goat_Idle to Run|BaseLayer
+  - first:
+      74: 2945007083653897638
+    second: actor:geo_grp|Main|Goat_Idle to Walk|BaseLayer
+  - first:
+      74: 7537261312785699476
+    second: actor:geo_grp|Main|Goat_Run to Idle|BaseLayer
+  - first:
+      74: 4599186433568993835
+    second: actor:geo_grp|Main|Goat_Run|BaseLayer
+  - first:
+      74: 2478628840113275788
+    second: actor:geo_grp|Main|Goat_Walk to Idle|BaseLayer
+  - first:
+      74: 3738344982005567897
+    second: actor:geo_grp|Main|Goat_Walk|BaseLayer
+  - first:
+      74: 8455812049356629409
+    second: actor:geo_grp|Main|Octopus_Attack|BaseLayer
+  - first:
+      74: -5785490835615051254
+    second: actor:geo_grp|Main|Octopus_Death|BaseLayer
+  - first:
+      74: 3166764088487863685
+    second: actor:geo_grp|Main|Octopus_Idle to Swim|BaseLayer
+  - first:
+      74: -4217684999384654266
+    second: actor:geo_grp|Main|Octopus_Idle|BaseLayer
+  - first:
+      74: 3786135015611188654
+    second: actor:geo_grp|Main|Octopus_Swim to Idle|BaseLayer
+  - first:
+      74: -5415846244921042233
+    second: actor:geo_grp|Main|Octopus_Swim|BaseLayer
+  - first:
+      74: -4214448303992374666
+    second: actor:geo_grp|Main|Pig_attack|BaseLayer
+  - first:
+      74: 4669831809301392503
+    second: actor:geo_grp|Main|Pig_death|BaseLayer
+  - first:
+      74: -4091288470490019691
+    second: actor:geo_grp|Main|Pig_idle breathing|BaseLayer
+  - first:
+      74: -399572250643891777
+    second: actor:geo_grp|Main|Pig_idle to run|BaseLayer
+  - first:
+      74: -2063057120735434482
+    second: actor:geo_grp|Main|Pig_idle to walk|BaseLayer
+  - first:
+      74: -1548200754632777643
+    second: actor:geo_grp|Main|Pig_idle2|BaseLayer
+  - first:
+      74: -5307071270154452025
+    second: actor:geo_grp|Main|Pig_run to idle|BaseLayer
+  - first:
+      74: -1516524692431051542
+    second: actor:geo_grp|Main|Pig_run|BaseLayer
+  - first:
+      74: -707389048813744114
+    second: actor:geo_grp|Main|Pig_walk to idle|BaseLayer
+  - first:
+      74: 7857007517185781887
+    second: actor:geo_grp|Main|Pig_walk|BaseLayer
+  externalObjects: {}
+  materials:
+    materialImportMode: 2
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    removeConstantScaleCurves: 1
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 0
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    useSRGBMaterialColor: 1
+    sortHierarchyByName: 1
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    nodeNameCollisionStrategy: 1
+    fileIdsGeneration: 2
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    keepQuads: 0
+    weldVertices: 1
+    bakeAxisConversion: 0
+    preserveHierarchy: 0
+    skinWeightsMode: 0
+    maxBonesPerVertex: 4
+    minBoneWeight: 0.001
+    optimizeBones: 1
+    meshOptimizationFlags: -1
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVMarginMethod: 1
+    secondaryUVMinLightmapResolution: 40
+    secondaryUVMinObjectScale: 1
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+    legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
+    blendShapeNormalImportMode: 1
+    normalSmoothingSource: 0
+  referencedClips: []
+  importAnimation: 1
+  humanDescription:
+    serializedVersion: 3
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    globalScale: 1
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  autoGenerateAvatarMappingIfUnspecified: 1
+  animationType: 2
+  humanoidOversampling: 1
+  avatarSetup: 0
+  addHumanoidExtraRootOnlyWhenUsingAvatar: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

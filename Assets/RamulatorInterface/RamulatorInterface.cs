@@ -1,4 +1,4 @@
-﻿#if !UNITY_WEBGL // Ramulator
+﻿#if !(UNITY_WEBGL && !UNITY_EDITOR) // Ramulator
 
 using System;
 using System.Collections;

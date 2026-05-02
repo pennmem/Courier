@@ -1,4 +1,4 @@
-﻿#if !UNITY_WEBGL // Microphone
+﻿#if !(UNITY_WEBGL && !UNITY_EDITOR) // Microphone
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -85,4 +85,4 @@ public class SoundRecorder : MonoBehaviour
             StopRecording();
 	}
 }
-#endif // !UNITY_WEBGL
+#endif // !(UNITY_WEBGL && !UNITY_EDITOR)

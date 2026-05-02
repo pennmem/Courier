@@ -512,7 +512,11 @@ namespace KrisDevelopment.ERMG
 					borderObj.GetComponent<MeshFilter>().sharedMesh = new Mesh();
 					if (includeCollider == 1)
 					{
-						borderObj.GetComponent<MeshCollider>().sharedMesh = new Mesh();
+						var _borderCollider = borderObj.GetComponent<MeshCollider>();
+						if (_borderCollider)
+						{
+							ClearColliderMesh(_borderCollider, "duplicated border mesh reset", "the replacement border mesh has not been generated yet");
+						}
 					}
 				}
 			}
@@ -811,36 +815,22 @@ namespace KrisDevelopment.ERMG
 
 		private void SetTriangles()
 		{
-			int _quadCount = (navPoints.Count - 1) * subdivision + 1;
-			if (navPoints.Count > 1) //if there is room for triangles to be drawn
-				newTriangles = new int[_quadCount * 6];
-			else
-				newTriangles = new int[0];
+			int _quadCount = navPoints.Count > 1 ? (navPoints.Count - 1) * subdivision : 0;
+			newTriangles = new int[_quadCount * 6];
 
-			for (int quad = 1; quad < _quadCount; quad++)
+			for (int quad = 0; quad < _quadCount; quad++)
 			{
 				for (int s2 = 0; s2 < 6; s2++)
 				{
 					//assign numbers
-					newTriangles[(quad - 1) * 6 + s2] = quadIndicesMatrix[s2] + ((quad * 2) - 2);
+					newTriangles[quad * 6 + s2] = quadIndicesMatrix[s2] + (quad * 2);
 				}
 			}
 
 			//BORDER
-			_quadCount = ((navPoints.Count - 1) * subdivision) * borderCurve.length;//*borderCurve.length;
-			if (navPoints.Count > 1)
-			{ //if there is room for triangles to be drawn
-				if (enableMeshBorders == 1)
-				{
-					rightTriangles = new int[_quadCount * 6];
-					leftTriangles = new int[_quadCount * 6];
-				}
-			}
-			else
-			{
-				rightTriangles = new int[0];
-				leftTriangles = new int[0];
-			}
+			int _borderQuadCount = enableMeshBorders == 1 ? _quadCount * Mathf.Max(0, borderCurve.length - 1) : 0;
+			rightTriangles = new int[_borderQuadCount * 6];
+			leftTriangles = new int[_borderQuadCount * 6];
 
 			// quad matrix - used to construct triangles for each quad face
 			int[] _borderQuadMatrixRight = {
@@ -1397,8 +1387,16 @@ namespace KrisDevelopment.ERMG
 				var _collider = erMeshGenObject.GetComponent<MeshCollider>();
 				if (_collider)
 				{
-					_collider.sharedMesh = ExportMeshAsset(path.Replace(".asset", "_COL.asset"),
-						_collider.sharedMesh);
+					string _reason;
+					if (IsValidColliderMesh(_collider.sharedMesh, out _reason))
+					{
+						_collider.sharedMesh = ExportMeshAsset(path.Replace(".asset", "_COL.asset"),
+							_collider.sharedMesh);
+					}
+					else
+					{
+						ClearColliderMesh(_collider, "editor finalized collider mesh", _reason);
+					}
 				}
 				Util.Dirtify(_collider);
 			}
@@ -1598,10 +1596,26 @@ namespace KrisDevelopment.ERMG
 		{
 			if (includeCollider == 1)
 			{
-				gameObject.AddIfNotPresent<MeshCollider>();
-				meshCollider.sharedMesh = colMesh; //assign the updated mesh to the collider;
-				
-				Util.Dirtify(meshCollider);
+				string _reason;
+				if (IsValidColliderMesh(colMesh, out _reason))
+				{
+					gameObject.AddIfNotPresent<MeshCollider>();
+					meshCollider.sharedMesh = colMesh; //assign the updated mesh to the collider;
+
+					Util.Dirtify(meshCollider);
+				}
+				else
+				{
+					if (meshCollider)
+					{
+						ClearColliderMesh(meshCollider, "main generated mesh", _reason);
+						Util.Dirtify(meshCollider);
+					}
+					else
+					{
+						Debug.LogWarning($"Easy Roads: Skipping invalid MeshCollider on '{gameObject.name}' from main generated mesh because {_reason}.", this);
+					}
+				}
 
 
 				if (enableMeshBorders == 1)
@@ -1610,8 +1624,8 @@ namespace KrisDevelopment.ERMG
 					var _leftBorderCol = leftBorder.AddIfNotPresent<MeshCollider>(true);
 
 					//TODO: this probably shouldn't be here (borders should be handled separately in a more abstract way)
-					_rightBorderCol.sharedMesh = rightBorder.GetComponent<MeshFilter>().sharedMesh; //assign the updated mesh to the collider;
-					_leftBorderCol.sharedMesh = leftBorder.GetComponent<MeshFilter>().sharedMesh; //assign the updated mesh to the collider;
+					AssignColliderMesh(_rightBorderCol, rightBorder.GetComponent<MeshFilter>().sharedMesh, "right border generated mesh");
+					AssignColliderMesh(_leftBorderCol, leftBorder.GetComponent<MeshFilter>().sharedMesh, "left border generated mesh");
 
 					Util.Dirtify(_leftBorderCol);
 					Util.Dirtify(_rightBorderCol);
@@ -1636,6 +1650,118 @@ namespace KrisDevelopment.ERMG
 						Dispose(_leftBorderCol);
 				}
 			}
+		}
+
+		private static void AssignColliderMesh(MeshCollider targetCollider, Mesh sourceMesh, string meshSource)
+		{
+			string _reason;
+			if (IsValidColliderMesh(sourceMesh, out _reason))
+			{
+				targetCollider.sharedMesh = sourceMesh;
+			}
+			else
+			{
+				ClearColliderMesh(targetCollider, meshSource, _reason);
+			}
+		}
+
+		private static bool IsValidColliderMesh(Mesh mesh, out string reason)
+		{
+			if (mesh == null || mesh.vertexCount < 3)
+			{
+				reason = "the mesh is null or has fewer than 3 vertices";
+				return false;
+			}
+
+			var _vertices = mesh.vertices;
+			var _triangles = mesh.triangles;
+
+			if (_vertices == null || _vertices.Length < 3 || _triangles == null || _triangles.Length < 3)
+			{
+				reason = "the mesh has fewer than 3 vertices or triangle indices";
+				return false;
+			}
+
+			if (_triangles.Length % 3 != 0)
+			{
+				reason = "the triangle index count is not divisible by 3";
+				return false;
+			}
+
+			for (int i = 0; i < _vertices.Length; i++)
+			{
+				if (!IsFinite(_vertices[i]))
+				{
+					reason = "the mesh contains NaN or Infinity vertex values";
+					return false;
+				}
+			}
+
+			var _bounds = mesh.bounds;
+			if (!IsFinite(_bounds.center) || !IsFinite(_bounds.extents))
+			{
+				reason = "the mesh bounds contain NaN or Infinity values";
+				return false;
+			}
+
+			const float MIN_TRIANGLE_AREA = 0.000001f;
+			bool _hasValidTriangle = false;
+
+			for (int i = 0; i <= _triangles.Length - 3; i += 3)
+			{
+				int _a = _triangles[i];
+				int _b = _triangles[i + 1];
+				int _c = _triangles[i + 2];
+
+				if (_a < 0 || _a >= _vertices.Length || _b < 0 || _b >= _vertices.Length || _c < 0 || _c >= _vertices.Length)
+				{
+					reason = "the mesh contains out-of-range triangle indices";
+					return false;
+				}
+
+				var _vertexA = _vertices[_a];
+				var _vertexB = _vertices[_b];
+				var _vertexC = _vertices[_c];
+
+				float _area = Vector3.Cross(_vertexB - _vertexA, _vertexC - _vertexA).magnitude * 0.5f;
+				if (float.IsNaN(_area) || float.IsInfinity(_area))
+				{
+					reason = "the mesh contains triangles with non-finite area";
+					return false;
+				}
+
+				if (_area > MIN_TRIANGLE_AREA)
+				{
+					_hasValidTriangle = true;
+					continue;
+				}
+
+				reason = "the mesh contains degenerate or zero-area triangles";
+				return false;
+			}
+
+			if (_hasValidTriangle)
+			{
+				reason = null;
+				return true;
+			}
+
+			reason = "the mesh has no non-degenerate triangles";
+			return false;
+		}
+
+		private static void ClearColliderMesh(MeshCollider targetCollider, string meshSource, string reason)
+		{
+			Debug.LogWarning($"Easy Roads: Skipping invalid MeshCollider on '{targetCollider.gameObject.name}' from {meshSource} because {reason}.", targetCollider);
+			targetCollider.sharedMesh = null;
+		}
+
+		private static bool IsFinite(Vector3 vector)
+		{
+			return
+				!float.IsNaN(vector.x) && !float.IsInfinity(vector.x) &&
+				!float.IsNaN(vector.y) && !float.IsInfinity(vector.y) &&
+				!float.IsNaN(vector.z) && !float.IsInfinity(vector.z);
 		}
 
 		/// <summary>

@@ -1,0 +1,237 @@
+fileFormatVersion: 2
+guid: babb0b4fdf0d44c1394c06e9c8af58ec
+ModelImporter:
+  serializedVersion: 21202
+  internalIDToNameTable:
+  - first:
+      74: 7317894798430188864
+    second: DeformationSystem|DeformationSystem|Hen_Attack|BaseLayer
+  - first:
+      74: -2996915443331675819
+    second: DeformationSystem|DeformationSystem|Hen_Death|BaseLayer
+  - first:
+      74: 8026359101405183537
+    second: DeformationSystem|DeformationSystem|Hen_Fly to idle|BaseLayer
+  - first:
+      74: 4701474825654141531
+    second: DeformationSystem|DeformationSystem|Hen_Flying|BaseLayer
+  - first:
+      74: 2284510429133368148
+    second: DeformationSystem|DeformationSystem|Hen_Idle breath|BaseLayer
+  - first:
+      74: 178945999163892639
+    second: DeformationSystem|DeformationSystem|Hen_Idle roast|BaseLayer
+  - first:
+      74: 2732044015392240662
+    second: DeformationSystem|DeformationSystem|Hen_Idle to fly|BaseLayer
+  - first:
+      74: 5916312854926325568
+    second: DeformationSystem|DeformationSystem|Hen_Idle to run|BaseLayer
+  - first:
+      74: -5950220606616357989
+    second: DeformationSystem|DeformationSystem|Hen_Idle to slow walk|BaseLayer
+  - first:
+      74: 3347403043708642470
+    second: DeformationSystem|DeformationSystem|Hen_Idle to walk|BaseLayer
+  - first:
+      74: 6421047145609702655
+    second: DeformationSystem|DeformationSystem|Hen_Idle2|BaseLayer
+  - first:
+      74: 2390524498898598754
+    second: DeformationSystem|DeformationSystem|Hen_Idle3|BaseLayer
+  - first:
+      74: 8883834708062878071
+    second: DeformationSystem|DeformationSystem|Hen_Run to idle|BaseLayer
+  - first:
+      74: 6029184907350750423
+    second: DeformationSystem|DeformationSystem|Hen_Run|BaseLayer
+  - first:
+      74: -2813065132939528309
+    second: DeformationSystem|DeformationSystem|Hen_Slow walk to idle|BaseLayer
+  - first:
+      74: -6701755316406934822
+    second: DeformationSystem|DeformationSystem|Hen_Slow walk|BaseLayer
+  - first:
+      74: -3575390381690465601
+    second: DeformationSystem|DeformationSystem|Hen_Walk to idle|BaseLayer
+  - first:
+      74: 3111884487414931722
+    second: DeformationSystem|DeformationSystem|Hen_Walk|BaseLayer
+  - first:
+      74: 8478282238236627458
+    second: DeformationSystem|Geometry|Attack|BaseLayer
+  - first:
+      74: 8938664720841298027
+    second: DeformationSystem|Geometry|Death|BaseLayer
+  - first:
+      74: -7367342748502612776
+    second: DeformationSystem|Geometry|Idle1|BaseLayer
+  - first:
+      74: -6969520679029907433
+    second: DeformationSystem|Geometry|Idle2|BaseLayer
+  - first:
+      74: 4049289813637468964
+    second: DeformationSystem|Geometry|Run|BaseLayer
+  - first:
+      74: -4586614629138033894
+    second: DeformationSystem|Geometry|Walk|BaseLayer
+  - first:
+      74: -3927079794283616142
+    second: DeformationSystem|Main|Elephant_Elephant_attack|BaseLayer
+  - first:
+      74: 2193563000469747362
+    second: DeformationSystem|Main|Elephant_Elephant_death|BaseLayer
+  - first:
+      74: -1706767214019522312
+    second: DeformationSystem|Main|Elephant_Elephant_idle2|BaseLayer
+  - first:
+      74: 6239282805731459271
+    second: DeformationSystem|Main|Elephant_Elephant_idle_to_run|BaseLayer
+  - first:
+      74: 6104843998581009966
+    second: DeformationSystem|Main|Elephant_Elephant_idle_to_walk|BaseLayer
+  - first:
+      74: -1637397857550277696
+    second: DeformationSystem|Main|Elephant_Elephant_idle|BaseLayer
+  - first:
+      74: 6451510499184199019
+    second: DeformationSystem|Main|Elephant_Elephant_run_to_idle|BaseLayer
+  - first:
+      74: 2622791273816538038
+    second: DeformationSystem|Main|Elephant_Elephant_run|BaseLayer
+  - first:
+      74: -1083280311281345590
+    second: DeformationSystem|Main|Elephant_Elephant_walk_to_idle|BaseLayer
+  - first:
+      74: -1139600730332666086
+    second: DeformationSystem|Main|Elephant_Elephant_walk|BaseLayer
+  - first:
+      74: 5651100260301583962
+    second: DeformationSystem|Main|Goat_Attack|BaseLayer
+  - first:
+      74: -4620560981941485874
+    second: DeformationSystem|Main|Goat_Death|BaseLayer
+  - first:
+      74: 430294656686573584
+    second: DeformationSystem|Main|Goat_Idle 2|BaseLayer
+  - first:
+      74: 3171448861296509344
+    second: DeformationSystem|Main|Goat_Idle Breath|BaseLayer
+  - first:
+      74: -932325284960807549
+    second: DeformationSystem|Main|Goat_Idle to Run|BaseLayer
+  - first:
+      74: -5035966935020748421
+    second: DeformationSystem|Main|Goat_Idle to Walk|BaseLayer
+  - first:
+      74: 841109097473709225
+    second: DeformationSystem|Main|Goat_Run to Idle|BaseLayer
+  - first:
+      74: 3547346415331341574
+    second: DeformationSystem|Main|Goat_Run|BaseLayer
+  - first:
+      74: -3496843778891951815
+    second: DeformationSystem|Main|Goat_Walk to Idle|BaseLayer
+  - first:
+      74: -374486963172754085
+    second: DeformationSystem|Main|Goat_Walk|BaseLayer
+  externalObjects: {}
+  materials:
+    materialImportMode: 2
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    removeConstantScaleCurves: 1
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 0
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    useSRGBMaterialColor: 1
+    sortHierarchyByName: 1
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    nodeNameCollisionStrategy: 1
+    fileIdsGeneration: 2
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    keepQuads: 0
+    weldVertices: 1
+    bakeAxisConversion: 0
+    preserveHierarchy: 0
+    skinWeightsMode: 0
+    maxBonesPerVertex: 4
+    minBoneWeight: 0.001
+    optimizeBones: 1
+    meshOptimizationFlags: -1
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVMarginMethod: 1
+    secondaryUVMinLightmapResolution: 40
+    secondaryUVMinObjectScale: 1
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+    legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
+    blendShapeNormalImportMode: 1
+    normalSmoothingSource: 0
+  referencedClips: []
+  importAnimation: 1
+  humanDescription:
+    serializedVersion: 3
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    globalScale: 1
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  autoGenerateAvatarMappingIfUnspecified: 1
+  animationType: 2
+  humanoidOversampling: 1
+  avatarSetup: 0
+  addHumanoidExtraRootOnlyWhenUsingAvatar: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

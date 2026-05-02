@@ -5,6 +5,7 @@
     "lessTrials": false,
     "lessDeliveries": false,
     "showFps": false,
+    "debugMode": false,
     
     "skipIntros": true,
     "skipTownLearning": false,
@@ -20,12 +21,29 @@
     "temporallySmoothedTurning": false,
     "sinSmoothedTurning": false,
     "cubicSmoothedTurning": false,
+    "maxForwardSpeed": 10,
+    "maxBackwardSpeed": 4,
+    "maxTurnSpeed": 45,
+    "sprintMultiplier": 1.5,
     
     "trialsPerSession": 6,
     "trialsPerSessionSingleTownLearning": 2,
     "trialsPerSessionDoubleTownLearning": 2,
     "deliveriesPerPracticeTrial": 13,
     "deliveriesPerTrial": 2,
+    "audioTextDisplayLength": 3.0,
+    "timeDelay": 25,
+    "distThreshold": 150,
+    "valueAlwaysFirst": true,
+    "enableTemporal": false,
+    "enableSpatial": false,
+    "enableRandom": true,
+    "primacyBuf": 0,
+    "recencyBuf": 0,
+    "numInGroupChosen": 0,
+    "targetMean": [20, 30],
+    "targetVar": [5, 10],
+    "maxCompensation": 10.0,
     
     "newEfrKeypressPractices":0
 }

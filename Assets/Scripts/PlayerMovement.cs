@@ -13,9 +13,9 @@ public class PlayerMovement : MonoBehaviour
         private const bool COURIER_ONLINE = true;
     #endif // !UNITY_WEBGL
 
-    protected float maxTurnSpeed = Config.maxTurnSpeed; //45f;
-    protected float maxForwardSpeed = Config.maxForwardSpeed;//10f;
-    protected float maxBackwardSpeed = Config.maxBackwardSpeed; //4f;
+    protected float maxTurnSpeed = 45f;
+    protected float maxForwardSpeed = 10f;
+    protected float maxBackwardSpeed = 4f;
     private float forwardSpeed;
 
     protected const float rotDampingTime = 0.05f;
@@ -37,7 +37,7 @@ public class PlayerMovement : MonoBehaviour
     private bool temporallySmoothedTurning = false;
     private bool sinSmoothedTurning = false;
     private bool cubicSmoothedTurning = true;
-    public float sprintMultiplier = Config.sprintMultiplier;   // tune
+    public float sprintMultiplier = 1.5f;
 
     void Start()
     {
@@ -50,6 +50,14 @@ public class PlayerMovement : MonoBehaviour
         //     sinSmoothedTurning = Config.Get(() => Config.sinSmoothedTurning, false);
         //     cubicSmoothedTurning = Config.Get(() => Config.cubicSmoothedTurning, true);
         // #endif
+    }
+
+    public void LoadConfigValues()
+    {
+        maxTurnSpeed = Config.maxTurnSpeed;
+        maxForwardSpeed = Config.maxForwardSpeed;
+        maxBackwardSpeed = Config.maxBackwardSpeed;
+        sprintMultiplier = Config.sprintMultiplier;
     }
 
     public float horizontalInput;

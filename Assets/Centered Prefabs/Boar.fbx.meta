@@ -1,0 +1,321 @@
+fileFormatVersion: 2
+guid: bf88650fcb01f4af98777c37fe8d11f7
+ModelImporter:
+  serializedVersion: 21202
+  internalIDToNameTable:
+  - first:
+      74: 6287282933400276685
+    second: DeformationSystem|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k
+  - first:
+      74: 8208366940729404148
+    second: DeformationSystem|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k.001
+  - first:
+      74: -3924698917832875613
+    second: DeformationSystem|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k.002
+  - first:
+      74: -1610902491741355002
+    second: DeformationSystem|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k.003
+  - first:
+      74: 267623601960153574
+    second: DeformationSystem|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k.004
+  - first:
+      74: 7615828354084278060
+    second: DeformationSystem|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k.005
+  - first:
+      74: 6265308257897857960
+    second: DeformationSystem|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k|Avo
+  - first:
+      74: -8597649255288666132
+    second: DeformationSystem|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k|Take 001|BaseLayer
+  - first:
+      74: 7793292455919568236
+    second: DeformationSystem|Basket_o52iei_Filling|Take 001|BaseLayer
+  - first:
+      74: -6565875905114871849
+    second: DeformationSystem|Basket_o52iei_Filling|Take 001|BaseLayer.001
+  - first:
+      74: 4322326397759232161
+    second: DeformationSystem|Basket_o52iei|Take 001|BaseLayer
+  - first:
+      74: -9131069413963175859
+    second: DeformationSystem|Basket_o52iei|Take 001|BaseLayer.001
+  - first:
+      74: -2927748777308961423
+    second: DeformationSystem|Cart_nabnuh|Take 001|BaseLayer
+  - first:
+      74: -7135193918103448951
+    second: DeformationSystem|ChilliPeppers_w388hm|Take 001|BaseLayer
+  - first:
+      74: 2422255039710810129
+    second: DeformationSystem|Crate_3m39yz|Take 001|BaseLayer
+  - first:
+      74: -1701556813194729504
+    second: DeformationSystem|DeformationSystem|Boar_Attack|BaseLayer
+  - first:
+      74: 5760155539217964709
+    second: DeformationSystem|DeformationSystem|Boar_Death|BaseLayer
+  - first:
+      74: 8759757842546681728
+    second: DeformationSystem|DeformationSystem|Boar_Idle Breathing|BaseLayer
+  - first:
+      74: 7775330478894889900
+    second: DeformationSystem|DeformationSystem|Boar_Idle Left Right|BaseLayer
+  - first:
+      74: -6391174984364192903
+    second: DeformationSystem|DeformationSystem|Boar_Idle to Run|BaseLayer
+  - first:
+      74: -2327426707172093994
+    second: DeformationSystem|DeformationSystem|Boar_Idle to Walk|BaseLayer
+  - first:
+      74: 3100963591842963069
+    second: DeformationSystem|DeformationSystem|Boar_Run to Idle|BaseLayer
+  - first:
+      74: 2750195847485793234
+    second: DeformationSystem|DeformationSystem|Boar_Run|BaseLayer
+  - first:
+      74: -7058844650900524366
+    second: DeformationSystem|DeformationSystem|Boar_Walk to Idle|BaseLayer
+  - first:
+      74: -1866907857053326979
+    second: DeformationSystem|DeformationSystem|Boar_Walk|BaseLayer
+  - first:
+      74: -5649587362607034321
+    second: DeformationSystem|FireExtinguisher_ha3jqe|Take 001|BaseLayer
+  - first:
+      74: -8768903613969321651
+    second: DeformationSystem|Main|Boar_Attack|BaseLayer
+  - first:
+      74: -6875522102551541836
+    second: DeformationSystem|Main|Boar_Death|BaseLayer
+  - first:
+      74: 5383950341855936773
+    second: DeformationSystem|Main|Boar_Idle Breathing|BaseLayer
+  - first:
+      74: 3160570750964280918
+    second: DeformationSystem|Main|Boar_Idle Left Right|BaseLayer
+  - first:
+      74: -1170146547648003017
+    second: DeformationSystem|Main|Boar_Idle to Run|BaseLayer
+  - first:
+      74: -4989527944875152469
+    second: DeformationSystem|Main|Boar_Idle to Walk|BaseLayer
+  - first:
+      74: -6927689286250034619
+    second: DeformationSystem|Main|Boar_Run to Idle|BaseLayer
+  - first:
+      74: -8572247082539809042
+    second: DeformationSystem|Main|Boar_Run|BaseLayer
+  - first:
+      74: -2599251530629989603
+    second: DeformationSystem|Main|Boar_Walk to Idle|BaseLayer
+  - first:
+      74: 5591436666175426879
+    second: DeformationSystem|Main|Boar_Walk|BaseLayer
+  - first:
+      74: -889235124725456621
+    second: DeformationSystem|Pendulum|Take 001|BaseLayer
+  - first:
+      74: 7232920786128238934
+    second: DeformationSystem|Perry_fhz4xg|Take 001|BaseLayer
+  - first:
+      74: -5660482572556104918
+    second: DeformationSystem|Pineapple_c1vx80|Take 001|BaseLayer
+  - first:
+      74: -4804863079017948166
+    second: DeformationSystem|Pumpkin_hjtgsa|Take 001|BaseLayer
+  - first:
+      74: 3188763699131035235
+    second: DeformationSystem|Watermelon_z0o9y3|Take 001|BaseLayer
+  - first:
+      74: 856925977249194694
+    second: Main|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k
+  - first:
+      74: -7499665253561297694
+    second: Main|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k.001
+  - first:
+      74: -2043517731701468162
+    second: Main|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k.002
+  - first:
+      74: 992062723257240323
+    second: Main|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k.003
+  - first:
+      74: -8548990084068297541
+    second: Main|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k.004
+  - first:
+      74: -4766188563759179287
+    second: Main|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k.005
+  - first:
+      74: 4043427732527795350
+    second: Main|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k|Avo
+  - first:
+      74: -1967492847740835039
+    second: Main|Avocado_pd302k|Avocado_pd302k|Avocado_pd302k|Take 001|BaseLayer
+  - first:
+      74: 5876014315819607892
+    second: Main|Basket_o52iei_Filling|Take 001|BaseLayer
+  - first:
+      74: -5030837563993234045
+    second: Main|Basket_o52iei_Filling|Take 001|BaseLayer.001
+  - first:
+      74: 7644536554796534763
+    second: Main|Basket_o52iei|Take 001|BaseLayer
+  - first:
+      74: -7856697074398464865
+    second: Main|Basket_o52iei|Take 001|BaseLayer.001
+  - first:
+      74: -3386211210084212601
+    second: Main|Cart_nabnuh|Take 001|BaseLayer
+  - first:
+      74: -1068708105774613858
+    second: Main|ChilliPeppers_w388hm|Take 001|BaseLayer
+  - first:
+      74: 641311173025536390
+    second: Main|Crate_3m39yz|Take 001|BaseLayer
+  - first:
+      74: -3093266018238708145
+    second: Main|FireExtinguisher_ha3jqe|Take 001|BaseLayer
+  - first:
+      74: -6667561300758479260
+    second: Main|Main|Boar_Attack|BaseLayer
+  - first:
+      74: -6421378369786760379
+    second: Main|Main|Boar_Death|BaseLayer
+  - first:
+      74: 8296880379514157159
+    second: Main|Main|Boar_Idle Breathing|BaseLayer
+  - first:
+      74: -1652500835638026757
+    second: Main|Main|Boar_Idle Left Right|BaseLayer
+  - first:
+      74: 2188765702583785838
+    second: Main|Main|Boar_Idle to Run|BaseLayer
+  - first:
+      74: 1598212525815976334
+    second: Main|Main|Boar_Idle to Walk|BaseLayer
+  - first:
+      74: 903533314538942697
+    second: Main|Main|Boar_Run to Idle|BaseLayer
+  - first:
+      74: 5234196042940645271
+    second: Main|Main|Boar_Run|BaseLayer
+  - first:
+      74: 1375236342926909264
+    second: Main|Main|Boar_Walk to Idle|BaseLayer
+  - first:
+      74: 2987295893094419874
+    second: Main|Main|Boar_Walk|BaseLayer
+  - first:
+      74: 6537423976194393690
+    second: Main|Pendulum|Take 001|BaseLayer
+  - first:
+      74: -177728593756133834
+    second: Main|Perry_fhz4xg|Take 001|BaseLayer
+  - first:
+      74: -9035055876894031463
+    second: Main|Pineapple_c1vx80|Take 001|BaseLayer
+  - first:
+      74: -4634140009108851985
+    second: Main|Pumpkin_hjtgsa|Take 001|BaseLayer
+  - first:
+      74: -6012655314219828140
+    second: Main|Watermelon_z0o9y3|Take 001|BaseLayer
+  externalObjects: {}
+  materials:
+    materialImportMode: 2
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    removeConstantScaleCurves: 1
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 0
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    useSRGBMaterialColor: 1
+    sortHierarchyByName: 1
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    nodeNameCollisionStrategy: 1
+    fileIdsGeneration: 2
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    keepQuads: 0
+    weldVertices: 1
+    bakeAxisConversion: 0
+    preserveHierarchy: 0
+    skinWeightsMode: 0
+    maxBonesPerVertex: 4
+    minBoneWeight: 0.001
+    optimizeBones: 1
+    meshOptimizationFlags: -1
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVMarginMethod: 1
+    secondaryUVMinLightmapResolution: 40
+    secondaryUVMinObjectScale: 1
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+    legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
+    blendShapeNormalImportMode: 1
+    normalSmoothingSource: 0
+  referencedClips: []
+  importAnimation: 1
+  humanDescription:
+    serializedVersion: 3
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    globalScale: 1
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  autoGenerateAvatarMappingIfUnspecified: 1
+  animationType: 2
+  humanoidOversampling: 1
+  avatarSetup: 0
+  addHumanoidExtraRootOnlyWhenUsingAvatar: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

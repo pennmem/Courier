@@ -125,12 +125,10 @@ public class PlayerMovement : MonoBehaviour
             }
         }
     }
-
+    
     private bool IsSprinting()
     {
-        // Old Input Manager style: Sprint is a "button axis"
-        // If your InputManager wrapper doesn't have GetButton, use GetAxis("Sprint") > 0.5f
-        return InputManager.GetButton("Sprint") || InputManager.GetAxis("Sprint") > 0.5f;
+        return Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
     }
 
 

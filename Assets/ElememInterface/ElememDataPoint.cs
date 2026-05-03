@@ -48,7 +48,7 @@ public class ElememDataPoint
         string JSONString = "{\"type\":\"" + type + "\",\"data\":{";
         foreach (string key in dataDict.Keys)
         {
-            dynamic value = dataDict[key];
+            object value = dataDict[key];
 
             string valueJSONString = ValueToString(value);
             JSONString = JSONString + "\"" + key + "\":" + valueJSONString + ",";
@@ -59,7 +59,7 @@ public class ElememDataPoint
         return JSONString;
     }
 
-    public string ValueToString(dynamic value) {
+    public string ValueToString(object value) {
         if (value == null)
         {
             return "{}";

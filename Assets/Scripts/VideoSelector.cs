@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using UnityEngine.Video;
 
 public class VideoSelector : MonoBehaviour
 {
@@ -22,13 +23,14 @@ public class VideoSelector : MonoBehaviour
     public UnityEngine.Video.VideoClip efrRecapVideo;
     public UnityEngine.Video.VideoClip vcInstructionsVideo;
 
+    public string webGLVideoBaseUrl = "";
+
     void OnEnable()
     {
-        if (videoPlayer.clip == null)
-            Debug.Log("VideoSelector::OnEnable - SetIntroductionVideo was " +
-                      "not called before OnEnable");
-
-        videoPlayer.Play();
+        bool hasClip = videoPlayer.source == VideoSource.VideoClip && videoPlayer.clip != null;
+        bool hasUrl = videoPlayer.source == VideoSource.Url && !string.IsNullOrEmpty(videoPlayer.url);
+        if (!hasClip && !hasUrl)
+            Debug.LogWarning("VideoSelector::OnEnable - SetVideo was not called before OnEnable.");
     }
 
     public enum VideoType
@@ -49,10 +51,16 @@ public class VideoSelector : MonoBehaviour
 
     public void SetVideo(VideoType videoType, int videoIndex = 0)
     {
-        videoPlayer.targetTexture.Release();
-        videoPlayer.targetTexture.Create();
+        videoPlayer.Stop();
+        if (videoPlayer.targetTexture != null)
+        {
+            videoPlayer.targetTexture.Release();
+            videoPlayer.targetTexture.Create();
+        }
 
-        #if !UNITY_WEBGL // WebGL VideoPlayer
+        #if !(UNITY_WEBGL && !UNITY_EDITOR) // WebGL VideoPlayer
+            videoPlayer.source = VideoSource.VideoClip;
+            videoPlayer.url = "";
             switch (videoType)
             {
                 // TODO: JPB: Refactor this to make movies an array of language options
@@ -101,42 +109,93 @@ public class VideoSelector : MonoBehaviour
                 default: break;
             }
         #else
-            string path = Application.streamingAssetsPath;
-            switch (videoType)
+            videoPlayer.source = VideoSource.Url;
+            videoPlayer.clip = null;
+            string videoUrl = GetWebGLVideoUrl(videoType);
+            if (string.IsNullOrEmpty(videoUrl))
             {
-                case VideoType.MainIntro:
-                    videoPlayer.url = System.IO.Path.Combine(path,"instruction_video.mp4");                    
-                    break;
-                 case VideoType.valueIntro:
-                    videoPlayer.url = System.IO.Path.Combine(path,"instruction_video_updated.mp4");
-                    break;
-
-                // LC: could later add into webGL but not yet
-                // case VideoType.EfrIntro:
-                //     videoPlayer.url = System.IO.Path.Combine(path,
-                //                                              "englishCourierEfrIntro.mp4");
-                //     break;
-                // case VideoType.NewEfrIntro:
-                //     videoPlayer.url = System.IO.Path.Combine(path,
-                //                                              "englishCourierEfrIntro.mp4");
-                //     break;
-                // case VideoType.NiclsMainIntro:
-                //     videoPlayer.url = System.IO.Path.Combine(path,
-                //                                              "englishCourierIntroShort_NoPoint_NoRecap.mov");
-                //     break;
-                // case VideoType.NiclsMovie:
-                //     videoPlayer.url = System.IO.Path.Combine(path,
-                //                                              "Sherlock_" + videoIndex+1 + ".mov");
-                //     break;
-                // case VideoType.MusicVideos:
-                //     videoPlayer.url = System.IO.Path.Combine(path,
-                //                                              "music_video_" + videoIndex + ".mov");
-                //     break;
-                default: break;
-
+                videoPlayer.url = "";
+                Debug.LogWarning("No WebGL video URL is configured for " + videoType + " index " + videoIndex + ". Host the instruction videos externally and set webGLVideoBaseUrl or the videoBaseUrl query parameter.");
             }
-        #endif // !UNITY_WEBGL
+            else
+            {
+                videoPlayer.url = videoUrl;
+            }
+        #endif // !(UNITY_WEBGL && !UNITY_EDITOR)
 
-        videoPlayer.Prepare();
+        if ((videoPlayer.source == VideoSource.VideoClip && videoPlayer.clip != null) ||
+            (videoPlayer.source == VideoSource.Url && !string.IsNullOrEmpty(videoPlayer.url)))
+        {
+            videoPlayer.Prepare();
+        }
     }
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+    private const string WebGLVideoBaseUrlQueryKey = "videoBaseUrl";
+
+    private string GetWebGLVideoUrl(VideoType videoType)
+    {
+        string videoFile = GetWebGLVideoFileName(videoType);
+        string baseUrl = GetWebGLVideoBaseUrl();
+
+        if (string.IsNullOrEmpty(videoFile) || string.IsNullOrEmpty(baseUrl))
+            return null;
+
+        return baseUrl.TrimEnd('/', '\\') + "/" + videoFile.Replace("\\", "/");
+    }
+
+    private string GetWebGLVideoBaseUrl()
+    {
+        if (!string.IsNullOrEmpty(webGLVideoBaseUrl))
+            return webGLVideoBaseUrl;
+
+        return GetAbsoluteUrlQueryValue(WebGLVideoBaseUrlQueryKey);
+    }
+
+    private string GetAbsoluteUrlQueryValue(string key)
+    {
+        string absoluteUrl = Application.absoluteURL;
+        if (string.IsNullOrEmpty(absoluteUrl))
+            return null;
+
+        int queryStart = absoluteUrl.IndexOf('?');
+        if (queryStart < 0 || queryStart >= absoluteUrl.Length - 1)
+            return null;
+
+        int queryEnd = absoluteUrl.IndexOf('#', queryStart + 1);
+        string query = queryEnd >= 0
+            ? absoluteUrl.Substring(queryStart + 1, queryEnd - queryStart - 1)
+            : absoluteUrl.Substring(queryStart + 1);
+
+        string[] pairs = query.Split('&');
+        foreach (string pair in pairs)
+        {
+            string[] parts = pair.Split(new char[] { '=' }, 2);
+            if (parts.Length == 0 || parts[0] != key)
+                continue;
+
+            string value = parts.Length > 1 ? parts[1] : "";
+            return Uri.UnescapeDataString(value.Replace("+", " "));
+        }
+
+        return null;
+    }
+
+    private string GetWebGLVideoFileName(VideoType videoType)
+    {
+        switch (videoType)
+        {
+            case VideoType.MainIntro:
+            case VideoType.townlearningVideo:
+            case VideoType.practiceVideo:
+                return "instruction_video.mp4";
+            case VideoType.valueIntro:
+            case VideoType.vcInstructionsVideo:
+            case VideoType.efrRecapVideo:
+                return "instruction_video_updated.mp4";
+            default:
+                return null;
+        }
+    }
+#endif // UNITY_WEBGL && !UNITY_EDITOR
 }

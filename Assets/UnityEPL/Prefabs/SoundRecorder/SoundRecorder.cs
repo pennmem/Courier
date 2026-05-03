@@ -1,8 +1,7 @@
-﻿#if !(UNITY_WEBGL && !UNITY_EDITOR) // Microphone
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
+#if !(UNITY_WEBGL && !UNITY_EDITOR)
+// Microphone implementation for non-WebGL builds
 public class SoundRecorder : MonoBehaviour
 {
     public GameObject pleaseSpeakNow;
@@ -25,12 +24,11 @@ public class SoundRecorder : MonoBehaviour
         Microphone.End("");
     }
 
-    //using the system's default device
     public void StartRecording(string outputFilePath)
     {
         if (isRecording)
         {
-            throw new UnityException("Already recording.  Please StopRecording first.");
+            throw new UnityException("Already recording. Please StopRecording first.");
         }
 
         nextOutputPath = outputFilePath;
@@ -44,45 +42,100 @@ public class SoundRecorder : MonoBehaviour
     {
         if (!isRecording)
         {
-            throw new UnityException("Not recording.  Please StartRecording first.");
+            throw new UnityException("Not recording. Please StartRecording first.");
         }
 
         isRecording = false;
         pleaseSpeakNow.SetActive(false);
 
         float recordingLength = Time.unscaledTime - startTime;
-
         int outputLength = Mathf.RoundToInt(44100 * recordingLength);
-        AudioClip croppedClip = AudioClip.Create("cropped recording", outputLength, 1, 44100, false);
+
+        AudioClip croppedClip = AudioClip.Create(
+            "cropped recording",
+            outputLength,
+            1,
+            44100,
+            false
+        );
 
         float[] saveData = new float[outputLength];
+
         if (startSample < recording.samples - outputLength)
         {
-            //Debug.Log("No wraparound");
             recording.GetData(saveData, startSample);
         }
         else
         {
-            //Debug.Log("Yes wraparound");
             float[] tailData = new float[recording.samples - startSample];
             recording.GetData(tailData, startSample);
+
             float[] headData = new float[outputLength - tailData.Length];
             recording.GetData(headData, 0);
+
             for (int i = 0; i < tailData.Length; i++)
+            {
                 saveData[i] = tailData[i];
+            }
+
             for (int i = 0; i < headData.Length; i++)
+            {
                 saveData[tailData.Length + i] = headData[i];
+            }
         }
 
         croppedClip.SetData(saveData, 0);
         SavWav.Save(nextOutputPath, croppedClip);
+
         return croppedClip;
     }
 
-	void OnApplicationQuit()
-	{
+    public bool IsRecording()
+    {
+        return isRecording;
+    }
+
+    void OnApplicationQuit()
+    {
         if (isRecording)
+        {
             StopRecording();
-	}
+        }
+    }
 }
-#endif // !(UNITY_WEBGL && !UNITY_EDITOR)
+
+#else
+
+// WebGL stub. Unity WebGL cannot use Microphone the same way as desktop builds.
+public class SoundRecorder : MonoBehaviour
+{
+    public GameObject pleaseSpeakNow;
+
+    public void StartRecording(string outputFilePath)
+    {
+        if (pleaseSpeakNow != null)
+        {
+            pleaseSpeakNow.SetActive(false);
+        }
+
+        Debug.LogWarning("SoundRecorder: microphone recording is disabled in WebGL.");
+    }
+
+    public AudioClip StopRecording()
+    {
+        if (pleaseSpeakNow != null)
+        {
+            pleaseSpeakNow.SetActive(false);
+        }
+
+        Debug.LogWarning("SoundRecorder: StopRecording called in WebGL. Returning null.");
+        return null;
+    }
+
+    public bool IsRecording()
+    {
+        return false;
+    }
+}
+
+#endif

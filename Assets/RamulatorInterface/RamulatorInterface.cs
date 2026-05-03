@@ -1,13 +1,13 @@
-﻿#if !(UNITY_WEBGL && !UNITY_EDITOR) // Ramulator
-
-using System;
+﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+
+#if !(UNITY_WEBGL && !UNITY_EDITOR) // Ramulator
+
+using System;
 using System.Runtime.InteropServices;
 using System.Text;
-using UnityEngine;
 using NetMQ;
-
 public class RamulatorInterface : MonoBehaviour
 {
     //This will be updated with warnings about the status of ramulator connectivity
@@ -184,4 +184,26 @@ public class RamulatorInterface : MonoBehaviour
         scriptedEventReporter.ReportScriptedEvent("network", messageDataDict);
     }
 }
+#else
+
+// WebGL stub - native Ramulator interface not available
+public class RamulatorInterface : MonoBehaviour
+{
+    public UnityEngine.UI.Text ramulatorWarningText;
+    public GameObject ramulatorWarning;
+    public ScriptedEventReporter scriptedEventReporter;
+
+    public IEnumerator BeginNewSession(int sessionNumber)
+    {
+        Debug.LogWarning("RamulatorInterface: native interface unavailable on WebGL.");
+        yield break;
+    }
+
+    public void BeginNewTrial(int trialNumber) { }
+
+    public void SetState(string stateName, bool stateToggle, Dictionary<string, object> sessionData) { }
+
+    public void SendMathMessage(string problem, string response, int responseTimeMs, bool correct) { }
+}
+
 #endif // !UNITY_WEBGL

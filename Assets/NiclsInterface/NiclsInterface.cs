@@ -1,12 +1,13 @@
-﻿#if !(UNITY_WEBGL && !UNITY_EDITOR) // NICLS
+﻿using UnityEngine;
+using System.Collections;
+using System.Collections.Generic;
+
+#if !(UNITY_WEBGL && !UNITY_EDITOR) // NICLS
 using System;
 using System.Linq;
 using System.Diagnostics;
-using System.Collections;
-using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Threading;
-using UnityEngine;
 using System.Net.Sockets;
 using Newtonsoft.Json.Linq;
 
@@ -401,4 +402,42 @@ public class NiclsInterface : MonoBehaviour
         return niclsInterfaceHelper.classifierResult == 0;
     }
 }
+#else
+
+// WebGL stub - native NICLS interface not available
+public class NiclsInterface : MonoBehaviour
+{
+    public UnityEngine.UI.Text niclsWarningText;
+    public GameObject niclsWarning;
+    public ScriptedEventReporter scriptedEventReporter;
+
+    private bool interfaceDisabled = true;
+
+    public IEnumerator BeginNewSession(int sessionNum, bool disableInterface = false)
+    {
+        interfaceDisabled = true;
+        Debug.LogWarning("NiclsInterface: native interface unavailable on WebGL.");
+        yield break;
+    }
+
+    public IEnumerator BeginNewSession(int sessionNum, bool disableInterface = false, string[] stimTags = null)
+    {
+        interfaceDisabled = true;
+        Debug.LogWarning("NiclsInterface: native interface unavailable on WebGL.");
+        yield break;
+    }
+
+    public void SendEncoding(int enable) { }
+    public void SendReadOnlyState(int enable) { }
+
+    public void SendMathMessage(string problem, string response, int responseTimeMs, bool correct) { }
+    public void SendNavigationMessage(string object_) { }
+    public void SendStartTrial() { }
+    public void SendEndTrial(bool trialComplete) { }
+    public void SendMessage(string type, Dictionary<string, object> data) { }
+
+    public bool classifierInPosState() { return false; }
+    public bool classifierInNegState() { return false; }
+}
+
 #endif // !UNITY_WEBGL

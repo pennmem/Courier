@@ -1,3 +1,21 @@
+#if UNITY_WEBGL && !UNITY_EDITOR
+using System.Collections.Generic;
+using UnityEngine;
+
+public class PostHocViewReport : MonoBehaviour {
+    public Dictionary<string, GameObject> boxes = new Dictionary<string, GameObject>();
+    public GameObject player;
+    public bool slideshow = false;
+
+    public void ToggleSlideshow(bool value) {
+        slideshow = value;
+    }
+
+    public void StartViewCheck() {
+        Debug.LogWarning("PostHocViewReport reads and writes local log files and is disabled in WebGL builds.");
+    }
+}
+#else
 using System;
 using System.Collections;
 using System.Linq;
@@ -226,9 +244,9 @@ public class PostHocViewReport : MonoBehaviour {
 
     public void CreateBox(string name, string id, Vector3 pos, Quaternion rot) {
         // add new boxcollider to dictionary 
-        dynamic resource = Resources.Load(name);
+        GameObject resource = Resources.Load<GameObject>(name);
         if(resource != null) {
-            GameObject newBox = (GameObject)Instantiate(resource, pos, rot); 
+            GameObject newBox = Instantiate(resource, pos, rot); 
             boxes.Add(id, newBox);
         }
     }
@@ -331,3 +349,4 @@ public class PostHocViewReport : MonoBehaviour {
         return vertices;
     }
 }
+#endif // UNITY_WEBGL && !UNITY_EDITOR

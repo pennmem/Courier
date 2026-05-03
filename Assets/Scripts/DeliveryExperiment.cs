@@ -8,10 +8,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using UnityEngine.Networking;
 using UnityEngine.UI;
-
-// using Accord.Math; // removed for WebGL
 // using Accord.Statistics.Distributions.Multivariate;
-// using Accord.Statistics.Distributions.Univariate; // removed for WebGL
 using MathNet.Numerics;
 using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics.Distributions;
@@ -119,6 +116,24 @@ public class DeliveryExperiment : CoroutineExperiment
     private const float WORD_PRESENTATION_JITTER = 0.25f;
     private const float EFR_KEYPRESS_PRACTICE_DELAY = 2.25f;
     private const float EFR_KEYPRESS_PRACTICE_JITTER = 0.25f;
+    private static double EuclideanDistance(double[] a, double[] b)
+    {
+        if (a == null || b == null)
+            throw new ArgumentNullException("EuclideanDistance received null input.");
+
+        if (a.Length != b.Length)
+            throw new ArgumentException("EuclideanDistance inputs must have the same length.");
+
+        double sum = 0d;
+
+        for (int i = 0; i < a.Length; i++)
+        {
+            double d = a[i] - b[i];
+            sum += d * d;
+        }
+
+        return Math.Sqrt(sum);
+    }
 
     // Keep as hardcoded values
     private const bool STAR_SYSTEM_ACTIVE = false;
@@ -254,8 +269,13 @@ public class DeliveryExperiment : CoroutineExperiment
         System.Random rng = new System.Random();
         bool coinFlip = rng.Next(2) == 0;
         double[] storePoints = TemporalStorePoints(numStores, coinFlip);
-        Shuffle(storePoints, rng);
-
+        for (int i = storePoints.Length - 1; i > 0; i--)
+{
+            int j = rng.Next(i + 1);
+            double temp = storePoints[i];
+            storePoints[i] = storePoints[j];
+            storePoints[j] = temp;
+        }
         return storePoints;
     }
 
@@ -548,7 +568,7 @@ public class DeliveryExperiment : CoroutineExperiment
     }
 
 
-    private static void Shuffle<T>(IList<T> list, System.Random rng)
+    private static void Shuffle<T>(List<T> list, System.Random rng)
     {
         int n = list.Count;
         while (n > 1)
@@ -1541,6 +1561,34 @@ public class DeliveryExperiment : CoroutineExperiment
 
         if (UnityEPL.viewCheck)
             return;
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+        MonoBehaviour[] behaviours = FindObjectsOfType<MonoBehaviour>();
+        int disabledPostProcessingCount = 0;
+
+        foreach (MonoBehaviour behaviour in behaviours)
+        {
+            if (behaviour == null)
+                continue;
+
+            string typeName = behaviour.GetType().FullName;
+
+            if (
+                typeName.Contains("PostProcessingBehaviour") ||
+                typeName.Contains("PostProcessVolume") ||
+                typeName.Contains("PostProcessLayer")
+            )
+            {
+                behaviour.enabled = false;
+                disabledPostProcessingCount++;
+            }
+        }
+
+        if (disabledPostProcessingCount > 0)
+        {
+            Debug.LogWarning("[WebGL] Disabled " + disabledPostProcessingCount + " post-processing component(s).");
+        }
+#endif
 
         // Configure Experiment
         if (COURIER_ONLINE)
@@ -4366,10 +4414,20 @@ public class DeliveryExperiment : CoroutineExperiment
         Dictionary<string, object> storeMappings = new Dictionary<string, object>();
         foreach (StoreComponent store in environment.stores)
         {
-            storeMappings.Add(store.gameObject.name, store.GetStoreName());
-            storeMappings.Add(store.GetStoreName() + " position X", store.transform.position.x);
-            storeMappings.Add(store.GetStoreName() + " position Y", store.transform.position.y);
-            storeMappings.Add(store.GetStoreName() + " position Z", store.transform.position.z);
+            string storeName = store.GetStoreName();
+
+            if (string.IsNullOrEmpty(storeName))
+            {
+                storeName = store.gameObject.name;
+                Debug.LogWarning("[EnableEnvironment] Store had empty runtime name. Falling back to GameObject name: " + storeName);
+            }
+
+            string mappingKey = storeName;
+
+            storeMappings[store.gameObject.name] = storeName;
+            storeMappings[mappingKey + " position X"] = store.transform.position.x;
+            storeMappings[mappingKey + " position Y"] = store.transform.position.y;
+            storeMappings[mappingKey + " position Z"] = store.transform.position.z;
         }
         scriptedEventReporter.ReportScriptedEvent("store mappings", storeMappings);
     }
@@ -4641,6 +4699,7 @@ public class DeliveryExperiment : CoroutineExperiment
             Debug.LogWarning("Could not calculate NavMesh path — falling back to Euclidean.");
         return UnityEngine.Vector3.Distance(player.position, target.position);
     }
+
     private static double UniformSample(double minInclusive, double maxExclusive, System.Random rng)
     {
         if (rng == null)
@@ -4674,28 +4733,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
         return result;
     }
-
-    private static double EuclideanDistance(double[] a, double[] b)
-    {
-        if (a == null || b == null)
-            throw new ArgumentNullException("EuclideanDistance received null input.");
-
-        if (a.Length != b.Length)
-            throw new ArgumentException("EuclideanDistance inputs must have the same length.");
-
-        double sum = 0d;
-
-        for (int i = 0; i < a.Length; i++)
-        {
-            double d = a[i] - b[i];
-            sum += d * d;
-        }
-
-        return Math.Sqrt(sum);
-    }
-
 }
-
 public static class IListExtensions
 {
     /// <summary>
@@ -4725,6 +4763,4 @@ public static class Extensions
         else
             dict.Add(key, new List<T>{newValue});
     }
-
-
 }

@@ -14,8 +14,12 @@ public class DeliveryItems : MonoBehaviour
         public AudioClip[] germanAudio;
     }
 
-    private static List<string> unused_store_names = new List<string>();
-    private static Dictionary<string, List<string>> remainingItems = new Dictionary<string, List<string>>();
+    private List<string> unused_store_names = new List<string>();
+#if UNITY_WEBGL && !UNITY_EDITOR
+    private static List<DeliveryItems> activeDeliveryItemSources = new List<DeliveryItems>();
+#endif // UNITY_WEBGL && !UNITY_EDITOR
+
+    private Dictionary<string, List<string>> remainingItems = new Dictionary<string, List<string>>();
 
     private System.Random reliableRandom;
     public bool isNonDelivery = false;
@@ -23,7 +27,7 @@ public class DeliveryItems : MonoBehaviour
     public StoreAudio[] storeNamesToItems;
     public StoreAudio[] practiceStoreNamesToItems;
 
-#if !UNITY_WEBGL // System.IO
+#if !(UNITY_WEBGL && !UNITY_EDITOR) // System.IO
     private static string RemainingItemsPath(string storeName)
     {
         return System.IO.Path.Combine(UnityEPL.GetDataPath(), "remaining_items", storeName);
@@ -92,38 +96,47 @@ public class DeliveryItems : MonoBehaviour
         allStores.Sort();
         System.IO.File.AppendAllLines(outputFilePath, allStores);
     }
-#endif // !UNITY_WEBGL
+#endif // !(UNITY_WEBGL && !UNITY_EDITOR)
 
-        void Awake()
-        {
-            reliableRandom = ReliableRandom();
-            #if !UNITY_WEBGL // System.IO
-                WriteRemainingItemsFiles();
-                WriteAlphabetizedItemsFile();
-                WriteStoreNamesFile();
+    void Awake()
+    {
+        reliableRandom = ReliableRandom();
+    #if !(UNITY_WEBGL && !UNITY_EDITOR) // System.IO
+        WriteRemainingItemsFiles();
+        WriteAlphabetizedItemsFile();
+        WriteStoreNamesFile();
     #else
-                remainingItems = LoadItems();
-    #endif // !UNITY_WEBGL
+        remainingItems = LoadItems();
+        if (!isNonDelivery && !activeDeliveryItemSources.Contains(this))
+            activeDeliveryItemSources.Add(this);
+    #endif // !(UNITY_WEBGL && !UNITY_EDITOR)
 
-            // Reset pool and populate from configured store entries
-            unused_store_names.Clear();
-            foreach (StoreAudio storeAudio in storeNamesToItems)
-            {
-                unused_store_names.Add(storeAudio.storeName);
-            }
-            Debug.Log("DeliveryItems Awake: Loaded " + storeNamesToItems.Length + " store entries");
-
-            for (int i = 0; i < storeNamesToItems.Length; i++)
-            {
-                Debug.Log($"[{i}] storeName={storeNamesToItems[i].storeName}");
-            }
-
-            Debug.Log("DeliveryItems Awake: unused_store_names (" + unused_store_names.Count + " total):");
-            foreach (string name in unused_store_names)
-            {
-                Debug.Log(" - " + name);
-            }
+        // Reset pool and populate from configured store entries
+        unused_store_names.Clear();
+        foreach (StoreAudio storeAudio in storeNamesToItems)
+        {
+            unused_store_names.Add(storeAudio.storeName);
         }
+        Debug.Log("DeliveryItems Awake: Loaded " + storeNamesToItems.Length + " store entries");
+
+        for (int i = 0; i < storeNamesToItems.Length; i++)
+        {
+            Debug.Log($"[{i}] storeName={storeNamesToItems[i].storeName}");
+        }
+
+        Debug.Log("DeliveryItems Awake: unused_store_names (" + unused_store_names.Count + " total):");
+        foreach (string name in unused_store_names)
+        {
+            Debug.Log(" - " + name);
+        }
+    }
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+    void OnDestroy()
+    {
+        activeDeliveryItemSources.Remove(this);
+    }
+#endif // UNITY_WEBGL && !UNITY_EDITOR
     // void Awake()
     // {
     //     reliableRandom = ReliableRandom();
@@ -171,7 +184,7 @@ public class DeliveryItems : MonoBehaviour
         {
             allItems.Add(store.storeName, new List<string>());
 
-            foreach (AudioClip clip in store.englishAudio)
+            foreach (AudioClip clip in GetLanguageAudio(store))
             {
                 allItems[store.storeName].Add(clip.name);
             }
@@ -230,7 +243,7 @@ public class DeliveryItems : MonoBehaviour
 
     public AudioClip PopItem(string storeName)
     {
-        #if !UNITY_WEBGL // System.IO
+        #if !(UNITY_WEBGL && !UNITY_EDITOR) // System.IO
             // Get the item
             string remainingItemsPath = RemainingItemsPath(storeName);
             string[] remainingItems = System.IO.File.ReadAllLines(remainingItemsPath);
@@ -261,27 +274,26 @@ public class DeliveryItems : MonoBehaviour
             System.IO.File.WriteAllLines(remainingItemsPath, remainingItems);
             // Debug.Log("Items remaining: " + remainingItems.Length.ToString());
         #else
+            if (!remainingItems.ContainsKey(storeName))
+                throw new UnityException("I couldn't find the store: " + storeName);
+            if (remainingItems[storeName].Count == 0)
+                throw new UnityException("I ran out of items for store: " + storeName);
+
             int randomItemIndex = UnityEngine.Random.Range(0, remainingItems[storeName].Count);
             string randomItemName = remainingItems[storeName][randomItemIndex];
 
-            AudioClip randomItem = null;
-            foreach (StoreAudio storeAudio in storeNamesToItems)
-            {
-                AudioClip[] languageAudio;
-                languageAudio = storeAudio.englishAudio;
-                foreach (AudioClip clip in languageAudio)
-                {
-                    if (clip.name.Equals(randomItemName))
-                    {
-                        randomItem = clip;
-                    }
-                }
-            }
+            StoreAudio storeAudio = System.Array.Find(storeNamesToItems,
+                                                      store => store.storeName.Equals(storeName));
+            if (storeAudio.storeName == null)
+                throw new UnityException("I couldn't find the store: " + storeName);
+
+            AudioClip randomItem = System.Array.Find(GetLanguageAudio(storeAudio),
+                                                     clip => clip.name.Equals(randomItemName));
             if (randomItem == null)
                 throw new UnityException("Possible language mismatch. I couldn't find an item for: " + storeName);
 
             remainingItems[storeName].Remove(randomItemName);
-        #endif // !UNITY_WEBGL
+        #endif // !(UNITY_WEBGL && !UNITY_EDITOR)
         
         //return the item
         return randomItem;
@@ -289,7 +301,7 @@ public class DeliveryItems : MonoBehaviour
 
     public static bool ItemsExhausted()
     {
-        #if !UNITY_WEBGL // System.IO
+        #if !(UNITY_WEBGL && !UNITY_EDITOR) // System.IO
             bool itemsExhausted = false;
             string remainingItemsDirectory = RemainingItemsPath("");
             if (!System.IO.Directory.Exists(remainingItemsDirectory))
@@ -304,16 +316,24 @@ public class DeliveryItems : MonoBehaviour
             }
             return itemsExhausted;
         #else
-
-            foreach(List<string> storeItems in remainingItems.Values)
+            foreach (DeliveryItems itemSource in activeDeliveryItemSources)
             {
-                if(storeItems.Count == 0) {
-                    return true;
+                foreach (List<string> storeItems in itemSource.remainingItems.Values)
+                {
+                    if (storeItems.Count == 0)
+                        return true;
                 }
             }
 
             return false;
-        #endif // !UNITY_WEBGL
+        #endif // !(UNITY_WEBGL && !UNITY_EDITOR)
+    }
+
+    private AudioClip[] GetLanguageAudio(StoreAudio storeAudio)
+    {
+        if (LanguageSource.current_language.Equals(LanguageSource.LANGUAGE.ENGLISH))
+            return storeAudio.englishAudio;
+        return storeAudio.germanAudio;
     }
 
     public System.Random ReliableRandom()

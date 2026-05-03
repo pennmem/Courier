@@ -226,7 +226,7 @@ public static class LanguageSource
         { "pharmacy", new string[] {"pharmacy", "die Apotheke"} },
         { "toy store", new string[] {"toy store", "den Spielwarenladen"} },
         { "post_office", new string[] {"post office", "die Post"} },
-        // { "post office", new string[] {"post office", "die Post"} },
+        { "post office", new string[] {"post office", "die Post"} },
         { "bank", new string[] {"bank", "die Bank"} },
         { "noodle house", new string[] {"noodle shop", "Chinesisches Restaurant"} },
         { "burger joint", new string[] {"burger joint", "das Fast Food Restaurant"} },

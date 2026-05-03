@@ -40,9 +40,9 @@ Shader "TSF/Base1"
                 #pragma fragment frag
                 #pragma fragmentoption ARB_precision_hint_fastest
                 #include "UnityCG.cginc"
-                #pragma glsl_no_auto_normalization
                 #pragma multi_compile _TEX_OFF _TEX_ON
                 #pragma multi_compile _COLOR_OFF _COLOR_ON
+                #pragma exclude_renderers glcore gles webgpu
 
                 
                 #if _TEX_ON

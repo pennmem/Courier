@@ -4,7 +4,6 @@ using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Converters;
 using System;
 using System.IO;
-using System.Dynamic;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -134,7 +133,6 @@ public class Config
     }
 
     // TODO: JPB: (Hokua) Should this function be templated? What are the pros and cons?
-    //            Note: It could also be a "dynamic" type, but WebGL doesn't support it (so we can't use dynamic)
     //            Should it be a nullable type and remove the Get<T> function? (hint: Look up the ?? operator)
     private static object GetSetting(string setting)
     {
@@ -453,14 +451,14 @@ public class FlexibleConfig {
 
     public static IDictionary<string, object> CastToStatic(JObject cfg) {
         // casts a JObject consisting of simple types (int, bool, string,
-        // float, and single dimensional arrays) to a C# expando object, obviating
+        // float, and single dimensional arrays) to a C# dictionary, obviating
         // the need for casts to work in C# native types
 
-        object settings = new ExpandoObject();  // dynamic
+        IDictionary<string, object> settings = new Dictionary<string, object>();
 
         foreach(JProperty prop in cfg.Properties()) {
             // convert from JObject types to .NET internal types
-            // and add to dynamic settings object
+            // and add to the settings dictionary
             // if JSON contains arrays, we need to peek at the
             // type of the contents to get the right cast, as
             // C# doesn't implicitly cast the contents of an
@@ -480,35 +478,35 @@ public class FlexibleConfig {
 
                 Type cType = JTypeConversion((int)jType);
                 if(cType  == typeof(string)) {
-                    ((IDictionary<string, object>)settings).Add(prop.Name, prop.Value.ToObject<string[]>());
+                    settings.Add(prop.Name, prop.Value.ToObject<string[]>());
                 } 
                 else if(cType == typeof(int)) {
-                    ((IDictionary<string, object>)settings).Add(prop.Name, prop.Value.ToObject<int[]>());
+                    settings.Add(prop.Name, prop.Value.ToObject<int[]>());
                 }
                 else if(cType == typeof(float)) {
-                    ((IDictionary<string, object>)settings).Add(prop.Name, prop.Value.ToObject<float[]>());
+                    settings.Add(prop.Name, prop.Value.ToObject<float[]>());
                 }
                 else if(cType == typeof(bool)) {
-                    ((IDictionary<string, object>)settings).Add(prop.Name, prop.Value.ToObject<bool[]>());
+                    settings.Add(prop.Name, prop.Value.ToObject<bool[]>());
                 }
             }
             else {
                 Type cType = JTypeConversion((int)prop.Value.Type);
                 if(cType == typeof(string)) {
-                    ((IDictionary<string, object>)settings).Add(prop.Name, prop.Value.ToObject<string>());
+                    settings.Add(prop.Name, prop.Value.ToObject<string>());
                 }
                 else if(cType == typeof(int)) {
-                    ((IDictionary<string, object>)settings).Add(prop.Name, prop.Value.ToObject<int>());
+                    settings.Add(prop.Name, prop.Value.ToObject<int>());
                 }
                 else if(cType == typeof(float)) {
-                    ((IDictionary<string, object>)settings).Add(prop.Name, prop.Value.ToObject<float>());
+                    settings.Add(prop.Name, prop.Value.ToObject<float>());
                 }
                 else if(cType == typeof(bool)) {
-                    ((IDictionary<string, object>)settings).Add(prop.Name, prop.Value.ToObject<bool>());
+                    settings.Add(prop.Name, prop.Value.ToObject<bool>());
                 }
             }
         }
-        return (IDictionary<string, object>)settings;
+        return settings;
     }
 
     public static Type JTypeConversion(int t) {

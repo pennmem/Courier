@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if !(UNITY_WEBGL && !UNITY_EDITOR) // Threaded event loop
+using System;
 using System.Threading;
 using System.Collections.Concurrent;
 
@@ -59,3 +60,4 @@ public class EventLoop : EventQueue {
         running = false;
     }
 }
+#endif // !(UNITY_WEBGL && !UNITY_EDITOR)

@@ -2433,7 +2433,7 @@
 //                                  VideoSelector.VideoType.MusicVideos,
 //                                  videoOrder[continuousSessionNumber][clipNum]);
 
-//             // TODO: JPB: (Hokua) Make this dynamic
+//             // TODO: JPB: (Hokua) Make this data-driven
 //             var ratings = new string[] { "music video familiarity rating 0", "music video familiarity rating 1", "music video familiarity rating 2", "music video familiarity rating 3", "music video familiarity rating 4", };
 //             messageImageDisplayer.SetSlidingScaleText(mainText: "music video familiarity title",
 //                                                       ratings: ratings);
@@ -3224,5 +3224,4 @@
 //             dict.Add(key, new List<T>{newValue});
 //     }
 // }
-
 

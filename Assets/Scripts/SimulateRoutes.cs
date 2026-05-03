@@ -1,21 +1,25 @@
+#if !(UNITY_WEBGL && !UNITY_EDITOR)
 using System;
 using System.IO;
-using System.Collections;
+#endif
 using System.Collections.Generic;
 using UnityEngine;
+#if !(UNITY_WEBGL && !UNITY_EDITOR)
 using UnityEngine.AI;
+#endif
 
 public class SimulateRoutes : MonoBehaviour
 {
     public float speed;
+    public Transform allPoints;
+    public List<Transform> points = new List<Transform>();
+    public float vel;
 
+#if !(UNITY_WEBGL && !UNITY_EDITOR)
     private NavMeshAgent agent;
     private NavMeshPath path;
     private Transform pos;
     private Vector3 startPos;
-    public Transform allPoints;
-    public List<Transform> points = new List<Transform>();
-    public float vel;
     
     private Transform[] outputList;
     private Transform point;
@@ -127,5 +131,12 @@ public class SimulateRoutes : MonoBehaviour
         }
 
     }
+#else
+    void Start()
+    {
+        Debug.LogWarning("SimulateRoutes is a local disk route-simulation utility and is disabled in WebGL builds.");
+        enabled = false;
+    }
+#endif
 
 }

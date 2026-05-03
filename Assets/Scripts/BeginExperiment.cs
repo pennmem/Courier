@@ -33,12 +33,11 @@ public class BeginExperiment : MonoBehaviour
     public const string EXP_NAME_EFR = "EFRCourier";
     public const string EXP_NAME_NICLS = "NiclsCourier";
     public const string EXP_NAME_VALUE = "VCBehOnly";
+
+    private const int WEBGL_SESSION_NUMBER = 0;
+
     private void OnEnable()
     {
-#if UNITY_WEBGL && !UNITY_EDITOR
-            SceneManager.LoadScene(scene_name);
-#endif // UNITY_WEBGL
-
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
     }
@@ -69,14 +68,18 @@ public class BeginExperiment : MonoBehaviour
         if (IsValidParticipantName(participantCodeInput.text))
         {
             UnityEPL.ClearParticipants();
+            UnityEPL.AddParticipant(participantCodeInput.text);
+            UnityEPL.SetExperimentName(SelectedExperimentName());
             beginExperimentButton.SetActive(true);
             greyedOutButton.SetActive(false);
             int nextSessionNumber = NextSessionNumber();
+            UnityEPL.SetSessionNumber(nextSessionNumber);
             sessionInput.text = nextSessionNumber.ToString();
             beginButtonText.text = LanguageSource.GetLanguageString("begin session") + " " + nextSessionNumber.ToString();
         }
         else
         {
+            UnityEPL.ClearParticipants();
             greyedOutButton.SetActive(true);
             beginExperimentButton.SetActive(false);
         }
@@ -97,19 +100,17 @@ public class BeginExperiment : MonoBehaviour
         }
     }
 
+#if !(UNITY_WEBGL && !UNITY_EDITOR)
     private string GetLanguageFilePath()
     {
-#if UNITY_WEBGL && !UNITY_EDITOR
-        return "";
-#else
         string dataPath = UnityEPL.GetParticipantFolder();
         System.IO.Directory.CreateDirectory(dataPath);
         string languageFilePath = System.IO.Path.Combine(dataPath, "language");
         if (!System.IO.File.Exists(languageFilePath))
             System.IO.File.Create(languageFilePath).Close();
         return languageFilePath;
-#endif
     }
+#endif // !(UNITY_WEBGL && !UNITY_EDITOR)
 
     private bool LanguageMismatch()
     {
@@ -143,19 +144,19 @@ public class BeginExperiment : MonoBehaviour
             throw new UnityException("You are trying to start the experiment with an invalid participant name!");
         }
 
-        //UnityEPL.SetSessionNumber(NextSessionNumber());
-        UnityEPL.AddParticipant(participantCodeInput.text);
-        string experiment_name = EFR_COURIER ? EXP_NAME_EFR :
-                                NICLS_COURIER ? EXP_NAME_NICLS :
-                                VALUE_COURIER ? EXP_NAME_VALUE :
-                                EXP_NAME_COURIER;
-        if (experiment_name == EXP_NAME_NICLS)
-        {
-            if (useNiclsToggle.isOn)
-                experiment_name += "ClosedLoop";
-            else
-                experiment_name += "ReadOnly";
+        int session;
+        if (!System.Int32.TryParse(sessionInput.text, out session)) {
+            loadingButton.SetActive(false);
+            greyedOutButton.SetActive(true);
+            beginExperimentButton.SetActive(false);
+
+            throw new UnityException("You are trying to start the experiment with an invalid session number!");
         }
+
+        UnityEPL.SetSessionNumber(session);
+        UnityEPL.ClearParticipants();
+        UnityEPL.AddParticipant(participantCodeInput.text);
+        string experiment_name = SelectedExperimentName();
         
         UnityEPL.SetExperimentName(experiment_name);
 
@@ -167,13 +168,17 @@ public class BeginExperiment : MonoBehaviour
         Debug.Log("Ram On: " + useRamulatorToggle.isOn);
         Debug.Log("Nicls On: " + useNiclsToggle.isOn);
         Debug.Log("Elemem On: " + useElememToggle.isOn);
+#if UNITY_WEBGL && !UNITY_EDITOR
+        Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Locked;
+#endif // UNITY_WEBGL
         SceneManager.LoadScene(scene_name);
     }
 
     private int NextSessionNumber()
     {
 #if UNITY_WEBGL && !UNITY_EDITOR
-        return 0;
+        return WEBGL_SESSION_NUMBER;
 #else
         string dataPath = UnityEPL.GetParticipantFolder();
 		System.IO.Directory.CreateDirectory(dataPath);
@@ -187,6 +192,23 @@ public class BeginExperiment : MonoBehaviour
         }
         return mostRecentSessionNumber + 1;
 #endif
+    }
+
+    private string SelectedExperimentName()
+    {
+        string experiment_name = EFR_COURIER ? EXP_NAME_EFR :
+                                NICLS_COURIER ? EXP_NAME_NICLS :
+                                VALUE_COURIER ? EXP_NAME_VALUE :
+                                EXP_NAME_COURIER;
+        if (experiment_name == EXP_NAME_NICLS)
+        {
+            if (useNiclsToggle.isOn)
+                experiment_name += "ClosedLoop";
+            else
+                experiment_name += "ReadOnly";
+        }
+
+        return experiment_name;
     }
 
     private bool IsValidParticipantName(string name)

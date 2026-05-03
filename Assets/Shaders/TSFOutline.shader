@@ -39,9 +39,9 @@ Shader "TSF/BaseOutline1"
             CGPROGRAM
 			#include "UnityCG.cginc"
 			#pragma fragmentoption ARB_precision_hint_fastest
-			#pragma glsl_no_auto_normalization
             #pragma vertex vert
  			#pragma fragment frag
+			#pragma exclude_renderers glcore gles webgpu
 			
             struct appdata_t 
             {

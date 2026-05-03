@@ -32,8 +32,17 @@ public class StoreComponent : MonoBehaviour
         // --- Assign name logic ---
         if (isNonDelivery)
         {
-            // Keep its existing name (from Inspector or GameObject)
-            storeName = gameObject.name;
+            string normalizedObjectName = gameObject.name.ToLower().Replace("_", "").Replace(" ", "");
+
+            if (normalizedObjectName == "postoffice")
+            {
+                storeName = "post office";
+            }
+            else
+            {
+                storeName = gameObject.name;
+            }
+
             Debug.Log($"[StoreComponent] Non-delivery store preserved: {storeName}");
         }
         else

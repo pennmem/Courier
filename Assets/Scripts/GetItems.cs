@@ -1,13 +1,18 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+#if !(UNITY_WEBGL && !UNITY_EDITOR)
 using System.IO;
+#endif
 
 public class GetItems : MonoBehaviour
 {
     // Start is called before the first frame update
     void Start()
     {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        Debug.LogWarning("GetItems is a local disk utility and is disabled in WebGL builds.");
+#else
         using (var reader = new StreamReader("data/APEM_courier_items.csv"))
         {
             while (!reader.EndOfStream)
@@ -22,6 +27,7 @@ public class GetItems : MonoBehaviour
                 catch { }
             }
         }
+#endif
     }
         
 }

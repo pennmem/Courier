@@ -1,12 +1,13 @@
+using UnityEngine;
+using System.Collections;
+using System.Collections.Generic;
+
 #if !(UNITY_WEBGL && !UNITY_EDITOR) // Elemem
 using System;
 using System.Linq;
 using System.Diagnostics;
-using System.Collections;
-using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Threading;
-using UnityEngine;
 using System.Net.Sockets;
 using Newtonsoft.Json.Linq;
 
@@ -502,4 +503,47 @@ public class ElememInterface : MonoBehaviour
             elememInterfaceHelper.SendMessage(type, data);
     }
 }
+#else
+
+// WebGL stub - native Elemem interface not available
+public class ElememInterfaceHelper
+{
+    public void SendMessage(string type, Dictionary<string, object> data = null) { }
+    public void SendMessageInternal(string type, Dictionary<string, object> data = null) { }
+    public void DoRepeatingStim(int iterations, int delay, int interval) { }
+}
+
+public class ElememInterface : MonoBehaviour
+{
+    public UnityEngine.UI.Text ElememWarningText;
+    public GameObject ElememWarning;
+    public ScriptedEventReporter scriptedEventReporter;
+
+    public ElememInterfaceHelper elememInterfaceHelper = null;
+    public List<string> stimTags = null;
+
+    public IEnumerator BeginNewSession(int sessionNum, bool disableInterface = false, string[] uniqueStimTags = null)
+    {
+        Debug.LogWarning("ElememInterface: native interface unavailable on WebGL.");
+        elememInterfaceHelper = new ElememInterfaceHelper();
+        yield break;
+    }
+
+    public void SendMathMessage(string problem, string response, int responseTimeMs, bool correct) { }
+    public void SendStimMessage() { }
+    public void SendCLMessage(string type, uint classifyMs) { }
+    public void SendStimSelectMessage(string tag) { }
+    public void SendSessionMessage(int session) { }
+    public void SendStateMessage(string state, Dictionary<string, object> extraData = null) { }
+    public void SendTrialMessage(int trial, bool stim) { }
+    public void SendWordMessage(string word, int serialPos, bool stim, Dictionary<string, object> extraData = null) { }
+    public void DoRepeatingStim(int iterations, int delay, int interval) { }
+    public void DoRepeatingSwitch(int iterations, int delay, int interval) { }
+    public void SendExitMessage() { }
+
+    public void SendNavigationMessage(string object_) { }
+    public void SendStartTrial() { }
+    public void SendEndTrial(bool trialComplete) { }
+}
+
 #endif // !UNITY_WEBGL

@@ -1,3 +1,4 @@
+#if !(UNITY_WEBGL && !UNITY_EDITOR) // Threaded timers
 using System.Collections.Generic;
 using System.Threading;
 using System.Collections.Concurrent;
@@ -275,3 +276,4 @@ public class RepeatingEvent : IEventBase {
         thisEvent.Invoke();
     }
 }
+#endif // !(UNITY_WEBGL && !UNITY_EDITOR)

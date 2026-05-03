@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-using System.Threading;
-
 [AddComponentMenu("UnityEPL/Reporters/Scripted Event Reporter")]
 public class ScriptedEventReporter : DataReporter
 {

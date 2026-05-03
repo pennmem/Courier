@@ -50,7 +50,7 @@ public class WriteToDiskHandler : DataHandler
             waitingPoints.Enqueue(dataPoint);
     }
 
-#if !UNITY_WEBGL // System.IO
+#if !(UNITY_WEBGL && !UNITY_EDITOR) // System.IO
     public IEnumerator DoWrite()
     {
         yield return null;
@@ -76,21 +76,11 @@ public class WriteToDiskHandler : DataHandler
         // Debug.Log("wrote " + waitingPoints.Count + " json lines to file");
     }
 #else
-#if UNITY_WEBGL && !UNITY_EDITOR
     [DllImport("__Internal")]
     private static extern void SaveData();
 
     [DllImport("__Internal")]
     private static extern void AddData(string data);
-#else
-    private static void SaveData()
-    {
-    }
-
-    private static void AddData(string data)
-    {
-    }
-#endif
 
     public IEnumerator DoWrite()
     {
@@ -105,7 +95,7 @@ public class WriteToDiskHandler : DataHandler
         }
         SaveData();
     }
-#endif // !UNITY_WEBGL
+#endif // !(UNITY_WEBGL && !UNITY_EDITOR)
 
 #if UNITY_WEBGL // Microphone
     //public static byte[] Compress(byte[] data)

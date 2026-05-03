@@ -9,6 +9,24 @@ public class VideoControl : MonoBehaviour
     public UnityEngine.Video.VideoPlayer videoPlayer;
     public bool deactivateWhenFinished = true;
 
+    private const float PLAYBACK_START_TIMEOUT = 15f;
+
+    private bool isPlayingVideo;
+    private bool playbackError;
+    private float playRequestTime;
+
+    void OnEnable()
+    {
+        videoPlayer.loopPointReached += OnLoopPointReached;
+        videoPlayer.errorReceived += OnVideoErrorReceived;
+    }
+
+    void OnDisable()
+    {
+        videoPlayer.loopPointReached -= OnLoopPointReached;
+        videoPlayer.errorReceived -= OnVideoErrorReceived;
+    }
+
     void Update()
     {
         // TODO: JPB: (Hokua) Fix the video pause
@@ -21,19 +39,27 @@ public class VideoControl : MonoBehaviour
         //        videoPlayer.Play();
         //}
 
-        #if !UNITY_WEBGL // WebGL No Secret Key
+        if (isPlayingVideo && !playbackError && !videoPlayer.isPlaying && Time.unscaledTime - playRequestTime > PLAYBACK_START_TIMEOUT)
+        {
+            Debug.LogWarning("VideoControl video did not start playing; continuing without blocking.");
+            FinishVideo();
+        }
+
+        #if !(UNITY_WEBGL && !UNITY_EDITOR) // WebGL No Secret Key
             // Stop
             if (InputManager.GetButtonDown("Secret"))
             {
                 videoPlayer.Stop();
-                gameObject.SetActive(false);
+                FinishVideo();
             }
 
             // Video finished
-            if (videoPlayer.time >= videoPlayer.clip.length)
+            if (videoPlayer.source == VideoSource.VideoClip &&
+                videoPlayer.clip != null &&
+                videoPlayer.time >= videoPlayer.clip.length)
             {
                 Debug.Log("VideoControl end video");
-                gameObject.SetActive(false);
+                FinishVideo();
             }
         #endif
     }
@@ -42,12 +68,45 @@ public class VideoControl : MonoBehaviour
     public void StartVideo()
     {
         Debug.Log("VideoControl start video");
-        videoPlayer.loopPointReached += (VideoPlayer vp) => gameObject.SetActive(false);
+        playbackError = false;
+        isPlayingVideo = true;
         gameObject.SetActive(true);
+
+        if ((videoPlayer.source == VideoSource.VideoClip && videoPlayer.clip == null) ||
+            (videoPlayer.source == VideoSource.Url && string.IsNullOrEmpty(videoPlayer.url)))
+        {
+            Debug.LogWarning("VideoControl StartVideo called without a configured clip or URL; continuing.");
+            FinishVideo();
+            return;
+        }
+
+        playRequestTime = Time.unscaledTime;
+        videoPlayer.Play();
     }
 
     public bool IsPlaying()
     {
-        return gameObject.activeSelf;
+        return isPlayingVideo;
+    }
+
+    private void OnLoopPointReached(VideoPlayer vp)
+    {
+        Debug.Log("VideoControl end video");
+        FinishVideo();
+    }
+
+    private void OnVideoErrorReceived(VideoPlayer vp, string message)
+    {
+        playbackError = true;
+        Debug.LogWarning("VideoControl video error: " + message);
+        FinishVideo();
+    }
+
+    private void FinishVideo()
+    {
+        isPlayingVideo = false;
+        videoPlayer.Stop();
+        if (deactivateWhenFinished)
+            gameObject.SetActive(false);
     }
 }

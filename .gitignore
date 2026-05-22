@@ -84,6 +84,8 @@ Assets/Video/Sherlock_*
 
 # Streaming Assets
 Assets/StreamingAssets/CourierOnline.json
+Assets/StreamingAssets/Videos/*.mp4
+Assets/StreamingAssets/Videos/*.mp4.meta
 
 # Other
 .DS_Store

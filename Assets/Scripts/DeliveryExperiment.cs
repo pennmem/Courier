@@ -1594,9 +1594,9 @@ public class DeliveryExperiment : CoroutineExperiment
         if (COURIER_ONLINE)
         {
             UnityEPL.AddParticipant(System.Guid.NewGuid().ToString());
-            UnityEPL.SetExperimentName("COURIER_ONLINE");
+            UnityEPL.SetExperimentName("VC-Online");
             UnityEPL.SetSessionNumber(0);
-            ConfigureExperiment(false, false, false, 0, "StandardCourier");
+            ConfigureExperiment(false, false, false, 0, "VC-Online");
         }
 
         // if (DEBUG)

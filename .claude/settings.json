@@ -10,7 +10,8 @@
       "Read(//Users/zrentala/Documents/Courier/**)",
       "Bash(awk '/void Start\\\\\\(\\\\\\)|private void Start|public void Start/,/StartCoroutine\\\\\\(ExperimentCoroutine/' /Users/zrentala/Documents/Courier/Assets/Scripts/DeliveryExperiment.cs)",
       "Bash(awk '/&1500480153/,/^---/' /Users/zrentala/Documents/Courier/Assets/Scenes/NewTown.unity)",
-      "Bash(mkdir -p \"/Users/zrentala/Documents/Courier/Assets/StreamingAssets/Images/Recap Instructions VC\" && cp \"/Users/zrentala/Documents/Courier/Assets/Images/Recap Instructions VC/\"*.png \"/Users/zrentala/Documents/Courier/Assets/StreamingAssets/Images/Recap Instructions VC/\" && ls -lh \"/Users/zrentala/Documents/Courier/Assets/StreamingAssets/Images/Recap Instructions VC/\")"
+      "Bash(mkdir -p \"/Users/zrentala/Documents/Courier/Assets/StreamingAssets/Images/Recap Instructions VC\" && cp \"/Users/zrentala/Documents/Courier/Assets/Images/Recap Instructions VC/\"*.png \"/Users/zrentala/Documents/Courier/Assets/StreamingAssets/Images/Recap Instructions VC/\" && ls -lh \"/Users/zrentala/Documents/Courier/Assets/StreamingAssets/Images/Recap Instructions VC/\")",
+      "Bash(git check-ignore *)"
     ],
     "additionalDirectories": [
       "/Users/zrentala/Documents/Courier/Assets/Images/Recap Instructions VC"

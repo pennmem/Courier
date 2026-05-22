@@ -71,7 +71,7 @@ public class DeliveryExperiment : CoroutineExperiment
     private const bool skipFPS = true;
 
     private const string COURIER_VERSION = "v6.0.0";
-    private static bool DEBUG = false;
+    private static bool DEBUG = true;
 
     private const string RECALL_TEXT = "*******"; // TODO: JPB: Remove this and use display system
     // Constants moved to the Config File
@@ -1682,7 +1682,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
     private IEnumerator ExperimentCoroutine()
     {
-        // Debug.Log("Start Coroutine");
+        Debug.Log("[FLOW] ExperimentCoroutine start. sessionNumber=" + sessionNumber + " isFirstSession=" + isFirstSession + " COURIER_ONLINE=" + COURIER_ONLINE);
         if (DEBUG)
         {
             Debug.Log(UnityEPL.GetDataPath());
@@ -1732,7 +1732,9 @@ public class DeliveryExperiment : CoroutineExperiment
         Config.SaveConfigs(scriptedEventReporter, UnityEPL.GetDataPath());
 
         // Setup Environment
+        Debug.Log("[FLOW] Before EnableEnvironment");
         yield return EnableEnvironment();  // TODO: JPB: there is a race condition between saving config and generating session folder probably (remove enable environment to test)
+        Debug.Log("[FLOW] After EnableEnvironment");
 
         // int numTrials = (sessionNumber == 0) ? Config.trialsPerSessionSingleTownLearning: Config.trialsPerSession;
         // if (DEBUG) Debug.Log($"Value Courier: session {sessionNumber}, numTrials = {numTrials}");
@@ -1752,10 +1754,12 @@ public class DeliveryExperiment : CoroutineExperiment
         if (COURIER_ONLINE)
             yield return DoFrameTest();
 
+        Debug.Log("[FLOW] Before BlackScreen + DoIntros");
         BlackScreen();
 
         // Intros
         yield return DoIntros();
+        Debug.Log("[FLOW] After DoIntros");
 
         // Town Learning
         int trialsForFirstSubSession = Config.trialsPerSession;
@@ -2082,8 +2086,12 @@ public class DeliveryExperiment : CoroutineExperiment
 
     private IEnumerator DoIntros()
     {
+        Debug.Log("[FLOW] DoIntros entered. Config.skipIntros=" + Config.skipIntros + " sessionNumber=" + sessionNumber + " VALUE_COURIER=" + VALUE_COURIER + " NICLS_COURIER=" + NICLS_COURIER + " HOSPITAL_COURIER=" + HOSPITAL_COURIER);
         if (Config.skipIntros)
+        {
+            Debug.Log("[FLOW] DoIntros early-exit because skipIntros=true");
             yield break;
+        }
         if (DEBUG)
             Debug.Log("DoIntros");
 
@@ -4403,12 +4411,13 @@ public class DeliveryExperiment : CoroutineExperiment
 
     private IEnumerator EnableEnvironment()
     {
+        // Wait one frame so every StoreComponent.Start() has run and registered its name.
+        // (Don't gate on DeliveryItems.StoresSetup(): non-delivery stores never pop a name,
+        //  and any mismatch between storeNamesToItems and actual StoreComponents in the
+        //  scene would otherwise hang here forever.)
+        yield return null;
         if (DEBUG)
-            Debug.Log("delivery items");
-        yield return new WaitUntil(() => deliveryItems.StoresSetup());
-        if (DEBUG)
-            Debug.Log("non delivery items");
-        yield return new WaitUntil(() => nonDeliveryItems.StoresSetup());
+            Debug.Log("delivery items and non-delivery items setup complete");
         environment = environments[0]; // Remnant of old design
         environment.parent.SetActive(true);
         Dictionary<string, object> storeMappings = new Dictionary<string, object>();

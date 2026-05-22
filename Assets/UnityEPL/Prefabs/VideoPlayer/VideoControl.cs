@@ -67,7 +67,7 @@ public class VideoControl : MonoBehaviour
 
     public void StartVideo()
     {
-        Debug.Log("VideoControl start video");
+        Debug.Log("[FLOW] VideoControl.StartVideo. source=" + videoPlayer.source + " clip=" + (videoPlayer.clip != null ? videoPlayer.clip.name : "<null>") + " url='" + videoPlayer.url + "'");
         playbackError = false;
         isPlayingVideo = true;
         gameObject.SetActive(true);
@@ -75,7 +75,7 @@ public class VideoControl : MonoBehaviour
         if ((videoPlayer.source == VideoSource.VideoClip && videoPlayer.clip == null) ||
             (videoPlayer.source == VideoSource.Url && string.IsNullOrEmpty(videoPlayer.url)))
         {
-            Debug.LogWarning("VideoControl StartVideo called without a configured clip or URL; continuing.");
+            Debug.LogWarning("[FLOW] VideoControl StartVideo called without a configured clip or URL; skipping video.");
             FinishVideo();
             return;
         }

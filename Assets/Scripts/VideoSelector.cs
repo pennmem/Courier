@@ -58,7 +58,7 @@ public class VideoSelector : MonoBehaviour
             videoPlayer.targetTexture.Create();
         }
 
-        #if !(UNITY_WEBGL && !UNITY_EDITOR) // WebGL VideoPlayer
+        #if !UNITY_WEBGL // Non-WebGL targets use the bundled VideoClip directly.
             videoPlayer.source = VideoSource.VideoClip;
             videoPlayer.url = "";
             switch (videoType)
@@ -121,7 +121,7 @@ public class VideoSelector : MonoBehaviour
             {
                 videoPlayer.url = videoUrl;
             }
-        #endif // !(UNITY_WEBGL && !UNITY_EDITOR)
+        #endif // !UNITY_WEBGL
 
         if ((videoPlayer.source == VideoSource.VideoClip && videoPlayer.clip != null) ||
             (videoPlayer.source == VideoSource.Url && !string.IsNullOrEmpty(videoPlayer.url)))
@@ -130,7 +130,7 @@ public class VideoSelector : MonoBehaviour
         }
     }
 
-#if UNITY_WEBGL && !UNITY_EDITOR
+#if UNITY_WEBGL
     private const string WebGLVideoBaseUrlQueryKey = "videoBaseUrl";
 
     private string GetWebGLVideoUrl(VideoType videoType)
@@ -141,7 +141,8 @@ public class VideoSelector : MonoBehaviour
         if (string.IsNullOrEmpty(videoFile) || string.IsNullOrEmpty(baseUrl))
             return null;
 
-        return baseUrl.TrimEnd('/', '\\') + "/" + videoFile.Replace("\\", "/");
+        string combined = baseUrl.TrimEnd('/', '\\') + "/" + videoFile.Replace("\\", "/");
+        return EnsureUrlScheme(combined);
     }
 
     private string GetWebGLVideoBaseUrl()
@@ -149,7 +150,34 @@ public class VideoSelector : MonoBehaviour
         if (!string.IsNullOrEmpty(webGLVideoBaseUrl))
             return webGLVideoBaseUrl;
 
-        return GetAbsoluteUrlQueryValue(WebGLVideoBaseUrlQueryKey);
+        string queryValue = GetAbsoluteUrlQueryValue(WebGLVideoBaseUrlQueryKey);
+        if (!string.IsNullOrEmpty(queryValue))
+            return queryValue;
+
+        // Fallback: serve videos from StreamingAssets/Videos alongside the build.
+        return Application.streamingAssetsPath.TrimEnd('/', '\\') + "/Videos";
+    }
+
+    // In the Editor (any platform) Application.streamingAssetsPath is a local filesystem path,
+    // which VideoPlayer's URL source can't consume without a file:// scheme. In an actual WebGL
+    // build the path is already a relative URL served alongside the build, so leave it alone
+    // so anyone hosting the build sees the video.
+    private static string EnsureUrlScheme(string path)
+    {
+#if UNITY_EDITOR
+        if (string.IsNullOrEmpty(path))
+            return path;
+
+        if (path.Contains("://"))
+            return path;
+
+        string normalized = path.Replace("\\", "/");
+        if (normalized.StartsWith("/"))
+            return "file://" + normalized;
+        return "file:///" + normalized;
+#else
+        return path;
+#endif
     }
 
     private string GetAbsoluteUrlQueryValue(string key)
@@ -183,19 +211,24 @@ public class VideoSelector : MonoBehaviour
 
     private string GetWebGLVideoFileName(VideoType videoType)
     {
+        // Filenames must match files placed under Assets/StreamingAssets/Videos/.
         switch (videoType)
         {
             case VideoType.MainIntro:
-            case VideoType.townlearningVideo:
-            case VideoType.practiceVideo:
-                return "instruction_video.mp4";
             case VideoType.valueIntro:
             case VideoType.vcInstructionsVideo:
+                return "ValueCourier3.mp4";
+            case VideoType.townlearningVideo:
+                return "town_learning_instuctions.mp4";
+            case VideoType.practiceVideo:
+                return "standard_FR_instructions.mp4";
             case VideoType.efrRecapVideo:
-                return "instruction_video_updated.mp4";
+                return "EFR_instructions.mp4";
+            case VideoType.ecrVideo:
+                return "cued_recall_video.mp4";
             default:
                 return null;
         }
     }
-#endif // UNITY_WEBGL && !UNITY_EDITOR
+#endif // UNITY_WEBGL
 }

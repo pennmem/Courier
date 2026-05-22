@@ -128,8 +128,13 @@ public abstract class CoroutineExperiment : MonoBehaviour
 
     protected IEnumerator DoVideo(string playPrompt, string repeatPrompt, VideoSelector.VideoType videoType, int videoIndex = -1, bool skipPrompt=false)
     {
+        Debug.Log("[FLOW] DoVideo entered. videoType=" + videoType + " videoIndex=" + videoIndex + " skipPrompt=" + skipPrompt + " playPrompt='" + playPrompt + "'");
         if (!skipPrompt)
+        {
+            Debug.Log("[FLOW] DoVideo waiting for PressAnyKey");
             yield return PressAnyKey(playPrompt);
+            Debug.Log("[FLOW] DoVideo PressAnyKey returned");
+        }
 
         bool replay = false;
         do

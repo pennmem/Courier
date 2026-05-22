@@ -228,7 +228,7 @@ public class Config
     {
         if (systemConfig == null)
         {
-            #if !UNITY_WEBGL // System.IO
+            #if !(UNITY_WEBGL && !UNITY_EDITOR) // System.IO (Editor can read files even when targeting WebGL)
                 try {
                     string participantFolder = UnityEPL.GetParticipantFolder();
                     string configDir = System.IO.Path.Combine(
@@ -258,7 +258,7 @@ public class Config
     {
         if (experimentConfig == null)
         {
-            #if !UNITY_WEBGL // System.IO
+            #if !(UNITY_WEBGL && !UNITY_EDITOR) // System.IO (Editor can read files even when targeting WebGL)
                 try {
                     string participantFolder = UnityEPL.GetParticipantFolder();
                     string configDir = System.IO.Path.Combine(
@@ -309,6 +309,12 @@ public class Config
     // TODO: JPB: Refactor this to be of the singleton form (likely needs to use the new threading system)
     public static IEnumerator GetOnlineConfig()
     {
+#if !(UNITY_WEBGL && !UNITY_EDITOR)
+        // Editor and non-WebGL builds use the file-based loader (GetSystemConfig/GetExperimentConfig).
+        // Application.streamingAssetsPath is a local filesystem path here, which UnityWebRequest can't fetch.
+        onlineConfigLoaded = true;
+        yield break;
+#else
         if (onlineConfigLoaded)
         {
             Debug.Log("[Config] WebGL online config already loaded; using cached configs.");
@@ -384,6 +390,7 @@ public class Config
         onlineConfigLoading = false;
 
         Debug.Log("[Config] WebGL configs loaded successfully. system=" + systemConfigPath + ", experiment=" + experimentConfigPath);
+#endif
     }
 
     // Debug helpers

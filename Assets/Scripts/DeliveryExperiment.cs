@@ -2847,18 +2847,19 @@ public class DeliveryExperiment : CoroutineExperiment
         if (Config.valueAlwaysFirst)
         {
             freeTaskFirst = new bool[numTrials];
-            for (int i = 0; i < numTrials; i++)
-            {
-                freeTaskFirst[i] = false;
-            }
         }
         else
         {
+            // Balanced: half free-first, half value-first. When numTrials is odd
+            // the extra slot rotates across sessions — even sessions give it to
+            // free-first, odd sessions give it to value-first — so the bias
+            // averages out across the participant's run.
             freeTaskFirst = new bool[numTrials];
-            for (int i = 0; i < numTrials / 2; i++)
-            {
+            int half = numTrials / 2;
+            bool extraGoesToFreeFirst = (sessionNumber % 2) == 0;
+            int trueCount = half + ((numTrials % 2 == 1) && extraGoesToFreeFirst ? 1 : 0);
+            for (int i = 0; i < trueCount; i++)
                 freeTaskFirst[i] = true;
-            }
             freeTaskFirst.Shuffle(new System.Random());
         }
         // ZR: enabe conditions based on config

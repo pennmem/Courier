@@ -11,7 +11,15 @@
       "Bash(awk '/void Start\\\\\\(\\\\\\)|private void Start|public void Start/,/StartCoroutine\\\\\\(ExperimentCoroutine/' /Users/zrentala/Documents/Courier/Assets/Scripts/DeliveryExperiment.cs)",
       "Bash(awk '/&1500480153/,/^---/' /Users/zrentala/Documents/Courier/Assets/Scenes/NewTown.unity)",
       "Bash(mkdir -p \"/Users/zrentala/Documents/Courier/Assets/StreamingAssets/Images/Recap Instructions VC\" && cp \"/Users/zrentala/Documents/Courier/Assets/Images/Recap Instructions VC/\"*.png \"/Users/zrentala/Documents/Courier/Assets/StreamingAssets/Images/Recap Instructions VC/\" && ls -lh \"/Users/zrentala/Documents/Courier/Assets/StreamingAssets/Images/Recap Instructions VC/\")",
-      "Bash(git check-ignore *)"
+      "Bash(git check-ignore *)",
+      "Bash(ssh -T git@github.com)",
+      "Bash(ssh -v git@github.com)",
+      "Bash(gh api *)",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" -X POST -H \"Content-Length: 0\" \"https://api.github.com/repos/nherweg/DeliveryBoy\")",
+      "Bash(curl -s \"https://api.github.com/repos/nherweg/DeliveryBoy\")",
+      "Bash(git remote *)",
+      "Bash(git fetch *)",
+      "Bash(git push *)"
     ],
     "additionalDirectories": [
       "/Users/zrentala/Documents/Courier/Assets/Images/Recap Instructions VC"

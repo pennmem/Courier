@@ -20,7 +20,9 @@
       "Bash(git remote *)",
       "Bash(git fetch *)",
       "Bash(git push *)",
-      "Bash(grep -v \"^$\")"
+      "Bash(grep -v \"^$\")",
+      "Bash(grep -n \"GetDataPath\\\\|GetParticipantFolder\\\\|GetParticipants\\\\|AddParticipant\\\\|SetExperimentName\" /Users/zrentala/Documents/Courier/Assets/UnityEPL/Scripts/UnityEPL.cs 2>/dev/null | head -30 *)",
+      "Read(//Users/zrentala/Desktop/data/**)"
     ],
     "additionalDirectories": [
       "/Users/zrentala/Documents/Courier/Assets/Images/Recap Instructions VC"

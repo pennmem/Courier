@@ -148,10 +148,12 @@ public static class LanguageSource
         { "free recall title", new string [] { "Free Recall", GERMAN_TRANSLATION_NEEDED} },
         { "free recall main", new string [] { "Try to recall all the items that you delivered to the stores in this delivery day.",
                                               GERMAN_TRANSLATION_NEEDED}},
+        { "free recall text", new string [] { "Start typing items one at a time...", GERMAN_TRANSLATION_NEEDED} },
 
     // Value guess language strings (used during value-recall phase)
     { "value guess title", new string[] { "Value Guess", GERMAN_TRANSLATION_NEEDED } },
     { "value guess main", new string[] { "Please try to estimate the average value of the items you received during the delivery day.", GERMAN_TRANSLATION_NEEDED } },
+    { "value recall text", new string[] { "Enter a value between 1 and 50...", GERMAN_TRANSLATION_NEEDED } },
 
         { "cued recall message", new string [] { "Press the (X) key after recalling the item to move to the next store", GERMAN_TRANSLATION_NEEDED } },
         { "cued recall title", new string [] { "Cued Recall", GERMAN_TRANSLATION_NEEDED} },

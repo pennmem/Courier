@@ -33,6 +33,7 @@ public class BeginExperiment : MonoBehaviour
     public const string EXP_NAME_EFR = "EFRCourier";
     public const string EXP_NAME_NICLS = "NiclsCourier";
     public const string EXP_NAME_VALUE = "VCBehOnly";
+    public const string EXP_NAME_VC_ONLINE = "VC-Online";
 
     private const int WEBGL_SESSION_NUMBER = 0;
 
@@ -196,6 +197,13 @@ public class BeginExperiment : MonoBehaviour
 
     private string SelectedExperimentName()
     {
+#if UNITY_WEBGL
+        // WebGL (and Editor with WebGL target) uses the VC-Online flow. Settling this here means
+        // DeliveryItems.Awake writes its remaining_items files under data/VC-Online/<participant>/...
+        // which is the same path PopItem reads from at runtime.
+        if (VALUE_COURIER && !EFR_COURIER && !NICLS_COURIER)
+            return EXP_NAME_VC_ONLINE;
+#endif
         string experiment_name = EFR_COURIER ? EXP_NAME_EFR :
                                 NICLS_COURIER ? EXP_NAME_NICLS :
                                 VALUE_COURIER ? EXP_NAME_VALUE :

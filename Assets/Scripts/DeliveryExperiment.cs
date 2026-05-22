@@ -231,8 +231,6 @@ public class DeliveryExperiment : CoroutineExperiment
 
     // Store Generation variables
     public bool[] freeTaskFirst;
-    int freeIndex = 0;
-    int valueIndex = 0;
 
     // Stim / No Stim Stores Lists
     public List<StoreComponent> StimStores = new List<StoreComponent>();
@@ -1590,8 +1588,11 @@ public class DeliveryExperiment : CoroutineExperiment
         }
 #endif
 
-        // Configure Experiment
-        if (COURIER_ONLINE)
+        // Configure Experiment — only when no upstream scene (BeginExperiment) configured us.
+        // If we re-ran this after BeginExperiment, we'd append a GUID participant on top of the
+        // user-entered code (producing folders like TEST<GUID>) and switch the expName mid-run,
+        // making the path DeliveryItems.Awake wrote to diverge from what PopItem reads.
+        if (COURIER_ONLINE && sessionNumber == -1)
         {
             UnityEPL.AddParticipant(System.Guid.NewGuid().ToString());
             UnityEPL.SetExperimentName("VC-Online");
@@ -1926,7 +1927,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
         // Task Recap Instructions and Practice Trials
         // Using useNiclsServer to skip practices on closed loop sessions
-        if (sessionNumber == 0 && !useNiclServer && !COURIER_ONLINE)
+        if (sessionNumber == 0 && !useNiclServer)
             yield return DoPracticeTrials(2);
 
         // Delay note
@@ -2825,6 +2826,35 @@ public class DeliveryExperiment : CoroutineExperiment
         return highFirstList;
     }
 
+    // Returns exactly numTrials entries drawn from `conditions`, with each
+    // condition appearing numTrials / conditions.Count times. The remainder
+    // (when numTrials % conditions.Count != 0) is distributed by starting
+    // from sessionNumber % conditions.Count and assigning consecutive
+    // conditions — so the extra slot rotates across sessions and every
+    // condition takes a turn before any condition repeats.
+    private List<StorePointType> GenerateBalancedConditionList(
+        int numTrials, List<StorePointType> conditions, int sessionNumber, System.Random rng)
+    {
+        var list = new List<StorePointType>(numTrials);
+        int n = conditions.Count;
+        if (n == 0 || numTrials <= 0)
+            return list;
+
+        int baseCount = numTrials / n;
+        int remainder = numTrials % n;
+
+        foreach (var c in conditions)
+            for (int i = 0; i < baseCount; i++)
+                list.Add(c);
+
+        int rotation = ((sessionNumber % n) + n) % n;
+        for (int i = 0; i < remainder; i++)
+            list.Add(conditions[(rotation + i) % n]);
+
+        Shuffle(list, rng);
+        return list;
+    }
+
 
     private double DoCompensation()
     {
@@ -2859,6 +2889,16 @@ public class DeliveryExperiment : CoroutineExperiment
         BlackScreen();
 
         List<bool> highFirstFlags = GenerateBalancedHighFirstList(numTrials);
+
+        // Same condition pool as DoTrials. Practice only runs on session 0,
+        // so rotation offset 0 here.
+        List<StorePointType> practiceEnabledConditions = new List<StorePointType>();
+        if (Config.enableTemporal) practiceEnabledConditions.Add(StorePointType.SerialPosition);
+        if (Config.enableSpatial) practiceEnabledConditions.Add(StorePointType.SpatialPosition);
+        if (Config.enableRandom) practiceEnabledConditions.Add(StorePointType.Random);
+
+        List<StorePointType> practiceConditions = GenerateBalancedConditionList(
+            numTrials, practiceEnabledConditions, 0, new System.Random());
 
 
         if (!HOSPITAL_COURIER)
@@ -2956,11 +2996,16 @@ public class DeliveryExperiment : CoroutineExperiment
             terrain.SetActive(true);
 
             bool highFirst = highFirstFlags[trialNumber];
+            StorePointType practiceCondition = (practiceConditions.Count > 0)
+                ? practiceConditions[trialNumber]
+                : StorePointType.Random;
             // Do deliveries
             if (HOSPITAL_COURIER && trialNumber == 0) // Skip town learning stores in first pratice deliv days
-                yield return DoDeliveries(trialNumber, trialNumber, practice: true, skipLastDelivStores: true);
+                yield return DoDeliveries(trialNumber, trialNumber, practice: true,
+                                          skipLastDelivStores: true, storePointType: practiceCondition);
             else
-                yield return DoDeliveries(trialNumber, trialNumber, practice: true, highFirst: highFirst);
+                yield return DoDeliveries(trialNumber, trialNumber, practice: true,
+                                          highFirst: highFirst, storePointType: practiceCondition);
             // Delivery Scores : LC : now pointing feedback comes right after the delivery day
             //if (HOSPITAL_COURIER)
             //{
@@ -3026,23 +3071,17 @@ public class DeliveryExperiment : CoroutineExperiment
         if (Config.enableSpatial) enabledConditions.Add(StorePointType.SpatialPosition);
         if (Config.enableRandom) enabledConditions.Add(StorePointType.Random);
 
-        List<StorePointType> freeList = new List<StorePointType>(enabledConditions);
-        List<StorePointType> valueList = new List<StorePointType>(enabledConditions);
-        for (int i = 0; i < numTrials; i++)
-        {
-            freeList.Add(enabledConditions[i % enabledConditions.Count]);
-            valueList.Add(enabledConditions[i % enabledConditions.Count]);
-        }
+        System.Random conditionRng = new System.Random();
+        List<StorePointType> freeList = GenerateBalancedConditionList(
+            numTrials, enabledConditions, sessionNumber, conditionRng);
+        List<StorePointType> valueList = GenerateBalancedConditionList(
+            numTrials, enabledConditions, sessionNumber, conditionRng);
 
         // LC: ELEMEM stim tag lists
         List<string> stimTagLists = GenerateStimTags(numTrials);
 
-        // create a condition list for each task
-        freeList.Shuffle(new System.Random());
-        valueList.Shuffle(new System.Random());
-
-        // int freeIndex = 0;
-        // int valueIndex = 0;
+        int freeIndex = 0;
+        int valueIndex = 0;
 
         for (int trialNumber = 0; trialNumber < numTrials; trialNumber++)
         {
@@ -3139,8 +3178,9 @@ public class DeliveryExperiment : CoroutineExperiment
             //    yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
             //}
             // Do recall
-            if (!COURIER_ONLINE)
-                yield return DoFixation(PAUSE_BEFORE_RETRIEVAL, practice: false);
+            // if (!COURIER_ONLINE)
+            // ADDED BACK FIXATION
+            yield return DoFixation(PAUSE_BEFORE_RETRIEVAL, practice: false);
             // If valueAlwaysFirst is true, DoRecall will run Value then Free. Otherwise it will use the
             // randomized freeFirst flag we prepared above.
             yield return DoRecall(trialNumber, continuousTrialNum,
@@ -3192,138 +3232,127 @@ public class DeliveryExperiment : CoroutineExperiment
         scriptedEventReporter.ReportScriptedEvent("stop fixation");
     }
 
-    private IEnumerator DoTypedResponses(int trialNumber, string taskType, float taskLength, GameObject inputObject,
-                                         UnityEngine.UI.InputField inputField, Action<string> onResponse, string storeName = "", bool practice=false)
+    // Value recall: numeric input only, must be in [1, 50]. No time limit — exits when a valid
+    // integer is submitted. The `onResponse` callback receives the accepted text.
+    private IEnumerator DoTypedValueRecall(int trialNumber, GameObject inputObject,
+                                           UnityEngine.UI.InputField inputField,
+                                           Action<string> onResponse, bool practice = false)
     {
-        float taskStart = Time.time;
-        // Debug.Log("In DoTypedResponses, taskType is " + taskType + ", taskLength is " + taskLength.ToString() + ", storeName is " + storeName);
+        const string taskType = "value recall";
+        placeHolder.text = LanguageSource.GetLanguageString("value recall text");
+
         Dictionary<string, object> taskTypeData = new Dictionary<string, object>();
         taskTypeData.Add("trial number", trialNumber);
-        // if (!String.IsNullOrEmpty(store_name)) {
-        //     taskTypeData.Add("store displayed", store_name);
-        // }
         scriptedEventReporter.ReportScriptedEvent("start " + taskType + " typing", taskTypeData);
 
-        // during the duration of the task...
-        while (Time.time < taskStart + taskLength || taskType == "value recall")
+        while (true)
         {
             yield return null;
 
-            // activate the input text UI
             inputObject.SetActive(true);
             inputField.ActivateInputField();
 
-            if ((Input.anyKeyDown) && (taskType == "cued recall"))
+            if (!Input.GetKeyDown(KeyCode.Return))
+                continue;
+
+            if (int.TryParse(inputField.text, out int inputFieldAsNum))
             {
-                // Debug.Log("Deleting typed response");
-                taskStart = Time.time;
+                if (inputFieldAsNum < 1 || inputFieldAsNum > 50)
+                {
+                    var wrongTypeText = valueGuessWrongType.GetComponentInChildren<UnityEngine.UI.Text>();
+                    if (wrongTypeText != null)
+                        wrongTypeText.text = "Please enter a value between 1 and 50.";
+                    valueGuessWrongType.SetActive(true);
+                    inputField.Select();
+                    inputField.text = "";
+                    continue;
+                }
+
+                valueGuessWrongType.SetActive(false);
+
+                Dictionary<string, object> typedData = new Dictionary<string, object>();
+                typedData.Add("trial number", trialNumber);
+                typedData.Add("typed response", inputField.text);
+                if (!practice)
+                    typedData.Add("actual value", actualAvgStorePoints[trialNumber]);
+                scriptedEventReporter.ReportScriptedEvent(taskType, typedData);
+
+                onResponse?.Invoke(inputField.text);
+
+                inputField.Select();
+                inputField.text = "";
+                inputObject.SetActive(false);
+                yield break;
             }
 
-            // 3 main cases: free recall, cued recall, value recall
-            // free recall will last for the entirety
-            // cued recall and value guess will end whenever correct input has been typed
-            if (Input.GetKeyDown(KeyCode.Return))
+            // Non-numeric input: flag and let participant retry
+            valueGuessWrongType.SetActive(true);
+        }
+    }
+
+    // Text recall: free recall and the final store/object recall variants. Time-limited; the
+    // participant submits multiple word responses with Return. `taskType` controls the event name
+    // and which "<taskType> text" language key is used for the placeholder. `storeName` is
+    // included in event data when non-empty (legacy cued-recall hook).
+    private IEnumerator DoTypedFreeRecall(int trialNumber, string taskType, float taskLength,
+                                          GameObject inputObject, UnityEngine.UI.InputField inputField,
+                                          Action<string> onResponse = null, string storeName = "",
+                                          bool practice = false)
+    {
+        placeHolder.text = LanguageSource.GetLanguageString(taskType + " text");
+
+        float taskStart = Time.time;
+        Dictionary<string, object> taskTypeData = new Dictionary<string, object>();
+        taskTypeData.Add("trial number", trialNumber);
+        scriptedEventReporter.ReportScriptedEvent("start " + taskType + " typing", taskTypeData);
+
+        while (Time.time < taskStart + taskLength)
+        {
+            yield return null;
+
+            inputObject.SetActive(true);
+            inputField.ActivateInputField();
+
+            if (Input.anyKeyDown && taskType == "cued recall")
+                taskStart = Time.time;
+
+            if (!Input.GetKeyDown(KeyCode.Return))
+                continue;
+
+            if (int.TryParse(inputField.text, out _))
             {
-                // Debug.Log(inputField.text);
-                // if typed response is numeric value...
-                int inputFieldAsNum;
-                if (int.TryParse(inputField.text, out inputFieldAsNum))
-                {
-                    if (taskType == "value recall")
-                    {
-                        if (inputFieldAsNum < 1 || inputFieldAsNum > 50)
-                        {
-                            var wrongTypeText = valueGuessWrongType.GetComponentInChildren<UnityEngine.UI.Text>();
-                            if (wrongTypeText is not null)
-                                wrongTypeText.text = "Please enter a value between 1 and 50.";
-                            valueGuessWrongType.SetActive(true);
-                            inputField.Select();
-                            inputField.text = "";
-                            continue;
-                        }
-                        valueGuessWrongType.SetActive(false);
-                        if (!practice) {
-                            // save & report the response
-                            Dictionary<string, object> typedData = new Dictionary<string, object>();
-                            typedData.Add("trial number", trialNumber);
-                            typedData.Add("typed response", inputField.text);
-                            typedData.Add("actual value", actualAvgStorePoints[trialNumber]);
-                            scriptedEventReporter.ReportScriptedEvent(taskType, typedData);
-                        } else {
-                            Dictionary<string, object> typedData = new Dictionary<string, object>();
-                            typedData.Add("trial number", trialNumber);
-                            typedData.Add("typed response", inputField.text);
-                            scriptedEventReporter.ReportScriptedEvent(taskType, typedData);
-                        }
-                        onResponse?.Invoke(inputField.text);
+                // Numeric input is wrong for text recall
+                freeRecallWrongType.SetActive(true);
+                continue;
+            }
 
-                        // clear the field and exit the coroutine
-                        inputField.Select();
-                        inputField.text = "";
-                        inputObject.SetActive(false);
-                        yield break;
-                    }
-                    // tasks other than value guess should have word response
-                    else
-                    {
-                        freeRecallWrongType.SetActive(true);
-                    }
-                }
-                // if typed response is not numeric value...
-                else
-                {
-                    // value guess should have numeric response
-                    if (taskType == "value recall")
-                    {
-                        valueGuessWrongType.SetActive(true);
-                    }
-                    else
-                    {
-                        freeRecallWrongType.SetActive(false);
+            freeRecallWrongType.SetActive(false);
 
-                        // save & report the response
-                        Dictionary<string, object> typedData = new Dictionary<string, object>();
-                        typedData.Add("trial number", trialNumber);
+            Dictionary<string, object> typedData = new Dictionary<string, object>();
+            typedData.Add("trial number", trialNumber);
+            if (!String.IsNullOrEmpty(storeName))
+                typedData.Add("store displayed", storeName);
+            typedData.Add("typed response", inputField.text);
+            scriptedEventReporter.ReportScriptedEvent(taskType, typedData);
 
-                        // cued recall should also report the store displayed during the task
-                        if (!String.IsNullOrEmpty(storeName))
-                        {
-                            typedData.Add("store displayed", storeName);
-                        }
-                        typedData.Add("typed response", inputField.text);
-                        scriptedEventReporter.ReportScriptedEvent(taskType, typedData);
+            onResponse?.Invoke(inputField.text);
 
-                        onResponse?.Invoke(inputField.text);
+            inputField.Select();
+            inputField.text = "";
 
-                        // reset input text UI
-                        inputField.Select();
-                        inputField.text = "";
-
-                        // cued recall task should exit the coroutine when the response is reported
-                        if (taskType == "cued recall")
-                        {
-                            inputObject.SetActive(false);
-                            yield break;
-                        }
-                    }
-                }
+            if (taskType == "cued recall")
+            {
+                inputObject.SetActive(false);
+                yield break;
             }
         }
 
         scriptedEventReporter.ReportScriptedEvent("end" + taskType + " typing", taskTypeData);
 
-        // reset input text UI at the end
         inputField.Select();
         inputField.text = "";
         inputObject.SetActive(false);
         freeRecallWrongType.SetActive(false);
-        valueGuessWrongType.SetActive(false);
-    }
-
-    private IEnumerator DoTypedResponses(int trialNumber, string taskType, float taskLength, GameObject inputObject,
-                                         UnityEngine.UI.InputField inputField, string storeName = "", bool practice=false)
-    {
-        return DoTypedResponses(trialNumber, taskType, taskLength, inputObject, inputField, null, storeName, practice);
     }
 
     private IEnumerator DoRecall(int trialNumber, int continuousTrialNum, bool practice = false, bool freeFirst = true)
@@ -3430,7 +3459,7 @@ public class DeliveryExperiment : CoroutineExperiment
         scriptedEventReporter.ReportScriptedEvent("object recall recording stop", recordingData);
         soundRecorder.StopRecording();
 #else
-            yield return DoTypedResponses(trialNumber, "free recall", FREE_RECALL_LENGTH, freeInputField, freeResponse);
+            yield return DoTypedFreeRecall(trialNumber, "free recall", FREE_RECALL_LENGTH, freeInputField, freeResponse);
 #endif // !UNITY_WEBGL
 
         textDisplayer.ClearText();
@@ -3571,11 +3600,11 @@ public class DeliveryExperiment : CoroutineExperiment
         scriptedEventReporter.ReportScriptedEvent("start value guess");
         BlackScreen();
 
-        if (COURIER_ONLINE)
-        {
-            messageImageDisplayer.SetGeneralBigMessageText("value guess title", "value guess main");
-            yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
-        }
+        // if (COURIER_ONLINE)
+        // {
+        //     messageImageDisplayer.SetGeneralBigMessageText("value guess title", "value guess main");
+        //     yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
+        // }
         // ZR: MAKe sure value guess is shown
         messageImageDisplayer.SetGeneralBigMessageText("value guess title", "value guess main");
         yield return messageImageDisplayer.DisplayMessage(messageImageDisplayer.general_big_message_display);
@@ -3583,12 +3612,11 @@ public class DeliveryExperiment : CoroutineExperiment
 #if !UNITY_WEBGL
         // TODO: implement for UNITY standalone version
         string response = null;
-        yield return StartCoroutine(DoTypedResponses(trialNumber, "value recall", VALUE_RECALL_LENGTH, freeInputField, freeResponse,
+        yield return StartCoroutine(DoTypedValueRecall(trialNumber, freeInputField, freeResponse,
             result => response = result, practice: practice));
 #else
         string response = null;
-        // WebGL branch had typos: 'resul' and 'practicet'. Fix and pass practice correctly.
-        yield return StartCoroutine(DoTypedResponses(trialNumber, "value recall", VALUE_RECALL_LENGTH, freeInputField, freeResponse,
+        yield return StartCoroutine(DoTypedValueRecall(trialNumber, freeInputField, freeResponse,
             result => response = result, practice: practice));
 #endif
 
@@ -3735,8 +3763,7 @@ public class DeliveryExperiment : CoroutineExperiment
             scriptedEventReporter.ReportScriptedEvent("Sound played", new Dictionary<string, object>() { { "sound name", "high beep" }, { "sound duration", highBeep.clip.length.ToString() } });
 
             scriptedEventReporter.ReportScriptedEvent("final store recall start", new Dictionary<string, object>());
-            placeHolder.text = LanguageSource.GetLanguageString("final store recall text");
-            yield return DoTypedResponses(-999, "final store recall", STORE_FINAL_RECALL_LENGTH, freeInputField, freeResponse);
+            yield return DoTypedFreeRecall(-999, "final store recall", STORE_FINAL_RECALL_LENGTH, freeInputField, freeResponse);
 
             lowBeep.Play();
             scriptedEventReporter.ReportScriptedEvent("Sound played", new Dictionary<string, object>() { { "sound name", "low beep" }, 
@@ -3752,8 +3779,7 @@ public class DeliveryExperiment : CoroutineExperiment
             scriptedEventReporter.ReportScriptedEvent("Sound played", new Dictionary<string, object>() { { "sound name", "high beep" }, { "sound duration", highBeep.clip.length.ToString() } });
 
             scriptedEventReporter.ReportScriptedEvent("final object recall start", new Dictionary<string, object>());
-            placeHolder.text = LanguageSource.GetLanguageString("final object recall text");
-            yield return DoTypedResponses(-999, "final object recall", STORE_FINAL_RECALL_LENGTH, freeInputField, freeResponse);
+            yield return DoTypedFreeRecall(-999, "final object recall", STORE_FINAL_RECALL_LENGTH, freeInputField, freeResponse);
 
             lowBeep.Play();
             scriptedEventReporter.ReportScriptedEvent("Sound played", new Dictionary<string, object>() { { "sound name", "low beep" }, 

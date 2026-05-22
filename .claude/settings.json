@@ -7,7 +7,12 @@
       "Bash(awk -F',' '{print NF, NR}' \"/Users/zrentala/Documents/Courier/Assets/StreamingAssets/Routes/tsp_dijk_filt_final.txt\")",
       "Read(//tmp/**)",
       "Bash(python3:*)",
-      "Read(//Users/zrentala/Documents/Courier/**)"
+      "Read(//Users/zrentala/Documents/Courier/**)",
+      "Bash(git fetch *)",
+      "Bash(git push *)",
+      "Bash(git rm *)",
+      "Bash(git commit *)",
+      "Bash(git check-ignore *)"
     ]
   }
 }

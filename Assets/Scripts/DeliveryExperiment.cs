@@ -1888,16 +1888,16 @@ public class DeliveryExperiment : CoroutineExperiment
             // }
 
             // Debug log all lists after population
-            if (DEBUG)
-            {
-                Debug.Log($"storeLists count: {storeLists.Count}");
-                for (int t = 0; t < storeLists.Count; t++)
-                {
-                    var sList = storeLists[t];
-                    var sNames = sList.Select(s => s != null ? s.gameObject.name : "<null>").ToArray();
-                    Debug.Log($"storeLists[{t}] ({sNames.Length}): {string.Join(", ", sNames)}");
-                }
-            }
+            // if (DEBUG)
+            // {
+            //     Debug.Log($"storeLists count: {storeLists.Count}");
+            //     for (int t = 0; t < storeLists.Count; t++)
+            //     {
+            //         var sList = storeLists[t];
+            //         var sNames = sList.Select(s => s != null ? s.gameObject.name : "<null>").ToArray();
+            //         Debug.Log($"storeLists[{t}] ({sNames.Length}): {string.Join(", ", sNames)}");
+            //     }
+            // }
 
             // // Debug: print the mapped storeLists (StoreComponent names)
             // if (DEBUG)
@@ -2618,8 +2618,8 @@ public class DeliveryExperiment : CoroutineExperiment
                                                                             {"store point type",listType} };
 
                 string debugString = string.Join(", ", itemPresentationInfo.Select(kv => kv.Key + ": " + kv.Value));
-                if (DEBUG)
-                    Debug.Log("Item Presentation Info => " + debugString);
+                // if (DEBUG)
+                //     Debug.Log("Item Presentation Info => " + debugString);
 
 
 
@@ -3942,8 +3942,8 @@ public class DeliveryExperiment : CoroutineExperiment
 
             pointer.SetActive(true);
             ColorPointer(new Color(0.5f, 0.5f, 1f));
-            if (DEBUG)
-                Debug.Log("Pointing to " + nextStore.GetStoreName() + " at " + nextStore.transform.position);
+            // if (DEBUG)
+            //     Debug.Log("Pointing to " + nextStore.GetStoreName() + " at " + nextStore.transform.position);
 
             // Start pointing arrow asynchronously (non-blocking)
             StartCoroutine(PointArrowToStore(nextStore.gameObject));

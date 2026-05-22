@@ -137,17 +137,17 @@ public class Config
     private static object GetSetting(string setting)
     {
         object value;
-        Debug.Log("[Config] GetSetting requested: '" + setting + "'");
+        // Debug.Log("[Config] GetSetting requested: '" + setting + "'");
 
         var expCfg = GetExperimentConfig();
         if (expCfg != null)
         {
             if (expCfg.TryGetValue(setting, out value))
                 return value;
-            try {
-                var d = (IDictionary<string, object>)expCfg;
-                Debug.Log("[Config] experimentConfig present, entries=" + d.Count + ", sample keys=" + string.Join(",", new List<string>(d.Keys).GetRange(0, Math.Min(10, d.Keys.Count))));
-            } catch { /* ignore */ }
+            // try {
+            //     var d = (IDictionary<string, object>)expCfg;
+            //     Debug.Log("[Config] experimentConfig present, entries=" + d.Count + ", sample keys=" + string.Join(",", new List<string>(d.Keys).GetRange(0, Math.Min(10, d.Keys.Count))));
+            // } catch { /* ignore */ }
         }
 
         var sysCfg = GetSystemConfig();
@@ -155,10 +155,10 @@ public class Config
         {
             if (sysCfg.TryGetValue(setting, out value))
                 return value;
-            try {
-                var d = (IDictionary<string, object>)sysCfg;
-                Debug.Log("[Config] systemConfig present, entries=" + d.Count + ", sample keys=" + string.Join(",", new List<string>(d.Keys).GetRange(0, Math.Min(10, d.Keys.Count))));
-            } catch { /* ignore */ }
+            // try {
+            //     var d = (IDictionary<string, object>)sysCfg;
+            //     Debug.Log("[Config] systemConfig present, entries=" + d.Count + ", sample keys=" + string.Join(",", new List<string>(d.Keys).GetRange(0, Math.Min(10, d.Keys.Count))));
+            // } catch { /* ignore */ }
         }
 
         Debug.LogError("[Config] Missing setting '" + setting + "' in both experiment and system configs.");

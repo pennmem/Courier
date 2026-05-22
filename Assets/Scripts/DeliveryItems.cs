@@ -117,18 +117,18 @@ public class DeliveryItems : MonoBehaviour
         {
             unused_store_names.Add(storeAudio.storeName);
         }
-        Debug.Log("DeliveryItems Awake: Loaded " + storeNamesToItems.Length + " store entries");
+        // Debug.Log("DeliveryItems Awake: Loaded " + storeNamesToItems.Length + " store entries");
 
-        for (int i = 0; i < storeNamesToItems.Length; i++)
-        {
-            Debug.Log($"[{i}] storeName={storeNamesToItems[i].storeName}");
-        }
+        // for (int i = 0; i < storeNamesToItems.Length; i++)
+        // {
+        //     Debug.Log($"[{i}] storeName={storeNamesToItems[i].storeName}");
+        // }
 
-        Debug.Log("DeliveryItems Awake: unused_store_names (" + unused_store_names.Count + " total):");
-        foreach (string name in unused_store_names)
-        {
-            Debug.Log(" - " + name);
-        }
+        // Debug.Log("DeliveryItems Awake: unused_store_names (" + unused_store_names.Count + " total):");
+        // foreach (string name in unused_store_names)
+        // {
+        //     Debug.Log(" - " + name);
+        // }
     }
 
 #if UNITY_WEBGL && !UNITY_EDITOR

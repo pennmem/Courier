@@ -19,7 +19,8 @@
       "Bash(curl -s \"https://api.github.com/repos/nherweg/DeliveryBoy\")",
       "Bash(git remote *)",
       "Bash(git fetch *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(grep -v \"^$\")"
     ],
     "additionalDirectories": [
       "/Users/zrentala/Documents/Courier/Assets/Images/Recap Instructions VC"

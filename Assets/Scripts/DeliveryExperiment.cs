@@ -1966,21 +1966,19 @@ public class DeliveryExperiment : CoroutineExperiment
         if (VALUE_COURIER)
         {
             double compensation = DoCompensation();
-            string[] formatValues = new string[] { compensation.ToString("C") };
-            string formattedTips = LanguageSource.GetFormattableLanguageString("earned_tips", formatValues);
-            textDisplayer.DisplayText("earned_tips", formattedTips);
+            // GOT RID OF COMPENSATION MESSAge
+            // string[] formatValues = new string[] { compensation.ToString("C") };
+            // string formattedTips = LanguageSource.GetFormattableLanguageString("earned_tips", formatValues);
+            // textDisplayer.DisplayText("earned_tips", formattedTips);
             // Message will remain until experiment advances
         }
-        else
-        {
-            // Ending Message
-            string endMessage = LanguageSource.GetLanguageString("end message");
+        // Ending Message
+        string endMessage = LanguageSource.GetLanguageString("end message");
 
-            // NICLS_COURIER
-            //     ? LanguageSource.GetLanguageString("end message")
-            //     : LanguageSource.GetLanguageString("end message scored") + "\n\n" + starSystem.CumulativeRating().ToString("+#.##;-#.##");
-            textDisplayer.DisplayText("end text", endMessage);
-        }
+        // NICLS_COURIER
+        //     ? LanguageSource.GetLanguageString("end message")
+        //     : LanguageSource.GetLanguageString("end message scored") + "\n\n" + starSystem.CumulativeRating().ToString("+#.##;-#.##");
+        textDisplayer.DisplayText("end text", endMessage);
 
 #if !(UNITY_WEBGL && !UNITY_EDITOR) // Elemem
         // LC: ELEMEM

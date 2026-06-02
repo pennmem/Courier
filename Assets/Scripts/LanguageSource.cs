@@ -36,7 +36,7 @@ public static class LanguageSource
         { "correct pointing", new string[] {"Good job! ", GERMAN_TRANSLATION_NEEDED} },
         { "all objects recall", new string[] {"Please recall all the items that you delivered.", GERMAN_TRANSLATION_NEEDED} },
         { "all stores recall", new string[] {"Please recall all the stores that you delivered items to.", GERMAN_TRANSLATION_NEEDED} },
-        { "end message", new string[] {"Thank you for being a great delivery person!", "Vielen Dank für Ihre Teilnahme!"} },
+        { "end message", new string[] {"Thank you for being a great delivery person! Your bonus will be calculated and sent to you later.", "Vielen Dank für Ihre Teilnahme!"} },
         { "end message scored", new string[] {"Thank you for being a great delivery person! Your cumulative score is: ", "Vielen Dank für Ihre Teilnahme! Ihre abschließende Wertung ist: "} },
 
         { "standard intro video", new string[] { "Press (Y) to continue, \n Press (N) to replay instructional video.",

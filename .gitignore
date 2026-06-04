@@ -85,6 +85,9 @@ Assets/Video/Sherlock_*
 # Streaming Assets
 Assets/StreamingAssets/CourierOnline.json
 Assets/StreamingAssets/Videos/ValueCourier3.mp4
+Assets/Video/VC_FROP_Intro_Vid.mov
+Assets/StreamingAssets/VC_FROP_Intro_Vid.mov
+
 
 # Other
 .DS_Store

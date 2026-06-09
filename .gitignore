@@ -87,7 +87,21 @@ Assets/StreamingAssets/CourierOnline.json
 Assets/StreamingAssets/Videos/ValueCourier3.mp4
 Assets/Video/VC_FROP_Intro_Vid.mov
 Assets/StreamingAssets/VC_FROP_Intro_Vid.mov
+Assets/Video/VC_Online_Intro_Vid.mov
 
+# Video files (too big for github)
+*.mov
+*.mov.meta
+*.mp4
+*.mp4.meta
+*.avi
+*.avi.meta
+*.mkv
+*.mkv.meta
+*.webm
+*.webm.meta
+*.m4v
+*.m4v.meta
 
 # Other
 .DS_Store

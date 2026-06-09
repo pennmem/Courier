@@ -32,7 +32,7 @@ public class BeginExperiment : MonoBehaviour
     public const string EXP_NAME_COURIER = "Courier";
     public const string EXP_NAME_EFR = "EFRCourier";
     public const string EXP_NAME_NICLS = "NiclsCourier";
-    public const string EXP_NAME_VALUE = "VCBehOnly";
+    public const string EXP_NAME_VALUE = "VCFROP";
     private void OnEnable()
     {
 #if UNITY_WEBGL

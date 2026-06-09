@@ -87,6 +87,10 @@ Assets/StreamingAssets/CourierOnline.json
 Assets/StreamingAssets/Videos/*.mp4
 Assets/StreamingAssets/Videos/*.mp4.meta
 
+# Video files (too big for github)
+*.mov
+*.mov.meta
+
 # Other
 .DS_Store
 tags

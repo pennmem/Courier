@@ -9,9 +9,9 @@ using System.Runtime.InteropServices;
 using UnityEngine.Networking;
 using UnityEngine.UI;
 // using Accord.Statistics.Distributions.Multivariate;
-using MathNet.Numerics;
-using MathNet.Numerics.LinearAlgebra;
-using MathNet.Numerics.Distributions;
+// MathNet.Numerics removed: it uses System.Threading internally and cannot link for
+// WebGL (single-threaded). SpatialStorePoints now samples N(0, K) with the built-in
+// Cholesky + Box-Muller helper SampleMultivariateNormalZeroMean below.
 
 using static MessageImageDisplayer;
 using static WorldDataReporter;
@@ -595,10 +595,7 @@ public class DeliveryExperiment : CoroutineExperiment
     {
         // Setup covariance matrix variables
         int N = stores.Count;
-        // double[] mu = Vector.Zeros(N);
-        Vector<double> mu = Vector<double>.Build.Dense(N);
-        // double[,] K = Matrix.Zeros(N, N);
-        Matrix<double> K = Matrix<double>.Build.Dense(N, N);
+        double[,] K = new double[N, N];
         double rhoSq = N;
 
         // Create covariance matrix
@@ -615,8 +612,9 @@ public class DeliveryExperiment : CoroutineExperiment
         }
         K[(N - 1), (N - 1)] = 1;
 
-        // Generate point values
-        double[] storePoints = MatrixNormal.Sample(new System.Random(), mu.ToColumnMatrix(), K, Matrix<double>.Build.DenseIdentity(1)).Column(0).ToArray();
+        // Generate point values: sample storePoints ~ N(0, K).
+        // (Was MatrixNormal.Sample(0, K, I); reimplemented dependency-free below.)
+        double[] storePoints = SampleMultivariateNormalZeroMean(K, new System.Random());
         // standardize point values
         storePoints = StandardizeStorePoints(storePoints);
         // Debug.Log(string.Join(",", storePoints));
@@ -634,6 +632,53 @@ public class DeliveryExperiment : CoroutineExperiment
         }
 
         return storePoints;
+    }
+
+    // Draw a sample x ~ N(0, K) for a symmetric positive-(semi)definite covariance
+    // matrix K, via a Cholesky factorization (K = L*L^T) and the Box-Muller transform.
+    // Pure C# / no external dependencies, so it compiles for single-threaded WebGL.
+    // Mathematically equivalent to the previous MatrixNormal.Sample(0, K, I) call.
+    private static double[] SampleMultivariateNormalZeroMean(double[,] K, System.Random rng)
+    {
+        int n = K.GetLength(0);
+
+        // Cholesky decomposition: K = L * L^T, with L lower-triangular.
+        // A tiny diagonal floor keeps sqrt stable if K is only semi-definite.
+        double[,] L = new double[n, n];
+        for (int i = 0; i < n; i++)
+        {
+            for (int j = 0; j <= i; j++)
+            {
+                double sum = K[i, j];
+                for (int k = 0; k < j; k++)
+                    sum -= L[i, k] * L[j, k];
+
+                if (i == j)
+                    L[i, j] = Math.Sqrt(Math.Max(sum, 1e-12));
+                else
+                    L[i, j] = sum / L[j, j];
+            }
+        }
+
+        // Standard-normal vector z via Box-Muller.
+        double[] z = new double[n];
+        for (int i = 0; i < n; i++)
+        {
+            double u1 = 1.0 - rng.NextDouble(); // in (0,1], avoids log(0)
+            double u2 = rng.NextDouble();
+            z[i] = Math.Sqrt(-2.0 * Math.Log(u1)) * Math.Cos(2.0 * Math.PI * u2);
+        }
+
+        // x = L * z  (mean is zero).
+        double[] x = new double[n];
+        for (int i = 0; i < n; i++)
+        {
+            double sum = 0.0;
+            for (int k = 0; k <= i; k++)
+                sum += L[i, k] * z[k];
+            x[i] = sum;
+        }
+        return x;
     }
 
     // Convenience overload: accept an array of Transforms (delivery zones) and convert

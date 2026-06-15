@@ -291,8 +291,8 @@ public class DeliveryExperiment : CoroutineExperiment
         System.Random rng = new System.Random();
 
         // --- Targets for mean/SD ---
-        double targetMean = Math.Round(Config.targetMean[0] + rng.NextDouble() * (Config.targetMean[1] - Config.targetMean[0]));
         double targetSD = Config.targetVar[0] + rng.NextDouble() * (Config.targetVar[1] - Config.targetVar[0]);
+        double targetMean = (1 + 2 * targetSD) + rng.NextDouble() * ((50 - 2 * targetSD) - Config.targetVar[0]);
         double targetVar = targetSD * targetSD;
 
         int valMin = 1;

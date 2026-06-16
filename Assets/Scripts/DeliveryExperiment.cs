@@ -302,7 +302,7 @@ public class DeliveryExperiment : CoroutineExperiment
         int midpoint = (valMin + valMax) / 2;
         List<double> aboveMid = Enumerable.Range(midpoint, valMax - midpoint + 1).Select(x => (double)x).ToList();
         List<double> belowMid = Enumerable.Range(valMin, midpoint - valMin).Select(x => (double)x).ToList();
-
+    
 
         List<double> firstRange = highFirst ? new List<double>(aboveMid) : new List<double>(belowMid);
         List<double> secondRange = highFirst ? new List<double>(belowMid) : new List<double>(aboveMid);

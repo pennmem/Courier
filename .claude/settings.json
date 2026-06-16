@@ -15,7 +15,11 @@
       "Bash(git check-ignore *)",
       "Bash(grep -iE '\\\\.\\(mov|mp4|avi|mkv|webm|m4v\\)$')",
       "Bash(git ls-tree *)",
-      "Bash(awk '$4 > 50000000 {printf \"%6.0fMB  %s\\\\n\", $4/1048576, $5}')"
+      "Bash(awk '$4 > 50000000 {printf \"%6.0fMB  %s\\\\n\", $4/1048576, $5}')",
+      "Bash(cat > *)"
+    ],
+    "additionalDirectories": [
+      "/tmp"
     ]
   }
 }

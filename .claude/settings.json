@@ -22,10 +22,26 @@
       "Bash(git push *)",
       "Bash(grep -v \"^$\")",
       "Bash(grep -n \"GetDataPath\\\\|GetParticipantFolder\\\\|GetParticipants\\\\|AddParticipant\\\\|SetExperimentName\" /Users/zrentala/Documents/Courier/Assets/UnityEPL/Scripts/UnityEPL.cs 2>/dev/null | head -30 *)",
-      "Read(//Users/zrentala/Desktop/data/**)"
+      "Read(//Users/zrentala/Desktop/data/**)",
+      "Bash(grep -ivE '\\\\.meta$')",
+      "Bash(grep -iE '\\\\.\\(png|tga|tif|tiff|jpg|jpeg|psd|exr|mat|terrainlayer|shader|shadergraph\\)$')",
+      "Bash(awk '{print $5/1048576 \" MB  \" $9}')",
+      "Bash(git rev-list *)",
+      "Bash(grep -i 'ValueCourier3.mp4$')",
+      "Bash(echo \"=== macOS Trash ===\" && ls -la ~/.Trash/ 2>/dev/null | grep -i 'ValueCourier\\\\|\\\\.mp4' | head; echo \"=== search home dir \\(Downloads, Movies, Desktop, Documents, iCloud, external\\) ===\" && find ~ /Volumes -iname 'ValueCourier3*' 2>/dev/null | grep -v '\\\\.meta' | head; echo \"=== any .mp4 still in the project's StreamingAssets/Videos? ===\"; ls -la \"/Users/zrentala/Documents/Courier Online/Assets/StreamingAssets/Videos/\" 2>/dev/null)",
+      "Read(//Users/zrentala/.Trash//**)",
+      "Read(//Users/zrentala/**)",
+      "Bash(cp \"/Users/zrentala/Downloads/ValueCourier3.mp4\" \"Assets/StreamingAssets/Videos/ValueCourier3.mp4\")",
+      "Bash(cp \"/Users/zrentala/Documents/Courier/Assets/StreamingAssets/Videos/ValueCourier3.mp4.meta\" \"Assets/StreamingAssets/Videos/ValueCourier3.mp4.meta\")",
+      "Bash(awk '{print $5, $9}')",
+      "Bash(find Assets -iname 'VC_Online_Intro_Vid*' ! -name '*.meta')",
+      "Bash(find Assets -iname 'ValueCourier3*' ! -name '*.meta')",
+      "Bash(/Applications/Blender.app/Contents/MacOS/Blender --background '/Users/zrentala/Documents/Courier Online/Assets/Custom/roundEdge.blend' --python-expr 'import bpy *)"
     ],
     "additionalDirectories": [
-      "/Users/zrentala/Documents/Courier/Assets/Images/Recap Instructions VC"
+      "/Users/zrentala/Documents/Courier/Assets/Images/Recap Instructions VC",
+      "/tmp",
+      "/private/tmp"
     ]
   }
 }

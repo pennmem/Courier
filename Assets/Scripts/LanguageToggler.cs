@@ -9,11 +9,14 @@ public class LanguageToggler : MonoBehaviour
 
     public void SetCurrentLanguage(int language)
     {
-        LanguageSource.current_language = (LanguageSource.LANGUAGE)language;
+        // German is deprecated: the German store audio has been removed from the project,
+        // so force English regardless of what the participant selects. This guarantees the
+        // germanAudio[] arrays (now empty/missing) are never read at runtime.
+        LanguageSource.current_language = LanguageSource.LANGUAGE.ENGLISH;
         toggleMeOnGerman.isOn = false;
         foreach (GameObject us in hideUsOnGerman)
         {
-            us.SetActive(language != (int)LanguageSource.LANGUAGE.GERMAN);
+            us.SetActive(true);
         }
     }
 }

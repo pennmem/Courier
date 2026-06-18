@@ -217,7 +217,7 @@ public class VideoSelector : MonoBehaviour
             case VideoType.MainIntro:
             case VideoType.valueIntro:
             case VideoType.vcInstructionsVideo:
-                return "ValueCourier3.mp4";
+                return "VC_Online_Intro_Vid.mp4";
             case VideoType.townlearningVideo:
                 return "town_learning_instuctions.mp4";
             case VideoType.practiceVideo:

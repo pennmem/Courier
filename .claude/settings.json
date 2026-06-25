@@ -36,12 +36,25 @@
       "Bash(awk '{print $5, $9}')",
       "Bash(find Assets -iname 'VC_Online_Intro_Vid*' ! -name '*.meta')",
       "Bash(find Assets -iname 'ValueCourier3*' ! -name '*.meta')",
-      "Bash(/Applications/Blender.app/Contents/MacOS/Blender --background '/Users/zrentala/Documents/Courier Online/Assets/Custom/roundEdge.blend' --python-expr 'import bpy *)"
+      "Bash(/Applications/Blender.app/Contents/MacOS/Blender --background '/Users/zrentala/Documents/Courier Online/Assets/Custom/roundEdge.blend' --python-expr 'import bpy *)",
+      "Bash(pgrep -f \"Unity.app/Contents/MacOS/Unity -projectpath\")",
+      "Bash(pgrep -f \"AssetImportWorker\")",
+      "Bash(du -sh Library/Bee)",
+      "Bash(ls -d Library/il2cpp_cache Library/Bee/artifacts)",
+      "Bash(rm -rf Library/Bee Library/il2cpp_cache)",
+      "Bash(ls -d Library/Bee)",
+      "Bash(du -sh Library)",
+      "Bash(npx --no-install playwright --version)",
+      "Read(//Applications/Google Chrome.app/Contents/MacOS/**)",
+      "Bash(perl -i -pe 's/\\\\Qfunction JS_ScreenOrientation_eventHandler\\(\\) {\\\\E/function JS_ScreenOrientation_eventHandler\\(\\) { return; \\\\/* CourierWebGL: Unity 2021.3 orientation crash workaround *\\\\//' '/Users/zrentala/Desktop/VCOnline 6:23:2026 2/Build/VCOnline 6:23:2026 2.framework.js')",
+      "Bash(python3 -c \"import json; json.load\\(open\\('Packages/manifest.json'\\)\\); print\\('manifest.json is valid JSON'\\)\")"
     ],
     "additionalDirectories": [
       "/Users/zrentala/Documents/Courier/Assets/Images/Recap Instructions VC",
       "/tmp",
-      "/private/tmp"
+      "/private/tmp",
+      "/Users/zrentala/Desktop/VCOnline 6:18:2026",
+      "/Users/zrentala/Desktop/VCOnline 6:23:2026 2"
     ]
   }
 }

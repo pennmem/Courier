@@ -1515,8 +1515,8 @@ public class DeliveryExperiment : CoroutineExperiment
         useNiclServer = newUseNiclServer;
         useElemem = newUseElemem;
         Config.elememStimMode = useElemem;
-        isFirstSession = newSessionNumber == 0;
 #endif // !(UNITY_WEBGL && !UNITY_EDITOR)
+        isFirstSession = newSessionNumber == 0;   // needed on WebGL too: gates town learning + store-list sizing
         sessionNumber = newSessionNumber;
         continuousSessionNumber = useNiclServer ? NICLS_READ_ONLY_SESSIONS + sessionNumber :
                                   sessionNumber;

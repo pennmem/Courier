@@ -11,7 +11,7 @@ using UnityEngine.Networking;
 
 public class Config
 {
-    public static string experimentConfigName = "VCBehOnly";
+    public static string experimentConfigName = "VCOnline";
     public static string onlineSystemConfigText = null;
     public static string onlineExperimentConfigText = null;
     // LC: TODO: COME UP WITH A BETTER WAY

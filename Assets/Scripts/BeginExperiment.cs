@@ -33,7 +33,7 @@ public class BeginExperiment : MonoBehaviour
     public const string EXP_NAME_EFR = "EFRCourier";
     public const string EXP_NAME_NICLS = "NiclsCourier";
     public const string EXP_NAME_VALUE = "VCBehOnly";
-    public const string EXP_NAME_VC_ONLINE = "VC-Online";
+    public const string EXP_NAME_VC_ONLINE = "VCOnline";
 
     private const int WEBGL_SESSION_NUMBER = 0;
 

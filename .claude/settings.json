@@ -47,7 +47,11 @@
       "Bash(npx --no-install playwright --version)",
       "Read(//Applications/Google Chrome.app/Contents/MacOS/**)",
       "Bash(perl -i -pe 's/\\\\Qfunction JS_ScreenOrientation_eventHandler\\(\\) {\\\\E/function JS_ScreenOrientation_eventHandler\\(\\) { return; \\\\/* CourierWebGL: Unity 2021.3 orientation crash workaround *\\\\//' '/Users/zrentala/Desktop/VCOnline 6:23:2026 2/Build/VCOnline 6:23:2026 2.framework.js')",
-      "Bash(python3 -c \"import json; json.load\\(open\\('Packages/manifest.json'\\)\\); print\\('manifest.json is valid JSON'\\)\")"
+      "Bash(python3 -c \"import json; json.load\\(open\\('Packages/manifest.json'\\)\\); print\\('manifest.json is valid JSON'\\)\")",
+      "Bash(awk ' *)",
+      "Bash(awk 'NR>=1700 && NR<=1801 && /IEnumerator|GetOnlineConfig|Config\\\\./' Assets/Scripts/DeliveryExperiment.cs)",
+      "Bash(awk 'NR<=1801 && /private IEnumerator|public IEnumerator/ {line=NR; sig=$0} END{}' Assets/Scripts/DeliveryExperiment.cs)",
+      "Bash(awk -F: '$1<=1801')"
     ],
     "additionalDirectories": [
       "/Users/zrentala/Documents/Courier/Assets/Images/Recap Instructions VC",

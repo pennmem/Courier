@@ -1327,11 +1327,57 @@ public class DeliveryExperiment : CoroutineExperiment
     //     return result;
     // }
     private const string TSP_ROUTES_RELATIVE_PATH = "Routes/tsp_dijk_filt_final.txt";
+    private const string ITEMS_RELATIVE_PATH = "APEM_courier_items.csv";
 
     private string GetStreamingAssetsUrl(string relativePath)
     {
         return Application.streamingAssetsPath.TrimEnd('/', '\\') + "/" + relativePath.Replace("\\", "/");
     }
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+    // GetItems.cs populates each category's item list from a local CSV via StreamReader, which is
+    // unavailable in WebGL - leaving every category empty so GetItemsList throws "Sequence contains
+    // no elements" on the first delivery. Fetch the same CSV from StreamingAssets over the network
+    // and populate the lists (same "category,item" parsing as GetItems) before any deliveries run.
+    private IEnumerator LoadDeliveryItemsWebGL()
+    {
+        Transform categories = items.transform.Find("Categories");
+        if (categories == null)
+            throw new UnityException("Could not find the 'Categories' object under items to populate.");
+
+        // Clear first so a re-entry can't double-populate.
+        foreach (Transform category in categories)
+        {
+            ItemsList itemsList = category.GetComponent<ItemsList>();
+            if (itemsList != null)
+                itemsList.itemsList.Clear();
+        }
+
+        string itemsPath = GetStreamingAssetsUrl(ITEMS_RELATIVE_PATH);
+        UnityWebRequest itemsRequest = UnityWebRequest.Get(itemsPath);
+        yield return itemsRequest.SendWebRequest();
+
+        if (itemsRequest.result != UnityWebRequest.Result.Success)
+            throw new UnityException("Failed to fetch delivery items from " + itemsPath + ": " + itemsRequest.error);
+
+        string itemsText = itemsRequest.downloadHandler != null ? itemsRequest.downloadHandler.text : null;
+        if (string.IsNullOrEmpty(itemsText))
+            throw new UnityException("Delivery items file was empty: " + itemsPath);
+
+        string[] lines = itemsText.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
+        foreach (string line in lines)
+        {
+            if (string.IsNullOrEmpty(line))
+                continue;
+            string[] values = line.Split(',');
+            if (values.Length < 2)
+                continue;
+            Transform category = categories.Find(values[0]);  // unknown categories (e.g. malformed rows) are skipped
+            if (category != null)
+                category.GetComponent<ItemsList>().itemsList.Add(values[1]);
+        }
+    }
+#endif // UNITY_WEBGL && !UNITY_EDITOR
 
 #if !(UNITY_WEBGL && !UNITY_EDITOR)
     private List<List<StoreComponent>> getTotalListTSP(int numTrials, System.Random rng)
@@ -1776,6 +1822,11 @@ public class DeliveryExperiment : CoroutineExperiment
 
         // Save Config
         Config.SaveConfigs(scriptedEventReporter, UnityEPL.GetDataPath());
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+        // Populate delivery item lists from StreamingAssets (GetItems' disk loader is no-op in WebGL).
+        yield return LoadDeliveryItemsWebGL();
+#endif
 
         // Setup Environment
         Debug.Log("[FLOW] Before EnableEnvironment");
@@ -3288,12 +3339,23 @@ public class DeliveryExperiment : CoroutineExperiment
         taskTypeData.Add("trial number", trialNumber);
         scriptedEventReporter.ReportScriptedEvent("start " + taskType + " typing", taskTypeData);
 
+        string lastTyped = inputField.text;
+
         while (true)
         {
             yield return null;
 
             inputObject.SetActive(true);
             inputField.ActivateInputField();
+
+            if (inputField.text != lastTyped)
+            {
+                lastTyped = inputField.text;
+                Dictionary<string, object> typingData = new Dictionary<string, object>();
+                typingData.Add("trial number", trialNumber);
+                typingData.Add("typed response", inputField.text);
+                scriptedEventReporter.ReportScriptedEvent("value recall typing", typingData);
+            }
 
             if (!Input.GetKeyDown(KeyCode.Return))
                 continue;
@@ -3308,6 +3370,7 @@ public class DeliveryExperiment : CoroutineExperiment
                     valueGuessWrongType.SetActive(true);
                     inputField.Select();
                     inputField.text = "";
+                    lastTyped = "";
                     continue;
                 }
 
@@ -3349,6 +3412,8 @@ public class DeliveryExperiment : CoroutineExperiment
         taskTypeData.Add("trial number", trialNumber);
         scriptedEventReporter.ReportScriptedEvent("start " + taskType + " typing", taskTypeData);
 
+        string lastTyped = inputField.text;
+
         while (Time.time < taskStart + taskLength)
         {
             yield return null;
@@ -3358,6 +3423,17 @@ public class DeliveryExperiment : CoroutineExperiment
 
             if (Input.anyKeyDown && taskType == "cued recall")
                 taskStart = Time.time;
+
+            if (inputField.text != lastTyped)
+            {
+                lastTyped = inputField.text;
+                Dictionary<string, object> typingData = new Dictionary<string, object>();
+                typingData.Add("trial number", trialNumber);
+                if (!String.IsNullOrEmpty(storeName))
+                    typingData.Add("store displayed", storeName);
+                typingData.Add("typed response", inputField.text);
+                scriptedEventReporter.ReportScriptedEvent("rec word typing", typingData);
+            }
 
             if (!Input.GetKeyDown(KeyCode.Return))
                 continue;
@@ -3382,6 +3458,7 @@ public class DeliveryExperiment : CoroutineExperiment
 
             inputField.Select();
             inputField.text = "";
+            lastTyped = "";
 
             if (taskType == "cued recall")
             {
@@ -4681,12 +4758,22 @@ public class DeliveryExperiment : CoroutineExperiment
 
         foreach (Transform category in items.transform.Find("Categories"))
         {
-            if (category.gameObject.activeSelf) categories.Add(category);  // Adds categories to list if activated - deactivate to prevent use
+            // Only use activated categories that still have items left. Items are popped with
+            // RemoveAt below and never replenished within a run, so a depleted (or never-populated)
+            // category would otherwise make list.First() throw "Sequence contains no elements".
+            if (category.gameObject.activeSelf
+                && category.GetComponent<ItemsList>().itemsList.Count > 0)
+                categories.Add(category);  // deactivate a category to prevent its use
         }
 
         categories.Shuffle(new System.Random());
 
-        for (int i = 0; i < deliveries - (DO_REPEATS ? numReps : 0); i++)  // Builds up item list either to number of deliveries or leaving room for repeats
+        int neededCategories = deliveries - (DO_REPEATS ? numReps : 0);  // unique items needed before repeats
+        int baseCount = System.Math.Min(neededCategories, categories.Count);
+        if (baseCount < neededCategories)
+            Debug.LogError($"GetItemsList: only {categories.Count} categories still have items, but {neededCategories} are needed for {deliveries} deliveries. Items are running short - this trial will have fewer deliveries.");
+
+        for (int i = 0; i < baseCount; i++)  // Builds up item list either to number of deliveries or leaving room for repeats
         {
             List<string> list = categories[i].GetComponent<ItemsList>().itemsList;
             list.Shuffle(new System.Random());
@@ -4694,12 +4781,12 @@ public class DeliveryExperiment : CoroutineExperiment
             list.RemoveAt(0);
         }
 
-        if (DO_REPEATS)
+        if (DO_REPEATS && baseCount > 0)
         {
-            int n = numReps;
+            int n = System.Math.Min(numReps, baseCount);  // can't repeat more distinct items than were built
             while (n > 0)  // Selects random items to repeat
             {
-                String repItem = deliveryItemsList[rng.Next(deliveries - numReps)];
+                String repItem = deliveryItemsList[rng.Next(baseCount)];
                 if (!repItems.Contains(repItem))
                 {
                     repItems.Add(repItem);

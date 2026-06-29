@@ -18,6 +18,17 @@ public class BeginExperiment : MonoBehaviour
     // LC: Add UseElemem toggle
     public UnityEngine.UI.Toggle useElememToggle;
 
+    // Label GameObjects for the lab-rig toggles (Ramulator/Nicls/Elemem). These have no
+    // shared parent with their toggles in the scene, so assign the three label objects here
+    // to hide them alongside the toggles in the online build. Assign in the MainMenu scene.
+    public UnityEngine.GameObject[] nonEssentialControls;
+
+    // Query-string keys passed on the WebGL launch URL by Prolific.
+    // Prolific injects PROLIFIC_PID automatically; SESSION is a custom param the
+    // researcher sets per session study link (defaults to 0 when absent).
+    private const string PROLIFIC_PID_KEY = "PROLIFIC_PID";
+    private const string SESSION_KEY = "SESSION";
+
     // TODO: JPB: Make these configuration variables
     private const bool HOSPITAL_COURIER = false;
     private const bool NICLS_COURIER = false;
@@ -41,6 +52,62 @@ public class BeginExperiment : MonoBehaviour
     {
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
+    }
+
+    private void Start()
+    {
+        HideNonEssentialControls();
+        ApplyProlificLaunchParams();
+    }
+
+    // The Ramulator/Nicls/Elemem toggles drive lab hardware that does nothing in the online
+    // build, so hide them (and their labels) on every launch. DoBeginExperiment still reads
+    // useXToggle.isOn, which returns the serialized 'false' even while the object is inactive.
+    private void HideNonEssentialControls()
+    {
+        if (useRamulatorToggle != null) useRamulatorToggle.gameObject.SetActive(false);
+        if (useNiclsToggle != null) useNiclsToggle.gameObject.SetActive(false);
+        if (useElememToggle != null) useElememToggle.gameObject.SetActive(false);
+
+        if (nonEssentialControls != null)
+            foreach (UnityEngine.GameObject control in nonEssentialControls)
+                if (control != null) control.SetActive(false);
+    }
+
+    // Reads PROLIFIC_PID / SESSION from the launch URL (e.g. ...?PROLIFIC_PID=<id>&SESSION=<n>).
+    // When BOTH are present and valid, pre-fill and lock the fields so the participant only
+    // clicks Begin. Otherwise stay in editable manual mode, pre-filling whatever was provided.
+    private void ApplyProlificLaunchParams()
+    {
+        string prolificId = UrlParams.Get(PROLIFIC_PID_KEY);
+        string sessionParam = UrlParams.Get(SESSION_KEY);
+
+        bool hasValidId = !string.IsNullOrEmpty(prolificId) && IsValidParticipantName(prolificId);
+
+        int session = 0;
+        bool hasValidSession = !string.IsNullOrEmpty(sessionParam)
+                               && System.Int32.TryParse(sessionParam, out session);
+
+        // Pre-fill the participant code (registers participant; on WebGL this also resets session to 0).
+        if (hasValidId)
+        {
+            participantCodeInput.text = prolificId;
+            UpdateParticipant();
+        }
+
+        // Pre-fill the session AFTER UpdateParticipant, which would otherwise overwrite the field.
+        if (hasValidSession)
+        {
+            sessionInput.text = session.ToString();
+            UpdateSession();
+        }
+
+        // Lock the screen down only when both came from the URL; partial/none stays editable.
+        if (hasValidId && hasValidSession)
+        {
+            participantCodeInput.interactable = false;
+            sessionInput.interactable = false;
+        }
     }
 
     private void Update()

@@ -150,7 +150,7 @@ public class VideoSelector : MonoBehaviour
         if (!string.IsNullOrEmpty(webGLVideoBaseUrl))
             return webGLVideoBaseUrl;
 
-        string queryValue = GetAbsoluteUrlQueryValue(WebGLVideoBaseUrlQueryKey);
+        string queryValue = UrlParams.Get(WebGLVideoBaseUrlQueryKey);
         if (!string.IsNullOrEmpty(queryValue))
             return queryValue;
 
@@ -178,35 +178,6 @@ public class VideoSelector : MonoBehaviour
 #else
         return path;
 #endif
-    }
-
-    private string GetAbsoluteUrlQueryValue(string key)
-    {
-        string absoluteUrl = Application.absoluteURL;
-        if (string.IsNullOrEmpty(absoluteUrl))
-            return null;
-
-        int queryStart = absoluteUrl.IndexOf('?');
-        if (queryStart < 0 || queryStart >= absoluteUrl.Length - 1)
-            return null;
-
-        int queryEnd = absoluteUrl.IndexOf('#', queryStart + 1);
-        string query = queryEnd >= 0
-            ? absoluteUrl.Substring(queryStart + 1, queryEnd - queryStart - 1)
-            : absoluteUrl.Substring(queryStart + 1);
-
-        string[] pairs = query.Split('&');
-        foreach (string pair in pairs)
-        {
-            string[] parts = pair.Split(new char[] { '=' }, 2);
-            if (parts.Length == 0 || parts[0] != key)
-                continue;
-
-            string value = parts.Length > 1 ? parts[1] : "";
-            return Uri.UnescapeDataString(value.Replace("+", " "));
-        }
-
-        return null;
     }
 
     private string GetWebGLVideoFileName(VideoType videoType)

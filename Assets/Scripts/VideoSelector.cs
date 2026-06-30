@@ -49,6 +49,18 @@ public class VideoSelector : MonoBehaviour
         vcInstructionsVideo
     }
 
+    // Once the video is prepared the real audio track count is known (important for URL
+    // sources on WebGL). Unmute every track and set full volume so the video has sound.
+    private void OnVideoPrepared(VideoPlayer vp)
+    {
+        for (ushort i = 0; i < vp.audioTrackCount; i++)
+        {
+            vp.EnableAudioTrack(i, true);
+            vp.SetDirectAudioMute(i, false);
+            vp.SetDirectAudioVolume(i, 1f);
+        }
+    }
+
     public void SetVideo(VideoType videoType, int videoIndex = 0)
     {
         videoPlayer.Stop();
@@ -126,6 +138,14 @@ public class VideoSelector : MonoBehaviour
         if ((videoPlayer.source == VideoSource.VideoClip && videoPlayer.clip != null) ||
             (videoPlayer.source == VideoSource.Url && !string.IsNullOrEmpty(videoPlayer.url)))
         {
+            // Route audio through Direct mode. WebGL only supports None/Direct output modes
+            // (AudioSource mode is ignored), and the prefab was set to AudioSource with no source,
+            // which left the video silent. Per-track volume/mute must be applied after Prepare()
+            // because for URL sources the audio track count isn't known until then.
+            videoPlayer.audioOutputMode = VideoAudioOutputMode.Direct;
+            videoPlayer.prepareCompleted -= OnVideoPrepared;
+            videoPlayer.prepareCompleted += OnVideoPrepared;
+
             videoPlayer.Prepare();
         }
     }

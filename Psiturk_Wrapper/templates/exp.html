@@ -113,9 +113,28 @@
           progressBarFull.style.width = 100 * progress + "%";
         }).then((unityInstance) => {
           loadingBar.style.display = "none";
+          window.unityInstance = unityInstance;
           fullscreenButton.onclick = () => {
             unityInstance.SetFullscreen(1);
           };
+
+          // Browsers start the WebAudio context suspended and only allow it to
+          // resume after a user gesture. Without this, ALL audio (including video
+          // sound) stays silent. Resume Unity's audio context on the first click /
+          // key / touch anywhere on the page (capture phase so it also catches
+          // clicks on the Unity canvas, e.g. the "Begin Experiment" button).
+          var resumeUnityAudio = function () {
+            try {
+              var m = unityInstance.Module;
+              var ctx = m && m.WEBAudio && m.WEBAudio.audioContext;
+              if (ctx && ctx.state === "suspended") {
+                ctx.resume();
+              }
+            } catch (e) { /* ignore */ }
+          };
+          ["pointerdown", "mousedown", "touchstart", "keydown"].forEach(function (evt) {
+            document.addEventListener(evt, resumeUnityAudio, true);
+          });
         }).catch((message) => {
           alert(message);
         });

@@ -49,4 +49,20 @@ mergeInto(LibraryManager.library, {
             console.warn("PsiturkPlugin.NoRefresh skipped: psiturk is not available.");
         }
     },
+
+    // Browsers start the WebAudio context suspended and only allow it to resume
+    // after a user gesture. Until that happens ALL audio (sound effects AND video
+    // sound) is silent. Call this from C# inside a click handler (e.g. the Begin
+    // Experiment button) so the resume happens within the user gesture. This works
+    // regardless of which HTML page hosts the build (default index.html or exp.html).
+    ResumeAudioContext: function() {
+        try {
+            if (typeof WEBAudio !== "undefined" && WEBAudio.audioContext &&
+                WEBAudio.audioContext.state === "suspended") {
+                WEBAudio.audioContext.resume();
+            }
+        } catch (error) {
+            console.warn("PsiturkPlugin.ResumeAudioContext failed; continuing without blocking.", error);
+        }
+    },
 });

@@ -1,9 +1,17 @@
 ﻿using UnityEngine;
 using UnityEngine.SceneManagement;
 using Luminosity.IO;
+using System.Runtime.InteropServices;
 
 public class BeginExperiment : MonoBehaviour
 {
+#if UNITY_WEBGL && !UNITY_EDITOR
+    [DllImport("__Internal")]
+    private static extern void ResumeAudioContext();
+#else
+    private static void ResumeAudioContext() { }
+#endif
+
     public UnityEngine.GameObject greyedOutButton;
     public UnityEngine.GameObject beginExperimentButton;
     public UnityEngine.GameObject loadingButton;
@@ -239,6 +247,8 @@ public class BeginExperiment : MonoBehaviour
 #if UNITY_WEBGL && !UNITY_EDITOR
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
+        Screen.fullScreen = true;   // enter fullscreen on the Begin click (valid user gesture)
+        ResumeAudioContext();       // unlock WebAudio within the same gesture so all audio (incl. video) can play
 #endif // UNITY_WEBGL
         SceneManager.LoadScene(scene_name);
     }

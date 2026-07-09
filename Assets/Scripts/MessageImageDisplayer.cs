@@ -22,6 +22,7 @@ public class MessageImageDisplayer : MonoBehaviour
     public GameObject[] online_value_instruction_messages_en;
     public GameObject[] value_instruction_messages_en;
     public GameObject[] music_video_prompts;
+    public GameObject[] online_full_value_instructions;
 
     public GameObject please_find_the_blah;
     public Text please_find_the_blah_text;

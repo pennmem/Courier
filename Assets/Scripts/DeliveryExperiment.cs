@@ -2219,9 +2219,7 @@ public class DeliveryExperiment : CoroutineExperiment
         {
             if (sessionNumber == 0)
             {
-                yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
-                                    LanguageSource.GetLanguageString("standard intro video"),
-                                    VideoSelector.VideoType.vcInstructionsVideo);
+                yield return DoFullInstructions();
             }
             else
             {
@@ -2245,12 +2243,32 @@ public class DeliveryExperiment : CoroutineExperiment
                                       LanguageSource.GetLanguageString("recording confirmation"));
 #endif // !UNITY_WEBGL
     }
+  
+    private IEnumerator DoSlideshow(GameObject[] messages)
+    {
+        if (DEBUG)
+        {
+            Debug.Log("Beginning Slideshow");
+        }
+        foreach (var message in messages)
+            yield return messageImageDisplayer.DisplayMessage(message);
+    }
+
+private IEnumerator DoFullInstructions()
+    {
+        if (DEBUG)
+        {
+            Debug.Log("Finding Full Instructions");
+        }
+        GameObject[] messages = messageImageDisplayer.online_full_value_instructions;
+        yield return DoSlideshow(messages);
+    }
 
     private IEnumerator DoRecapInstructions(bool forceFR = false, bool recap = false)
     {
         if (DEBUG)
         {
-            Debug.Log("Beginning Recap Instructions");
+            Debug.Log("Finding Recap Instructions");
         }
         GameObject[] messages;
 
@@ -2265,55 +2283,7 @@ public class DeliveryExperiment : CoroutineExperiment
                           messageImageDisplayer.value_instruction_messages_en
                         : messageImageDisplayer.recap_instruction_messages_fr_en;
 
-        // LC: if you want them to go back and forth...?
-        foreach (var message in messages)
-            yield return messageImageDisplayer.DisplayMessage(message);
-        // if (recap)
-        // {
-        //     // LC: prevent left and right arrow key from actually moving the player in the background
-        //     playerMovement.Freeze();
-        //     int lastpage = messages.Length - 1;
-        //     int currpage = 0;
-        //     int prevpage = 0;
-
-        //     while ((currpage != lastpage) || !InputManager.GetButtonDown("Continue"))
-        //     {
-        //         if (InputManager.GetButtonDown("Secret"))
-        //             break;
-
-        //         if (InputManager.GetButtonDown("UI_Left") || InputManager.GetButtonDown("EfrLeft") || InputManager.GetButtonDown("Continue"))
-        //         {
-        //             prevpage = currpage;
-        //             currpage = Math.Max(currpage - 1, 0);
-        //         }
-        //         if (InputManager.GetButtonDown("UI_Right") || InputManager.GetButtonDown("EfrRight"))
-        //         {
-        //             prevpage = currpage;
-        //             currpage = Math.Min(currpage + 1, lastpage);
-        //         }
-
-        //         if ((currpage == lastpage) && InputManager.GetButton("EfrReject"))
-        //         {
-        //             messages[currpage].SetActive(false);
-        //             yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
-        //                                 LanguageSource.GetLanguageString("standard intro video"),
-        //                                 VideoSelector.VideoType.efrRecapVideo);
-        //             messages[currpage].SetActive(true);
-        //         }
-        //         messages[prevpage].SetActive(false);
-        //         messages[currpage].SetActive(true);
-
-        //         yield return null;
-        //     }
-        //     messages[currpage].SetActive(false);
-
-        //     playerMovement.Unfreeze();
-        // }
-        // else
-        // {
-        //     foreach (var message in messages)
-        //         yield return messageImageDisplayer.DisplayMessage(message);
-        // }
+        yield return DoSlideshow(messages);
     }
 
     private IEnumerator DoFamiliarization()

@@ -24,12 +24,12 @@ public static class LanguageSource
         { "rating improved", new string[] {"Your rating improved!", "Ihre Wertung hat sich verbessert!"} },
         //{ "you now have", new string[] {"You now have points: ", "Aktuelle Punktzahl: "} },
         //{ "you earn points", new string[] {"You earned points: ", "Verdiente Punkte: "} },
-        { "continue", new string[] {"press (A) to continue.", "Drücken Sie (X) um fortzufahren."} },
-        { "start", new string[] { "press (A) to start.", GERMAN_TRANSLATION_NEEDED } },
+        { "continue", new string[] {"press (X) to continue.", "Drücken Sie (X) um fortzufahren."} },
+        { "start", new string[] { "press (X) to start.", GERMAN_TRANSLATION_NEEDED } },
         { "no continue", new string[] {"", ""} },
         { "please point", new string[] {"Please point to the ", "Bitte richten Sie den Pfeil aus auf "} },
-        { "joystick", new string[] {"Use the joystick to adjust the arrow, then press (A) to continue.", "Nutzen Sie den Joystick um den Pfeil zu rotieren und (X) um zu bestätigen."} },
-        { "keyboard", new string[] {"Use Arrow keys to adjust the arrow, then press (A) to continue", GERMAN_TRANSLATION_NEEDED} },
+        { "joystick", new string[] {"Use the joystick to adjust the arrow, then press (X) to continue.", "Nutzen Sie den Joystick um den Pfeil zu rotieren und (X) um zu bestätigen."} },
+        { "keyboard", new string[] {"Use Arrow keys to adjust the arrow, then press (X) to continue", GERMAN_TRANSLATION_NEEDED} },
         { "wrong by", new string[] {"Not quite. The arrow will now show the exact direction. That was off by degrees: ", "Nicht ganz! Der Pfeil zeigt Ihnen nur die richtige Richtung. Abweichung in Grad zur korrekten Antwort: "} },
         { "correct to within", new string[] {"Good! That was correct to within degrees: ", "Fast perfekt! Abweichung in Grad zur korrekten Antwort: "} },
         { "incorrect pointing", new string[] {"Not quite. ", GERMAN_TRANSLATION_NEEDED} },
@@ -46,8 +46,8 @@ public static class LanguageSource
 
         { "nicls movie", new string[] { "Now we will return to the memory task.\nPress (Y) to continue.", GERMAN_TRANSLATION_NEEDED } },
 
-        { "next day", new string[] { "press (A) to proceed to the next delivery day.", "Drücken Sie (X) um die nächste Auslieferungsrunde zu starten." } },
-        { "next practice day", new string[] { "press (A) to proceed to the next practice delivery day.",
+        { "next day", new string[] { "press (X) to proceed to the next delivery day.", "Drücken Sie (X) um die nächste Auslieferungsrunde zu starten." } },
+        { "next practice day", new string[] { "press (X) to proceed to the next practice delivery day.",
                                               "Drücken Sie (X) um die nächste trainier Auslieferungsrunde zu starten." } },
 
         { "one btn efr intro video", new string[] { "Press (Y) to continue to the next delivery day, \n Press (N) to replay instructional video.",
@@ -64,7 +64,7 @@ public static class LanguageSource
                                                    GERMAN_TRANSLATION_NEEDED } },
         { "frame test end title", new string [] { "Your average FPS was ", GERMAN_TRANSLATION_NEEDED } },
         { "frame test end pass", new string [] { "You passed our initial FPS check! However, if you experienced any significant lag, you will likely take longer than average to complete the task. However, we can only pay a fixed rate for task completion, regardless of time taken." + "\n" +
-                                                 "If your connection was strong and you wish to continue, press (A)." + "\n" +
+                                                 "If your connection was strong and you wish to continue, press (X)." + "\n" +
                                                  "Otherwise, close the window to exit the experiment.", GERMAN_TRANSLATION_NEEDED } },
         { "frame test end fail", new string [] { "Unfortunately, we require a minimum frame rate of 30 per second for our task to run smoothly. \n Please restart the experiment with better computing environment, or return the HIT.",
                                                  GERMAN_TRANSLATION_NEEDED } },

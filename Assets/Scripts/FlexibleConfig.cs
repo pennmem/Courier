@@ -11,7 +11,7 @@ using UnityEngine.Networking;
 
 public class Config
 {
-    public static string experimentConfigName = "VCOnline";
+    public static string experimentConfigName = "VCBehOnly";
     public static string onlineSystemConfigText = null;
     public static string onlineExperimentConfigText = null;
     // LC: TODO: COME UP WITH A BETTER WAY
@@ -111,7 +111,6 @@ public class Config
     public static int newEfrKeypressPractices { get { return (int)Config.GetSetting("newEfrKeypressPractices"); } }
 
     private const string SYSTEM_CONFIG_NAME = "config.json";
-    private const string ONLINE_EXPERIMENT_CONFIG_NAME = "ValueCourier.json";
 
     private static IDictionary<string, object> systemConfig = null;
     private static IDictionary<string, object> experimentConfig = null;
@@ -172,7 +171,7 @@ public class Config
 
     private static string GetOnlineExperimentConfigPath()
     {
-        return Path.Combine(Application.streamingAssetsPath, ONLINE_EXPERIMENT_CONFIG_NAME);
+        return Path.Combine(Application.streamingAssetsPath, experimentConfigName + ".json");
     }
 
     private static void ThrowConfigError(string message)

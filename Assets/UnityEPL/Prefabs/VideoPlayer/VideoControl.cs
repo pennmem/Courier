@@ -80,6 +80,19 @@ public class VideoControl : MonoBehaviour
             return;
         }
 
+        // Configure audio routing here, where the GameObject is guaranteed active (SetVideo runs
+        // while this object is disabled, so audio settings applied there don't take effect on WebGL).
+        // WebGL supports only None/Direct output modes and needs an explicit controlled track that is
+        // enabled and unmuted - it does NOT report audioTrackCount, so we force track 0 unconditionally.
+        videoPlayer.audioOutputMode = VideoAudioOutputMode.Direct;
+        videoPlayer.controlledAudioTrackCount = 1;
+        videoPlayer.EnableAudioTrack(0, true);
+        videoPlayer.SetDirectAudioMute(0, false);
+        videoPlayer.SetDirectAudioVolume(0, 1f);
+        Debug.Log("[FLOW] VideoControl audio: outputMode=" + videoPlayer.audioOutputMode
+                  + " controlled=" + videoPlayer.controlledAudioTrackCount
+                  + " audioTrackCount=" + videoPlayer.audioTrackCount);
+
         playRequestTime = Time.unscaledTime;
         videoPlayer.Play();
     }

@@ -8,8 +8,11 @@ public class BeginExperiment : MonoBehaviour
 #if UNITY_WEBGL && !UNITY_EDITOR
     [DllImport("__Internal")]
     private static extern void ResumeAudioContext();
+    [DllImport("__Internal")]
+    private static extern void LogWebAudioState(string tag);
 #else
     private static void ResumeAudioContext() { }
+    private static void LogWebAudioState(string tag) { }
 #endif
 
     public UnityEngine.GameObject greyedOutButton;
@@ -248,7 +251,9 @@ public class BeginExperiment : MonoBehaviour
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
         Screen.fullScreen = true;   // enter fullscreen on the Begin click (valid user gesture)
+        LogWebAudioState("beginBefore");
         ResumeAudioContext();       // unlock WebAudio within the same gesture so all audio (incl. video) can play
+        LogWebAudioState("beginAfter");
 #endif // UNITY_WEBGL
         SceneManager.LoadScene(scene_name);
     }

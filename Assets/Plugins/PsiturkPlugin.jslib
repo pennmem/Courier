@@ -65,4 +65,44 @@ mergeInto(LibraryManager.library, {
             console.warn("PsiturkPlugin.ResumeAudioContext failed; continuing without blocking.", error);
         }
     },
+
+    // Diagnostic: log the current WebAudio context state (suspended / running / n/a) with a caller
+    // tag. Direct-mode video audio on WebGL flows through this same context, so seeing "running" at
+    // "videoStart" confirms the audio path is unlocked when the intro video plays.
+    LogWebAudioState: function(tag) {
+        try {
+            var state = (typeof WEBAudio !== "undefined" && WEBAudio.audioContext)
+                ? WEBAudio.audioContext.state : "n/a";
+            console.log("[FLOW] WebAudio state @" + UTF8ToString(tag) + " = " + state);
+        } catch (error) {
+            console.warn("PsiturkPlugin.LogWebAudioState failed; continuing without blocking.", error);
+        }
+    },
+
+    // Returns 1 only when the WebAudio context has fully transitioned to "running". resume() is
+    // async, so C# polls this after ResumeAudioContext() to hold the first video until its audio
+    // path is actually unlocked (otherwise the first play is silent and only replays have sound).
+    IsWebAudioRunning: function() {
+        try {
+            return (typeof WEBAudio !== "undefined" && WEBAudio.audioContext &&
+                    WEBAudio.audioContext.state === "running") ? 1 : 0;
+        } catch (error) {
+            return 0;
+        }
+    },
+
+    // Unity may create the WebGL <video> element muted (or the browser autoplay policy mutes it) so
+    // the picture plays with no sound. Once the user has interacted, force every <video> element
+    // audible. Safe no-op if the video audio actually routes through WEBAudio instead of the element.
+    UnmuteVideoElements: function() {
+        try {
+            var vids = document.getElementsByTagName("video");
+            for (var i = 0; i < vids.length; i++) {
+                vids[i].muted = false;
+                vids[i].volume = 1.0;
+            }
+        } catch (error) {
+            console.warn("PsiturkPlugin.UnmuteVideoElements failed; continuing without blocking.", error);
+        }
+    },
 });

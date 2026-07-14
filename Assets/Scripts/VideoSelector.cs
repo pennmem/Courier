@@ -126,13 +126,12 @@ public class VideoSelector : MonoBehaviour
         if ((videoPlayer.source == VideoSource.VideoClip && videoPlayer.clip != null) ||
             (videoPlayer.source == VideoSource.Url && !string.IsNullOrEmpty(videoPlayer.url)))
         {
-            // WebGL only supports None/Direct output modes (AudioSource mode is ignored). The full
-            // audio routing (controlled track enabled + unmuted) is set in VideoControl.StartVideo,
-            // where the GameObject is active; setting it here would be lost because SetVideo runs
-            // while the VideoPlayer is disabled ("Cannot Prepare a disabled VideoPlayer").
+            // WebGL only supports None/Direct output modes (AudioSource mode is ignored). Audio
+            // routing AND Prepare() now happen in VideoControl.StartVideoAndWait, where the GameObject
+            // is active. Calling Prepare() here would fail ("Cannot Prepare a disabled VideoPlayer")
+            // because SetVideo runs while the VideoPlayer is disabled, so the media was never actually
+            // prepared before playback - which left the first (uncached) WebGL play silent.
             videoPlayer.audioOutputMode = VideoAudioOutputMode.Direct;
-
-            videoPlayer.Prepare();
         }
     }
 

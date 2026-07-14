@@ -2219,7 +2219,9 @@ public class DeliveryExperiment : CoroutineExperiment
         {
             if (sessionNumber == 0)
             {
-                yield return DoFullInstructions();
+                yield return DoVideo(LanguageSource.GetLanguageString("play movie"),
+                                    LanguageSource.GetLanguageString("standard intro video"),
+                                    VideoSelector.VideoType.vcInstructionsVideo);
             }
             else
             {
@@ -3411,6 +3413,19 @@ private IEnumerator DoFullInstructions()
             if (int.TryParse(inputField.text, out _))
             {
                 // Numeric input is wrong for text recall
+                var numericWrongText = freeRecallWrongType.GetComponentInChildren<UnityEngine.UI.Text>();
+                if (numericWrongText != null)
+                    numericWrongText.text = "Please type a word, not a number.";
+                freeRecallWrongType.SetActive(true);
+                continue;
+            }
+
+            if (string.IsNullOrWhiteSpace(inputField.text))
+            {
+                // Nothing typed — show an error, do not log a recall
+                var emptyWrongText = freeRecallWrongType.GetComponentInChildren<UnityEngine.UI.Text>();
+                if (emptyWrongText != null)
+                    emptyWrongText.text = "Please type a word before pressing enter.";
                 freeRecallWrongType.SetActive(true);
                 continue;
             }

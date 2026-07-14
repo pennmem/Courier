@@ -7,10 +7,23 @@ using Luminosity.IO;
 using System;
 using System.IO;
 using UnityEngine.Networking;
+using System.Runtime.InteropServices;
 
 public abstract class CoroutineExperiment : MonoBehaviour
 {
     private const int MICROPHONE_TEST_LENGTH = 5;
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+    [DllImport("__Internal")] private static extern void ResumeAudioContext();
+    [DllImport("__Internal")] private static extern int IsWebAudioRunning();
+    [DllImport("__Internal")] private static extern void LogWebAudioState(string tag);
+    [DllImport("__Internal")] private static extern void UnmuteVideoElements();
+#else
+    private static void ResumeAudioContext() { }
+    private static int IsWebAudioRunning() { return 1; }
+    private static void LogWebAudioState(string tag) { }
+    private static void UnmuteVideoElements() { }
+#endif
 #if !(UNITY_WEBGL && !UNITY_EDITOR)
         public SoundRecorder soundRecorder;
 #endif
@@ -145,7 +158,31 @@ public abstract class CoroutineExperiment : MonoBehaviour
             videoSelector.SetVideo(videoType, videoIndex);
             Debug.Log("Starting video " + videoType.ToString() + " " + videoIndex.ToString());
             scriptedEventReporter.ReportScriptedEvent("start video", new Dictionary<string, object> { { "video number", videoIndex } });
-            videoPlayer.StartVideo();
+#if UNITY_WEBGL && !UNITY_EDITOR
+            // The browser resumes the WebAudio context asynchronously; if the video starts before it
+            // reaches "running", the first play is silent (only replays have sound, because the resume
+            // has finished by then). Kick a resume right after the PressAnyKey gesture and wait (capped)
+            // until the context is actually running so the very first play has audio. On replays it is
+            // already running, so this returns immediately.
+            ResumeAudioContext();
+            LogWebAudioState("preVideo");
+            float audioResumeStart = Time.unscaledTime;
+            while (IsWebAudioRunning() == 0 && Time.unscaledTime - audioResumeStart < 3f)
+                yield return null;
+            LogWebAudioState("preVideoAfterWait");
+#endif
+            yield return videoPlayer.StartVideoAndWait();
+#if UNITY_WEBGL && !UNITY_EDITOR
+            // Belt-and-suspenders: if the browser autoplay policy muted the underlying <video>
+            // element, unmute it now that we have user activation. Harmless if audio routes through
+            // WEBAudio instead. The element appears asynchronously, so repeat briefly after play starts.
+            float unmuteStart = Time.unscaledTime;
+            while (videoPlayer.IsPlaying() && Time.unscaledTime - unmuteStart < 1f)
+            {
+                UnmuteVideoElements();
+                yield return null;
+            }
+#endif
             while (videoPlayer.IsPlaying())
                 yield return null;
             scriptedEventReporter.ReportScriptedEvent("stop video", new Dictionary<string, object> { { "video number", videoIndex } });

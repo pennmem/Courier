@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Luminosity.IO;
 using UnityEngine.Video;
+using System.Runtime.InteropServices;
 
 public class VideoControl : MonoBehaviour
 {
@@ -14,6 +15,13 @@ public class VideoControl : MonoBehaviour
     private bool isPlayingVideo;
     private bool playbackError;
     private float playRequestTime;
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+    [DllImport("__Internal")]
+    private static extern void LogWebAudioState(string tag);
+#else
+    private static void LogWebAudioState(string tag) { }
+#endif
 
     void OnEnable()
     {
@@ -65,33 +73,49 @@ public class VideoControl : MonoBehaviour
     }
 
 
-    public void StartVideo()
+    public IEnumerator StartVideoAndWait()
     {
-        Debug.Log("[FLOW] VideoControl.StartVideo. source=" + videoPlayer.source + " clip=" + (videoPlayer.clip != null ? videoPlayer.clip.name : "<null>") + " url='" + videoPlayer.url + "'");
+        Debug.Log("[FLOW] VideoControl.StartVideoAndWait. source=" + videoPlayer.source + " clip=" + (videoPlayer.clip != null ? videoPlayer.clip.name : "<null>") + " url='" + videoPlayer.url + "'");
         playbackError = false;
         isPlayingVideo = true;
+        videoPlayer.playOnAwake = false;   // we drive Play() explicitly; avoid an auto-play race on enable
         gameObject.SetActive(true);
+        playRequestTime = Time.unscaledTime;   // start the Update() watchdog clock; covers Prepare + Play
 
         if ((videoPlayer.source == VideoSource.VideoClip && videoPlayer.clip == null) ||
             (videoPlayer.source == VideoSource.Url && string.IsNullOrEmpty(videoPlayer.url)))
         {
-            Debug.LogWarning("[FLOW] VideoControl StartVideo called without a configured clip or URL; skipping video.");
+            Debug.LogWarning("[FLOW] VideoControl StartVideoAndWait called without a configured clip or URL; skipping video.");
             FinishVideo();
-            return;
+            yield break;
         }
 
-        // Configure audio routing here, where the GameObject is guaranteed active (SetVideo runs
-        // while this object is disabled, so audio settings applied there don't take effect on WebGL).
-        // WebGL supports only None/Direct output modes and needs an explicit controlled track that is
-        // enabled and unmuted - it does NOT report audioTrackCount, so we force track 0 unconditionally.
+        // Configure audio routing here, where the GameObject is active (SetVideo runs while this
+        // object is disabled, so settings applied there don't take effect). These MUST be set before
+        // Prepare() so the audio track is included in preparation. WebGL supports only None/Direct
+        // output modes and does not report audioTrackCount, so we force track 0 unconditionally.
         videoPlayer.audioOutputMode = VideoAudioOutputMode.Direct;
         videoPlayer.controlledAudioTrackCount = 1;
         videoPlayer.EnableAudioTrack(0, true);
         videoPlayer.SetDirectAudioMute(0, false);
         videoPlayer.SetDirectAudioVolume(0, 1f);
-        Debug.Log("[FLOW] VideoControl audio: outputMode=" + videoPlayer.audioOutputMode
+
+        // Prepare while ENABLED and wait until the media (including its audio track) is loaded before
+        // Play(). Playing an unprepared URL video wires up no audio on WebGL (audioTrackCount=0 at play
+        // time), which is why the first, uncached play was silent while cached replays had sound.
+        videoPlayer.Prepare();
+        float prepStart = Time.unscaledTime;
+        while (!videoPlayer.isPrepared && !playbackError && Time.unscaledTime - prepStart < PLAYBACK_START_TIMEOUT)
+            yield return null;
+
+        Debug.Log("[FLOW] VideoControl prepared=" + videoPlayer.isPrepared
+                  + " outputMode=" + videoPlayer.audioOutputMode
                   + " controlled=" + videoPlayer.controlledAudioTrackCount
                   + " audioTrackCount=" + videoPlayer.audioTrackCount);
+        LogWebAudioState("videoStart");
+
+        if (playbackError || !isPlayingVideo)
+            yield break;   // errored or finished during preparation; do not play
 
         playRequestTime = Time.unscaledTime;
         videoPlayer.Play();

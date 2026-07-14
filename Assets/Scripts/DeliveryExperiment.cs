@@ -3410,6 +3410,15 @@ private IEnumerator DoFullInstructions()
             if (!Input.GetKeyDown(KeyCode.Return))
                 continue;
 
+            // Log the Enter keystroke itself, regardless of whether it counts as a recall
+            Dictionary<string, object> enterKeyData = new Dictionary<string, object>();
+            enterKeyData.Add("trial number", trialNumber);
+            if (!String.IsNullOrEmpty(storeName))
+                enterKeyData.Add("store displayed", storeName);
+            enterKeyData.Add("typed response", inputField.text);
+            enterKeyData.Add("key", "Return");
+            scriptedEventReporter.ReportScriptedEvent("rec word typing", enterKeyData);
+
             if (int.TryParse(inputField.text, out _))
             {
                 // Numeric input is wrong for text recall

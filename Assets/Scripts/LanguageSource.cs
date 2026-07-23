@@ -36,7 +36,7 @@ public static class LanguageSource
         { "correct pointing", new string[] {"Good job! ", GERMAN_TRANSLATION_NEEDED} },
         { "all objects recall", new string[] {"Please recall all the items that you delivered.", GERMAN_TRANSLATION_NEEDED} },
         { "all stores recall", new string[] {"Please recall all the stores that you delivered items to.", GERMAN_TRANSLATION_NEEDED} },
-        { "end message", new string[] {"Thank you for being a great delivery person! Your bonus will be calculated and sent to you later.", "Vielen Dank für Ihre Teilnahme!"} },
+        { "end message", new string[] {"Thank you for being a great delivery person!", "Vielen Dank für Ihre Teilnahme!"} },
         { "end message scored", new string[] {"Thank you for being a great delivery person! Your cumulative score is: ", "Vielen Dank für Ihre Teilnahme! Ihre abschließende Wertung ist: "} },
 
         { "standard intro video", new string[] { "Press (Y) to continue, \n Press (N) to replay instructional video.",
@@ -247,7 +247,8 @@ public static class LanguageSource
 
         {"deliv day pointing accuracy main", new string[] { "Good job! \n\nYou correctly pointed to {0} out of {1} stores in this delivery day.", GERMAN_TRANSLATION_NEEDED } },
         {"deliv day progress main", new string[] { "{0} out of {1} delivery days completed!!", GERMAN_TRANSLATION_NEEDED } },
-        {"earned_tips", new string[] { "You earned {0:C} based on your tip guess accuracy! \n Your word recall bonus will be calculated later. Thank you for playing!", "Sie haben {0:C} an Trinkgeld erhalten!" } }
+        {"earned_tips", new string[] { "You earned {0:C} based on your tip guess accuracy! \n Your word recall bonus will be calculated later. Thank you for playing!", "Sie haben {0:C} an Trinkgeld erhalten!" } },
+        {"bonus compensation", new string[] { "You earned a bonus of {0}! Thank you for playing!", GERMAN_TRANSLATION_NEEDED } }
     };
 
     public static string GetLanguageString(string string_name)

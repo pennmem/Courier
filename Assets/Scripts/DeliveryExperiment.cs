@@ -203,6 +203,8 @@ public class DeliveryExperiment : CoroutineExperiment
     private List<StoreComponent> thisTrialPresentedStores = new List<StoreComponent>();
     private StoreComponent previousTrialStore = null;
     private List<string> allPresentedObjects = new List<string>();
+    private HashSet<string> presentedWordsForBonus = new HashSet<string>();
+    private HashSet<string> recalledWordsForBonus = new HashSet<string>();
 
     List<NiclsClassifierType> niclsClassifierTypes = null;
 
@@ -1768,6 +1770,8 @@ public class DeliveryExperiment : CoroutineExperiment
         // ZR: proeprly instantiate rng object
         this.rng = new System.Random();
         this.allPresentedObjects = new List<string>();
+        this.presentedWordsForBonus = new HashSet<string>();
+        this.recalledWordsForBonus = new HashSet<string>();
 
         StartCoroutine(ExperimentCoroutine());
     }
@@ -2059,17 +2063,18 @@ public class DeliveryExperiment : CoroutineExperiment
             }
         }
 
+        // Ending Message
+        string endMessage = LanguageSource.GetLanguageString("end message");
+
         if (VALUE_COURIER)
         {
             double compensation = DoCompensation();
-            // GOT RID OF COMPENSATION MESSAge
-            // string[] formatValues = new string[] { compensation.ToString("C") };
-            // string formattedTips = LanguageSource.GetFormattableLanguageString("earned_tips", formatValues);
-            // textDisplayer.DisplayText("earned_tips", formattedTips);
+            double bonus = DoBonusCompensation(compensation);
+            string[] formatValues = new string[] { bonus.ToString("C") };
+            string bonusMessage = LanguageSource.GetFormattableLanguageString("bonus compensation", formatValues);
+            endMessage = bonusMessage + "\n\n" + endMessage;
             // Message will remain until experiment advances
         }
-        // Ending Message
-        string endMessage = LanguageSource.GetLanguageString("end message");
 
         // NICLS_COURIER
         //     ? LanguageSource.GetLanguageString("end message")
@@ -2698,6 +2703,8 @@ private IEnumerator DoFullInstructions()
                 AppendWordToLst(lstFilepath, deliveredItemName);
 #endif
                 allPresentedObjects.Add(deliveredItemName);
+                if (!practice)
+                    presentedWordsForBonus.Add(NormalizeWordForBonus(deliveredItemName));
 
                 // audioPlayback.clip = deliveredItem;
                 // audioPlayback.Play();
@@ -2921,6 +2928,28 @@ private IEnumerator DoFullInstructions()
         return list;
     }
 
+
+    // Normalize a word for bonus matching: lowercase, letters only
+    // (so "coffee_mug", "coffee-mug", and "coffeemug" all match)
+    private static string NormalizeWordForBonus(string w)
+    {
+        return new string(w.Where(char.IsLetter).ToArray()).ToLower();
+    }
+
+    private double DoBonusCompensation(double compensation)
+    {
+        int totalPresented = presentedWordsForBonus.Count;
+        int uniqueRecalled = recalledWordsForBonus.Count(w => presentedWordsForBonus.Contains(w));
+        double recallProbability = totalPresented > 0 ? (double)uniqueRecalled / totalPresented : 0.0;
+        double bonus = recallProbability * 5.0 + compensation;
+        scriptedEventReporter.ReportScriptedEvent("bonus compensation", new Dictionary<string, object>() {
+            { "recall probability", (float)recallProbability },
+            { "unique words recalled", uniqueRecalled },
+            { "total words presented", totalPresented },
+            { "value compensation", (float)compensation },
+            { "bonus compensation", (float)bonus } });
+        return bonus;
+    }
 
     private double DoCompensation()
     {
@@ -3439,6 +3468,25 @@ private IEnumerator DoFullInstructions()
                 continue;
             }
 
+            // Only allow alphabetic characters and hyphens
+            bool hasInvalidChar = false;
+            foreach (char c in inputField.text)
+            {
+                if (!char.IsLetter(c) && c != '-')
+                {
+                    hasInvalidChar = true;
+                    break;
+                }
+            }
+            if (hasInvalidChar)
+            {
+                var invalidCharText = freeRecallWrongType.GetComponentInChildren<UnityEngine.UI.Text>();
+                if (invalidCharText != null)
+                    invalidCharText.text = "Please use only letters and hyphens.";
+                freeRecallWrongType.SetActive(true);
+                continue;
+            }
+
             freeRecallWrongType.SetActive(false);
 
             Dictionary<string, object> typedData = new Dictionary<string, object>();
@@ -3573,7 +3621,8 @@ private IEnumerator DoFullInstructions()
         scriptedEventReporter.ReportScriptedEvent("object recall recording stop", recordingData);
         soundRecorder.StopRecording();
 #else
-            yield return DoTypedFreeRecall(trialNumber, "free recall", FREE_RECALL_LENGTH, freeInputField, freeResponse);
+            yield return DoTypedFreeRecall(trialNumber, "free recall", FREE_RECALL_LENGTH, freeInputField, freeResponse,
+                practice ? (Action<string>)null : w => recalledWordsForBonus.Add(NormalizeWordForBonus(w)));
 #endif // !UNITY_WEBGL
 
         textDisplayer.ClearText();

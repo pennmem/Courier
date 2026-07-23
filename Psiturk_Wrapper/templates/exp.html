@@ -41,6 +41,31 @@
       var fullscreenButton = document.querySelector("#unity-fullscreen-button");
       var warningBanner = document.querySelector("#unity-warning");
 
+      // Participant identifiers from the URL query string (Prolific passes these), read by
+      // PsiturkPlugin.jslib when POSTing events to /save. Fall back to a generated id.
+      (function () {
+        var params = new URLSearchParams(window.location.search);
+        window.prolific_pid = params.get("PROLIFIC_PID") || params.get("prolific_pid")
+                              || params.get("workerId") || ("anon_" + Date.now());
+        window.study_id = params.get("STUDY_ID") || params.get("study_id") || "";
+        window.session_id = params.get("SESSION_ID") || params.get("session_id") || "";
+        if (!params.get("PROLIFIC_PID") && !params.get("prolific_pid")) {
+          console.warn("exp.html: no PROLIFIC_PID in URL; using generated id " + window.prolific_pid);
+        }
+      })();
+
+      // Shown by PsiturkPlugin.jslib EndTask() once the final /save completes. Replaces the
+      // Unity canvas with a plain "you're done, log off" message (or an error + contact).
+      window.showCourierEndScreen = function (success) {
+        document.body.innerHTML =
+          "<div style='color:#fff;background:#000;font-family:sans-serif;font-size:24px;" +
+          "text-align:center;padding-top:15%;height:100%;line-height:1.5;'>" +
+          (success
+            ? "Your data has been saved.<br><br>You are all done — you may now close this window and log off."
+            : "There was a problem saving your data.<br><br>Please email kahanalab@gmail.com.") +
+          "</div>";
+      };
+
       // Shows a temporary message banner/ribbon for a few seconds, or
       // a permanent error message on top of the canvas if type=='error'.
       // If type=='warning', a yellow highlight color is used.

@@ -2081,6 +2081,13 @@ public class DeliveryExperiment : CoroutineExperiment
         //     : LanguageSource.GetLanguageString("end message scored") + "\n\n" + starSystem.CumulativeRating().ToString("+#.##;-#.##");
         textDisplayer.DisplayText("end text", endMessage);
 
+        // On WebGL the remaining_items/ files aren't written to disk. Log the in-memory
+        // remaining-items map so fetch_courier.py can rebuild those files server-side.
+        var remainingItemsData = new Dictionary<string, object>();
+        foreach (var kv in DeliveryItems.GetAllRemainingItems())
+            remainingItemsData[kv.Key] = kv.Value;
+        scriptedEventReporter.ReportScriptedEvent("remaining items", remainingItemsData);
+
 #if !(UNITY_WEBGL && !UNITY_EDITOR) // Elemem
         // LC: ELEMEM
         if (HOSPITAL_COURIER)
@@ -2094,6 +2101,13 @@ public class DeliveryExperiment : CoroutineExperiment
                 WebGLInput.captureAllKeyboardInput = false;
 #endif // !UNITY_EDITOR
             yield return new WaitForSeconds(5.0f);
+
+            // Guarantee the last events (bonus, remaining items, end message) are handed to
+            // JS before EndTask() fires its final /save flush and shows the end screen.
+            WriteToDiskHandler diskHandler = FindObjectOfType<WriteToDiskHandler>();
+            if (diskHandler != null)
+                yield return diskHandler.DoWrite();
+
             EndTask();
 #endif // !UNITY_WEBGL
     }

@@ -299,6 +299,22 @@ public class DeliveryItems : MonoBehaviour
         return randomItem;
     }
 
+    // Returns the current remaining (unused) items per store across all active delivery
+    // sources. On WebGL the remaining_items/ files aren't written to disk, so this in-memory
+    // map is logged as a "remaining items" event at session end and rebuilt at fetch time.
+    public static Dictionary<string, List<string>> GetAllRemainingItems()
+    {
+        Dictionary<string, List<string>> allRemaining = new Dictionary<string, List<string>>();
+#if UNITY_WEBGL && !UNITY_EDITOR
+        foreach (DeliveryItems itemSource in activeDeliveryItemSources)
+        {
+            foreach (KeyValuePair<string, List<string>> kv in itemSource.remainingItems)
+                allRemaining[kv.Key] = new List<string>(kv.Value);
+        }
+#endif // UNITY_WEBGL && !UNITY_EDITOR
+        return allRemaining;
+    }
+
     public static bool ItemsExhausted()
     {
         #if !(UNITY_WEBGL && !UNITY_EDITOR) // System.IO

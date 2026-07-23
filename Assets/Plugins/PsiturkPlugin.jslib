@@ -1,40 +1,120 @@
 mergeInto(LibraryManager.library, {
 
+    // --- Data pipeline: batched POST to the psiTurk /save route (MySQL-backed) ---
+    //
+    // Each DataPoint arrives via AddData and is buffered in window.courierPending with a
+    // monotonic per-session sequence number. SaveData() (called by the Unity data handler
+    // every ~300 frames) POSTs the buffered batch to /save in the same shape the dirFRU
+    // experiment uses. A failed POST puts the batch back at the front of the buffer so the
+    // next flush retries it; seq numbers + the server row id/timestamp let fetch_courier.py
+    // recover a total order even if a retried batch lands late.
+    //
+    // Participant identifiers come from globals set by exp.html (parsed from URL query
+    // params). This path no longer depends on the psiTurk `psiturk` object.
+
     SaveData: function() {
-        if (typeof psiturk !== "undefined" && psiturk && typeof psiturk.saveData === "function") {
-            try {
-                psiturk.saveData();
-            } catch (error) {
-                console.warn("PsiturkPlugin.SaveData failed; continuing without blocking.", error);
-            }
-        } else {
-            console.warn("PsiturkPlugin.SaveData skipped: psiturk is not available.");
+        try {
+            if (typeof window.courierPending === "undefined") { window.courierPending = []; }
+            if (window.courierPending.length === 0) { return; }
+            if (window.courierSaveInFlight) { return; }
+
+            var batch = window.courierPending;
+            window.courierPending = [];
+            window.courierSaveInFlight = true;
+
+            var payload = {
+                prolific_pid: window.prolific_pid || "UNKNOWN_PID",
+                study_id: window.study_id || "",
+                session_id: window.session_id || "",
+                experiment: "VCBehOnly",
+                table_name: "vconline",
+                data: batch
+            };
+
+            fetch("/save", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            }).then(function(response) {
+                window.courierSaveInFlight = false;
+                if (!response.ok) {
+                    // Re-queue this batch ahead of anything newer so it retries next flush.
+                    window.courierPending = batch.concat(window.courierPending);
+                    console.warn("PsiturkPlugin.SaveData: /save returned HTTP " + response.status + "; will retry.");
+                }
+            }).catch(function(error) {
+                window.courierSaveInFlight = false;
+                window.courierPending = batch.concat(window.courierPending);
+                console.warn("PsiturkPlugin.SaveData: /save request failed; will retry.", error);
+            });
+        } catch (error) {
+            window.courierSaveInFlight = false;
+            console.warn("PsiturkPlugin.SaveData failed; continuing without blocking.", error);
         }
     },
 
     AddData: function(data) {
         var json = UTF8ToString(data);
-        if (typeof psiturk !== "undefined" && psiturk && typeof psiturk.recordTrialData === "function") {
-            try {
-                psiturk.recordTrialData([json]);
-            } catch (error) {
-                console.warn("PsiturkPlugin.AddData failed; logging locally instead.", error);
-                console.log("PsiturkPlugin.AddData:", json);
-            }
-        } else {
+        try {
+            if (typeof window.courierPending === "undefined") { window.courierPending = []; }
+            if (typeof window.courierSeq === "undefined") { window.courierSeq = 0; }
+            window.courierPending.push({ seq: window.courierSeq++, event: json });
+        } catch (error) {
+            console.warn("PsiturkPlugin.AddData failed; logging locally instead.", error);
             console.log("PsiturkPlugin.AddData:", json);
         }
     },
-    
+
+    // Final flush at end of session, then show the end screen. We fire one last POST of any
+    // buffered events (bypassing the in-flight guard so it always sends), then tell the page
+    // to display the "you're done, log off" screen. Success/failure toggles the message.
     EndTask: function() {
-        if (typeof Questionnaire === "function" && typeof psiturk !== "undefined" && psiturk) {
-            try {
-                Questionnaire(psiturk);
-            } catch (error) {
-                console.warn("PsiturkPlugin.EndTask failed; continuing without blocking.", error);
-            }
-        } else {
-            console.warn("PsiturkPlugin.EndTask skipped: Questionnaire or psiturk is not available.");
+        try {
+            if (typeof window.courierPending === "undefined") { window.courierPending = []; }
+            var batch = window.courierPending;
+            window.courierPending = [];
+
+            var finish = function(success) {
+                if (typeof window.showCourierEndScreen === "function") {
+                    try { window.showCourierEndScreen(success); }
+                    catch (e) { console.warn("PsiturkPlugin.EndTask: showCourierEndScreen failed.", e); }
+                } else {
+                    // Inline fallback if exp.html didn't define the end screen.
+                    try {
+                        document.body.innerHTML =
+                            "<div style='color:#fff;background:#000;font-family:sans-serif;" +
+                            "font-size:24px;text-align:center;padding-top:20%;height:100%;'>" +
+                            (success
+                                ? "Your data has been saved.<br><br>You are all done — you may now close this window and log off."
+                                : "There was a problem saving your data.<br><br>Please email kahanalab@gmail.com.") +
+                            "</div>";
+                    } catch (e) { /* nothing else we can do */ }
+                }
+            };
+
+            if (batch.length === 0) { finish(true); return; }
+
+            var payload = {
+                prolific_pid: window.prolific_pid || "UNKNOWN_PID",
+                study_id: window.study_id || "",
+                session_id: window.session_id || "",
+                experiment: "VCBehOnly",
+                table_name: "vconline",
+                data: batch
+            };
+
+            fetch("/save", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            }).then(function(response) {
+                finish(response.ok);
+            }).catch(function(error) {
+                console.warn("PsiturkPlugin.EndTask: final /save failed.", error);
+                finish(false);
+            });
+        } catch (error) {
+            console.warn("PsiturkPlugin.EndTask failed; continuing without blocking.", error);
         }
     },
 

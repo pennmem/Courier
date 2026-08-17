@@ -59,6 +59,22 @@ public class BeginExperiment : MonoBehaviour
 
     private const int WEBGL_SESSION_NUMBER = 0;
 
+    // Highest session a participant may run. Sessions are 0-indexed (NextSessionNumber returns
+    // WEBGL_SESSION_NUMBER = 0 online), so allowing 0 and 1 blocks "session 2 or above".
+    private const int MAX_ALLOWED_SESSION = 1;
+
+    // The error text is shown on the greyed-out button, which is already the "you cannot start"
+    // affordance, so no extra scene object needs wiring. Cached so it can be restored.
+    private UnityEngine.UI.Text greyedOutButtonText;
+    private LanguageSwitch greyedOutButtonLanguageSwitch;
+    private string greyedOutButtonDefaultText;
+    private bool greyedOutButtonTextCached;
+
+    private static string SessionTooHighMessage()
+    {
+        return "Cannot select session " + (MAX_ALLOWED_SESSION + 1).ToString() + " or above";
+    }
+
     private void OnEnable()
     {
         Cursor.lockState = CursorLockMode.None;
@@ -155,6 +171,7 @@ public class BeginExperiment : MonoBehaviour
             UnityEPL.SetSessionNumber(nextSessionNumber);
             sessionInput.text = nextSessionNumber.ToString();
             beginButtonText.text = LanguageSource.GetLanguageString("begin session") + " " + nextSessionNumber.ToString();
+            EnforceSessionLimit(nextSessionNumber);
         }
         else
         {
@@ -166,17 +183,65 @@ public class BeginExperiment : MonoBehaviour
 
     public void UpdateSession() {
         int session;
-         
+
         if(System.Int32.TryParse(sessionInput.text, out session)) {
             beginButtonText.text = LanguageSource.GetLanguageString("begin session") + " " + session.ToString();
             UnityEPL.SetSessionNumber(session);
             beginExperimentButton.SetActive(true);
             greyedOutButton.SetActive(false);
+            EnforceSessionLimit(session);
         }
         else {
             greyedOutButton.SetActive(true);
             beginExperimentButton.SetActive(false);
         }
+    }
+
+    // Returns true when the session may be run. When it may not, the Begin button is swapped for
+    // the greyed-out one carrying the error, so the experiment cannot be started.
+    private bool EnforceSessionLimit(int session)
+    {
+        if (session <= MAX_ALLOWED_SESSION)
+        {
+            SetGreyedOutButtonText(null);
+            return true;
+        }
+
+        beginExperimentButton.SetActive(false);
+        greyedOutButton.SetActive(true);
+        SetGreyedOutButtonText(SessionTooHighMessage());
+        return false;
+    }
+
+    // Passing null restores the button's normal label.
+    //
+    // The greyed-out button's Text carries a LanguageSwitch, which reassigns .text every frame in
+    // Update(). Setting the message alone would be overwritten before it ever rendered, so the
+    // component is disabled while the error is displayed and re-enabled afterwards (it restores
+    // the localized string itself on its next Update).
+    private void SetGreyedOutButtonText(string message)
+    {
+        if (!greyedOutButtonTextCached)
+        {
+            greyedOutButtonTextCached = true;
+            if (greyedOutButton != null)
+            {
+                greyedOutButtonText = greyedOutButton.GetComponentInChildren<UnityEngine.UI.Text>(true);
+                if (greyedOutButtonText != null)
+                {
+                    greyedOutButtonLanguageSwitch = greyedOutButtonText.GetComponent<LanguageSwitch>();
+                    greyedOutButtonDefaultText = greyedOutButtonText.text;
+                }
+            }
+        }
+
+        if (greyedOutButtonText == null)
+            return;
+
+        if (greyedOutButtonLanguageSwitch != null)
+            greyedOutButtonLanguageSwitch.enabled = (message == null);
+
+        greyedOutButtonText.text = message ?? greyedOutButtonDefaultText;
     }
 
 #if !(UNITY_WEBGL && !UNITY_EDITOR)
@@ -230,6 +295,15 @@ public class BeginExperiment : MonoBehaviour
             beginExperimentButton.SetActive(false);
 
             throw new UnityException("You are trying to start the experiment with an invalid session number!");
+        }
+
+        // Reachable if the session came from the launch URL (the field is locked in that case),
+        // so refuse here too rather than trusting the button state. Returning instead of throwing
+        // leaves the error on screen for the participant to read.
+        if (!EnforceSessionLimit(session)) {
+            loadingButton.SetActive(false);
+            Debug.LogError(SessionTooHighMessage() + " (requested session " + session + ")");
+            return;
         }
 
         UnityEPL.SetSessionNumber(session);

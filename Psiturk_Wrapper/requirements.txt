@@ -1,2 +1,3 @@
 PsiTurk
 psycopg2-binary
+pymysql

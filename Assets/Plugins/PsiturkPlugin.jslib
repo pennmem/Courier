@@ -9,9 +9,66 @@ mergeInto(LibraryManager.library, {
     // next flush retries it; seq numbers + the server row id/timestamp let fetch_courier.py
     // recover a total order even if a retried batch lands late.
     //
-    // Participant identifiers come from globals set by exp.html (parsed from URL query
-    // params). This path no longer depends on the psiTurk `psiturk` object.
+    // Participant identifiers are resolved by $courierGetIdentity below. They used to be read
+    // straight off globals set by the hosting page, which silently produced "UNKNOWN_PID" for
+    // every row when the deployed page turned out to be a stock Unity template with no
+    // identity block. Resolving here means the logic ships inside the WebGL bundle and cannot
+    // be lost to template drift. This path does not depend on the psiTurk `psiturk` object.
 
+    // Resolve participant identity once per page load and cache it on window.courierIdentity.
+    // Order: globals set by the hosting page -> URL query params -> sessionStorage -> generated.
+    // A value starting with "{{" is an unsubstituted Prolific placeholder, i.e. a misconfigured
+    // study URL; treat it as absent rather than writing it to the database.
+    $courierGetIdentity: function() {
+        if (window.courierIdentity) { return window.courierIdentity; }
+
+        var params;
+        try { params = new URLSearchParams(window.location.search); }
+        catch (e) { params = null; }
+
+        var ok = function(v) { return !!v && v.indexOf("{{") !== 0; };
+        var pick = function() {
+            for (var i = 0; i < arguments.length; i++) {
+                if (!params) { break; }
+                var v = params.get(arguments[i]);
+                if (ok(v)) { return v; }
+            }
+            return "";
+        };
+
+        var pid = ok(window.prolific_pid) ? window.prolific_pid
+                                          : pick("PROLIFIC_PID", "prolific_pid", "workerId");
+        if (!pid) {
+            // sessionStorage lets a mid-task reload keep the same identity.
+            try { pid = sessionStorage.getItem("courier_pid") || ""; } catch (e) { pid = ""; }
+        }
+        if (!pid) {
+            pid = "anon_" + Date.now();
+            window.courierIdentityFallback = true;
+            console.error("PsiturkPlugin: no PROLIFIC_PID available; using generated id " + pid);
+        }
+        try { sessionStorage.setItem("courier_pid", pid); } catch (e) { /* private mode */ }
+
+        var identity = {
+            prolific_pid: pid,
+            study_id:   ok(window.study_id)   ? window.study_id   : pick("STUDY_ID", "study_id"),
+            session_id: ok(window.session_id) ? window.session_id : pick("SESSION_ID", "session_id"),
+            // Distinguishes batches from separate page loads. courierSeq restarts at 0 on every
+            // load, so without this fetch_courier.py cannot tell two sessions apart and its
+            // dedupe-by-seq silently overwrites the earlier one.
+            load_token: pid + "_" + Date.now()
+        };
+
+        window.courierIdentity = identity;
+        window.prolific_pid = identity.prolific_pid;
+        window.study_id     = identity.study_id;
+        window.session_id   = identity.session_id;
+        console.log("PsiturkPlugin identity:", identity.prolific_pid, identity.study_id,
+                    identity.session_id, identity.load_token);
+        return identity;
+    },
+
+    SaveData__deps: ['$courierGetIdentity'],
     SaveData: function() {
         try {
             if (typeof window.courierPending === "undefined") { window.courierPending = []; }
@@ -22,13 +79,28 @@ mergeInto(LibraryManager.library, {
             window.courierPending = [];
             window.courierSaveInFlight = true;
 
+            var identity = courierGetIdentity();
             var payload = {
-                prolific_pid: window.prolific_pid || "UNKNOWN_PID",
-                study_id: window.study_id || "",
-                session_id: window.session_id || "",
+                prolific_pid: identity.prolific_pid,
+                study_id: identity.study_id,
+                session_id: identity.session_id,
+                load_token: identity.load_token,
                 experiment: "VCBehOnly",
                 table_name: "vconline",
                 data: batch
+            };
+
+            // Escalate warn -> error once failures stack up, so a wholly broken save path is
+            // impossible to miss in the console instead of looking like a normal session.
+            var noteFailure = function(reason) {
+                window.courierPending = batch.concat(window.courierPending);
+                window.courierSaveFailures = (window.courierSaveFailures || 0) + 1;
+                window.courierSaveLastError = reason;
+                var msg = "PsiturkPlugin.SaveData: " + reason + " (consecutive failures: " +
+                          window.courierSaveFailures + ", buffered events: " +
+                          window.courierPending.length + ")";
+                if (window.courierSaveFailures >= 3) { console.error(msg); }
+                else { console.warn(msg + "; will retry."); }
             };
 
             fetch("/save", {
@@ -37,15 +109,15 @@ mergeInto(LibraryManager.library, {
                 body: JSON.stringify(payload)
             }).then(function(response) {
                 window.courierSaveInFlight = false;
-                if (!response.ok) {
+                if (response.ok) {
+                    window.courierSaveFailures = 0;
+                } else {
                     // Re-queue this batch ahead of anything newer so it retries next flush.
-                    window.courierPending = batch.concat(window.courierPending);
-                    console.warn("PsiturkPlugin.SaveData: /save returned HTTP " + response.status + "; will retry.");
+                    noteFailure("/save returned HTTP " + response.status);
                 }
             }).catch(function(error) {
                 window.courierSaveInFlight = false;
-                window.courierPending = batch.concat(window.courierPending);
-                console.warn("PsiturkPlugin.SaveData: /save request failed; will retry.", error);
+                noteFailure("/save request failed: " + error);
             });
         } catch (error) {
             window.courierSaveInFlight = false;
@@ -68,13 +140,15 @@ mergeInto(LibraryManager.library, {
     // Final flush at end of session, then show the end screen. We fire one last POST of any
     // buffered events (bypassing the in-flight guard so it always sends), then tell the page
     // to display the "you're done, log off" screen. Success/failure toggles the message.
+    EndTask__deps: ['$courierGetIdentity'],
     EndTask: function() {
+        var finish = null;
         try {
             if (typeof window.courierPending === "undefined") { window.courierPending = []; }
             var batch = window.courierPending;
             window.courierPending = [];
 
-            var finish = function(success) {
+            finish = function(success) {
                 if (typeof window.showCourierEndScreen === "function") {
                     try { window.showCourierEndScreen(success); }
                     catch (e) { console.warn("PsiturkPlugin.EndTask: showCourierEndScreen failed.", e); }
@@ -92,29 +166,61 @@ mergeInto(LibraryManager.library, {
                 }
             };
 
-            if (batch.length === 0) { finish(true); return; }
+            // Only claim success once nothing is left buffered. Batches re-queued by earlier
+            // failed flushes are already back in courierPending, so checking this final POST
+            // alone would tell the participant their data was saved when it wasn't.
+            var settle = function(ok) {
+                finish(ok && window.courierPending.length === 0);
+            };
 
+            if (batch.length === 0) { settle(true); return; }
+
+            var identity = courierGetIdentity();
             var payload = {
-                prolific_pid: window.prolific_pid || "UNKNOWN_PID",
-                study_id: window.study_id || "",
-                session_id: window.session_id || "",
+                prolific_pid: identity.prolific_pid,
+                study_id: identity.study_id,
+                session_id: identity.session_id,
+                load_token: identity.load_token,
                 experiment: "VCBehOnly",
                 table_name: "vconline",
                 data: batch
             };
 
-            fetch("/save", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
-            }).then(function(response) {
-                finish(response.ok);
-            }).catch(function(error) {
-                console.warn("PsiturkPlugin.EndTask: final /save failed.", error);
-                finish(false);
-            });
+            // The participant leaves after this screen, so retry a few times before giving up
+            // rather than discarding the tail of the session on one transient failure.
+            var attempt = function(triesLeft) {
+                fetch("/save", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                }).then(function(response) {
+                    if (response.ok) { settle(true); return; }
+                    if (triesLeft > 0) {
+                        console.warn("PsiturkPlugin.EndTask: final /save returned HTTP " +
+                                     response.status + "; retrying.");
+                        setTimeout(function() { attempt(triesLeft - 1); }, 1000);
+                    } else {
+                        console.error("PsiturkPlugin.EndTask: final /save returned HTTP " +
+                                      response.status + "; giving up.");
+                        window.courierPending = batch.concat(window.courierPending);
+                        settle(false);
+                    }
+                }).catch(function(error) {
+                    if (triesLeft > 0) {
+                        console.warn("PsiturkPlugin.EndTask: final /save failed; retrying.", error);
+                        setTimeout(function() { attempt(triesLeft - 1); }, 1000);
+                    } else {
+                        console.error("PsiturkPlugin.EndTask: final /save failed; giving up.", error);
+                        window.courierPending = batch.concat(window.courierPending);
+                        settle(false);
+                    }
+                });
+            };
+            attempt(2);
         } catch (error) {
-            console.warn("PsiturkPlugin.EndTask failed; continuing without blocking.", error);
+            console.error("PsiturkPlugin.EndTask failed.", error);
+            // Without this the participant is left staring at a frozen canvas.
+            if (finish) { try { finish(false); } catch (e) { /* nothing else we can do */ } }
         }
     },
 

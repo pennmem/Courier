@@ -99,3 +99,7 @@ TAGS
 TAGS.meta
 Assets/Video/New Courier Instructions/cued_recall_video.mp4.meta
 Assets/Video/New Courier Instructions/ValueCourier3.mp4
+
+# Python bytecode (stale committed .pyc files previously masked which custom.py was deployed)
+__pycache__/
+*.pyc

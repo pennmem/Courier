@@ -1,4 +1,16 @@
 <!DOCTYPE html>
+<!--
+  NOT THE PAGE PARTICIPANTS SEE. The live study is served as a static Unity build at
+  http://cmlpsiturk.compmemlab.org:9000/exp/VCOnline/ , which bypasses psiTurk's /exp route
+  and these templates entirely. The deployed page lives at ../deploy/VCOnline_index.html --
+  edit that one.
+
+  This template is also stale: it loads /static/js/Unity/build/Build/build.loader.js, while
+  the deployed build is Build/VCOnline.*. Kept only for psiTurk's /exp route. If you revive
+  it, port the identity block from ../deploy/VCOnline_index.html, and note that `new PsiTurk`
+  below throws unless the page is rendered through Flask (the Jinja placeholders must be
+  substituted), which aborts the rest of this script block including the Unity loader.
+-->
 <html lang="en-us">
   <head>
     <meta charset="utf-8">

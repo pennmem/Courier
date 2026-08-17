@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Unity WebGL Player | DeliveryBoyUnity</title>
+  </head>
+  <body style="text-align: center; padding: 0; border: 0; margin: 0;">
+    <canvas id="unity-canvas" width=1920 height=1080 style="width: 1920px; height: 1080px; background: #231F20"></canvas>
+
+    <!--
+      This is the page actually served at http://cmlpsiturk.compmemlab.org:9000/exp/VCOnline/.
+      It is a static Unity WebGL template; it does NOT go through psiTurk's /exp route or the
+      Jinja templates in ../templates/. Keep this file in sync with the deployed copy — the
+      version that shipped had no identity block at all, which is why every row in the
+      `vconline` table landed under prolific_pid = "UNKNOWN_PID".
+
+      Must run BEFORE the Unity loader: PsiturkPlugin.jslib reads window.prolific_pid /
+      study_id / session_id when it POSTs to /save.
+    -->
+    <script>
+      (function () {
+        var p = new URLSearchParams(window.location.search);
+
+        // Return the first param that is present and not an unsubstituted Prolific
+        // placeholder (a misconfigured study sends the literal "{{%PROLIFIC_PID%}}").
+        var pick = function () {
+          for (var i = 0; i < arguments.length; i++) {
+            var v = p.get(arguments[i]);
+            if (v && v.indexOf("{{") !== 0) return v;
+          }
+          return "";
+        };
+
+        var pid = pick("PROLIFIC_PID", "prolific_pid", "workerId");
+        if (!pid) {
+          // sessionStorage lets a mid-task reload keep the same identity.
+          pid = sessionStorage.getItem("courier_pid") || ("anon_" + Date.now());
+          console.error("Courier: no PROLIFIC_PID in URL; using " + pid);
+          window.courierIdentityFallback = true;
+        }
+        try { sessionStorage.setItem("courier_pid", pid); } catch (e) { /* private mode */ }
+
+        window.prolific_pid = pid;
+        window.study_id     = pick("STUDY_ID", "study_id");
+        window.session_id   = pick("SESSION_ID", "session_id");
+        console.log("Courier identity:", pid, window.study_id, window.session_id);
+      })();
+
+      // Called by PsiturkPlugin.jslib EndTask() once the final /save completes.
+      window.showCourierEndScreen = function (success) {
+        document.body.innerHTML =
+          "<div style='color:#fff;background:#000;font-family:sans-serif;font-size:24px;" +
+          "text-align:center;padding-top:15%;height:100%;line-height:1.5;'>" +
+          (success
+            ? "Your data has been saved.<br><br>You are all done — you may now close this window and log off."
+            : "There was a problem saving your data.<br><br>Please email kahanalab@gmail.com.") +
+          "</div>";
+      };
+    </script>
+
+    <script src="Build/VCOnline.loader.js"></script>
+    <script>
+      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        // Mobile device style: fill the whole browser client area with the game canvas:
+        var meta = document.createElement('meta');
+        meta.name = 'viewport';
+        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+        document.getElementsByTagName('head')[0].appendChild(meta);
+
+        var canvas = document.querySelector("#unity-canvas");
+        canvas.style.width = "100%";
+        canvas.style.height = "100%";
+        canvas.style.position = "fixed";
+
+        document.body.style.textAlign = "left";
+      }
+
+      createUnityInstance(document.querySelector("#unity-canvas"), {
+        dataUrl: "Build/VCOnline.data.gz",
+        frameworkUrl: "Build/VCOnline.framework.js.gz",
+        codeUrl: "Build/VCOnline.wasm.gz",
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "DefaultCompany",
+        productName: "DeliveryBoyUnity",
+        productVersion: "1.0",
+        // matchWebGLToCanvasSize: false, // Uncomment this to separately control WebGL canvas render size and DOM element size.
+        // devicePixelRatio: 1, // Uncomment this to override low DPI rendering on high DPI displays.
+      });
+    </script>
+  </body>
+</html>
